@@ -523,8 +523,7 @@ RailsAdmin.config do |config|
     Setup::DataType.class_hierarchy +
     Setup::Validator.class_hierarchy +
     Setup::BaseOauthProvider.class_hierarchy +
-    Setup::OauthClient.class_hierarchy +
-    Setup::Webhook.class_hierarchy
+    Setup::OauthClient.class_hierarchy
 
   config.actions do
     dashboard # mandatory
