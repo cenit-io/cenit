@@ -3324,6 +3324,9 @@ button#model-nav-xs {
   padding: 0;
   display: table;
   width: 100%;
+  li.unchanged span:before {
+    content: '  ';
+  }
 }
 
 .diff del, .diff ins {
@@ -3368,6 +3371,7 @@ button#model-nav-xs {
 .diff del, .diff ins, .diff span {
   white-space: pre-wrap;
   font-family: courier;
+  display: inline-block;
 }
 
 .diff del strong {
@@ -3453,7 +3457,7 @@ button#model-nav-xs {
       font-weight: bold;
       font-size: 15px;
     }
-    .deletions{
+    .deletions {
       color: #cb2431;
       font-weight: bold;
       font-size: 15px;
@@ -3536,4 +3540,92 @@ button#model-nav-xs {
 
 .block-diff-neutral {
   background-color: #d1d5da;
+}
+
+li.wrapped {
+  background: #f1f8ff;
+  .expand_collapse {
+    cursor: pointer;
+    color: black;
+    &:before {
+      font-family: FontAwesome;
+      content: '\f065';
+    }
+  }
+  span.count-lines {
+    font-size: 12px;
+    color: gray;
+    display: initial;
+    margin-left: 7px;
+  }
+  span.first_line {
+    display: none;
+  }
+  ul {
+    display: block;
+    height: 0;
+  }
+  &.open {
+    background: transparent;
+    padding-bottom: 0;
+    position: relative;
+    span.count-lines {
+      display: none;
+    }
+    span.first_line {
+      display: inline-block;
+      padding-left: 12px;
+    }
+    .expand_collapse {
+      position: absolute;
+      left: 8px;
+      &:before {
+        font-family: FontAwesome;
+        content: '\f066';
+      }
+    }
+    ul {
+      display: block;
+      height: auto;
+      padding: 0;
+      margin: 0 0 0 -15px;
+    }
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+ul[type="ordered"] {
+  counter-reset: ordered;
+}
+
+/* defaults to 0 */
+ul[type="ordered"] li {
+  display: block;
+}
+
+ul[type="ordered"] {
+  li {
+    &.wrapped:before {
+      background: #dbedff;
+    }
+    &.ins:before {
+      background: #cfc;
+    }
+    &.del:before {
+      background: #ffdbdb;
+    }
+    &:before {
+      counter-increment: ordered;
+      content: counter(ordered);
+      display: inline-block;
+      padding: 5px 8px;
+      background: #fafbfc;
+      margin: -5px 8px -5px -15px;
+      width: 70px;
+      text-align: center;
+      line-height: 20px;
+    }
+  }
 }
