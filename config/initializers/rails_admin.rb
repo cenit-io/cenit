@@ -238,127 +238,6 @@ RailsAdmin.config do |config|
 
   config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
 
-  config.actions do
-    dashboard # mandatory
-    # disk_usage
-    shared_collection_index
-    remote_shared_collection
-    open_api_directory
-    ecommerce_index
-    link_data_type
-    index # mandatory
-    swagger { only [Setup::ApiSpec] }
-    new
-    filters
-    data_events
-    notifications
-    flows
-    import
-    import_schema
-    import_api_spec
-    pull_import
-    translator_update
-    convert
-    export
-    bulk_delete
-    show
-    show_records
-    run
-    run_script
-    edit
-    configure
-    play
-    copy
-    share
-    simple_cross
-    bulk_cross
-    build_gem
-    pull
-    push
-    download_file
-    process_flow
-    authorize
-    simple_generate
-    bulk_generate
-    simple_expand
-    bulk_expand
-    records
-    filter_data_type
-    switch_navigation
-    render_chart
-    switch_scheduler
-    chart
-    simple_export
-    schedule
-    state
-    retry_task
-    submit
-    inspect
-    cancel
-    regist
-    reinstall
-    simple_delete_data_type
-    bulk_delete_data_type
-    collect
-    delete
-    trash
-    notebooks_root if Cenit.jupyter_notebooks
-    clean_up
-    #show_in_app
-    send_to_flow
-    delete_all
-    data_type
-    trace_index do
-      only do
-        [
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::PlainWebhook,
-          Setup::Operation,
-          Setup::Resource,
-          Setup::Translator,
-          Setup::Flow,
-          Setup::OauthClient,
-          Setup::Oauth2Scope,
-          Setup::Snippet
-        ] +
-          Setup::DataType.class_hierarchy +
-          Setup::Validator.class_hierarchy +
-          Setup::BaseOauthProvider.class_hierarchy
-      end
-    end
-    trace_show do
-      only do
-        [
-          Mongoid::Tracer::Trace,
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::PlainWebhook,
-          Setup::Operation,
-          Setup::Resource,
-          Setup::Translator,
-          Setup::Flow,
-          Setup::OauthClient,
-          Setup::Oauth2Scope,
-          Setup::Snippet
-        ] +
-          Setup::DataType.class_hierarchy +
-          Setup::Validator.class_hierarchy +
-          Setup::BaseOauthProvider.class_hierarchy
-      end
-      visible { only.include?((obj = bindings[:object]).class) && (obj.class == Mongoid::Tracer::Trace || obj.try(:tracing?)) }
-    end
-    algorithm_dependencies do
-      only do
-        Setup::Algorithm
-      end
-    end
-    rest_api1
-    rest_api2
-    documentation
-    notebooks if Cenit.jupyter_notebooks
-  end
-
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
   Setup::Tag
@@ -630,4 +509,108 @@ RailsAdmin.config do |config|
 
   # Tracing
   Mongoid::Tracer::Trace
+
+  traceable_models = [
+    Setup::Algorithm,
+    Setup::Connection,
+    Setup::PlainWebhook,
+    Setup::Resource,
+    Setup::Translator,
+    Setup::Flow,
+    Setup::Oauth2Scope,
+    Setup::Snippet
+  ] +
+    Setup::DataType.class_hierarchy +
+    Setup::Validator.class_hierarchy +
+    Setup::BaseOauthProvider.class_hierarchy +
+    Setup::OauthClient.class_hierarchy +
+    Setup::Webhook.class_hierarchy
+
+  config.actions do
+    dashboard # mandatory
+    # disk_usage
+    shared_collection_index
+    remote_shared_collection
+    open_api_directory
+    ecommerce_index
+    link_data_type
+    index # mandatory
+    swagger { only [Setup::ApiSpec] }
+    new
+    filters
+    data_events
+    notifications
+    flows
+    import
+    import_schema
+    import_api_spec
+    pull_import
+    translator_update
+    convert
+    export
+    bulk_delete
+    show
+    show_records
+    run
+    run_script
+    edit
+    configure
+    play
+    copy
+    share
+    simple_cross
+    bulk_cross
+    build_gem
+    pull
+    push
+    download_file
+    process_flow
+    authorize
+    simple_generate
+    bulk_generate
+    simple_expand
+    bulk_expand
+    records
+    filter_data_type
+    switch_navigation
+    render_chart
+    switch_scheduler
+    chart
+    simple_export
+    schedule
+    state
+    retry_task
+    submit
+    inspect
+    cancel
+    regist
+    reinstall
+    simple_delete_data_type
+    bulk_delete_data_type
+    collect
+    delete
+    trash
+    notebooks_root if Cenit.jupyter_notebooks
+    clean_up
+    #show_in_app
+    send_to_flow
+    delete_all
+    data_type
+    trace_index do
+      only { traceable_models }
+    end
+    trace_show do
+      only do
+        @traceable_models ||= traceable_models + [Mongoid::Tracer::Trace]
+      end
+      visible { only.include?((obj = bindings[:object]).class) && (obj.class == Mongoid::Tracer::Trace || obj.try(:tracing?)) }
+    end
+    algorithm_dependencies do
+      only { Setup::Algorithm }
+    end
+    rest_api1
+    rest_api2
+    documentation
+    notebooks if Cenit.jupyter_notebooks
+  end
 end

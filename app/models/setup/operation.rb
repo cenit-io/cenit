@@ -14,6 +14,8 @@ module Setup
 
     parameters :parameters, :headers
 
+    trace_references :parameters, :headers
+
     validates_presence_of :resource, :method
 
     def params_stack

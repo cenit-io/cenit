@@ -15,6 +15,8 @@ module Setup
 
     has_many :operations, class_name: Setup::Operation.to_s, inverse_of: :resource, dependent: :destroy
 
+    trace_references :operations, :parameters, :headers, :template_parameters
+
     accepts_nested_attributes_for :operations, allow_destroy: true
 
     validates_presence_of :path
