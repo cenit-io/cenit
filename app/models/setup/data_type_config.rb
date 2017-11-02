@@ -9,7 +9,7 @@ module Setup
 
     build_in_data_type
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
 
     field :navigation_link, type: Boolean
     field :chart_rendering, type: Boolean
