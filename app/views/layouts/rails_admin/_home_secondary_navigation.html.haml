@@ -1,12 +1,10 @@
 %ul.nav.navbar-nav.navbar-right.root_links
-  %button#nav-drawer-toggle.btn.a.toggle-btn
-    = content_tag :span, '', class: 'line'
-    = content_tag :span, '', class: 'line'
-    = content_tag :span, '', class: 'line'
+  %button#nav-drawer-toggle.btn.a.navbar-brand.toggle-btn
+    %i.fa.fa-fw.fa-navicon
 
 %ul#nav-drawer.drawer
   #nav-links
-    = render partial: 'rails_admin/main/secondary_links'
+    = render partial: 'layouts/rails_admin/home_secondary_links'
     = render partial: 'shared/socials'
 
 - if _current_user.present?
@@ -127,6 +125,15 @@
               %a#do-user.btn.btn-xs.pull-left{href: '#'}
                 =t('admin.registration.sign')
     = render partial: 'shared/socials'
+- unless _current_user.present?
+  - query = params[:query]
+  %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
+    %li#navbar-search
+      - shared_path = index_path(model_name: 'cross_shared_collection')
+      = form_tag(shared_path, method: :get) do
+        %input.navbar-brand{name: 'query', type: 'search', value: query, placeholder: t('admin.misc.shared_collections')}
+        %button#search-toggle.btn.a.navbar-brand.toggle-btn
+          %i.fa.fa-fw.fa-search
 %ul.nav.navbar-nav.navbar-right#home-nav
   %li.dropdown
     = link_to 'Services','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}

@@ -65,7 +65,9 @@ module RailsAdmin
                     unless (pin = bindings[:object]).nil? || pin.new_record?
                       excluded_ids.delete(pin[field])
                     end
-                    Proc.new { |scope| scope.where(:origin.ne => :default, :id.nin => excluded_ids).limit(limit) }
+                    criteria = { :id.nin => excluded_ids }
+                    criteria[:origin.ne] = :default unless associated_model_config.abstract_model.model.data_type.track_default_history
+                    Proc.new { |scope| scope.where(criteria).limit(limit) }
                   end
                 end
               end

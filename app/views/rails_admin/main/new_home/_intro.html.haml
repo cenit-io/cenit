@@ -1,86 +1,93 @@
 %section#open_ipass
-  = link_to 'https://github.com/cenit-io/cenit', class: 'fork-me-ribbon' do
-    = image_tag 'home/fork_me.png'
   .container
     .row
       .col-sm-4
-        .text-center
-          %span.rounded.first
-            = 'Free'
-        .description
-          %h1
-            ='Open Source and Free, forever'
-          %p
-            = 'Cenit IO is open source, so there\'s no risk of getting locked in. You can download and run your projects anywhere.'
-          %p
-            = 'You can shared your integrations and also use pre-built integrations for many populars cloud applications.'
+        .intro-box
+          .text-center
+            = link_to (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com'), title:"Join us!",target: '_blank' do
+              %span.rounded.first
+                = 'Free'
+          .description
+            %h1
+              ='Be in Community'
+            %p
+              = 'Thank you for'
+              = link_to (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com'), title:"#{User.all.count/5 * 5}" do
+                %i.fa.fa-slack
+                =" joining us!"
+              = 'Cenit IO is <strong>Open Source</strong> and <strong>Free</strong>,'.html_safe
+              = 'and the right place to launch your own server and use pre-built integrations for many populars cloud applications.'
+            .extra
+              %h4.text-muted
+                - if current_user
+                  - users = tenant_users
+                - else
+                  - users = recent_users
+              %ul.list-inline.list-unstyled
+                - users.each do |u|
+                  - url = u.picture_url(50)
+                  - alt = (u.email.split('@'))[0]
+                  - title = u.name.present? ? u.name : alt
+                  %li
+                    = image_tag url, alt: alt, title: title, class: 'img-circle', height: 30, width: 30
       .col-sm-4
-        .text-center
-          %span.rounded.second.active
-            ='iPaaS'
-        .description
-          %h1
-            ='The easiest iPaaS platform'
-          %p
-            ='Cenit IO is the easiest and most open iPaaS platform to '
-            %strong
-              ='connect'
-            ='your applications,'
-            %strong
-              ='synchronize data'
-            ='and'
-            %strong
-              ='automate'
-            ='processes. Intuitive wizards and tools make it fast and easy to integrate anything to anything'
+        .intro-box
+          .text-center
+            = link_to 'integrations/dashboard', title:"Explore Cenit IO",target: '_blank'  do
+              %span.rounded.second.active
+                ='iPaaS'
+          .description
+            %h1
+              ='Integration Platform Services'
+            %p
+              ='Cenit IO is the easiest and most open iPaaS platform to '
+              %strong
+                ='connect'
+              ='your applications,'
+              %strong
+                ='synchronize data'
+              ='and'
+              %strong
+                ='automate'
+              ='processes. Intuitive wizards and tools make it fast and easy.'
+            .extra
+              %ul.list-inline.list-unstyled.steps
+                - apps = [{name: 'Data',icon: 'fa-cube', link: '/data/dashboard'},
+                {name: 'Events',icon: 'fa-bolt', link: '/observer'},
+                {name: 'Transformations',icon: 'fa-random', link: '/transforms/dashboard'},
+                {name: 'Connections',icon: 'fa-plug', link: '/connectors/dashboard'}]
+                - apps.each do |a|
+                  - icon = a[:icon]
+                  - title = a[:name]
+                  %li
+                    = link_to a[:link], title: title, target: '_blank' do
+                      %i{class: "fa #{icon}"}
       .col-sm-4
-        .text-center
-          %span.rounded.third
-            ='500+'
-        .description
-          %h1
-            ='Hundreds of Integrations'
-          %p
-            = 'Cenit supports over 500 services and counting. Integrations are driven by open standards like RSS, Open API, and RAML, so you can add your own too.'
-    .row.hidden
-      .col-md-offset-1.col-md-10.no-padding-vert
-        .col-sm-6.hidden-xs
-          %h4.text-muted
-            - if current_user
-              = "#{current_user.account.name.split('@')[0]} tenant"
-              - users = tenant_users
-            - else
-              = t('admin.actions.dashboard.recent_users.title')
-              - users = recent_users
-          %ul.list-inline.list-unstyled
-            - users.each do |u|
-              - url = u.picture_url(50)
-              - alt = (u.email.split('@'))[0]
-              - title = u.name.present? ? u.name : alt
-              %li
-                = image_tag url, alt: alt, title: title, class: 'img-circle', height: 50, width: 50
-          - if current_user
-            = pluralize(current_user.account.users.count, 'member')
-          - else
-            %span.text-muted
-              = t('admin.actions.dashboard.recent_users.more', count: (User.all.count/5 * 5))
-              - if (false || ENV['SHOW_SLACK_BADGE'])
-                = link_to 'Be in community', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-                %iframe{ frameborder: "0", height: "20", src: "https://cenit-slack.herokuapp.com/badge.svg", width: "100", :style => 'margin-left: 5px' }
-              - else
-                Be in community
-                = link_to 'Join our Slack', (ENV['SLACK_INVITATION'] || 'https://cenit-slack.herokuapp.com')
-        .col-sm-6.tenants.hidden-xs.text-center
-          %h4.text-muted{style:'margin-top: 10px;'}
-            - if current_user
-              = link_to(pluralize(current_user.all_accounts.count, 'tenant'), index_path(model_name: 'account'))
-            - else
-              = pluralize(Account.count, 'tenant')
-          %ul.list-inline.list-unstyled{style: 'margin-left: -11px;'}
-            %li
-              .block
-                .icon
-                  %i.fa.fa-fw.fa-home{style: 'font-size: 40px;'}
-                .icon{style: 'margin-left: -20px;'}
-                  %i.fa.fa-fw.fa-home{style: 'font-size: 24px;'}
-          %span.text-muted
-            = link_to(t('admin.misc.add_tenant'), new_path(model_name: 'account'))
+        .intro-box
+          .text-center
+            = link_to 'integrations/dashboard', title:"Explore our Shared Collections", target: '_blank'  do
+              %span.rounded.third
+                ='400+'
+          .description
+            %h1
+              ='Hundreds of Integrations'
+            %p
+              = 'Cenit IO has hundreds of integrations or'
+              = link_to 'shared collections','/shared collections',target: '_blank'
+              ='created by our community, that covers almost every popular'
+              = link_to 'APIs','/open_api_directory', title: 'API specs supplied by APIs.guru',target: '_blank'
+              ='and is a great tool to create your own integration from scratch.'
+            .extra
+              %ul.list-inline.list-unstyled
+                -#TODO:Change link to collection name not id
+                - apps = [{name: 'Gmail',src: 'google_gmail.png', link: 'https://cenit.io/cross_shared_collection/57b62751ad981536c10001f1'},
+                {name: 'Magento',src: 'magento.png', link: 'https://cenit.io/cross_shared_collection/5894da1925d9852e820032d0'},
+                {name: 'Slack',src: 'slack.png', link:'https://cenit.io/cross_shared_collection/58dabd5425d985690c000155'},
+                {name: 'Trello',src: 'trello.png', link: 'https://cenit.io/cross_shared_collection/57b1ee9cad9815587a000562'}]
+                - apps.each do |a|
+                  - url = a[:src]
+                  - alt = a[:name]
+                  - title = a[:name]
+                  %li
+                    = link_to a[:link], title: title do
+                      = image_tag "home/integrations/examples/#{url}", alt: alt, height: 30, width: 30

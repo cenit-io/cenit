@@ -4,9 +4,10 @@
       .header
         .col-md-12
           %h3
-            ='Begin and continue free if you want'
+            ='Pricing Plans Alternative'
           %p
-            ='Only pay extra options if you need'
+            ='Choose the pricing that fits your business needs. Questions?'
+            = link_to 'Contact us', '#',class: 'contact-modal'
       .row.charts
         .col-md-4
           .chart.first
@@ -28,8 +29,8 @@
                 %span.variable
                   ='Unlimited'
                 ='data exchange'
-              =link_to '#', class:'btn' do
-                %span='Start free'
+            =link_to '#', class:'button go-sign-in' do
+              %span='Start free'
         .col-md-4
           .chart.featured
             = image_tag 'home/ribbon.png', class: 'popular', title: 'Extra Options'
@@ -54,8 +55,8 @@
                 %span.variable
                   ='Unlimited'
                 ='data exchange'
-              =link_to '#', class:'btn' do
-                %span='Start'
+            =link_to '#', class:'button go-sign-in' do
+              %span='Start'
         .col-md-4
           .chart.last
             .plan-name
@@ -77,5 +78,5 @@
                 %span.variable
                   ='Development'
                 ='services'
-              =link_to '#', class:'btn contact-modal' do
-                %span='Contact us'
+            =link_to '#', class:'button contact-modal' do
+              %span='Contact us'

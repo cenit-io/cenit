@@ -191,6 +191,13 @@ module RailsAdmin
               icon: 'fa fa-puzzle-piece',
               externals: ['Setup::CrossSharedCollection'],
               sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+            },
+            {
+              param: 'security',
+              label: 'Security',
+              icon: 'fa fa-shield',
+              externals: [],
+              sublinks: %w(Setup::RemoteOauthClient Setup::OauthProvider Setup::Oauth2Provider)
             }
           ]
           ecommerce_models = []
@@ -306,7 +313,25 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    #history_index
+    history_index do
+      only do
+        [
+          Setup::Algorithm,
+          Setup::Connection,
+          Setup::PlainWebhook,
+          Setup::Operation,
+          Setup::Resource,
+          Setup::Translator,
+          Setup::Flow,
+          Setup::OauthClient,
+          Setup::Oauth2Scope,
+          Setup::Snippet
+        ] +
+          Setup::DataType.class_hierarchy +
+          Setup::Validator.class_hierarchy +
+          Setup::BaseOauthProvider.class_hierarchy
+      end
+    end
     history_show do
       only do
         [
@@ -325,7 +350,7 @@ RailsAdmin.config do |config|
           Setup::Validator.class_hierarchy +
           Setup::BaseOauthProvider.class_hierarchy
       end
-      visible { only.include?((obj = bindings[:object]).class) && obj.try(:shared?) }
+      visible { only.include?((obj = bindings[:object]).class) && obj.try(:track_history?) }
     end
     algorithm_dependencies do
       only do

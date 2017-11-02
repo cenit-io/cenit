@@ -1,4 +1,16 @@
 %ul.nav.navbar-nav.movil_links
+  %li.visible-custom
+    = link_to '#' ,class:'scroll', data: {link: 'subdomains'} do
+      %i.fa.fa-fw.fa-laptop{title:'Services'}
+      %span='Services'
+  %li.visible-custom
+    = link_to '#' ,class:'scroll', data: {link: 'integrations'} do
+      %i.fa.fa-fw.fa-puzzle-piece{title:'App Integrations'}
+      %span='App Integrations'
+  %li.visible-custom
+    = link_to '#' ,class:'scroll', data: {link: 'features'} do
+      %i.fa.fa-fw.fa-star{title:'Features'}
+      %span='Features'
   - if _current_user.present?
     %li.dropdown
       %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}

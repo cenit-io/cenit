@@ -1,3 +1,15 @@
+%li.visible-custom
+  = link_to '#' ,class:'scroll', data: {link: 'subdomains'} do
+    %i.fa.fa-fw.fa-laptop{title:'Services'}
+    %span='Services'
+%li.visible-custom
+  = link_to '#' ,class:'scroll', data: {link: 'integrations'} do
+    %i.fa.fa-fw.fa-puzzle-piece{title:'App Integrations'}
+    %span='App Integrations'
+%li.visible-custom
+  = link_to '#' ,class:'scroll', data: {link: 'features'} do
+    %i.fa.fa-fw.fa-star{title:'Features'}
+    %span='Features'
 %li.first
   - anonymous = current_user ? 'false' : 'true'
   - dashboard_root = @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
