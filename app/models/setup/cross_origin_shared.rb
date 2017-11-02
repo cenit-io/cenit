@@ -7,7 +7,7 @@ module Setup
     include Mongoid::Userstamp
     include Mongoid::Tracer
 
-    TRACING_IGNORE_ATTRIBUTES = [:created_at, :updated_at, :creator_id, :updater_id, :tenant_id, :origin]
+    TRACING_IGNORE_ATTRIBUTES = [:created_at, :updated_at, :creator_id, :updater_id, :tenant_id, :origin, :_type]
 
     included do
       origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
