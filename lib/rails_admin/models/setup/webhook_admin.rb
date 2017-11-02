@@ -12,7 +12,7 @@ module RailsAdmin
 
             configure :namespace
             configure :path
-            configure :method
+            # configure :method
             configure :description
             configure :_type do
               label 'Type'
@@ -21,7 +21,7 @@ module RailsAdmin
               end
             end
 
-            fields :namespace, :path, :method, :description, :_type, :updated_at
+            fields :namespace, :path, :description, :_type, :updated_at
           end
         end
 
