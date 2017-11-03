@@ -7,15 +7,16 @@
 @import "rails_admin/custom/rest-api";
 @import "rails_admin/custom/highlight-dracula";
 @import "rails_admin/custom/foreign-notification";
+@import "rails_admin/custom/flexslider";
+@import "rails_admin/custom/owl_carousel/owl.carousel";
+@import "rails_admin/custom/owl_carousel/owl.theme";
+@import "rails_admin/custom/owl_carousel/owl.transitions";
+@import "rails_admin/custom/home/home_page";
 @import "horsey";
 
 /*Theming variables*/
 
 $link_color: rgb(66, 139, 202);
-
-body.rails_admin {
-  padding-top: 55px !important;
-}
 
 h3, .h3 {
   .nav-caption {
@@ -27,6 +28,11 @@ h3, .h3 {
   max-height: 100%;
   width: auto;
   padding-bottom: 4px;
+}
+
+.navbar-btn {
+  margin-top: 6px;
+  margin-bottom: 0;
 }
 
 ul#main-accordion {
@@ -247,6 +253,8 @@ ul.drawer li a span {
   padding-left: 55px;
   transition: all 0.5s ease;
   overflow: hidden;
+  height: 100vh;
+  position: relative;
 }
 
 #wrapper.toggled {
@@ -285,13 +293,13 @@ ul.drawer li a span {
   position: fixed;
   left: 250px;
   width: 55px;
-  margin-top: -2px;
+  top: 51px;
   height: calc(100% - 50px);
   margin-left: -250px;
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.5s ease;
-  background: #ffffff !important;
+  background: #3d4046 !important;
   border-right: none;
 }
 
@@ -333,6 +341,13 @@ ul.drawer li a span {
   height: calc(100% - 50px);
 }
 
+body.rails_admin .sidebar-nav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
 .xyz {
   min-width: 360px;
 }
@@ -345,12 +360,11 @@ ul.drawer li a span {
 
 .sidebar-nav {
   position: absolute !important;
-  top: 0 !important;
   width: 250px;
   padding: 0;
   list-style: none;
-  margin: 2px 0 83px;
   overflow-y: auto !important;
+  margin-bottom: 84px;
 }
 
 @media screen and (max-width: 280px) {
@@ -374,7 +388,7 @@ span.subdomain_link {
   color: white;
   font-size: 18px;
   padding-right: 5px;
-  line-height: 22px;
+  line-height: 20px;
   i {
     font-size: 14px;
     margin-left: 5px;
@@ -383,9 +397,8 @@ span.subdomain_link {
 
 div#subdomain-toggle {
   cursor: pointer;
-  padding-left: 5px;
   float: left;
-  padding: 15px 0;
+  padding: 15px 0 14px 5px;
 
   i.fa {
     //transition: all 0.5s ease;
@@ -1714,7 +1727,6 @@ p.filter.form-search {
   width: 100%;
   height: 60px;
   background-color: #f5f5f5;
-
   .social-footer {
     padding-top: 20px;
   }
@@ -1747,7 +1759,27 @@ div#subdomain-panel {
     display: none;
   }
   #primary_dashboard {
-    margin: 25px 0 0;
+    margin: 15px 0 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .navbar-nav > li > a {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
+#nav-drawer-toggle {
+  i {
+    position: relative;
+    top: -2px;
+  }
+  &:hover {
+    i {
+      position: relative;
+      top: -1px;
+    }
   }
 }
 
@@ -1957,11 +1989,8 @@ section#welcome_users {
 }
 
 #home_content {
-  @media(min-width: 768px) {
-    margin-top: 47px;
-  }
   @media(min-width: 992px) {
-    margin-top: 0;
+    margin-top: 50px;
   }
 
 }
@@ -2705,7 +2734,7 @@ footer {
   .menu {
     @media(max-width: 767px) {
       text-align: center;
-      margin-top: 40px;
+      margin-top: 10px;
     }
 
     h3 {
@@ -2723,7 +2752,13 @@ footer {
       margin-top: 30px;
 
       li {
-        display: block;
+        display: inline-block;
+        margin-right: 15px;
+
+        @media(min-width: 768px) {
+          display: block;
+          margin-right: 0;
+        }
         margin-bottom: 9px;
 
         a {
@@ -2732,6 +2767,13 @@ footer {
           font-weight: 500;
           font-size: 13px;
           @include transition(all 0.2s linear);
+
+          i {
+            margin-right: 10px;
+            width: 18px;
+            font-size: 18px;
+            text-align: center;
+          }
 
           &:hover {
             color: #1FBEE7;
@@ -3173,6 +3215,13 @@ button#model-nav-xs {
   }
 }
 
+@media (min-width: 320px) {
+  /* add clearfix in the grid system */
+  .row.add-clearfix > .col-xs-6:nth-child(2n+1) {
+    clear: both;
+  }
+}
+
 @media (min-width: 480px) {
   /* add clearfix in the grid system */
   .row.add-clearfix > .col-sms-2:nth-child(2n+1) {
@@ -3337,4 +3386,11 @@ button#model-nav-xs {
 .toggle-boolean {
   margin: 0 7px;
   cursor: pointer;
+}
+
+.xs-menu .navbar-nav > li > a {
+  font-size: 18px;
+  i {
+    color: #f89427;
+  }
 }

@@ -1,0 +1,82 @@
+%section#pricing.gray
+  #first-option
+    .container
+      .header
+        .col-md-12
+          %h3
+            ='Pricing Plans Alternative'
+          %p
+            ='Choose the pricing that fits your business needs. Questions?'
+            = link_to 'Contact us', '#',class: 'contact-modal'
+      .row.charts
+        .col-md-4
+          .chart.first
+            .plan-name
+              ='Free'
+            .specs
+              .spec
+                %span.variable
+                  ='Unlimited'
+                ='team members'
+              .spec
+                %span.variable
+                  ='Shared Collections'
+              .spec
+                %span.variable
+                  ='5 GB'
+                ='data integrator tool'
+              .spec
+                %span.variable
+                  ='Unlimited'
+                ='data exchange'
+            =link_to '#', class:'button go-sign-in' do
+              %span='Start free'
+        .col-md-4
+          .chart.featured
+            = image_tag 'home/ribbon.png', class: 'popular', title: 'Extra Options'
+            %span.ribbon-text
+              ='Extra Options'
+            .plan-name
+              ='Variable'
+            .specs
+              .spec
+                %span.variable
+                  ='Included'
+                ='free options'
+              .spec
+                %span.variable
+                  ='$10 x GB'
+                ='over 5 GB in data integrator tool'
+              .spec
+                %span.variable
+                  ='$0.5 per'
+                ='commercial transaction'
+              .spec
+                %span.variable
+                  ='Unlimited'
+                ='data exchange'
+            =link_to '#', class:'button go-sign-in' do
+              %span='Start'
+        .col-md-4
+          .chart.last
+            .plan-name
+              ='Custom Enterprise'
+            .specs
+              .spec
+                %span.variable
+                  ='Unlimited'
+                ='tenants'
+              .spec
+                %span.variable
+                  ='SaaS'
+                ='management'
+              .spec
+                %span.variable
+                  ='Custom'
+                ='integrations'
+              .spec
+                %span.variable
+                  ='Development'
+                ='services'
+            =link_to '#', class:'button contact-modal' do
+              %span='Contact us'
