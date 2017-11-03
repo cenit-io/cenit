@@ -80,10 +80,10 @@
             .extra
               %ul.list-inline.list-unstyled
                 -#TODO:Change link to collection name not id
-                - apps = [{name: 'Gmail',src: 'google_gmail.png', link: 'https://cenit.io/cross_shared_collection/57b62751ad981536c10001f1'},
-                {name: 'Magento',src: 'magento.png', link: 'https://cenit.io/cross_shared_collection/5894da1925d9852e820032d0'},
-                {name: 'Slack',src: 'slack.png', link:'https://cenit.io/cross_shared_collection/58dabd5425d985690c000155'},
-                {name: 'Trello',src: 'trello.png', link: 'https://cenit.io/cross_shared_collection/57b1ee9cad9815587a000562'}]
+                - apps = [{name: 'Gmail',src: 'google_gmail.png', link: 'https://cenit.io/cross_shared_collection?query=gmail'},
+                {name: 'Magento',src: 'magento.png', link: 'https://cenit.io/cross_shared_collection?query=magento'},
+                {name: 'Slack',src: 'slack.png', link:'https://cenit.io/cross_shared_collection?query=slack'},
+                {name: 'Trello',src: 'trello.png', link: 'https://cenit.io/cross_shared_collection?query=trello'}]
                 - apps.each do |a|
                   - url = a[:src]
                   - alt = a[:name]
