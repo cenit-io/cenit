@@ -1,0 +1,30 @@
+<!-- HEADER -->
+= render partial: 'rails_admin/main/new_home/header'
+<!-- CONTENT -->
+%main#home_content
+  = render partial: 'rails_admin/main/new_home/sliders'
+  <!-- INTRO -->
+  = render partial: 'rails_admin/main/new_home/intro'
+  <!-- SUBDOMAINS -->
+  = render partial: 'rails_admin/main/new_home/subdomains'
+  <!-- SERVICES -->
+  = render partial: 'rails_admin/main/new_home/services'
+  - if (ENV['PUBLIC_APIS'] || true)
+    <!-- APP INETGRATIONS -->
+    = render partial: 'rails_admin/main/new_home/app_integrations'
+  <!-- SEARCH APPS -->
+  = render partial: 'rails_admin/main/new_home/search_apps'
+  <!-- FEATURES-->
+  = render partial: 'rails_admin/main/new_home/features'
+  - if (ENV['SHOW_PRICES'] || false)
+    <!-- PRICING-->
+    = render partial: 'rails_admin/main/new_home/pricing'
+  - if (ENV['SHOW_PAYMENT_OPTIONS'] || false)
+    <!-- PAYMENT OPTIONS-->
+    = render partial: 'rails_admin/main/new_home/payment_options'
+  <!-- FOOTER-->
+  = render partial: 'rails_admin/main/footer'
+
+<!-- GO UP ARROW-->
+= link_to '', id: 'go-up',class:'from-bottom scroll', data: {link: 'top'} do
+  %i.fa.fa-arrow-up

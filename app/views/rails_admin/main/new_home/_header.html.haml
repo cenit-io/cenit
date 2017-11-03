@@ -1,0 +1,35 @@
+%header.navbar.navbar-fixed-top{role: 'banner', id: 'home_nav_bar'}
+  .container-fluid.hidden-xs
+    .navbar-header
+      %button.navbar-toggle{type: 'button','data-toggle': 'collapse', data: {target: '.bs-navbar-collapse'}}
+        = content_tag :span, '', class: 'icon-bar'
+        = content_tag :span, '', class: 'icon-bar'
+        = content_tag :span, '', class: 'icon-bar'
+      = link_to dashboard_path, class: "navbar-brand" do
+        = content_tag :span, class: 'cenit-logo' do
+          = image_tag 'cenit-logo.png', class: 'img-responsive'
+        = content_tag :span,'Cenit IO',class: 'cenit-hub'
+      #subdomain-toggle.hidden-xs
+        %span.subdomain_link
+          %i.fa.fa-chevron-down{style: 'color: white;'}
+    = render partial: 'layouts/rails_admin/home_secondary_navigation'
+    #subdomain-panel.collapsed
+      = dashboard_primary
+  .container-fluid.visible-xs
+    .navbar-header
+      %button.navbar-toggle.toogle.visible-xs#secondary-nav-xs{ type: 'button', data: { toggle: 'collapse', target: '#secondary-navigation-xs' } }
+        %span.sr-only= t('admin.toggle_navigation')
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+      %button.navbar-toggle.toogle.visible-xs#model-nav-xs{ type: 'button', data: { toggle: 'collapse', target: '#models-navigation-xs' } }
+        %span.icon-chevron-down
+      = link_to dashboard_path, class: "navbar-brand" do
+        %span.cenit-logo
+          =image_tag 'cenit-logo.png'
+        %span.cenit-hub
+          = "Cenit IO"
+    .collapse.navbar-collapse#secondary-navigation-xs.xs-menu
+      = render partial: 'layouts/rails_admin/home_secondary_nav_xs'
+    .collapse.navbar-collapse#models-navigation-xs.xs-menu
+      = dashboard_primary_xs

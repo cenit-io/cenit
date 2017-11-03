@@ -22,23 +22,26 @@
       ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
       ga('send', 'pageview');
 
-  %body.rails_admin
-    #loading.label.label-warning{style: 'display:none; position:fixed; right:20px; bottom:20px; z-index:100000'}= t('admin.loading')
-    %nav.navbar.navbar-default.navbar-fixed-top
-      = render "layouts/rails_admin/navigation"
-    - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-    - if dashboard_root
-      .container-fluid#home_content
-        .row
-          = yield
-    - else
+
+  - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+  - if dashboard_root
+    %body#home_page
+      = yield
+  - else
+    %body.rails_admin
+      #loading.label.label-warning{style: 'display:none; position:fixed; right:20px; bottom:20px; z-index:100000'}= t('admin.loading')
+      %nav.navbar.navbar-default.navbar-fixed-top
+        = render "layouts/rails_admin/navigation"
       #wrapper
-        #sidebar-wrapper
-          = render "layouts/rails_admin/sidebar_navigation"
-        #content-wrapper
-          .xyz
-            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-    - if TourTrack.show_tour?(request.remote_ip, User.current)
-      :javascript
-        initializeTour();
-    = render partial: 'contact_us'
+        - if Cenit.hide_admin_navigation
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+        - else
+          #sidebar-wrapper
+            = render "layouts/rails_admin/sidebar_navigation"
+          #content-wrapper
+            .xyz
+              .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+  - if TourTrack.show_tour?(request.remote_ip, User.current)
+    :javascript
+      initializeTour();
+  = render partial: 'contact_us'
