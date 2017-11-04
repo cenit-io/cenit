@@ -40,7 +40,7 @@ module Setup
       (shared? || self.class.data_type.trace_by_default) && super
     end
 
-    def trace_action_attributes
+    def trace_action_attributes(action = nil)
       attrs = super
       attrs[:origin] = origin
       attrs
