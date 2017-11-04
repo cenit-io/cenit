@@ -3,12 +3,6 @@ require 'mongoid/tracer/trace'
 module Mongoid
   module Tracer
 
-    def trace_scope
-      target_id = id
-      proc { |scope| scope.where(target_id: target_id) }
-    end
-
-
     class Trace
       include Setup::CenitUnscoped
       include CrossOrigin::Document
@@ -61,6 +55,8 @@ module Mongoid
         configure :attributes_trace, :json_value
 
         fields :target, :action, :attributes_trace, :created_at
+
+        filter_fields :target_id, :action, :attributes_trace, :created_at
       end
     end
   end

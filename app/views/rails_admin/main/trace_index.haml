@@ -24,14 +24,14 @@
             %nav
               %ul.pager
                 - if (previous = @trace.previous)
-                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: previous.id))
+                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: previous.id))
                   %li
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       %i.fa.fa-angle-left
                       ='Previous'
                 - if (next_trace = @trace.next)
                   %li
-                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: @object.id, trace_id: next_trace.id))
+                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: next_trace.id))
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       ='Next'
                       %i.fa.fa-angle-right

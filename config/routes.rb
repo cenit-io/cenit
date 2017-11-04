@@ -94,7 +94,7 @@ Cenit::Application.routes.draw do
 
   match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
 
-  get '/:model_name/:id/trace/:trace_id', to: 'rails_admin/main#trace_show'
+  get '/:model_name/trace/:trace_id', to: 'rails_admin/main#trace_index'
   get '/:model_name/*id', to: 'rails_admin/main#show'
 
   namespace :contact_us do
