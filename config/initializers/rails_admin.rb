@@ -183,7 +183,7 @@ module RailsAdmin
             {
               param: 'compute',
               label: 'Compute',
-              icon: 'fa fa-cogs',
+              icon: 'fa fa-cog',
               externals: ['Setup::Notebook'],
               sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
             },
@@ -193,6 +193,13 @@ module RailsAdmin
               icon: 'fa fa-puzzle-piece',
               externals: ['Setup::CrossSharedCollection'],
               sublinks: %w(Setup::Collection Setup::CrossSharedCollection)
+            },
+            {
+              param: 'security',
+              label: 'Security',
+              icon: 'fa fa-shield',
+              externals: [],
+              sublinks: %w(Setup::RemoteOauthClient Setup::OauthProvider Setup::Oauth2Provider)
             }
           ]
           ecommerce_models = []

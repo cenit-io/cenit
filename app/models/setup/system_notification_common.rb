@@ -5,7 +5,7 @@ module Setup
     include Setup::AttachmentUploader
 
     included do
-      default_scope -> { desc(:created_at) }
+      default_scope -> { desc(:_id) }
     end
 
     module ClassMethods

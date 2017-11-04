@@ -24,8 +24,13 @@ module Setup
 
     module ClassMethods
 
+      def parameters_relations_names
+        @parameters_relations_names || (superclass < Parameters && superclass.parameters_relations_names) || []
+      end
+
       def parameters(*relation_names)
         relation_names = relation_names.collect(&:to_s)
+        @parameters_relations_names = [parameters_relations_names, relation_names].flatten.compact
         relation_names.each do |relation_name|
           inverse_name = "#{relation_name}_#{to_s.split('::').last.underscore}"
           has_many relation_name, class_name: Setup::Parameter.to_s, inverse_of: inverse_name, dependent: :destroy
@@ -38,7 +43,7 @@ module Setup
         accepts_nested_attributes_for *relation_names, allow_destroy: true
         shared_configurable *relation_names if include?(Setup::SharedConfigurable)
         before_save do
-          relation_names.each do |relation_name|
+          self.class.parameters_relations_names.each do |relation_name|
             send(relation_name).group_by { |p| p.key }.each do |key, parameters|
               if parameters.size > 1
                 errors.add(relation_name, "have multiple definitions with the same name: #{key}")
@@ -48,7 +53,7 @@ module Setup
           errors.blank?
         end
         changed_if do
-          relation_names.any? do |relation_name|
+          self.class.parameters_relations_names.any? do |relation_name|
             send(relation_name).any? { |p| p.changed? }
           end
         end

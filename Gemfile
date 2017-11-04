@@ -129,5 +129,8 @@ gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
 
 gem 'aws-sdk', '~> 2.10.13'
 
+gem 'net-scp'
+gem 'net-sftp'
+
 gem 'mongoid-tracer', path: '../mongoid-tracer'
 gem 'diffy'

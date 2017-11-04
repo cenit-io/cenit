@@ -79,7 +79,7 @@ en:
         title: "Dashboard"
         recent_users:
           title: 'Thank you for joining us!'
-          more: "+%{count} users."
+          more: "+ %{count} users."
         tenant_users:
           title: "Only you in this tenant"
         your_tenants:

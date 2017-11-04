@@ -32,7 +32,7 @@ module RailsAdmin
 
             fields :resource, :method, :description, :parameters
 
-            filter_fields :none
+            filter_query_fields :none
           end
         end
 

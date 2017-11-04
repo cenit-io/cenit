@@ -1,0 +1,14 @@
+%section#slides.hidden-xs.hidden-sm
+  #hero
+    = link_to 'Prev','#', class: 'slide-nav prev'
+    = link_to 'Next','#', class: 'slide-nav next'
+    %nav
+      =link_to '', '#', class: 'active'
+      =link_to '', '#'
+      =link_to '', '#'
+    .slides
+      = render partial: 'rails_admin/main/new_home/sliders/slide2'
+      = render partial: 'rails_admin/main/new_home/sliders/slide3'
+      = render partial: 'rails_admin/main/new_home/sliders/slide1'
+
+

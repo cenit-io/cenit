@@ -39,7 +39,7 @@
         %hr
 
 .model-tr
-  - js_data = { xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, current_action: current_action, compact: true) }
+  - js_data = { suffix_name: field.name.to_s + '_data_type_selector',xhr: true, remote_source: index_path(config.abstract_model.to_param, source_object_id: form.object.id, source_abstract_model: source_abstract_model.to_param, current_action: current_action, compact: true) }
   %table
     %tr.scope
       %td
