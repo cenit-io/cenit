@@ -17,7 +17,17 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            redirect_to url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, trace_id: @object.id))
+            url_opts = {
+              action: :trace_index,
+              controller: 'rails_admin/main',
+              model: @abstract_model.to_param
+            }
+            if @object.is_a?(Mongoid::Tracer::Trace)
+              url_opts[:trace_id] = @object.id
+            else
+              url_opts[:f] = { target_id: { a: { v: @object.id.to_s } } }
+            end
+            redirect_to url_for(url_opts)
           end
         end
 

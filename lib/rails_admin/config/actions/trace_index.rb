@@ -27,6 +27,17 @@ module RailsAdmin
               else
                 flash[:error] = "Trace with ID #{trace_id} not found"
               end
+            elsif (f = params[:f]) && (f = f[:target_id])
+              target_id_field = @model_config._fields.detect { |field| field.name == :_id }
+              f.each do |_, condition|
+                if condition.is_a?(Hash)
+                  condition.each do |op, values|
+                    if op == 'v'
+                      condition[op] = target_id_field.parse_value(values)
+                    end
+                  end
+                end
+              end
             end
 
             unless @trace

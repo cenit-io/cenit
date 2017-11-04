@@ -36,6 +36,8 @@ module Mongoid
 
       rails_admin do
 
+        configure :target_id, :json_value
+
         configure :target, :record do
           visible do
             bindings[:controller].action_name == 'trace_index'
@@ -52,7 +54,9 @@ module Mongoid
           end
         end
 
-        configure :attributes_trace, :json_value
+        configure :attributes_trace, :json_value do
+          label 'Target ID'
+        end
 
         fields :target, :action, :attributes_trace, :created_at
 
