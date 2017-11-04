@@ -113,7 +113,7 @@ module RailsAdmin
                           %(#{diffstat(0, 1)}<label class="label label-danger">Destroyed</label>)
                         end
                       else
-                        diff = incremental_build_diff(related_abstract_model, item.except('_id'))
+                        diff = incremental_build_diff(related_abstract_model, item)
                         additions += diff[:additions]
                         deletions += diff[:deletions]
                         diff[:html]
@@ -124,7 +124,11 @@ module RailsAdmin
                   first = true
                   lies = values.collect do |item|
                     id = item['_id'][1] || item['_id'][0]
-                    li = %(<li class='#{first && 'active'}'><a data-toggle="tab" title="#{related_model_config.label} ##{id}" href="#unique_id_#{id}">#{related_model_config.label} ##{id}</a></li>)
+                    li = %(<li class='#{first && 'active'}'>
+                            <a data-toggle="tab" title="#{related_model_config.label} ##{id}" href="#unique_id_#{id}">
+                              #{item['_id'][1].nil? ? '<label class="label label-danger">Destroyed</label>' : related_model_config.label + ' #' + id}
+                            </a>
+                          </li>)
                     first = nil
                     li
                   end.join
