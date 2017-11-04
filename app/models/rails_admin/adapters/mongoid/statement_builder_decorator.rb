@@ -18,6 +18,8 @@ module RailsAdmin
             build_statement_for_enum
           when :belongs_to_association, :bson_object_id
             build_statement_for_belongs_to_association_or_bson_object_id
+          when :json_value
+            column_for_value(@value)
           else
             begin
               if RailsAdmin::Config::Fields::Types.load(@type) < RailsAdmin::Config::Fields::Types::Text

@@ -30,7 +30,7 @@ module RailsAdmin
         options[:label] = field.label
         options[:name]  = field.name
         options[:type]  = field.filter_type
-        options[:value] = filter_hash['v']
+        options[:value] = filter_hash['v'].to_s #Patch Better String when value is a BSON::ObjectId foe instead
         options[:label] = field.label
         options[:operator] = filter_hash['o']
         %{$.filters.append(#{options.to_json});}
