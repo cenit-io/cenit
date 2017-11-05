@@ -69,7 +69,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::OpenApiDirectory,
   RailsAdmin::Config::Actions::Collect,
   RailsAdmin::Config::Actions::TraceShow,
-  RailsAdmin::Config::Actions::TraceIndex
+  RailsAdmin::Config::Actions::TraceIndex,
+  RailsAdmin::Config::Actions::DataTypeConfig
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -557,6 +558,7 @@ RailsAdmin.config do |config|
     bulk_delete
     show
     show_records
+    data_type_config
     run
     run_script
     edit

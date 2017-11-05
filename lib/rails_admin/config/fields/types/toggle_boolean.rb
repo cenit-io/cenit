@@ -4,6 +4,10 @@ module RailsAdmin
       module Types
         class ToggleBoolean < RailsAdmin::Config::Fields::Types::Boolean
 
+          register_instance_option :compact_show_view do
+            false
+          end
+
           register_instance_option :pretty_value do
             if User.current && !read_only? && (api_path = @abstract_model.api_path)
               %(<span class='toggle-boolean' data-url='#{Cenit.homepage}/api/v2/#{api_path}/#{bindings[:object].id}' data-field='#{name}' data-value='#{value}'></span>)

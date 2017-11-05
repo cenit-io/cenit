@@ -13,7 +13,7 @@ module Setup
 
     field :navigation_link, type: Boolean
     field :chart_rendering, type: Boolean
-    field :trace_by_default, type: Boolean
+    field :trace_on_default, type: Boolean
 
     attr_readonly :data_type
 
@@ -26,7 +26,7 @@ module Setup
 
     class << self
       def config_fields
-        %w(slug navigation_link chart_rendering trace_by_default)
+        %w(slug navigation_link chart_rendering trace_on_default)
       end
     end
 

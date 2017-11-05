@@ -562,6 +562,10 @@ en:
         title: "Trace"
         menu: "Trace"
         breadcrumb: "Trace"
+      data_type_config:
+        title: "Configure"
+        menu: "Configure"
+        breadcrumb: "Configure"
     form:
       flow:
         source_data_type: 'Source data type'

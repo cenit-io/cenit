@@ -8,7 +8,7 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :id_type, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
 
-    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy, :switch_navigation, :render_chart
+    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :download_file, :copy, :switch_navigation, :render_chart, :data_type_config
 
     shared_deny :simple_delete_data_type, :bulk_delete_data_type
 

@@ -37,7 +37,7 @@ module Setup
     end
 
     def tracing?
-      (shared? || self.class.data_type.trace_by_default) && super
+      (shared? || self.class.data_type.trace_on_default) && super
     end
 
     def trace_action_attributes(action = nil)
