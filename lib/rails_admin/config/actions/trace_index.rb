@@ -17,7 +17,11 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
+            if params[:try_recover]
+              flash[:warning] = 'Recover action is not yet supported but it comes soon'
+            end
             Thread.current["[cenit][#{Mongoid::Tracer::Trace}]:persistence-options"] = persistence_options = { model: @abstract_model.model }
+            @tracer_model_config = @model_config
             @model_config = RailsAdmin::Config.model(Mongoid::Tracer::Trace)
             @context_abstract_model = @model_config.abstract_model
 
