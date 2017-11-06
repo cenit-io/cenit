@@ -15,19 +15,19 @@ module Cenit
       end
       cross_criteria = criteria.any_in(id: cross_traces.keys)
       cross_criteria.cross(origin)
-      tracked_ids = []
-      non_tracked_ids = []
+      traced_ids = []
+      no_traced_ids = []
       cross_criteria.each do |record|
+        cross_traces[record.id].cross(origin)
         if record.tracing?
-          cross_traces[record.id].cross(origin)
-          record.trace_action(:cross, "Cross to #{origin}")
-          tracked_ids
+          record.trace_action!(:cross, "Cross to #{origin}")
+          traced_ids
         else
-          non_tracked_ids
+          no_traced_ids
         end << record.id
       end
-      cross_criteria.any_in(id: non_tracked_ids).update_all(version: nil)
-      yield(tracked_ids, non_tracked_ids) if block_given?
+      cross_criteria.any_in(id: no_traced_ids).update_all(version: nil)
+      yield(traced_ids, no_traced_ids) if block_given?
     end
   end
 end

@@ -518,21 +518,6 @@ RailsAdmin.config do |config|
   # Tracing
   Mongoid::Tracer::Trace
 
-  traceable_models = [
-    Setup::Algorithm,
-    Setup::Connection,
-    Setup::PlainWebhook,
-    Setup::Resource,
-    Setup::Translator,
-    Setup::Flow,
-    Setup::Oauth2Scope,
-    Setup::Snippet
-  ] +
-    Setup::DataType.class_hierarchy +
-    Setup::Validator.class_hierarchy +
-    Setup::BaseOauthProvider.class_hierarchy +
-    Setup::OauthClient.class_hierarchy
-
   config.actions do
     dashboard # mandatory
     # disk_usage
@@ -605,13 +590,12 @@ RailsAdmin.config do |config|
     delete_all
     data_type
     trace_index do
-      only { traceable_models }
+      only { Mongoid::Tracer::Trace::TRACEABLE_MODELS }
     end
     trace_show do
       only do
-        @traceable_models ||= traceable_models + [Mongoid::Tracer::Trace]
+        @traceable_models ||= Mongoid::Tracer::Trace::TRACEABLE_MODELS + [Mongoid::Tracer::Trace]
       end
-      visible { only.include?((obj = bindings[:object]).class) && (obj.class == Mongoid::Tracer::Trace || obj.try(:tracing?)) }
     end
     algorithm_dependencies do
       only { Setup::Algorithm }

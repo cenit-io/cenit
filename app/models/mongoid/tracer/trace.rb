@@ -3,6 +3,7 @@ require 'mongoid/tracer/trace'
 module Mongoid
   module Tracer
 
+
     class Trace
       include Setup::CenitUnscoped
       include CrossOrigin::Document
@@ -34,9 +35,28 @@ module Mongoid
         end
       end
 
+      TRACEABLE_MODELS =
+        [
+          Setup::Algorithm,
+          Setup::Connection,
+          Setup::PlainWebhook,
+          Setup::Resource,
+          Setup::Translator,
+          Setup::Flow,
+          Setup::Oauth2Scope,
+          Setup::Snippet,
+          Setup::RemoteOauthClient
+        ] +
+          Setup::DataType.class_hierarchy +
+          Setup::Validator.class_hierarchy +
+          Setup::BaseOauthProvider.class_hierarchy
+      #Setup::OauthClient.class_hierarchy
+
       rails_admin do
 
-        configure :target_id, :json_value
+        configure :target_id, :json_value do
+          label 'Target ID'
+        end
 
         configure :target, :record do
           visible do
@@ -54,9 +74,7 @@ module Mongoid
           end
         end
 
-        configure :attributes_trace, :json_value do
-          label 'Target ID'
-        end
+        configure :attributes_trace, :json_value
 
         fields :target, :action, :attributes_trace, :created_at
 

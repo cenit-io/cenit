@@ -178,13 +178,13 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         next unless (model = r.klass).include?(Setup::CrossOriginShared)
-        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_tracked_ids|
-          next unless non_tracked_ids.present?
+        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_traced_ids|
+          next unless non_traced_ids.present?
           Account.each do |account|
             if account == Account.current
-              model.clear_pins_for(account, non_tracked_ids)
+              model.clear_pins_for(account, non_traced_ids)
             else
-              model.clear_config_for(account, non_tracked_ids)
+              model.clear_config_for(account, non_traced_ids)
             end
           end
         end

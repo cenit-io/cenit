@@ -36,7 +36,7 @@
             %span= @trace.created_at
         .trace-desc
           %span
-            = 'No message'
+            = @trace.message || 'No message'
           .siblings.pull-right
             %nav
               %ul.pager

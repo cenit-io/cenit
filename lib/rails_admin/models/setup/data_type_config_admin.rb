@@ -19,11 +19,23 @@ module RailsAdmin
               end
             end
 
+            configure :trace_on_default, :toggle_boolean
             configure :navigation_link, :toggle_boolean
             configure :chart_rendering, :toggle_boolean
-            configure :trace_on_default, :toggle_boolean
 
-            fields :data_type, :slug, :navigation_link, :chart_rendering, :trace_on_default, :updated_at
+            edit do
+              field :data_type
+              field :slug
+              field :trace_on_default do
+                visible do
+                  bindings[:object].tracing_option_available?
+                end
+              end
+              field :navigation_link
+              field :chart_rendering
+            end
+
+            fields :data_type, :slug, :trace_on_default, :navigation_link, :chart_rendering, :updated_at
 
             show_in_dashboard false
           end

@@ -5,7 +5,7 @@ module Setup
     include RailsAdmin::Models::Setup::DataTypeConfigAdmin
 
     deny :all
-    allow :index, :show, :new, :edit, :delete, :delete_all
+    allow :index, :show, :new, :edit, :delete, :delete_all, :records
 
     build_in_data_type
 
@@ -19,6 +19,20 @@ module Setup
 
     validates_uniqueness_of :data_type
     validates_presence_of :data_type
+
+    before_save :check_options
+
+    def check_options
+      unless tracing_option_available?
+        remove_attribute(:trace_on_default)
+        errors.add(:trace_on_default, 'is not available for the referred data type')
+      end
+      errors.blank?
+    end
+
+    def tracing_option_available?
+      data_type && Mongoid::Tracer::Trace::TRACEABLE_MODELS.include?(data_type.records_model)
+    end
 
     def taken?
       slug_taken?(slug)
@@ -39,6 +53,6 @@ module Setup
     def slug_taken?(slug)
       data_type && self.class.where(slug: slug).any? { |data_type_config| (dt = data_type_config.data_type) && !dt.eql?(data_type) && dt.namespace == data_type.namespace }
     end
-    
+
   end
 end
