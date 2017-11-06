@@ -23,10 +23,25 @@
               %h4.text-muted
                 - if current_user
                   - users = tenant_users
+                  - count = current_user.all_accounts.count
+                  - count = pluralize(count, 'member')
                 - else
                   - users = recent_users
+                  - c = (User.all.count/5 * 5)
+                  - count = "+ #{pluralize(c, 'user')}"
               %ul.list-inline.list-unstyled
-                - users.each do |u|
+                -if users.length > 0
+                  - u = users[0]
+                  - url = u.picture_url(50)
+                  - alt = (u.email.split('@'))[0]
+                  - title = u.name.present? ? u.name : alt
+                  %li
+                    = image_tag url, alt: alt, title: title, class: 'img-circle', height: 30, width: 30
+                %li
+                  %span.count-users{title: count}
+                    = count
+                -if users.length > 1
+                  - u = users[1]
                   - url = u.picture_url(50)
                   - alt = (u.email.split('@'))[0]
                   - title = u.name.present? ? u.name : alt

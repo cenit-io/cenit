@@ -31,7 +31,6 @@ $merriweather: "Merriweather", Georgia;
 
 #home_page {
   .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
-    background-color: transparent;
     border-color: transparent;
   }
   .slide {
@@ -243,6 +242,17 @@ $merriweather: "Merriweather", Georgia;
         display: none;
         @media(min-width: 992px) {
           display: block;
+        }
+        span.count-users {
+          font-weight: bold;
+          color: #5396ff;
+          background: white;
+          padding: 5px 10px;
+          border-radius: 50%;
+          height: 30px;
+          display: inline-block;
+          min-width: 30px;
+          cursor: default;
         }
       }
       .steps li {
