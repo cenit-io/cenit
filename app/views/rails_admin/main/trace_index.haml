@@ -1,20 +1,25 @@
-- if (target = @trace.target)
-  %label
-    ="#{@tracer_model_config.label}"
-  =link_to  url_for(action: :show, model_name: @abstract_model.to_param, id: target.id), class: 'btn btn-default btn-success pjax' do
-    = target.send(@tracer_model_config.object_label_method)
-  .options-menu
-    %span{class: 'btn dropdown-toggle', "data-toggle"=> 'dropdown', type: "button"}
-      %i.fa.fa-ellipsis-v
-    %ul.dropdown-menu
-      = menu_for :member, @abstract_model, target
--else
-  %label
-    ="#{@tracer_model_config.label} ##{@trace.target_id} does not exists"
-    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: @trace, try_recover: true))
-    =link_to  url, class: 'btn btn-default btn-sm pjax' do
-      ='Try Recover'
-      %i.fa.fa-life-ring
+#trace-object-info
+  - if (target = @trace.target)
+    %span.trace-model.label.label-default
+      ="#{@tracer_model_config.label}"
+    =link_to  url_for(action: :show, model_name: @abstract_model.to_param, id: target.id), class: 'pjax trace_object' do
+      = target.send(@tracer_model_config.object_label_method)
+    %span#actions-menu-list
+      #links.options-menu
+        %span{class: 'btn dropdown-toggle', "data-toggle"=> 'dropdown', type: "button"}
+          %i.fa.fa-ellipsis-v
+        %ul.dropdown-menu
+          = menu_for :member, @abstract_model, target
+  -else
+    %span
+      %span.label.label-default
+        ="#{@tracer_model_config.label}"
+      %span.object-id.text-danger
+        ="##{@trace.target_id}"
+      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: @trace, try_recover: true))
+      =link_to  url, class: 'btn btn-warning btn-xs pjax' do
+        ='Try Recover'
+        %i.fa.fa-life-ring
 - changes = @trace.changes_set
 -diff = @action.build_diff(@abstract_model, changes)
 .trace
