@@ -60,6 +60,8 @@ $merriweather: "Merriweather", Georgia;
       width: 135px;
       -webkit-transition: all .3s ease-in-out;
       transition: all .3s ease-in-out;
+      cursor: pointer;
+      z-index: 1001;
     }
     &:hover {
       img {
@@ -917,7 +919,7 @@ $merriweather: "Merriweather", Georgia;
             color: #fff;
             text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
             text-transform: uppercase;
-            margin-top: 90px;
+            margin-top: 130px;
             @media (max-width: 767px) {
               font-size: 25px;
             }
