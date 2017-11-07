@@ -3,6 +3,15 @@ module RailsAdmin
     module Actions
       class TraceIndex < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :enabled? do
+          (am = bindings[:abstract_model]).nil? || (
+          am.is_a?(RailsAdmin::MongoffAbstractModel) && !am.model.is_a?(Mongoff::GridFs::FileModel)) || (
+          (only.nil? || [only].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s)) &&
+            ![except].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s) &&
+            !bindings[:abstract_model].config.excluded?
+          )
+        end
+
         register_instance_option :authorization_key do
           :trace
         end

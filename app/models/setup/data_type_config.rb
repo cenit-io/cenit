@@ -23,7 +23,7 @@ module Setup
     before_save :check_options
 
     def check_options
-      unless tracing_option_available?
+      if has_attribute?(:trace_on_default) && !tracing_option_available?
         remove_attribute(:trace_on_default)
         errors.add(:trace_on_default, 'is not available for the referred data type')
       end
@@ -31,7 +31,10 @@ module Setup
     end
 
     def tracing_option_available?
-      data_type && Mongoid::Tracer::Trace::TRACEABLE_MODELS.include?(data_type.records_model)
+      data_type &&
+        (((model = data_type.records_model).is_a?(Class) &&
+          Mongoid::Tracer::Trace::TRACEABLE_MODELS.include?(model)) ||
+          (model.is_a?(Mongoff::Model) && !model.is_a?(Mongoff::GridFs::FileModel)))
     end
 
     def taken?

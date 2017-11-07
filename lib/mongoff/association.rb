@@ -21,6 +21,10 @@ module Mongoff
       end
     end
 
+    def embedded?
+      nested?
+    end
+
     def nested?
       !referenced?
     end
