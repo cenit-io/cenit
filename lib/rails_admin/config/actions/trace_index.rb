@@ -199,19 +199,20 @@ module RailsAdmin
           index = -1
           open_count = 3
           fields_diffs = fields_diffs.collect do |diff|
-            additions += diff[:additions]
-            deletions += diff[:deletions]
-            index += 1
-            label = fields_labels[index]
-            accordion_id = (@diff_index += 1).to_s
-            open = index < open_count
-            %(<div class="panel-group" id="accordion_#{accordion_id}" role="tablist" aria-multiselectable="true">
+            if diff[:additions] + diff[:deletions] > 0
+              additions += diff[:additions]
+              deletions += diff[:deletions]
+              index += 1
+              label = fields_labels[index]
+              accordion_id = (@diff_index += 1).to_s
+              open = index < open_count
+              %(<div class="panel-group" id="accordion_#{accordion_id}" role="tablist" aria-multiselectable="true">
                 <div class="panel panel-default panel-trace">
                   <div class="panel-heading" role="tab" id="headingOne">
                       <a role="button" data-toggle="collapse" data-parent="#accordion_#{accordion_id}" href="#collapse-#{accordion_id}" aria-expanded="#{open ? 'true' : 'false'}" aria-controls="collapseOne" class="#{open ? '' : 'collapsed'}">
                         <h4 class="panel-title">
                             #{diffstat(diff[:additions], diff[:deletions])}
-            #{label}
+              #{label}
                         </h4>
                       </a>
                   </div>
@@ -222,6 +223,9 @@ module RailsAdmin
                   </div>
                 </div>
               </div>)
+            else
+              ''
+            end
           end.join.html_safe
           { additions: additions, deletions: deletions, html: fields_diffs }
         end
