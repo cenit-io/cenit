@@ -3718,3 +3718,42 @@ ul[type="ordered"] {
     }
   }
 }
+
+#trace-object-info {
+  overflow: visible;
+  padding: 8px 15px;
+  min-height: 38px;
+  background: #fafbfc;
+  margin-bottom: 15px;
+  .trace-model {
+    float: left;
+    margin-top: 4px;
+  }
+  .trace_object {
+    text-transform: capitalize;
+    float: left;
+    margin: 0 15px;
+  }
+  .object-id {
+    margin: 0 8px;
+    font-weight: bold;
+  }
+  #actions-menu-list {
+    overflow: visible;
+    width: 40px;
+    float: left;
+    position: relative;
+    #links.options-menu {
+      position: relative;
+      overflow: visible;
+      left: 0;
+      display: inline;
+      .dropdown-menu {
+        right: auto !important;
+        left: -29px !important;
+        margin-top: 0 !important;
+        border-top-left-radius: 0;
+      }
+    }
+  }
+}
