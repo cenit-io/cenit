@@ -186,7 +186,7 @@ module RailsAdmin
               label: 'Compute',
               icon: 'fa fa-cog',
               externals: ['Setup::Notebook'],
-              sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter Setup::Notebook)
+              sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter)
             },
             {
               param: 'integrations',
@@ -219,8 +219,16 @@ module RailsAdmin
               sublinks: ecommerce_models
             }
           end
+          @dashboard_groups.select { |g| g[:param] == 'compute' }.each do |g|
+            nb= 'Setup::Notebook'
+            sublinks = g[:sublinks]
+            unless (sublinks.include?(nb))
+              if Cenit.jupyter_notebooks
+                g[:sublinks]<< 'Setup::Notebook'
+              end
+            end
+          end
         end
-
         @dashboard_groups
       end
     end

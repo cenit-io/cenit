@@ -3399,6 +3399,23 @@ button#model-nav-xs {
   }
 }
 
+a#show_tenant_menu {
+  position: relative;
+  top: -2px;
+  padding-top: 12px;
+  padding-bottom: 13px;
+  span#tenant_name {
+    width: 83px;
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    position: relative;
+    top: 4px;
+  }
+}
+
+
 .diff {
   overflow: auto;
   margin: 0 -15px;
