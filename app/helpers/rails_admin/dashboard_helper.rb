@@ -25,7 +25,7 @@ module RailsAdmin
     end
 
     def recent_users
-      User.order(created_at: :desc).limit(6).sample(4)
+      User.order(created_at: :desc).limit(6).sample(2)
     end
 
     def tenant_users
