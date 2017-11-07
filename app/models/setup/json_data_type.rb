@@ -30,6 +30,11 @@ module Setup
       super && validate_model && check_indices
     end
 
+    def code=(code)
+      @schema = nil
+      super
+    end
+
     def schema_code
       schema!
     rescue
