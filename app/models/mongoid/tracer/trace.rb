@@ -36,7 +36,7 @@ module Mongoid
       end
 
       def target_model
-       (persistence_options && persistence_options[:model]) ||
+        (persistence_options && persistence_options[:model]) ||
           if (match = target_model_name.match(/\ADt(.+)\Z/))
             if (data_type = Setup::DataType.where(id: match[1]).first)
               data_type.records_model
@@ -49,21 +49,23 @@ module Mongoid
       end
 
       TRACEABLE_MODELS =
-        [
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::PlainWebhook,
-          Setup::Resource,
-          Setup::Translator,
-          Setup::Flow,
-          Setup::Oauth2Scope,
-          Setup::Snippet,
-          Setup::RemoteOauthClient
-        ] +
-          Setup::DataType.class_hierarchy +
-          Setup::Validator.class_hierarchy +
-          Setup::BaseOauthProvider.class_hierarchy
-      #Setup::OauthClient.class_hierarchy
+        # Setup::DataType.class_hierarchy +
+        #   Setup::Validator.class_hierarchy +
+        #   Setup::BaseOauthProvider.class_hierarchy +
+        #   Setup::Translator.class_hierarchy +
+          [
+            Setup::Algorithm
+            # Setup::Connection,
+            # Setup::PlainWebhook,
+            # Setup::Resource,
+            # Setup::Flow,
+            # Setup::Oauth2Scope,
+            # Setup::Snippet,
+            # Setup::RemoteOauthClient
+          ] -
+          [
+            Setup::CenitDataType
+          ]
 
       rails_admin do
 
