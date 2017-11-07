@@ -31,6 +31,22 @@ module RailsAdmin
                   bindings[:object].tracing_option_available?
                 end
               end
+              field :navigation_link do
+                visible do
+                  (obj = bindings[:object]).data_type.nil? || !obj.data_type.is_a?(::Setup::CenitDataType)
+                end
+              end
+              field :chart_rendering
+            end
+
+            show do
+              field :data_type
+              field :slug
+              field :trace_on_default do
+                visible do
+                  bindings[:object].tracing_option_available?
+                end
+              end
               field :navigation_link
               field :chart_rendering
             end
