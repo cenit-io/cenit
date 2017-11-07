@@ -13,7 +13,7 @@ module Mongoid
 
       store_in collection: -> { "#{persistence_model.collection_name.to_s.singularize}_traces" }
 
-      origins -> { persistence_model.origins }
+      origins -> { persistence_model.is_a?(Class) ? persistence_model.origins : :default }
 
       class << self
 
@@ -33,6 +33,19 @@ module Mongoid
           options = { model: options } unless options.is_a?(Hash)
           super
         end
+      end
+
+      def target_model
+       (persistence_options && persistence_options[:model]) ||
+          if (match = target_model_name.match(/\ADt(.+)\Z/))
+            if (data_type = Setup::DataType.where(id: match[1]).first)
+              data_type.records_model
+            else
+              fail "Data type with ID #{match[1]} does not exist"
+            end
+          else
+            target_model_name.constantize
+          end
       end
 
       TRACEABLE_MODELS =
