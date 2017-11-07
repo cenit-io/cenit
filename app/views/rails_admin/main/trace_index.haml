@@ -11,7 +11,7 @@
 -else
   %label
     ="#{@tracer_model_config.label} ##{@trace.target_id} does not exists"
-    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: @trace, try_recover: true))
+    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: params[:id], trace_id: @trace, try_recover: true))
     =link_to  url, class: 'btn btn-default btn-sm pjax' do
       ='Try Recover'
       %i.fa.fa-life-ring
@@ -41,14 +41,14 @@
             %nav
               %ul.pager
                 - if (previous = @trace.previous)
-                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: previous.id))
+                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: params[:id], trace_id: previous.id))
                   %li
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       %i.fa.fa-angle-left
                       ='Previous'
                 - if (next_trace = @trace.next)
                   %li
-                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: next_trace.id))
+                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: params[:id], trace_id: next_trace.id))
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       ='Next'
                       %i.fa.fa-angle-right
