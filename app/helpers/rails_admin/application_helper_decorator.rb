@@ -1162,12 +1162,15 @@ module RailsAdmin
     end
 
     def home_explore_menu
-      [
+      explore_menu = [
         { title: 'Shared Collections', url: '/cross_shared_collection', icon: ' fa fa-puzzle-piece', description: 'Data description' },
         { title: 'Applications', url: '/application', icon: 'fa fa-laptop', description: 'Data description' },
-        { title: 'Open Api Directory', url: '/open_api_directory', icon: 'fa fa-book', description: 'Data description' },
-        { title: 'Notebooks', url: '/notebook', icon: 'fa fa-list', description: 'Data description' }
+        { title: 'Open Api Directory', url: '/open_api_directory', icon: 'fa fa-book', description: 'Data description' }
       ]
+      if Cenit.jupyter_notebooks
+        explore_menu << { title: 'Notebooks', url: '/notebook', icon: 'fa fa-list', description: 'Data description' }
+      end
+      explore_menu
     end
 
     def home_services
@@ -1182,7 +1185,7 @@ module RailsAdmin
     end
 
     def home_integrations_images
-      %w(aftership.png amazon.png asana.png bigcommerce.jpeg bronto.png desk.png ebay.jpg exact_target.png jirafe.png magento.png mailchimp.png mandrill.png netsuite.png odoo.png oscommerce.png ql.png quickbooks.png sf.png shipstation.png shipwire.png square.png trello.png woocommerce.png zendesk.png)
+      %w(aftership.png amazon.png asana.png bigcommerce.png bronto.png desk.png ebay.jpg exact_target.png jirafe.png magento.png mailchimp.png mandrill.png netsuite.png odoo.png oscommerce.png ql.png quickbooks.png sf.png shipstation.png shipwire.png square.png trello.png woocommerce.png zendesk.png)
     end
 
     def home_features

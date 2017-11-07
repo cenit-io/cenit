@@ -1,3 +1,10 @@
+.row
+  .container-fluid
+    - page_slug = @page_name.parameterize
+    - flash && flash.each do |key, value|
+      .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+        %a.close{href: '#', :'data-dismiss' => "alert"} &times;
+        = value
 %section#slides.hidden-xs.hidden-sm
   #hero
     = link_to 'Prev','#', class: 'slide-nav prev'
