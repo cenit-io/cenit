@@ -12,7 +12,7 @@ module Setup
 
     parameters :parameters, :headers, :template_parameters
 
-    trace_references :parameters, :headers, :template_parameters
+    # trace_references :parameters, :headers, :template_parameters
 
     validates_presence_of :path
 

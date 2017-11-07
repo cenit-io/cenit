@@ -23,7 +23,7 @@ module Setup
 
     parameters :parameters, :headers, :template_parameters
 
-    trace_references :parameters, :headers, :template_parameters
+    # trace_references :parameters, :headers, :template_parameters
 
     config_with Setup::ConnectionConfig
 
