@@ -101,7 +101,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', path: '../cross_origin'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
 
 gem 'lodash-rails'
 gem 'identicon'
@@ -132,5 +132,5 @@ gem 'aws-sdk', '~> 2.10.13'
 gem 'net-scp'
 gem 'net-sftp'
 
-gem 'mongoid-tracer', path: '../mongoid-tracer'
+gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'

@@ -52,6 +52,20 @@ GIT
       parser
 
 GIT
+  remote: https://github.com/macarci/cross_origin.git
+  revision: a10e0ab6b4fb02b747b3460ddca12ad751f7c135
+  specs:
+    cross_origin (0.0.3)
+      mongoid (>= 5.0.1)
+
+GIT
+  remote: https://github.com/macarci/mongoid-tracer.git
+  revision: 3cb2565d9c3c5ca7db39949f7023550c095a0abd
+  specs:
+    mongoid-tracer (0.0.1)
+      mongoid (>= 5.0.1)
+
+GIT
   remote: https://github.com/mobmewireless/origami-pdf.git
   revision: bf9ceea933fb88b5c8e0d3185b6eb875dd9187cf
   specs:
@@ -72,18 +86,6 @@ GIT
       chartkick (> 0)
       rails (>= 3.2)
       rails_admin (> 0)
-
-PATH
-  remote: ../cross_origin
-  specs:
-    cross_origin (0.0.3)
-      mongoid (>= 5.0.1)
-
-PATH
-  remote: ../mongoid-tracer
-  specs:
-    mongoid-tracer (0.0.1)
-      mongoid (>= 5.0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -666,9 +668,9 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
+  mongoid-tracer!
   net-scp
   net-sftp
-  mongoid-tracer!
   nokogiri
   oauth
   oauth2 (= 1.0.0)
