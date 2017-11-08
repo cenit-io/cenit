@@ -1219,11 +1219,11 @@ $merriweather: "Merriweather", Georgia;
       padding-top: 0;
     }
     &:nth-child(odd) {
-      background: rgba(245, 245, 245, 0.61);
+      background: white;
     }
     &:nth-child(even) {
+      background: rgba(245, 245, 245, 0.61);
 
-      background: white;
     }
     &.white-back {
       background: white !important;

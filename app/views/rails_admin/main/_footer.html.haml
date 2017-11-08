@@ -1,7 +1,7 @@
 %footer
   .container
     .row
-      .col-sm-3.col-sms-3.menu
+      .col-sm-3.col-sms-6.menu
         %h3
           ='Overview'
         %ul
@@ -24,7 +24,7 @@
             =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/blog", target: '_blank' do
               %i.fa.fa-newspaper-o{title: t('admin.misc.blog')}
               %span=t('admin.misc.blog')
-      .col-sm-3.col-sms-3.menu
+      .col-sm-3.col-sms-6.menu
         %h3
           ='Menu'
         %ul
@@ -44,7 +44,7 @@
             =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
               %i.fa.fa-institution{title: t('admin.misc.terms')}
               %span=t('admin.misc.terms')
-      .col-sm-3.col-sms-3.menu
+      .col-sm-3.col-sms-6.menu
         %h3
           ='Social'
         %ul
@@ -53,7 +53,7 @@
               =link_to sn[:url], target: '_blank' do
                 %i{class: "fa #{sn[:icon]}"}
                 = sn[:name]
-      .col-sm-3.col-sms-3.menu
+      .col-sm-3.col-sms-6.menu
         %h3
           ='Support'
         %ul
