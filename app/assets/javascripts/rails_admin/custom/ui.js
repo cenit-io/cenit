@@ -478,6 +478,10 @@ function registerEvents() {
 
     var $main_accordion = $('#main-accordion');
 
+    $('.expand_collapse').off().click(function (e) {
+        $(e.target).parents('.wrapped').toggleClass('open');
+    });
+
     $('.take-tour').off().click(function (e) {
         e.preventDefault();
         var $this = $(this),

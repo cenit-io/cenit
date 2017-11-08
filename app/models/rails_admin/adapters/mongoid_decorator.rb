@@ -203,7 +203,7 @@ module RailsAdmin
           end
       end
 
-      def filter_conditions(filters, fields = config.fields.select(&:filterable?))
+      def filter_conditions(filters, fields = config.filter_fields)
         statements = []
 
         filters = JSON.parse(filters).with_indifferent_access if filters.is_a?(String)

@@ -56,6 +56,7 @@ module Setup
         relation = model.reflect_on_all_associations(:belongs_to).detect { |r| r.klass == self && r.inverse_of.nil? }
 
         fail "Belongs-To association config not found between #{model} and #{self}" unless relation
+        fail "Belongs-To association config #{model}.#{relation.name} is autosave (it should not)" if relation.autosave
 
         @relation_name = relation.name
         @foreign_key = relation.foreign_key.to_sym

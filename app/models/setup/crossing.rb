@@ -1,4 +1,4 @@
-require 'cenit/cross_tracking_criteria'
+require 'cenit/cross_tracing_criteria'
 
 module Setup
   class Crossing < Setup::Task
@@ -21,14 +21,14 @@ module Setup
       model = data_type.records_model
       if model < CrossOrigin::CenitDocument
         criteria = criteria.and(:origin.in => authorized_crossing_origins)
-        criteria = criteria.with_tracking if model < Trackable
-        criteria.cross(origin) do |_, non_tracked_ids|
-          next unless non_tracked_ids.present?
+        criteria = criteria.with_tracing if model < Mongoid::Tracer
+        criteria.cross(origin) do |_, non_traced_ids|
+          next unless non_traced_ids.present?
           Account.each do |account|
             if account == Account.current
-              model.clear_pins_for(account, non_tracked_ids)
+              model.clear_pins_for(account, non_traced_ids)
             else
-              model.clear_config_for(account, non_tracked_ids)
+              model.clear_config_for(account, non_traced_ids)
             end
           end
         end

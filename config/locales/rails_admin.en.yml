@@ -554,6 +554,18 @@ en:
         breadcrumb: "Collect"
         doing: "collecting"
       delete_data_type_errors: "Some data types could not be destroyed."
+      trace_show:
+        title: "Trace"
+        menu: "Trace"
+        breadcrumb: "Trace"
+      trace_index:
+        title: "Trace"
+        menu: "Trace"
+        breadcrumb: "Trace"
+      data_type_config:
+        title: "Configure"
+        menu: "Configure"
+        breadcrumb: "Configure"
     form:
       flow:
         source_data_type: 'Source data type'

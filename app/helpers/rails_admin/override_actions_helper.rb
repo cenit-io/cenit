@@ -12,6 +12,7 @@ module RailsAdmin
           @page_name = wording_for(:title)
 
           if @abstract_model
+            @context_abstract_model = @abstract_model
             custom_action = "#{action.action_name}_\#{@abstract_model.model_name.parameterize.underscore}".to_sym
             return send(custom_action) if respond_to?(custom_action)
           end

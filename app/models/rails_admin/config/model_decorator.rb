@@ -9,7 +9,7 @@ module RailsAdmin
       def filter_fields(*args)
         if args.length == 0
           if (names = filter_fields_names)
-            fields.select { |f| names.include?(f.name) }
+            _fields.select { |f| names.include?(f.name) }
           else
             list.fields
           end.select(&:filterable?)

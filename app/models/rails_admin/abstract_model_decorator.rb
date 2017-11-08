@@ -2,6 +2,19 @@
 module RailsAdmin
   AbstractModel.class_eval do
 
+    def model_class
+      @model_name.constantize
+    end
+
+    def model
+      m = model_class
+      if (persistence_options = Thread.current["[cenit][#{m}]:persistence-options"])
+        m.with(persistence_options)
+      else
+        m
+      end
+    end
+
     def parse_field_value(field, value)
       case value
       when Hash

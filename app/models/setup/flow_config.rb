@@ -8,7 +8,7 @@ module Setup
 
     build_in_data_type
 
-    belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
+    belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false
 
     field :active, type: Boolean
     field :notify_request, type: Boolean

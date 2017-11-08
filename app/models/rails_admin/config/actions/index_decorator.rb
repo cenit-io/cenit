@@ -3,6 +3,10 @@ module RailsAdmin
     module Actions
       Index.class_eval do
 
+        register_instance_option :listing? do
+          true
+        end
+
         register_instance_option :controller do
           proc do
             #Patch
