@@ -3414,6 +3414,365 @@ a#show_tenant_menu {
   }
 }
 
+
+.diff {
+  overflow: auto;
+  margin: 0 -15px;
+}
+
+.diff ul {
+  background: #fff;
+  overflow: auto;
+  font-size: 13px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: table;
+  width: 100%;
+  li.unchanged span:before {
+    content: '  ';
+  }
+}
+
+.diff del, .diff ins {
+  display: block;
+  text-decoration: none;
+}
+
+.diff li {
+  padding: 5px 15px;
+  margin: 0;
+}
+
+.diff li.ins {
+  background: #dfd;
+  color: #080
+}
+
+.diff li.del {
+  background: #fee;
+  color: #b00
+}
+
+.diff li:hover {
+  background: #ffc
+}
+
+.diff ins {
+  &:before {
+    content: '+ ';
+    color: black;
+  }
+}
+
+.diff del {
+  &:before {
+    content: '- ';
+    color: black;
+  }
+}
+
+/* try 'whitespace:pre;' if you don't want lines to wrap */
+.diff del, .diff ins, .diff span {
+  white-space: pre-wrap;
+  font-family: courier;
+  display: inline-block;
+}
+
+.diff del strong {
+  font-weight: normal;
+  background: #fcc;
+}
+
+.diff ins strong {
+  font-weight: normal;
+  background: #9f9;
+}
+
+.diff li.diff-comment {
+  display: none;
+}
+
+.diff li.diff-block-info {
+  background: none repeat scroll 0 0 gray;
+}
+
+.panel-trace {
+  .panel-heading {
+    padding: 5px 10px;
+    background-color: rgb(250, 251, 252);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    a {
+      text-decoration: none;
+
+      .panel-title {
+        font-size: 13px;
+        line-height: 20px;
+        font-weight: 600;
+        color: rgb(36, 41, 46);
+        white-space: nowrap;
+
+        &:after {
+          content: '\f106';
+          float: right;
+          font-family: FontAwesome;
+        }
+      }
+      &.collapsed {
+        .panel-title {
+          &:after {
+            content: '\f107';
+            float: right;
+            font-family: FontAwesome;
+          }
+        }
+      }
+    }
+  }
+  .panel-body {
+    .nav-tabs > li {
+      width: 150px;
+      > a {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      &.active {
+        width: auto !important;
+      }
+    }
+    .tab-content > .active {
+      display: block;
+      padding: 0 15px;
+    }
+  }
+
+}
+
+.trace {
+  .total-changes {
+    margin-right: 7px;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #24292e;
+    .additions {
+      color: #2cbe4e;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .deletions {
+      color: #cb2431;
+      font-weight: bold;
+      font-size: 15px;
+    }
+  }
+  .trace-info {
+    border: 1px solid rgb(200, 225, 255);
+    border-radius: 3px 3px 0px 0px;
+    overflow: auto;
+    margin-bottom: 25px;
+  }
+  .trace-header {
+    overflow: auto;
+    background: rgb(241, 248, 255);
+    padding: 5px 10px;
+    font-size: 13px;
+    line-height: 23px;
+    color: rgb(88, 96, 105);
+    border-bottom: solid 1px #c8e1ff;
+    img {
+      display: inline-block;
+      overflow: hidden;
+      line-height: 1;
+      vertical-align: middle;
+      border-radius: 3px;
+      height: 20px;
+      margin-right: 7px;
+      position: relative;
+      top: -2px;
+    }
+    .action {
+      span {
+        text-transform: capitalize;
+      }
+    }
+    .date {
+
+    }
+    label {
+      margin-bottom: 0;
+    }
+  }
+  .trace-desc {
+    padding: 8px;
+    overflow: auto;
+    font-size: 13px;
+    line-height: 28px;
+    color: rgb(88, 96, 105);
+    .pager {
+      margin: 0;
+    }
+  }
+
+}
+
+.diffstat {
+  font-size: 12px;
+  font-weight: 600;
+  color: #586069;
+  white-space: nowrap;
+  cursor: default;
+  letter-spacing: -4px;
+  margin-right: 5px;
+}
+
+.block-diff-deleted, .block-diff-added, .block-diff-neutral {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 1px;
+}
+
+.block-diff-added {
+  background-color: #2cbe4e;
+}
+
+.block-diff-deleted {
+  background-color: #cb2431;
+}
+
+.block-diff-neutral {
+  background-color: #d1d5da;
+}
+
+li.wrapped {
+  background: #f1f8ff;
+  .expand_collapse {
+    cursor: pointer;
+    color: black;
+    &:before {
+      font-family: FontAwesome;
+      content: '\f065';
+    }
+  }
+  span.count-lines {
+    font-size: 12px;
+    color: gray;
+    display: initial;
+    margin-left: 7px;
+  }
+  span.first_line {
+    display: none;
+  }
+  ul {
+    display: block;
+    height: 0;
+  }
+  &.open {
+    background: transparent;
+    padding-bottom: 0;
+    position: relative;
+    span.count-lines {
+      display: none;
+    }
+    span.first_line {
+      display: inline-block;
+      padding-left: 12px;
+    }
+    .expand_collapse {
+      position: absolute;
+      left: 8px;
+      &:before {
+        font-family: FontAwesome;
+        content: '\f066';
+      }
+    }
+    ul {
+      display: block;
+      height: auto;
+      padding: 0;
+      margin: 0 0 0 -15px;
+    }
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+ul[type="ordered"] {
+  counter-reset: ordered;
+}
+
+/* defaults to 0 */
+ul[type="ordered"] li {
+  display: block;
+}
+
+ul[type="ordered"] {
+  li {
+    &.wrapped:before {
+      background: #dbedff;
+    }
+    &.ins:before {
+      background: #cfc;
+    }
+    &.del:before {
+      background: #ffdbdb;
+    }
+    &:before {
+      counter-increment: ordered;
+      content: counter(ordered);
+      display: inline-block;
+      padding: 5px 8px;
+      background: #fafbfc;
+      margin: -5px 8px -5px -15px;
+      width: 70px;
+      text-align: center;
+      line-height: 20px;
+    }
+  }
+}
+
+#trace-object-info {
+  overflow: visible;
+  padding: 8px 15px;
+  min-height: 38px;
+  background: #fafbfc;
+  margin-bottom: 15px;
+  .trace-model {
+    float: left;
+    margin-top: 4px;
+  }
+  .trace_object {
+    text-transform: capitalize;
+    float: left;
+    margin: 0 15px;
+  }
+  .object-id {
+    margin: 0 8px;
+    font-weight: bold;
+  }
+  #actions-menu-list {
+    overflow: visible;
+    width: 40px;
+    float: left;
+    position: relative;
+    #links.options-menu {
+      position: relative;
+      overflow: visible;
+      left: 0;
+      display: inline;
+      .dropdown-menu {
+        right: auto !important;
+        left: -29px !important;
+        margin-top: 0 !important;
+        border-top-left-radius: 0;
+      }
+    }
+  }
+}
 #subdomain-related-menu {
   width: 100%;
   margin-right: -15px;

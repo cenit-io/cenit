@@ -145,11 +145,6 @@ module Mongoff
     def relations
       associations
     end
-
-    def reflect_on_association(name)
-      relations[name.to_sym]
-    end
-
   end
 
   class Record

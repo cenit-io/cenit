@@ -15,7 +15,7 @@ module Mongoff
     end
 
     def method_missing(symbol, *args)
-      if method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s }
+      if (method = orm_model.data_type.records_methods.detect { |alg| alg.name == symbol.to_s })
         args.unshift(self)
         method.reload
         method.run(args)

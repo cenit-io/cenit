@@ -9,7 +9,7 @@ module Setup
 
     build_in_data_type
 
-    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil
+    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil, autosave: false
 
     attr_readonly :connection
 

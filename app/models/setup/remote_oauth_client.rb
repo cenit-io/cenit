@@ -12,6 +12,8 @@ module Setup
 
     parameters :request_token_parameters, :request_token_headers
 
+    # trace_references :request_token_parameters, :request_token_headers
+
     validates_uniqueness_of :name, scope: :provider
 
     def write_attribute(name, value)

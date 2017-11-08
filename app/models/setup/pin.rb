@@ -15,7 +15,7 @@ module Setup
     self.models = {}
 
     Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |r|
-      if (klass = r.klass).include?(Trackable)
+      if (klass = r.klass).include?(Mongoid::Tracer)
         models[klass] =
           {
             model_name: r.name.to_s.singularize.capitalize.gsub('_', ' '),

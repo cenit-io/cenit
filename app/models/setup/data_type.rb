@@ -162,6 +162,13 @@ module Setup
         end
         Setup::DataType.where(namespace: ns, name: ref).first
       end
+
+      def copy_options
+        opts = super
+        (opts[:ignore] ||= []) << :slug
+        opts[:ignore] << :title
+        opts
+      end
     end
 
     protected
