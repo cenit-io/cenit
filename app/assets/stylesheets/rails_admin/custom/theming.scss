@@ -12,6 +12,7 @@
 @import "rails_admin/custom/owl_carousel/owl.theme";
 @import "rails_admin/custom/owl_carousel/owl.transitions";
 @import "rails_admin/custom/home/home_page";
+@import "rails_admin/custom/main";
 @import "horsey";
 
 /*Theming variables*/
@@ -250,15 +251,15 @@ ul.drawer li a span {
 /* Toggle styles*/
 
 #wrapper {
-  padding-left: 55px;
+  padding-left: 40px;
   transition: all 0.5s ease;
   overflow: hidden;
-  height: 100vh;
   position: relative;
+  background: #3d4046;
+  padding-top: 50px;
 }
 
 #wrapper.toggled {
-  padding-left: 250px;
   li.no-childrens {
     span.with_icon {
       padding: 0 30px;
@@ -330,15 +331,9 @@ ul.drawer li a span {
 }
 
 #content-wrapper {
-  width: calc(100% - 50px);
-  @media(min-width: 992px) {
-    width: calc(100% - 250px);
-  }
   background: #fff;
-  position: fixed;
-  padding: 10px 15px 15px;
+  padding: 15px 15px 15px;
   overflow: auto;
-  height: calc(100% - 50px);
 }
 
 body.rails_admin .sidebar-nav {
@@ -3416,5 +3411,54 @@ a#show_tenant_menu {
     text-overflow: ellipsis;
     position: relative;
     top: 4px;
+  }
+}
+
+#subdomain-related-menu {
+  width: 100%;
+  margin-right: -15px;
+  ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    li.no-childrens {
+      border: none;
+      border-radius: 0;
+      margin-top: 0;
+      margin-bottom: 0;
+      padding: 10px;
+      a {
+        padding-left: 0;
+        color: gray;
+        text-decoration: none;
+
+      }
+      span.with_icon {
+        padding: 0 !important;
+        width: auto;
+        margin-right: 10px;
+      }
+    }
+  }
+  .panel-default {
+    border: none;
+    background: none;
+    border-bottom: none;
+    margin-bottom: 5px;
+    .panel-heading {
+      background: none;
+      a {
+        font-size: 13px;
+        color: gray;
+        padding: 10px;
+        text-transform: uppercase;
+        span.nav-caret {
+          float: right;
+        }
+        span.nav-icon {
+          margin-right: 10px;
+        }
+      }
+    }
   }
 }

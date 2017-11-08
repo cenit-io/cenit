@@ -10,6 +10,7 @@
 //= require rails_admin/chartkick
 //= require lodash.min
 //= require rails_admin/select2.full.min
+//= require rails_admin/king-common
 
 $(document).on('rails_admin.dom_ready', function () {
     registerEvents();

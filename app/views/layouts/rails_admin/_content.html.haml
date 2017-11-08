@@ -1,0 +1,13 @@
+- if Cenit.hide_admin_navigation
+  .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+- else
+  #content-wrapper
+    .row
+      %main.col-sm-9
+        .xyz
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+      %aside.col-sm-3.not-padding-right
+        #subdomain-related-menu
+          %ul
+            = main_navigation
+
