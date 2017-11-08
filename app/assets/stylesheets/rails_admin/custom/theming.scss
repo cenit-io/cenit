@@ -2732,9 +2732,10 @@ footer {
   }
 
   .menu {
+
     @media(max-width: 767px) {
-      text-align: center;
       margin-top: 10px;
+      margin-bottom: 35px;
     }
 
     h3 {
@@ -2744,6 +2745,9 @@ footer {
       letter-spacing: 4px;
       font-size: 14px;
       font-weight: 600;
+      @media(max-width: 767px) {
+        text-align: center;
+      }
     }
 
     ul {
@@ -2751,10 +2755,14 @@ footer {
       padding: 0;
       margin-top: 30px;
 
-      li {
-        display: inline-block;
-        margin-right: 15px;
+      @media(max-width: 479px) {
+        margin-left: 30%;
+      }
+      @media(max-width: 767px) and (min-width: 480px) {
+        margin-left: 20%;
+      }
 
+      li {
         @media(min-width: 768px) {
           display: block;
           margin-right: 0;
