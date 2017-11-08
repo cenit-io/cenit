@@ -19,6 +19,8 @@ module Setup
 
       binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
 
+      trace_ignore :snippet_id
+
       trace_include :code
 
       before_save do
