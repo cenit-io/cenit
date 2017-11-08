@@ -3,11 +3,6 @@
   - if @abstract_models
     .dashboard{'data-model-count': 0}
       = dashboard_main
-  - if @auditing_adapter && authorized?(:history_index)
-    #block-tables.block
-      .content
-        %h2= t("admin.actions.history_index.menu")
-        = render partial: 'rails_admin/main/dashboard_history'
 -else
   -# Home Page or General Dahsboard
   = render partial: 'rails_admin/main/new_home'

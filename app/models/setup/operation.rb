@@ -9,12 +9,20 @@ module Setup
 
     belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :operations
 
+    trace_ignore :resource_id
+
     field :description, type: String
     field :method, type: String
 
     parameters :parameters, :headers
 
+    # trace_references :parameters, :headers
+
     validates_presence_of :resource, :method
+
+    def tracing?
+      false
+    end
 
     def params_stack
       super.insert(-2, resource)

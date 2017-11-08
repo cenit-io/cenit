@@ -13,6 +13,10 @@ module Setup
       Setup::Models.regist(self)
     end
 
+    def copy_hash
+      share_hash(self.class.copy_options)
+    end
+
     module ClassMethods
       def inherited(subclass)
         super
@@ -30,6 +34,10 @@ module Setup
           protected: true,
           polymorphic: true
         }
+      end
+
+      def copy_options
+        share_options
       end
 
       def super_count
@@ -56,7 +64,7 @@ module Setup
             root
           end
       end
-      
+
     end
   end
 end

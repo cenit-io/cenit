@@ -53,9 +53,16 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: 59ed70143716896e9ad65ab61ad0024eb63e3e9b
+  revision: a10e0ab6b4fb02b747b3460ddca12ad751f7c135
   specs:
     cross_origin (0.0.3)
+      mongoid (>= 5.0.1)
+
+GIT
+  remote: https://github.com/macarci/mongoid-tracer.git
+  revision: 3cb2565d9c3c5ca7db39949f7023550c095a0abd
+  specs:
+    mongoid-tracer (0.0.1)
       mongoid (>= 5.0.1)
 
 GIT
@@ -224,6 +231,7 @@ GEM
       thread_safe (~> 0.1)
       warden (~> 1.2.3)
     diff-lcs (1.2.5)
+    diffy (3.2.0)
     docile (1.1.5)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
@@ -635,6 +643,7 @@ DEPENDENCIES
   deface
   descriptive_statistics
   devise
+  diffy
   exception_notification
   factory_girl_rails
   ffaker
@@ -659,6 +668,7 @@ DEPENDENCIES
   mongoid-audit
   mongoid-history
   mongoid-rspec
+  mongoid-tracer!
   net-scp
   net-sftp
   nokogiri

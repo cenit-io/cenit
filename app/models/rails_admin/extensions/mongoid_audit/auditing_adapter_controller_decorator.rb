@@ -4,11 +4,11 @@ module RailsAdmin
       AuditingAdapter.class_eval do
 
         def version_class_for(object)
-          @version_class.with(collection: "#{object.collection_name.to_s.singularize}_#{@version_class.collection_name}")
+          @version_class.with(object.class.mongoid_root_class)
         end
 
         def version_class_with(abstract_model)
-          @version_class.with(collection: "#{abstract_model.model.collection_name.to_s.singularize}_#{@version_class.collection_name}")
+          @version_class.with(abstract_model.model.mongoid_root_class)
         end
 
         def listing_for_model_or_object(model, object, query, sort, sort_reverse, all, page, per_page)

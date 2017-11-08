@@ -1,5 +1,7 @@
 module Mongoff
   class Record
+    include Savable
+    include Destroyable
     include Edi::Filler
     include Edi::Formatter
     include RecordsMethods
@@ -100,45 +102,6 @@ module Mongoff
     def valid?
       validate
       errors.blank?
-    end
-
-    def save(options = {})
-      errors.clear
-      if destroyed?
-        errors.add(:base, 'Destroyed record can not be saved')
-        return false
-      end
-      validate
-      begin
-        instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
-        run_callbacks_and do
-          if new_record?
-            orm_model.collection.insert_one(attributes)
-            @new_record = false
-          else
-            query = orm_model.collection.find(_id: id)
-            set = attributes
-            unset = {}
-            if (doc = query.first)
-              doc.keys.each { |key| unset[key] = '' unless set.has_key?(key) }
-            end
-            update = { '$set' => set }
-            if unset.present?
-              update['$unset'] = unset
-            end
-            query.update_one(update)
-          end
-        end
-      end if orm_model.persistable? && errors.blank?
-      errors.blank?
-    end
-
-    def destroy
-      begin
-        orm_model.where(id: id).delete_one
-      rescue
-      end
-      @destroyed = true
     end
 
     def [](field)
@@ -332,6 +295,18 @@ module Mongoff
 
     def eql?(other)
       other.is_a?(Mongoff::Record) && other.orm_model.eql?(orm_model) && other.id.eql?(id)
+    end
+
+    def _reload
+      {}.merge(orm_model.collection.find(_id: _id).read(mode: :primary).first || {})
+    end
+
+    def reflect_on_all_associations(*macros)
+      self.class.reflect_on_all_associations(*macros)
+    end
+
+    def reflect_on_association(name)
+      self.class.reflect_on_association(name)
     end
 
     protected

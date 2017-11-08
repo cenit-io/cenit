@@ -1,5 +1,5 @@
 module Setup
-  module ClassHierarchyAware
+module ClassHierarchyAware
     extend ActiveSupport::Concern
 
     included do
@@ -21,6 +21,10 @@ module Setup
         ([self] + descendants.collect(&:class_hierarchy)).flatten.uniq
       end
 
+      def concrete_class_hierarchy
+        class_hierarchy.select(&:concrete?)
+      end
+
       def abstract_class(*args)
         @abstract_class = args[0].present? if args.length > 0
         @abstract_class
@@ -28,6 +32,10 @@ module Setup
 
       def abstract?
         abstract_class.present?
+      end
+
+      def concrete?
+        !abstract?
       end
 
     end

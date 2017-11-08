@@ -36,6 +36,7 @@ module Setup
           has_many relation_name, class_name: Setup::Parameter.to_s, inverse_of: inverse_name, dependent: :destroy
           Setup::Parameter.belongs_to inverse_name, class_name: to_s, inverse_of: relation_name
           Setup::Parameter.attr_readonly inverse_name
+          Setup::Parameter.trace_ignore "#{inverse_name}_id"
         end
         build_in_data_type.embedding(*relation_names)
         build_in_data_type.exclusive_referencing(*relation_names)

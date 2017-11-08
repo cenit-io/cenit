@@ -4,11 +4,11 @@ module RailsAdmin
       class Records < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::DataType.class_hierarchy
+          Setup::DataType.class_hierarchy + [Setup::DataTypeConfig]
         end
 
         register_instance_option :visible do
-          authorized? && (obj = bindings[:object]) && obj.records_model.modelable?
+          authorized? && (obj = bindings[:object]) && (obj.is_a?(Setup::DataTypeConfig) || obj.records_model.modelable?)
         end
 
         register_instance_option :member do
@@ -22,11 +22,21 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
             error_msg = nil
-            begin
-              if (model = @object.records_model).modelable?
-                redirect_to rails_admin.index_path(model_name: model.to_s.underscore.gsub('/', '~'))
+            data_type =
+              if @object.is_a?(Setup::DataTypeConfig)
+                @object.data_type
               else
-                error_msg = "Model #{@object.title} is not an object model"
+                @object
+              end
+            begin
+              if data_type
+                if (model = data_type.records_model).modelable?
+                  redirect_to rails_admin.index_path(model_name: RailsAdmin.config(model).abstract_model.to_param)
+                else
+                  error_msg = "Model #{@object.title} is not an object model"
+                end
+              else
+                error_msg = 'Data type reference is broken'
               end
             rescue Exception => ex
               error_msg = ex.message

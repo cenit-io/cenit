@@ -64,9 +64,10 @@ module RailsAdmin
 
     def menu_item(only_icon, action, abstract_model, parent, object)
       wording = wording_for(:menu, action)
+      url = url_for(action.url_options(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil)))
       %(
         <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action, abstract_model)}">
-          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url}">
             <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
             <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
           </a>
