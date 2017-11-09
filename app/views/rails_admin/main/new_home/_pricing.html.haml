@@ -16,19 +16,23 @@
             .specs
               .spec
                 %span.variable
-                  ='Unlimited'
-                ='team members'
+                  = 1
+                = 'Tenant'
               .spec
                 %span.variable
                   ='Shared Collections'
               .spec
                 %span.variable
-                  ='5 GB'
-                ='data integrator tool'
+                  ='500'
+                = 'non commerce transaction'
               .spec
                 %span.variable
-                  ='Unlimited'
-                ='data exchange'
+                  ='50'
+                = 'commerce transaction'
+              .spec
+                %span.variable
+                  ='Community'
+                ='Slack Channel'
             =link_to '#', class:'button go-sign-in' do
               %span='Start free'
         .col-md-4
@@ -45,16 +49,20 @@
                 ='free options'
               .spec
                 %span.variable
-                  ='$10 x GB'
-                ='over 5 GB in data integrator tool'
+                  ='$15 per additional'
+                ='tenant'
+              .spec
+                %span.variable
+                  ='$0.5 per 100'
+                ='non commerce transaction'
               .spec
                 %span.variable
                   ='$0.5 per'
-                ='commercial transaction'
+                ='commerce transaction'
               .spec
                 %span.variable
-                  ='Unlimited'
-                ='data exchange'
+                  ='Private'
+                ='Slack Channel'
             =link_to '#', class:'button go-sign-in' do
               %span='Start'
         .col-md-4
