@@ -300,7 +300,15 @@ module Edi
                 end
               end
             else
-              record.send("#{content_property}=", json)
+              if content_property == '_id'
+                if (existing = Cenit::Utility.find_record({ id: json }, container))
+                  record = existing
+                else
+                  record.id = json
+                end
+              else
+                record.send("#{content_property}=", json)
+              end
             end
           else
             fail "Can not assign #{json} as simple content to #{data_type.name}"
