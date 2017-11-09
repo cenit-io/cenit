@@ -20,7 +20,7 @@ module Setup
       (!(value = super).nil? &&
 
         (new_record? || !Setup::Connection.data_type.protecting?(name) ||
-          (current_user = User.current) && current_user.owns?(Account.current_tenant)) &&
+          ((current_user = User.current) && current_user.owns?(Account.current_tenant))) &&
 
         value) || nil
     end
