@@ -181,7 +181,7 @@ module Setup
         (pull_data[clients] || []).each do |client_data|
           client = Setup::RemoteOauthClient.new_from_json(client_data, add_only: true)
           Cenit::Utility.bind_references(client)
-          if client.new_record? || User.current.owns?(client.tenant)
+          if client.new_record? || ((current_user = User.current) && current_user.owns?(client.tenant))
             %w(identifier secret).each do |property|
               if client.send("get_#{property}").blank?
                 p = Setup::CrossCollectionPullParameter.new(
