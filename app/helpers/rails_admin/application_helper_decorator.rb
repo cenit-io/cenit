@@ -673,6 +673,45 @@ module RailsAdmin
       target
     end
 
+    def subdomains_left_side_menu()
+      home_groups = RailsAdmin::Config.dashboard_groups
+      html = '<ul class="main-menu">'
+      home_groups.each_with_index do |g, index|
+        html += '<li>
+            <a href="" class="js-sub-menu-toggle"><i class="fa '+ g[:icon] +' fa-fw"></i><span class="text"> '+ g[:label] +'</span>
+              <i class="toggle-icon fa fa-angle-left"></i></a>'
+        models = g[:sublinks]
+        html+='<ul class="sub-menu ">'
+        html+= '<li><a href="/' + g[:param] +'/dashboard"><span class="text">Dashboard</span></a></li>'
+        unless models.empty?
+
+          models.each do |m|
+            if m.is_a?(Hash)
+              if (link = m[:link])
+                if (rel_link = link[:rel])
+                  model_url = "/#{rel_link}"
+                end
+                if (ext_link = link[:external])
+                  model_url = "#{ext_link}"
+                end
+              else
+                model_url = "/#{m[:param]}/dashboard"
+              end
+              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span class="text">'+m[:label]+'</span></a></li>'
+            elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
+              model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
+              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span class="text">'+model.label_plural+'</span></a></li>'
+            end
+          end
+          html += '</ul>'
+        end
+        html+= '</li>'
+      end
+      html+= '</ul>'
+      html.html_safe
+    end
+
+
     def subdomains_at_home()
       home_groups = RailsAdmin::Config.dashboard_groups
       html = ''

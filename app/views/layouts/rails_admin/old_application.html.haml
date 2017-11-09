@@ -9,7 +9,6 @@
 
     = csrf_meta_tag
     = stylesheet_link_tag "rails_admin/rails_admin.css", media: :all
-    <!-- Javascript -->
     = javascript_include_tag "rails_admin/rails_admin.js"
     -# Initialize JS simple i18n
     :javascript
@@ -29,7 +28,19 @@
     %body#home_page
       = yield
   - else
-    = render "layouts/rails_admin/body"
+    %body.rails_admin
+      #loading.label.label-warning{style: 'display:none; position:fixed; right:20px; bottom:20px; z-index:100000'}= t('admin.loading')
+      %nav.navbar.navbar-default.navbar-fixed-top
+        = render "layouts/rails_admin/navigation"
+      #wrapper
+        - if Cenit.hide_admin_navigation
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+        - else
+          #sidebar-wrapper
+            = render "layouts/rails_admin/sidebar_navigation"
+          #content-wrapper
+            .xyz
+              .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
   - if TourTrack.show_tour?(request.remote_ip, User.current)
     :javascript
       initializeTour();

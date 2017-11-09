@@ -1,0 +1,36 @@
+<body class="topnav-fixed">
+<div id="loading" class="label label-warning" style="display:none; position:fixed; right:20px; bottom:20px; z-index:100000">
+  <%= t('admin.loading') %>
+</div>
+<!-- WRAPPER -->
+<div id="wrapper" class="wrapper">
+  <!-- TOP BAR -->
+  <nav class="navbar nnavbar-default top-bar navbar-fixed-top">
+    <%= render "layouts/rails_admin/navigation" %>
+  </nav>
+  <!-- END TOP BAR -->
+  <!-- LEFT SIDEBAR -->
+  <div id="left-sidebar" class="left-sidebar minified">
+    <div class="sidebar-minified js-toggle-minified">
+      <i class="fa fa-exchange"></i>
+    </div>
+    <!-- main-nav -->
+    <div class="sidebar-scroll">
+      <nav class="main-nav">
+        <%= subdomains_left_side_menu %>
+      </nav>
+      <!-- /main-nav -->
+    </div>
+  </div>
+  <!-- END LEFT SIDEBAR -->
+  <!-- MAIN CONTENT WRAPPER -->
+  <div id="main-content-wrapper" class="content-wrapper expanded">
+    <%= render "layouts/rails_admin/content" %>
+  </div>
+  <!-- END CONTENT WRAPPER -->
+</div>
+<!-- END WRAPPER -->
+
+
+
+</body>
