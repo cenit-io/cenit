@@ -34,7 +34,7 @@
               %span='Join our Slack'
           %li
             = link_to 'https://cenit.io', class:'scroll', data: {link: 'pricing'} do
-              %i.fa.fa-fw.fa-credit-card{title: t('admin.misc.prices')}
+              %i.fa.fa-credit-card{title: t('admin.misc.prices')}
               %span=t('admin.misc.prices')
           %li
             =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/directory", target: '_blank' do
