@@ -17,6 +17,24 @@ $(document).ready(function(){
 	/************************
 	/*	MAIN NAVIGATION
 	/************************/
+    $('.subdomain-menu .js-sub-menu-toggle').on('click', function(e){
+
+        e.preventDefault();
+
+        $li = $(this).parent('li');
+        if( !$li.hasClass('active')){
+            $li.find(' > a .toggle-icon').removeClass('fa-angle-left').addClass('fa-angle-down');
+            $li.addClass('active');
+            $li.find('ul.sub-menu')
+                .slideDown(300);
+        }
+        else {
+            $li.find(' > a .toggle-icon').removeClass('fa-angle-down').addClass('fa-angle-left');
+            $li.removeClass('active');
+            $li.find('ul.sub-menu')
+                .slideUp(300);
+        }
+    });
 
 	$('.main-menu .js-sub-menu-toggle').on('click', function(e){
 
