@@ -253,10 +253,10 @@ ul.drawer li a span {
 #wrapper {
   padding-left: 40px;
   transition: all 0.5s ease;
-  overflow: hidden;
   position: relative;
   background: #3d4046;
   padding-top: 50px;
+  min-height: 100vh;
 }
 
 #wrapper.toggled {
@@ -334,6 +334,7 @@ ul.drawer li a span {
   background: #fff;
   padding: 15px 15px 15px;
   overflow: auto;
+  min-height: calc(100vh - 50px);
 }
 
 body.rails_admin .sidebar-nav {
@@ -2598,8 +2599,8 @@ section#welcome_users {
 li.no-childrens {
   border: solid 1px rgba(221, 221, 221, 0.87);
   border-radius: 4px;
-  margin-top: 5px !important;
-  margin-bottom: 5px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   .nav-caption {
     margin-left: 0px;
   }
@@ -2974,8 +2975,8 @@ button#model-nav-xs {
 
 .menu-separator {
   padding: 1px 0 0 0;
-  background: white;
-  margin: 5px -6px;
+  background: lightgrey;
+  margin: 0;
   border: none;
 }
 
@@ -3414,7 +3415,6 @@ a#show_tenant_menu {
   }
 }
 
-
 .diff {
   overflow: auto;
   margin: 0 -15px;
@@ -3773,9 +3773,24 @@ ul[type="ordered"] {
     }
   }
 }
+
+.widget .widget-content {
+  padding: 0;
+}
+
+.widget .widget-header h3 {
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 14px;
+  margin: 0;
+  line-height: 35px;
+  float: left;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+}
+
 #subdomain-related-menu {
   width: 100%;
-  margin-right: -15px;
   ul {
     padding: 0;
     margin: 0;
@@ -3785,12 +3800,17 @@ ul[type="ordered"] {
       border-radius: 0;
       margin-top: 0;
       margin-bottom: 0;
-      padding: 10px;
+      padding: 0;
       a {
-        padding-left: 0;
-        color: gray;
+        color: #555;
         text-decoration: none;
-
+        padding: 10px;
+        display: block;
+        &:hover {
+          background: #eeeeee;
+          color: #1D92AF;
+          text-decoration: none;
+        }
       }
       span.with_icon {
         padding: 0 !important;
@@ -3803,19 +3823,41 @@ ul[type="ordered"] {
     border: none;
     background: none;
     border-bottom: none;
-    margin-bottom: 5px;
+    margin-bottom: 0;
     .panel-heading {
       background: none;
+      border: none;
       a {
         font-size: 13px;
-        color: gray;
+        color: #555;
         padding: 10px;
-        text-transform: uppercase;
         span.nav-caret {
           float: right;
+          display: none;
         }
         span.nav-icon {
           margin-right: 10px;
+        }
+        &:hover {
+          background: #eeeeee;
+          color: #1D92AF;
+          text-decoration: none;
+          span.nav-caret {
+            float: right;
+            display: inline-block;
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+    .panel-collapse {
+      li a, .panel-default .panel-heading a {
+        padding-left: 36px;
+
+      }
+      .panel-collapse {
+        li a, .panel-default .panel-heading a {
+          padding-left: 72px;
         }
       }
     }
