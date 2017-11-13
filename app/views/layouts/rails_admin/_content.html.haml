@@ -10,7 +10,7 @@
             %i{class: "fa #{group.nil? ? 'fa-bars': group[:icon]}"}
             = group.nil? ? 'Menu': group[:label]
           .btn-group.widget-header-toolbar
-            %a{ href: "#", title: "Focus", class: "btn-borderless"}
+            %a{ href: "#", title: "Focus", class: "btn-borderless", id:'toggle-subdomain-menu'}
               %i.fa.fa-compress
         .widget-content
           #subdomain-related-menu

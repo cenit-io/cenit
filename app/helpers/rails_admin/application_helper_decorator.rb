@@ -1168,7 +1168,7 @@ module RailsAdmin
           value.from(value.index('</li>') + 5)
       elsif @dashboard_group_ref && @model_config && @model_config.dashboard_group_path.length > 1
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"false\"><a class=\"pjax\" href=\"#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
+          "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '</ol>'
       end

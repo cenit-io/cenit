@@ -15,6 +15,10 @@
 @import "rails_admin/custom/main";
 @import "horsey";
 
+body.rails_admin {
+  padding-top: 0;
+}
+
 /*Theming variables*/
 
 $link_color: rgb(66, 139, 202);
@@ -339,24 +343,54 @@ ul.drawer li a span {
   aside {
     width: 16.66666667%;
     float: left;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.15s ease-in-out;
 
     &.minified {
       width: 40px;
-      .widget .widget-header h3 {
+      #subdomain-related-menu .panel-default .panel-heading a:hover span.nav-caret {
         display: none;
       }
-      li.no-childrens .nav-caption {
+      #subdomain-related-menu .panel-default .panel-heading a span.nav-icon {
+        margin-right: 0;
+      }
+
+      #subdomain-related-menu ul li.no-childrens span.with_icon {
+        margin-right: 0;
+      }
+      .widget .widget-header h3 {
+        transition: all 0.15s ease-in-out;
+        opacity: 0;
+        height: 0;
+      }
+      span.nav-amount{
         display: none;
+      }
+      li.no-childrens {
+        .nav-amount{
+          display: none;
+        }
+        .nav-caption {
+          transition: all 0.15s ease-in-out;
+          width: 0;
+          opacity: 0;
+          height: 0;
+          display: inline-block;
+        }
       }
       #subdomain-related-menu .panel-default .panel-heading a span.nav-caption {
-        display: none;
+        transition: all 0.15s ease-in-out;
+        width: 0;
+        opacity: 0;
+        height: 0;
+        display: inline-block;
       }
     }
   }
+
   main {
 
   }
+
 }
 
 .content {
@@ -2638,6 +2672,10 @@ li.no-childrens {
   .nav-caption {
     margin-left: 0px;
     font-size: 0.9em;
+    width: auto;
+    opacity: 1;
+    transition: all 0.3s ease-in-out;
+    white-space: nowrap;
   }
   a {
     padding-left: 0;
@@ -3818,14 +3856,18 @@ ul[type="ordered"] {
   vertical-align: middle;
   font-size: 14px;
   margin: 0;
-  line-height: 35px;
+  line-height: 41px;
   float: left;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: bold;
+  width: auto;
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
 }
 
 #subdomain-related-menu {
   width: 100%;
+  overflow: hidden;
   ul {
     padding: 0;
     margin: 0;
@@ -3875,6 +3917,10 @@ ul[type="ordered"] {
         span.nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
+          transition: all 0.3s ease-in-out;
+          width: auto;
+          opacity: 1;
+          white-space: nowrap;
         }
         span.nav-caret {
           float: right;
@@ -3905,6 +3951,8 @@ ul[type="ordered"] {
         .nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
+          display: inline-block;
+          white-space: nowrap;
         }
         &:hover {
           background: #eeeeee;
@@ -3922,6 +3970,8 @@ ul[type="ordered"] {
           .nav-caption {
             margin-left: 0px;
             font-size: 0.9em;
+            display: inline-block;
+            white-space: nowrap;
           }
           &:hover {
             background: #eeeeee;
@@ -3936,4 +3986,28 @@ ul[type="ordered"] {
 
 .alert {
   margin-top: 15px;
+}
+
+span.nav-amount {
+  float: right;
+  margin-right: 15px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: #46b0cf;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: 10px;
+  &.active {
+    padding: 3px 7px;
+    background-color: #46b0cf;
+    color: #fff;
+  }
+}
+.breadcrumb {
+  padding: 11px 15px;
+  border-radius: 0;
+  border-bottom: solid 1px lightgray;
 }
