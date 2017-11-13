@@ -15468,7 +15468,7 @@ ul.main-menu > li > a,
     -ms-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
-    width: 230px;
+    width: 14%;
     padding-right: 0;
     padding-left: 0;
     left: 0;
@@ -15476,6 +15476,7 @@ ul.main-menu > li > a,
     float: none;
     z-index: 999;
     background-color: #3d4046;
+    border-top: solid 1px white;
 }
 
 .left-sidebar.minified {
@@ -15585,7 +15586,7 @@ body.focus-mode .left-sidebar {
     *display: inline;
     content: "";
     height: 0;
-    border-top: 1px solid #c4c4c4;
+    border-top: none;
     position: absolute;
     left: 10px;
     right: 10px;
@@ -15791,7 +15792,7 @@ body.ontop-nav .top-bar .navbar-toggle:hover, body.ontop-nav .top-bar .navbar-to
 /*------------------------------------------------*/
 .content-wrapper {
     padding: 15px 30px;
-    margin-left: 190px;
+    margin-left: calc(14.40% - 40px);
     position: relative;
 }
 
@@ -16063,11 +16064,11 @@ body.sidebar-float .content-wrapper {
 }
 
 .widget {
-    border-width: 1px;
-    border-style: solid;
-    margin-bottom: 20px;
+    margin-bottom:0;
     background-color: #f9f9f9;
-    border-color: lightgray;
+    border-top: solid 1px white;
+    border-right: solid 1px lightgrey;
+    margin-right: -1px;
 }
 
 .widget.widget-table {
@@ -16115,7 +16116,7 @@ body.sidebar-float .content-wrapper {
 
 .widget .widget-header {
     padding: 0 10px;
-    height: 35px;
+    height: 41px;
     border-bottom-width: 1px;
     border-bottom-style: solid;
     border-bottom-color: lightgray;
@@ -16137,7 +16138,7 @@ body.sidebar-float .content-wrapper {
     font-family: "latobold";
     font-size: 1.1em;
     margin: 0;
-    line-height: 35px;
+    line-height: 41px;
     float: left;
 }
 
@@ -16186,7 +16187,7 @@ body.sidebar-float .content-wrapper {
 .widget .widget-header .widget-header-toolbar {
     float: right;
     width: auto;
-    height: 35px;
+    height: 41px;
     border-left: 1px solid #ddd;
     padding-left: 10px;
     margin-left: 10px;
@@ -16262,7 +16263,7 @@ body.sidebar-float .content-wrapper {
 }
 
 .widget .widget-header .widget-header-toolbar .btn-borderless {
-    padding-top: 5px;
+    padding-top: 9px;
 }
 
 .widget .widget-header .widget-header-toolbar .btn-borderless i {
