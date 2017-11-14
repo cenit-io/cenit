@@ -16,7 +16,7 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami
+                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, CSV
 
   allow_on Setup::SystemNotification, :create_with
 
@@ -101,6 +101,8 @@ Capataz.config do
   allow_on IMGKit, [:image_from_html]
 
   allow_on Origami, [:sign_pdf]
+  
+  allow_on CSV, [:parse, :read]
 
   allow_on WickedPdf, [:new_wickedpdf]
 
