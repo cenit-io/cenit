@@ -7971,12 +7971,6 @@ fieldset[disabled] .note-editor .btn-link:focus {
     transition: height 0.35s ease;
 }
 
-@font-face {
-    font-family: 'Glyphicons Halflings';
-    src: url("../fonts/glyphicons-halflings-regular.eot");
-    src: url("../fonts/glyphicons-halflings-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/glyphicons-halflings-regular.woff") format("woff"), url("../fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("../fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular") format("svg");
-}
-
 .note-editor .glyphicon {
     position: relative;
     top: 1px;
@@ -14801,7 +14795,7 @@ body {
 }
 
 h1, h2 {
-    font-family: "latolight";
+
 }
 
 h3, h4, h5, h6 {
@@ -14842,7 +14836,7 @@ input {
         width: 100%;
     }
 }
-
+/*
 @font-face {
     font-family: "latolight";
     src: url("../fonts/lato-lig-webfont.eot");
@@ -14859,7 +14853,7 @@ input {
     font-family: "latobold";
     src: url("../fonts/lato-bol-webfont.eot");
     src: url("../fonts/lato-bol-webfont.eot?#iefix") format("embedded-opentype"), url("../fonts/lato-bol-webfont.woff") format("woff"), url("../fonts/lato-bol-webfont.ttf") format("truetype"), url("../fonts/lato-bol-webfont.svg") format("svg");
-}
+}*/
 
 #wrapper {
     width: 100%;
@@ -15468,7 +15462,7 @@ ul.main-menu > li > a,
     -ms-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
-    width: 230px;
+    width: 14%;
     padding-right: 0;
     padding-left: 0;
     left: 0;
@@ -15476,6 +15470,7 @@ ul.main-menu > li > a,
     float: none;
     z-index: 999;
     background-color: #3d4046;
+    border-top: solid 1px white;
 }
 
 .left-sidebar.minified {
@@ -15585,7 +15580,7 @@ body.focus-mode .left-sidebar {
     *display: inline;
     content: "";
     height: 0;
-    border-top: 1px solid #c4c4c4;
+    border-top: none;
     position: absolute;
     left: 10px;
     right: 10px;
@@ -15791,7 +15786,7 @@ body.ontop-nav .top-bar .navbar-toggle:hover, body.ontop-nav .top-bar .navbar-to
 /*------------------------------------------------*/
 .content-wrapper {
     padding: 15px 30px;
-    margin-left: 190px;
+    margin-left: calc(14.40% - 40px);
     position: relative;
 }
 
@@ -16063,11 +16058,11 @@ body.sidebar-float .content-wrapper {
 }
 
 .widget {
-    border-width: 1px;
-    border-style: solid;
-    margin-bottom: 20px;
+    margin-bottom:0;
     background-color: #f9f9f9;
-    border-color: lightgray;
+    border-top: solid 1px white;
+    border-right: solid 1px lightgrey;
+    margin-right: -1px;
 }
 
 .widget.widget-table {
@@ -16115,7 +16110,7 @@ body.sidebar-float .content-wrapper {
 
 .widget .widget-header {
     padding: 0 10px;
-    height: 35px;
+    height: 41px;
     border-bottom-width: 1px;
     border-bottom-style: solid;
     border-bottom-color: lightgray;
@@ -16137,7 +16132,7 @@ body.sidebar-float .content-wrapper {
     font-family: "latobold";
     font-size: 1.1em;
     margin: 0;
-    line-height: 35px;
+    line-height: 41px;
     float: left;
 }
 
@@ -16186,7 +16181,7 @@ body.sidebar-float .content-wrapper {
 .widget .widget-header .widget-header-toolbar {
     float: right;
     width: auto;
-    height: 35px;
+    height: 41px;
     border-left: 1px solid #ddd;
     padding-left: 10px;
     margin-left: 10px;
@@ -16262,7 +16257,7 @@ body.sidebar-float .content-wrapper {
 }
 
 .widget .widget-header .widget-header-toolbar .btn-borderless {
-    padding-top: 5px;
+    padding-top: 9px;
 }
 
 .widget .widget-header .widget-header-toolbar .btn-borderless i {
@@ -16652,7 +16647,7 @@ body.sidebar-float .content-wrapper {
 
 /* big number with sparkline */
 .big-number {
-    font-family: "latolight";
+
     font-size: 3.5em;
 }
 
@@ -17004,7 +16999,7 @@ fieldset {
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     border-radius: 0;
-    font-family: "latolight";
+
 }
 
 .btn i {
@@ -19502,7 +19497,7 @@ ul.quick-inbox-list .timestamp {
 /* table */
 .table > thead > tr {
     font-size: 0.9em;
-    background-color: #f2f2f2;
+    background-color: white;
 }
 
 .table a:hover {
@@ -20013,7 +20008,7 @@ ul.ColVis_collection li span {
 }
 
 .ui-jqdialog .fm-button {
-    font-family: "latolight";
+
     color: #fff;
     font-size: 14px;
     line-height: 1.2;

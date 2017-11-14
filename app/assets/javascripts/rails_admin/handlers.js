@@ -437,7 +437,7 @@ function handlerInit() {
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
 
-    $('#main-accordion .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
+    $('#subdomain-related-menu .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
 
     updateModelCountOneByOneNoChild();
 
@@ -502,7 +502,7 @@ function setupAutoComplete(el) {
 // Side Menu Bar Update Model Counts Functions
 
 function updateModelCountOneByOneNoChild() {
-    $cenit_submenu_children = $('#main-accordion >li.no-childrens');
+    $cenit_submenu_children = $('#subdomain-related-menu ul > li.no-childrens[data-model]');
     requestModelCount();
 }
 

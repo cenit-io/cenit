@@ -3,22 +3,27 @@
 - else
   - group = dashboard_root_group
   #content-wrapper
-    .row
-      %aside.col-sm-3
-        .widget
-          .widget-header
-            %h3
-              %i{class: "fa #{group.nil? ? 'fa-bars': group[:icon]}"}
-              = group.nil? ? 'Menu': group[:label]
-            .btn-group.widget-header-toolbar
-              %a{ href: "#", title: "Focus", class: "btn-borderless"}
-                %i.fa.fa-compress
-          .widget-content
-            #subdomain-related-menu
-              %ul
-                = main_navigation
-      %main.col-sm-9
-        .xyz
-          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+    %aside
+      .widget
+        .widget-header
+          %h3
+            %i{class: "fa #{group.nil? ? 'fa-bars': group[:icon]}"}
+            = group.nil? ? 'Menu': group[:label]
+          .btn-group.widget-header-toolbar
+            %a{ href: "#", title: "Focus", class: "btn-borderless", id:'toggle-subdomain-menu'}
+              %i.fa.fa-compress
+        .widget-content
+          #subdomain-related-menu
+            %ul
+              -if @dashboard_group_ref
+                %li.no-childrens
+                  = link_to "/#{@dashboard_group_ref}/dashboard", class: 'pjax' do
+                    %span{class: 'with_icon fa fa-tachometer', title: 'Dashboard'}
+                    %span{class: 'nav-caption', title: 'Dashboard'}
+                      = 'Dashboard'
+              = main_navigation
+    %main
+      .xyz
+        .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
 
 

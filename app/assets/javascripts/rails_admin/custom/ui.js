@@ -455,6 +455,16 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
+    $('#toggle-subdomain-menu').off('click').on('click', function () {
+        $('#content-wrapper aside').toggleClass('minified');
+    });
+    $('#subdomain-related-menu a[data-toggle="collapse"]').off('click').on('click', function (e) {
+        var $aside = $('#content-wrapper aside');
+        if ($aside.hasClass('minified')) {
+            $aside.removeClass('minified');
+        }
+
+    });
     $(document).on('click', ".scroll", scroll_to);
 
     $(window).scroll(function () {

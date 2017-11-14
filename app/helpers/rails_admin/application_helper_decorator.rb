@@ -393,7 +393,7 @@ module RailsAdmin
             unless just_li
               li_stack = %(<div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{mongoff_start_index ? "#{name}-collapse" : 'main-accordion'}' href='##{collapse_id}' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>) +
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>) +
                 (icon ? "<span class='nav-icon' title='#{capitalize_first_letter label}'>#{icon}</span>" : '') +
                 %(<span class='nav-caption'>#{capitalize_first_letter label}</span>
               </a>
@@ -428,7 +428,7 @@ module RailsAdmin
           links = %(<div id='main-#{name}' class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#main-accordion' href='##{name}-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>
                 <span class='nav-icon'><i class='#{DATA_TYPE_ICONS[data_type_model]}' title='#{t("admin.misc.main_navigation.#{name}")}'></i></span>
                 <span class='nav-caption'>#{t("admin.misc.main_navigation.#{name}")}</span>
               </a>
@@ -461,7 +461,7 @@ module RailsAdmin
             li = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='##{html_id}' href='##{stack_id}' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>
                 <span class='nav-icon'><i class='#{node.navigation_icon || 'fa fa-folder-open-o'}' title="#{node_title = capitalize_first_letter(node.label_navigation)}"></i></span>
                 <span class='nav-caption'>#{node_title}</span>
               </a>
@@ -548,7 +548,7 @@ module RailsAdmin
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#shared-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>
                 <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
@@ -599,7 +599,7 @@ module RailsAdmin
           html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none1' href='#renderer-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>
                 <span class="nav-icon"><i class=" #{icon}" title="#{node.label_plural}"></i></span>
                 <span class='nav-caption'>#{node.label_plural}</span>
               </a>
@@ -647,7 +647,7 @@ module RailsAdmin
       html = %(<div class='panel panel-default'>
             <div class='panel-heading'>
               <a data-toggle='collapse' data-parent='#none' href='#open-api-collapse' class='panel-title collapse in collapsed'>
-                <span class='nav-caret'><i class='fa fa-caret-down'></i></span>
+                <span class='nav-caret'><i class='fa fa-angle-down'></i></span>
                 #{
       options[:just_li] ?
         '<span class="nav-icon"><i class="fa fa-list" title="'+ t('admin.actions.open_api_directory.menu') +'"></i></span>' :
@@ -676,8 +676,9 @@ module RailsAdmin
     def subdomains_left_side_menu()
       home_groups = RailsAdmin::Config.dashboard_groups
       html = '<ul class="main-menu">'
+      group = dashboard_root_group
       home_groups.each_with_index do |g, index|
-        html += '<li>
+        html += '<li class="'+ (@dashboard_group[:param] == g[:param] ? 'active' : '') +'">
             <a href="" class="js-sub-menu-toggle"><i class="fa '+ g[:icon] +' fa-fw"></i><span class="text"> '+ g[:label] +'</span>
               <i class="toggle-icon fa fa-angle-left"></i></a>'
         models = g[:sublinks]
@@ -1167,7 +1168,7 @@ module RailsAdmin
           value.from(value.index('</li>') + 5)
       elsif @dashboard_group_ref && @model_config && @model_config.dashboard_group_path.length > 1
         value = value.to(value.index('<li') - 1) +
-          "<li class=\"false\"><a class=\"pjax\" href=\"#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
+          "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
           value.from(value.index('</li>') + 5)
         value = value.to(value.index('</ol>')-1) + '</ol>'
       end
