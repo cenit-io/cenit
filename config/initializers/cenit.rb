@@ -157,4 +157,6 @@ Cenit.config do
   aws_s3_region ENV['AWS_S3_REGION'] || 'us-west-2'
 
   maximum_task_resumes 500
+
+  maximum_cyclic_flow_executions 5
 end
