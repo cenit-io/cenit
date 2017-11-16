@@ -1,0 +1,40 @@
+<% secondary = ['Monitors', 'Configuration', 'Administration'] %>
+<div class="col-md-<%= secondary.include?(d[:label]) ? '4' : '12' %>">
+  <!-- WIDGET TASKS -->
+  <% stack = d[:stack] %>
+  <div class="widget widget-dashboard">
+    <div class="widget-header">
+      <h3><i class="fa <%= d[:icon] %>"></i><%= d[:label] %></h3>
+
+      <div class="badge element-bg-color-blue" style="
+      position: absolute;
+          top: 12px;
+          right: 70px;
+      "><%= stack.count %></div>
+      <div class="btn-group widget-header-toolbar">
+        <a href="#" title="Expand/Collapse" class="btn-borderless btn-toggle-expand <%= index == 0 ? '' : 'closed' %>"><i class="fa fa-chevron-up"></i></a>
+      </div>
+    </div>
+    <div class="widget-content">
+      <% stack = d[:stack] %>
+      <ul class="task-list">
+        <% stack.each do |s| %>
+            <li>
+              <p>
+                <span class="badge element-bg-color-blue"><i class="fa fa-spinner fa-pulse fa-fw"></i></span>
+                <a href="<%= s[:url] %>"><%= s[:label] %></a>
+                <span class="label"><a></a><i class="fa fa-cog"></i> </span>
+              </p>
+
+              <div class="progress progress-xs">
+                <div class="progress-bar progress-bar-<%= s[:indicator] %>" role="progressbar" aria-valuenow="23" data-model="<%= s[:data][:model] %>" data-origins="<%= s[:data][:origins] %>" data-animate-length="<%= s[:anim] %>" data-animate-width-to="<%= s[:anim] %>" style="width:<%= s[:anim] %>">
+                  <span class="sr-only">X</span>
+                </div>
+              </div>
+            </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+  <!-- END WIDGET TASKS -->
+</div>

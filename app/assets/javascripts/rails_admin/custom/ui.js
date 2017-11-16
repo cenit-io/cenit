@@ -11,6 +11,8 @@
 //= require lodash.min
 //= require rails_admin/select2.full.min
 //= require rails_admin/king-common
+//= require rails_admin/jquery.easypiechart.min
+//= require rails_admin/king-chart-stat
 
 $(document).on('rails_admin.dom_ready', function () {
     registerEvents();

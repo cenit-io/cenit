@@ -362,11 +362,11 @@ ul.drawer li a span {
         opacity: 0;
         height: 0;
       }
-      span.nav-amount{
+      span.nav-amount {
         display: none;
       }
       li.no-childrens {
-        .nav-amount{
+        .nav-amount {
           display: none;
         }
         .nav-caption {
@@ -3847,22 +3847,49 @@ ul[type="ordered"] {
   }
 }
 
-.widget .widget-content {
-  padding: 0;
-}
+.widget {
+  .widget-header h3 {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+    margin: 0;
+    line-height: 41px;
+    float: left;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    width: auto;
+    opacity: 1;
+    transition: all 0.3s ease-in-out;
+  }
+  .widget-content {
+    padding: 0;
+  }
+  &.widget-dashboard{
+    margin-bottom: 30px;
+    background-color: #f9f9f9;
+    border: solid 1px lightgrey;
 
-.widget .widget-header h3 {
-  display: inline-block;
-  vertical-align: middle;
-  font-size: 14px;
-  margin: 0;
-  line-height: 41px;
-  float: left;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: bold;
-  width: auto;
-  opacity: 1;
-  transition: all 0.3s ease-in-out;
+    .widget-header h3 {
+      display: inline-block;
+      vertical-align: middle;
+      *vertical-align: auto;
+      *zoom: 1;
+      *display: inline;
+      font-size: 1.1em;
+      margin: 0;
+      line-height: 41px;
+      float: left;
+    }
+    .widget-content {
+      padding: 20px 10px;
+      .progress {
+        margin-bottom: 20px;
+        float: left;
+        width: 100%;
+      }
+    }
+  }
+
 }
 
 #subdomain-related-menu {
@@ -4006,8 +4033,12 @@ span.nav-amount {
     color: #fff;
   }
 }
+
 .breadcrumb {
   padding: 11px 15px;
   border-radius: 0;
   border-bottom: solid 1px lightgray;
+}
+.sidebar-scroll {
+  border-top: solid 1px white;
 }

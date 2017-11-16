@@ -2,7 +2,9 @@
   - #Group Dashboard or Subdomain Dashboard
   - if @abstract_models
     .dashboard{'data-model-count': 0}
-      = dashboard_main
+      .row
+        - dashboard_data.each_with_index do |d,index|
+          = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
 -else
   -# Home Page or General Dahsboard
   = render partial: 'rails_admin/main/new_home'
