@@ -12,6 +12,7 @@
 @import "rails_admin/custom/owl_carousel/owl.theme";
 @import "rails_admin/custom/owl_carousel/owl.transitions";
 @import "rails_admin/custom/home/home_page";
+@import "rails_admin/custom/dashboard/dashboard";
 @import "rails_admin/custom/main";
 @import "horsey";
 
@@ -1161,7 +1162,7 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 15px;
 }
 
-.dashboard, #actions-menu-list {
+#actions-menu-list {
   .progress {
     margin-bottom: 0;
     float: left;
@@ -1682,8 +1683,8 @@ label {
   background-image: none;
   border: 1px solid transparent;
   white-space: nowrap;
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 2px 12px;
+  font-size: 12px;
   line-height: 1.42857143;
   border-radius: 4px;
   -webkit-user-select: none;
@@ -3912,6 +3913,9 @@ ul[type="ordered"] {
         padding: 13px 0 13px 15px;
         font-size: 14px;
         border-bottom: solid 1px #f9f9f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         &:hover {
           background: #eeeeee;
           color: #1D92AF;
@@ -3941,6 +3945,9 @@ ul[type="ordered"] {
         padding: 13px 0 13px 15px;
         font-size: 14px;
         border-bottom: solid 1px #f9f9f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         span.nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
@@ -3975,6 +3982,9 @@ ul[type="ordered"] {
         padding: 13px 0 13px 36px;
         font-size: 14px;
         border-bottom: solid 1px #f9f9f9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         .nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
@@ -4035,9 +4045,15 @@ span.nav-amount {
 }
 
 .breadcrumb {
-  padding: 11px 15px;
+  padding: 10px 15px;
+  padding-bottom: 11px;
   border-radius: 0;
   border-bottom: solid 1px lightgray;
+  background: #f9f9f9;
+  margin-top: 1px;
+  margin-left: -15px;
+  margin-right: -15px;
+  height: 41px;
 }
 .sidebar-scroll {
   border-top: solid 1px white;

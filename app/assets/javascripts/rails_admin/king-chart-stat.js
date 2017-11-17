@@ -13,6 +13,8 @@ $(document).ready(function(){
 			lineCap: "square",
 			lineWidth: 5,
 			barColor: "#ef1e25",
+            size: 50,
+            scaleLength: 0,
 			onStep: function(from, to, percent) {
 				$(this.el).find('.percent').text(Math.round(percent));
 			}

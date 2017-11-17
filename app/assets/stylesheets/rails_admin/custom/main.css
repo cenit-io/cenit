@@ -15368,7 +15368,7 @@ body.focus-mode .top-bar {
     content: "\f105";
     color: #b2b6bf;
     margin-right: 2px;
-    padding: 0 5px 0 2px;
+    padding: 0 8px;
     position: relative;
     top: 1px;
 }
@@ -15848,17 +15848,14 @@ body.sidebar-float .content-wrapper {
     padding-left: 0;
 }
 
-.breadcrumb a {
-    color: #555;
-}
-
 .breadcrumb i {
     font-size: 1.2em;
     margin-right: 5px;
 }
 
 .breadcrumb .active {
-    font-weight: 300;
+    font-weight: bold;
+
 }
 
 /* top content, visible on every page */
@@ -16129,7 +16126,6 @@ body.sidebar-float .content-wrapper {
     *vertical-align: auto;
     *zoom: 1;
     *display: inline;
-    font-family: "latobold";
     font-size: 1.1em;
     margin: 0;
     line-height: 41px;
@@ -16434,7 +16430,7 @@ body.sidebar-float .content-wrapper {
 /* easy pie chart */
 .easy-pie-chart {
     position: relative;
-    width: 110px;
+    width: 50px;
     margin: 0 auto;
     margin-bottom: 15px;
     text-align: center;
@@ -16452,7 +16448,7 @@ body.sidebar-float .content-wrapper {
     *vertical-align: auto;
     *zoom: 1;
     *display: inline;
-    line-height: 110px;
+    line-height: 50px;
     z-index: 2;
 }
 
@@ -20247,7 +20243,7 @@ div[class*="col-"] > .form-group {
 .wizard {
     position: relative;
     overflow: hidden;
-    background-color: #f9f9f9;
+    margin-bottom: 25px;
 }
 
 .wizard:before, .wizard:after {
@@ -20287,11 +20283,10 @@ div[class*="col-"] > .form-group {
     height: 46px;
     padding: 0 20px 0 30px;
     margin: 0;
-    font-size: 16px;
+    font-size: 13px;
     line-height: 46px;
     color: #a5a5a5;
     cursor: default;
-    background: #f2f2f2;
 }
 
 .wizard ul li:first-child {
@@ -20316,7 +20311,7 @@ div[class*="col-"] > .form-group {
     display: block;
     border: 48px solid transparent;
     border-right: 0;
-    border-left: 24px solid #f2f2f2;
+    border-left: 24px solid white;
     content: "";
 }
 
@@ -20464,7 +20459,6 @@ div[class*="col-"] > .form-group {
 
 /* calendar */
 .fc-header-title h2 {
-    font-family: "latobold";
     font-size: 1.5em;
 }
 
@@ -21461,7 +21455,6 @@ ul.nav-categories > li > a {
 .inbox .message-label {
     padding: 3px;
     font-size: 0.8em;
-    font-family: "latobold";
     color: #fff !important;
 }
 
@@ -22411,8 +22404,6 @@ ul.recent-file-list > li {
     font-size: 0.9em;
     text-align: center;
 }
-
-/*# sourceMappingURL=main.css.map */
 
 /* subdomain menu */
 ul.subdomain-menu {

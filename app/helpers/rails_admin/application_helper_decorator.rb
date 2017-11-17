@@ -964,11 +964,13 @@ module RailsAdmin
     def dashboard_navigation_data(nodes_stack, nodes)
       return unless nodes.present?
       i = -1
-      stack =
-        nodes.collect do |node|
-          i += 1
-          children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
 
+      nodes.collect do |node|
+        i += 1
+        children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+        if children.present?
+          dashboard_navigation_data nodes_stack, children
+        else
           model_param = node.abstract_model.to_param
           url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
           rc = {}
@@ -1002,9 +1004,8 @@ module RailsAdmin
           rc[:indicator] = indicator
           rc[:anim] = anim
           rc
-
         end
-
+      end
     end
 
     def dashboard_navigation(nodes_stack, nodes)

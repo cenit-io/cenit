@@ -2,9 +2,33 @@
   - #Group Dashboard or Subdomain Dashboard
   - if @abstract_models
     .dashboard{'data-model-count': 0}
+      - secondary = ['Monitors', 'Configuration', 'Administration']
+      - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
+      - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
       .row
-        - dashboard_data.each_with_index do |d,index|
-          = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+        .col-xs-12
+          %ul.nav.nav-tabs{role: "tablist"}
+            - primaries.each_with_index do |d,index|
+              %li{class: index==0 ? 'active': ''}
+                %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                  %i{class: "fa #{d[:icon]}"}
+                  =d[:label]
+          .tab-content
+            - primaries.each_with_index do |d,index|
+              .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+      .row
+        .col-xs-12
+          %ul.nav.nav-tabs{role: "tablist"}
+            - auxiliaries.each_with_index do |d,index|
+              %li{class: index==0 ? 'active': ''}
+                %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                  %i{class: "fa #{d[:icon]}"}
+                  =d[:label]
+          .tab-content
+            - auxiliaries.each_with_index do |d,index|
+              .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
 -else
   -# Home Page or General Dahsboard
   = render partial: 'rails_admin/main/new_home'

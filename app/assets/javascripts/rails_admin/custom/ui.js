@@ -457,6 +457,9 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
+    $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        updateDashboardCount(e);
+    })
     $('#toggle-subdomain-menu').off('click').on('click', function () {
         $('#content-wrapper aside').toggleClass('minified');
     });

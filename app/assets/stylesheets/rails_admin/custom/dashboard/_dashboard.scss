@@ -1,0 +1,147 @@
+.dashboard {
+  .chart {
+    padding: 15px;
+    margin-bottom: 30px;
+    overflow: initial;
+    min-height: 55px;
+    background: #f9f9f9;
+    box-shadow: 0 0px 1px rgb(61, 64, 70);
+    float: left;
+    width: 100%;
+    a.name {
+      color: #555;
+      margin-bottom: 0;
+      display: inline-block;
+      white-space: nowrap;
+      width: 89%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-decoration: none;
+      line-height: 1;
+      font-weight: bold;
+      .model_count {
+        margin-right: 6px;
+        color: gray;
+        font-size: 22px;
+        font-weight: normal;
+        i {
+          font-size: 16px;
+        }
+        &.info {
+          color: #5bc0de;
+        }
+        &.success {
+          color: #5bc0de;
+        }
+        &.danger {
+          color: #d9534f;
+        }
+        &.warning {
+          color: #f0ad4e;
+        }
+
+      }
+    }
+    a.sub-menu {
+      float: right;
+      color: #777777;
+    }
+    .progress {
+      margin-bottom: 0;
+      width: 100%;
+      float: left;
+      margin-top: 7px;
+      display: block;
+      i {
+        font-size: 10px
+      }
+    }
+  }
+
+  h4 {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  .tab-content {
+    padding: 30px 0;
+    overflow: initial;
+  }
+  .nav-pills-custom-minimal {
+    border-bottom: none;
+  }
+  #links {
+    float: right;
+    > span {
+      padding: 0 8px;
+      color: #333333;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      position: absolute;
+      right: 0;
+      i {
+        margin-right: 1px;
+      }
+    }
+    &.options-menu {
+      position: relative;
+      overflow: visible;
+      float: right;
+      display: inline-block;
+      top: -5px;
+      right: -8px;
+      .dropdown-menu {
+        right: 0 !important;
+        left: auto !important;
+        margin-top: 0 !important;
+        border-top-right-radius: 0;
+
+        -webkit-transition: all 0.3s;
+        -moz-transition: all 0.3s;
+        -ms-transition: all 0.3s;
+        -o-transition: all 0.3s;
+        transition: all 0.3s;
+
+        display: block !important;
+        overflow: hidden;
+        transform: translateY(-5%);
+        opacity: 0;
+        height: 0;
+        border-top: none;
+        top: 20px;
+      }
+      &.open {
+        > span {
+          border-color: rgba(0, 0, 0, 0.15);
+          background-color: #ffffff;
+          border-bottom: none;
+          z-index: 1002;
+          &:after {
+            display: block;
+            background-color: #ffffff;
+            content: ' ';
+            position: absolute;
+            width: calc(100% - 34px);
+            height: 6px;
+            right: 1px;
+            bottom: -1px;
+            z-index: 1001;
+          }
+        }
+        .dropdown-menu {
+          transform: none;
+          opacity: 1;
+          height: auto;
+          border-top: solid 1px rgba(0, 0, 0, 0.15);
+          margin-bottom: 25px;
+          z-index: 1001;
+          ul li {
+            list-style-type: none;
+          }
+          a {
+            color: $link_color;
+          }
+        }
+      }
+    }
+  }
+}

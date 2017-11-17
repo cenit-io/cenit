@@ -1,0 +1,9 @@
+<% stack = d[:stack] %>
+<% stack.each do |s| %>
+    <div class="col-md-3">
+      <div class="easy-pie-chart green" data-percent="<%= rand(100) %>">
+        <span class="percent"></span>
+      </div>
+      <p class="text-center"><%= s[:label] %></p>
+    </div>
+<% end %>
