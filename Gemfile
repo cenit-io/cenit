@@ -39,7 +39,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-  gem 'rubocop'
+#  gem 'rubocop', '0.49.0'
 end
 
 group :test do
