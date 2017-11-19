@@ -22,7 +22,7 @@
     %i.fa.fa-fw.fa-slack{title: 'join our slack'}
     %span='Join our Slack'
 %li
-  =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/prices", target: '_blank' do
+  = link_to 'https://cenit.io', class:'scroll', data: {link: 'pricing'} do
     %i.fa.fa-fw.fa-credit-card{title: t('admin.misc.prices')}
     %span=t('admin.misc.prices')
 %li
