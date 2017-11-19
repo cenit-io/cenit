@@ -11,6 +11,8 @@
 //= require lodash.min
 //= require rails_admin/select2.full.min
 //= require rails_admin/king-common
+//= require rails_admin/jquery.easypiechart.min
+//= require rails_admin/king-chart-stat
 
 $(document).on('rails_admin.dom_ready', function () {
     registerEvents();
@@ -455,6 +457,9 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
+    $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        updateDashboardCount(e);
+    })
     $('#toggle-subdomain-menu').off('click').on('click', function () {
         $('#content-wrapper aside').toggleClass('minified');
     });

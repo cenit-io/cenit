@@ -441,7 +441,7 @@ function handlerInit() {
 
     updateModelCountOneByOneNoChild();
 
-    if ($('.dashboard table').length > 0)
+    if ($('.dashboard').length > 0)
         updateDashboardCount();
 
     if ($('#integration_list').length > 0) {
@@ -646,15 +646,23 @@ function getModelCountOneByOne($element, model_name, origins, ext) {
 
 // DashBoard Update Model Counts Functions
 
-function updateDashboardCount() {
-    $cenit_dashboard_models = $('.progress-bar');
-    $cenit_dashboard_max_model_count = -1;
+function updateDashboardCount(e) {
+    if (e) {
+        var tab_id = $(e.target).attr('href');
+        $cenit_dashboard_models = $(tab_id).find('.progress-bar');
+        $cenit_dashboard_max_model_count = -1;
+    }
+    else {
+        $cenit_dashboard_models = $('.tab-pane.active .progress-bar');
+        $cenit_dashboard_max_model_count = -1;
+
+    }
     requestDashBoardModelCount();
 }
 function requestDashBoardModelCount() {
     var array_of_models = $cenit_dashboard_models.toArray();
     if (array_of_models.length > 0) {
-        var $this = $(array_of_models.pop());
+        var $this = $(array_of_models.shift());
         $cenit_dashboard_models = $(array_of_models);
         getModelCountForDashBoard($this, $this.data('model'), $this.data('origins'), $this.data('ext'));
     }
@@ -715,7 +723,10 @@ function getModelCountForDashBoard($element, model_name, origins, ext) {
                     else {
                         $amount.text('');
                         $amount.children().remove();
-                        $amount.append($('<i class="fa fa-spinner fa-pulse"></i>'));
+                        var $count = $amount.parent().parent().find('.model_count');
+                        $count.text('');
+                        $count.children().remove();
+                        $count.append($('<i class="fa fa-spinner fa-pulse"></i>'));
                     }
                 },
                 update_max_count = function (count) {
@@ -838,6 +849,10 @@ function update_dashboard_model_percents() {
         $this.attr('data-animate-width-to', anim);
         $this.css('width', anim);
         $this.addClass('progress-bar-' + indicator);
+        var $count = $this.parent().parent().find('.model_count');
+        $count.html(text);
+        $count.removeClass().addClass('model_count').addClass(indicator);
+
     });
 }
 

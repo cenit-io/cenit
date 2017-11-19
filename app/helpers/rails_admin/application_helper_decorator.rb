@@ -826,6 +826,33 @@ module RailsAdmin
       html.html_safe
     end
 
+    def dashboard_data()
+      nodes_stack = @model_configs.values.sort_by(&:weight)
+      node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }
+
+      dashboard_data = []
+      nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
+        nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
+        stack = dashboard_navigation_data nodes_stack, nodes
+
+        label = navigation_label || t('admin.misc.navigation')
+
+        icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
+        icon =
+          case icon
+          when Symbol
+            render partial: icon.to_s
+          else
+            icon
+          end
+
+        if stack.present?
+          dashboard_data << { label: label, icon: icon, stack: stack }
+        end
+      end
+      dashboard_data
+    end
+
     def dashboard_main()
       nodes_stack = @model_configs.values.sort_by(&:weight)
       node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }
@@ -932,6 +959,53 @@ module RailsAdmin
           </div>
         </a>
       </div>'
+    end
+
+    def dashboard_navigation_data(nodes_stack, nodes)
+      return unless nodes.present?
+      i = -1
+
+      nodes.collect do |node|
+        i += 1
+        children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
+        if children.present?
+          dashboard_navigation_data nodes_stack, children
+        else
+          model_param = node.abstract_model.to_param
+          url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+          rc = {}
+          rc[:url] = url
+          rc[:model_name] = model_param
+          rc[:label] =
+            if current_user
+              # "#{capitalize_first_letter node.label_navigation}"
+              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+            else
+              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+            end
+          origins =
+            if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
+              model.origins.join(',')
+            else
+              ''
+            end
+          data = {}
+          if (model_path = node.abstract_model.api_path)
+            data[:model] = model_path
+            data[:origins] = origins
+          end
+          rc[:data] =data
+          menu = menu_for(:collection, node.abstract_model, nil)
+          rc[:menu] = menu
+
+          indicator = 'info'
+          anim = '2.0%'
+
+          rc[:indicator] = indicator
+          rc[:anim] = anim
+          rc
+        end
+      end
     end
 
     def dashboard_navigation(nodes_stack, nodes)

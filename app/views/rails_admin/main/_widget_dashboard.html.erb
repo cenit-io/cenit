@@ -1,0 +1,31 @@
+<% children = [] %>
+<% stack = d[:stack] %>
+<% stack.each do |s| %>
+    <% if s.is_a?(Array) %>
+        <% children.concat(s) %>
+    <% else %>
+        <% children << s %>
+    <% end %>
+
+<% end %>
+<% children.each do |s| %>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+      <div class="chart">
+        <a href="<%= s[:url] %>" class="name" target="_blank">
+          <span class="model_count <%= s[:indicator] %>"><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i></span>
+          <%= s[:label] %></a>
+
+        <div id="links" class="options-menu">
+                   <span aria-haspopup="true" class="btn dropdown-toggle" data-toggle="dropdown" type="button">
+                    <i class="fa fa-ellipsis-v"></i>
+                   </span>
+          <ul class='dropdown-menu'><%= s[:menu] %></ul>
+        </div>
+        <div class="clearfix"></div>
+        <div class="progress progress-xs">
+          <div class="progress-bar progress-bar-<%= s[:indicator] %>" role="progressbar" aria-valuenow="" data-model="<%= s[:data][:model] %>" data-origins="<%= s[:data][:origins] %>" data-animate-length="<%= s[:anim] %>" data-animate-width-to="<%= s[:anim] %>" style="width:<%= s[:anim] %>">
+          </div>
+        </div>
+      </div>
+    </div>
+<% end %>
