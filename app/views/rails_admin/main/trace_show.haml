@@ -2,26 +2,26 @@
   - if (target = @trace.target)
     %span.trace-model.label.label-default
       ="#{@tracer_model_config.label}"
-    =link_to  url_for(action: :show, model_name: @abstract_model.to_param, id: target.id), class: 'pjax trace_object' do
+    =link_to  url_for(action: :show, model_name: @tracer_abstract_model.to_param, id: target.id), class: 'pjax trace_object' do
       = target.send(@tracer_model_config.object_label_method)
     %span#actions-menu-list
       #links.options-menu
         %span{class: 'btn dropdown-toggle', "data-toggle"=> 'dropdown', type: "button"}
           %i.fa.fa-ellipsis-v
         %ul.dropdown-menu
-          = menu_for :member, @abstract_model, target
+          = menu_for :member, @tracer_abstract_model, target
   -else
     %span
       %span.label.label-default
         ="#{@tracer_model_config.label}"
       %span.object-id.text-danger
         ="##{@trace.target_id}"
-      - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model: @abstract_model.to_param, id: params[:id], trace_id: @trace, try_recover: true))
+      - url = url_for(action: :show, controller: 'rails_admin/main', model: @tracer_abstract_model.to_param, id: @trace.id, try_recover: true)
       =link_to  url, class: 'btn btn-warning btn-xs pjax' do
         ='Try Recover'
         %i.fa.fa-life-ring
 - changes = @trace.changes_set
--diff = @action.build_diff(@abstract_model, changes)
+-diff = build_diff(@tracer_abstract_model, changes)
 .trace
   .row
     .col-xs-12
@@ -30,7 +30,7 @@
       .trace-info
         .trace-header
           .action.pull-left
-            = @action.diffstat(diff[:additions], diff[:deletions], true).html_safe
+            = diffstat(diff[:additions], diff[:deletions], true).html_safe
             - if (author = User.where(id: @trace.author_id).first)
               = image_tag(author.picture_url, alt: '', width: '20px')
               %label
@@ -46,14 +46,14 @@
             %nav
               %ul.pager
                 - if (previous = @trace.previous)
-                - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: params[:id], trace_id: previous.id))
+                - url = url_for(action: :show, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: previous.id)
                   %li
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       %i.fa.fa-angle-left
                       ='Previous'
                 - if (next_trace = @trace.next)
                   %li
-                    - url = url_for(@action.url_options(action: @action.action_name, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: params[:id], trace_id: next_trace.id))
+                    - url = url_for(action: :show, controller: 'rails_admin/main', model_name: @abstract_model.to_param, id: next_trace.id)
                     =link_to  url, class: 'btn btn-default btn-sm pjax' do
                       ='Next'
                       %i.fa.fa-angle-right

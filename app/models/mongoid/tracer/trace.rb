@@ -5,47 +5,30 @@ module Mongoid
 
 
     class Trace
-      include Setup::CenitUnscoped
-      include CrossOrigin::Document
+      include Setup::CenitScoped
+      include CrossOrigin::CenitDocument
+
+      build_in_data_type
 
       deny :all
-      allow :trace_show
+      allow :index, :show, :member_trace_index, :collection_trace_index
 
-      store_in collection: -> { "#{persistence_model.collection_name.to_s.singularize}_traces" }
+      origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 
-      origins -> { persistence_model.is_a?(Class) ? persistence_model.origins : :default }
-
-      class << self
-
-        def persistence_model
-          (persistence_options && persistence_options[:model]) || fail('Persistence option model is missing')
-        end
-
-        def storage_options_defaults
-          opts = super
-          if persistence_options && (model = persistence_options[:model])
-            opts[:collection] = "#{model.storage_options_defaults[:collection].to_s.singularize}_traces"
+      def target_model
+        if (match = target_model_name.match(/\ADt(.+)\Z/))
+          if (data_type = Setup::DataType.where(id: match[1]).first)
+            data_type.records_model
+          else
+            fail "Data type with ID #{match[1]} does not exist"
           end
-          opts
-        end
-
-        def with(options)
-          options = { model: options } unless options.is_a?(Hash)
-          super
+        else
+          target_model_name.constantize
         end
       end
 
-      def target_model
-        (persistence_options && persistence_options[:model]) ||
-          if (match = target_model_name.match(/\ADt(.+)\Z/))
-            if (data_type = Setup::DataType.where(id: match[1]).first)
-              data_type.records_model
-            else
-              fail "Data type with ID #{match[1]} does not exist"
-            end
-          else
-            target_model_name.constantize
-          end
+      def label
+        "#{action.to_s.capitalize} at #{created_at}"
       end
 
       TRACEABLE_MODELS =
@@ -53,29 +36,37 @@ module Mongoid
         #   Setup::Validator.class_hierarchy +
         #   Setup::BaseOauthProvider.class_hierarchy +
         #   Setup::Translator.class_hierarchy +
-          [
-            Setup::Algorithm
-            # Setup::Connection,
-            # Setup::PlainWebhook,
-            # Setup::Resource,
-            # Setup::Flow,
-            # Setup::Oauth2Scope,
-            # Setup::Snippet,
-            # Setup::RemoteOauthClient
-          ] -
+        [
+          Setup::Algorithm
+        # Setup::Connection,
+        # Setup::PlainWebhook,
+        # Setup::Resource,
+        # Setup::Flow,
+        # Setup::Oauth2Scope,
+        # Setup::Snippet,
+        # Setup::RemoteOauthClient
+        ] -
           [
             Setup::CenitDataType
           ]
 
       rails_admin do
 
+        object_label_method :label
+
         configure :target_id, :json_value do
           label 'Target ID'
         end
 
+        configure :target_model, :model do
+          visible do
+            bindings[:controller].action_name == 'index'
+          end
+        end
+
         configure :target, :record do
           visible do
-            bindings[:controller].action_name == 'trace_index'
+            bindings[:controller].action_name != 'member_trace_index'
           end
         end
 
@@ -91,7 +82,7 @@ module Mongoid
 
         configure :attributes_trace, :json_value
 
-        fields :target, :action, :attributes_trace, :created_at
+        fields :target_model, :target, :action, :attributes_trace, :created_at
 
         filter_fields :target_id, :action, :attributes_trace, :created_at
       end

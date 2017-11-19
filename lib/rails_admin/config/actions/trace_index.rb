@@ -3,21 +3,12 @@ module RailsAdmin
     module Actions
       class TraceIndex < RailsAdmin::Config::Actions::Base
 
-        register_instance_option :enabled? do
-          (am = bindings[:abstract_model]).nil? || (
-          am.is_a?(RailsAdmin::MongoffAbstractModel) && !am.model.is_a?(Mongoff::GridFs::FileModel)) || (
-          (only.nil? || [only].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s)) &&
-            ![except].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s) &&
-            !bindings[:abstract_model].config.excluded?
-          )
+        register_instance_option :only do
+          Mongoid::Tracer::Trace::TRACEABLE_MODELS
         end
 
         register_instance_option :authorization_key do
           :trace
-        end
-
-        register_instance_option :collection do
-          true
         end
 
         register_instance_option :route_fragment do
@@ -26,10 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            if params[:try_recover]
-              flash[:warning] = 'Recover action is not yet supported, keep your traces, it will comes soon'
-            end
-            Thread.current["[cenit][#{Mongoid::Tracer::Trace}]:persistence-options"] = persistence_options = { model: model = @abstract_model.model }
             @tracer_model_config = @model_config
             @model_config = RailsAdmin::Config.model(Mongoid::Tracer::Trace)
             @context_abstract_model = @model_config.abstract_model
@@ -39,13 +26,7 @@ module RailsAdmin
               flash[:warning] = "#{data_type.custom_title} tracing on default is not activated, <a href='#{config_url}'>#{t('admin.flash.click_here')}</a>.".html_safe
             end
 
-            if (trace_id = params[:trace_id])
-              if (@trace = @context_abstract_model.where(id: trace_id).first)
-                @trace = @trace.with(persistence_options)
-              else
-                flash[:error] = "Trace with ID #{trace_id} not found"
-              end
-            elsif (f = params[:f]) && (f = f[:target_id])
+            if (f = params[:f]) && (f = f[:target_id])
               target_id_field = @model_config._fields.detect { |field| field.name == :_id }
               f.each do |_, condition|
                 if condition.is_a?(Hash)
@@ -58,15 +39,13 @@ module RailsAdmin
               end
             end
 
-            unless @trace
-              model_constraints = {}
-              if model < ::Setup::ClassHierarchyAware
-                model_constraints[:target_model_name.in] = model.class_hierarchy.collect(&:to_s)
-              end
-              @objects = list_entries(@model_config, :trace, ->(scope) { scope.where(model_constraints) })
-              render :index
-            end
+            @objects = list_entries(@model_config, :trace, @action.trace_scope)
+            render :index
           end
+        end
+
+        def trace_scope
+          fail NotImplementedError
         end
 
         register_instance_option :link_icon do
@@ -236,7 +215,7 @@ module RailsAdmin
         end
 
         register_instance_option :listing? do
-          bindings[:controller].instance_variable_get(:@objects)
+          true
         end
       end
     end

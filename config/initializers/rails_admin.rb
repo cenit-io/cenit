@@ -68,8 +68,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::RemoteSharedCollection,
   RailsAdmin::Config::Actions::OpenApiDirectory,
   RailsAdmin::Config::Actions::Collect,
-  RailsAdmin::Config::Actions::TraceShow,
-  RailsAdmin::Config::Actions::TraceIndex,
+  RailsAdmin::Config::Actions::MemberTraceIndex,
+  RailsAdmin::Config::Actions::CollectionTraceIndex,
   RailsAdmin::Config::Actions::DataTypeConfig
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -596,14 +596,8 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    trace_index do
-      only { Mongoid::Tracer::Trace::TRACEABLE_MODELS }
-    end
-    trace_show do
-      only do
-        @traceable_models ||= Mongoid::Tracer::Trace::TRACEABLE_MODELS + [Mongoid::Tracer::Trace]
-      end
-    end
+    member_trace_index
+    collection_trace_index
     algorithm_dependencies do
       only { Setup::Algorithm }
     end
