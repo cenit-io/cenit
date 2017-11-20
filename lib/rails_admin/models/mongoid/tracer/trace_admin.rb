@@ -12,6 +12,8 @@ module RailsAdmin
               object_label_method :label
               weight 600
 
+              api_path "#{::Setup.to_s.underscore}/trace"
+
               configure :target_id, :json_value do
                 label 'Target ID'
               end
