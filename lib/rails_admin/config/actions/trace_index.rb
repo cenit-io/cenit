@@ -3,6 +3,14 @@ module RailsAdmin
     module Actions
       class TraceIndex < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :enabled? do
+          bindings[:abstract_model].nil? || bindings[:abstract_model].is_a?(RailsAdmin::MongoffAbstractModel) || (
+          (only.nil? || [only].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s)) &&
+            ![except].flatten.collect(&:to_s).include?(bindings[:abstract_model].to_s) &&
+            !bindings[:abstract_model].config.excluded?
+          )
+        end
+
         register_instance_option :only do
           Mongoid::Tracer::Trace::TRACEABLE_MODELS
         end
