@@ -428,6 +428,8 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat', break_line: true
 
+  Mongoid::Tracer::Trace
+
   Setup::SystemNotification
 
   Setup::Task
@@ -521,9 +523,6 @@ RailsAdmin.config do |config|
   Setup::ScriptExecution
 
   Setup::Category
-
-  # Tracing
-  Mongoid::Tracer::Trace
 
   config.actions do
     dashboard # mandatory

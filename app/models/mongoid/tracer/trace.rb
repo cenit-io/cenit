@@ -2,11 +2,10 @@ require 'mongoid/tracer/trace'
 
 module Mongoid
   module Tracer
-
-
     class Trace
       include Setup::CenitScoped
       include CrossOrigin::CenitDocument
+      include RailsAdmin::Models::Mongoid::Tracer::TraceAdmin
 
       build_in_data_type
 
@@ -49,43 +48,6 @@ module Mongoid
           [
             Setup::CenitDataType
           ]
-
-      rails_admin do
-
-        object_label_method :label
-
-        configure :target_id, :json_value do
-          label 'Target ID'
-        end
-
-        configure :target_model, :model do
-          visible do
-            bindings[:controller].action_name == 'index'
-          end
-        end
-
-        configure :target, :record do
-          visible do
-            bindings[:controller].action_name != 'member_trace_index'
-          end
-        end
-
-        configure :action do
-          pretty_value do
-            if (msg = bindings[:object].message)
-              "#{msg} (#{bindings[:object].action})"
-            else
-              value.to_s.to_title
-            end
-          end
-        end
-
-        configure :attributes_trace, :json_value
-
-        fields :target_model, :target, :action, :attributes_trace, :created_at
-
-        filter_fields :target_id, :action, :attributes_trace, :created_at
-      end
     end
   end
 end
