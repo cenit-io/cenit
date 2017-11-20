@@ -554,11 +554,11 @@ en:
         breadcrumb: "Collect"
         doing: "collecting"
       delete_data_type_errors: "Some data types could not be destroyed."
-      trace_show:
+      member_trace_index:
         title: "Trace"
         menu: "Trace"
         breadcrumb: "Trace"
-      trace_index:
+      collection_trace_index:
         title: "Trace"
         menu: "Trace"
         breadcrumb: "Trace"

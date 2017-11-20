@@ -86,10 +86,6 @@ module Cenit
         def tracing?
           self.class.data_type.trace_on_default && super
         end
-
-        def trace_model
-          super.with(self.class)
-        end
       end
 
       Cenit::Notebooks.startup if Cenit.jupyter_notebooks

@@ -19,7 +19,7 @@ module Mongoid
     def save(options = {})
       instance_variable_set(:@discard_event_lookup, true) if options && options[:discard_events]
       super
-    rescue Execption => ex
+    rescue Exception => ex
       report = Setup::SystemReport.create_from(ex)
       errors.add(:base, report.message)
       false

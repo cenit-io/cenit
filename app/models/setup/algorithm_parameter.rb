@@ -21,31 +21,34 @@ module Setup
     validate do
       if type
         if type.blank?
-          self.type = nil
+          remove_attribute(:type)
         else
           errors.add(:type, 'is not valid') unless type_enum.include?(type)
         end
       end
       if required
         if default.blank?
-          self.default = nil
+          remove_attribute(:default)
         else
           errors.add(:default, 'is not allowed')
         end
       else
-        self.default ||= DEFAULTS[type]
+        if default.blank?
+          remove_attribute(:default)
+        else
+          if type == 'string'
+            self.default = "\"#{default}" unless default.start_with?('"')
+            self.default = "#{default}\"" unless default.end_with?('"')
+          end
+          begin
+            JSON::Validator.validate!(schema, default)
+          rescue JSON::Schema::ValidationError => e
+            errors.add(:default, e.message)
+          end
+        end
       end
       errors.blank?
     end
-
-    DEFAULTS =
-      {
-        integer: 0,
-        number: 0.0,
-        boolean: false,
-        string: '',
-        nil => nil
-      }
 
     def type_enum
       %w(integer number boolean string hash)
@@ -70,11 +73,79 @@ module Setup
             '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass.to_s
           }
         end.stringify_keys
-      sch[:default] = default || DEFAULTS[type] unless required
+      sch[:default] = default_json unless required
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless type.blank? || %w(integer number boolean string object).include?(type)
       sch.stringify_keys
     end
-    
+
+    def default_json
+      if many
+        []
+      else
+        case type
+        when 'integer'
+          default.to_i
+        when 'number'
+          default.to_f
+        when 'boolean'
+          default.to_b
+        when 'string'
+          default
+        when 'hash'
+          begin
+            JSON.parse(default)
+          rescue
+            {}
+          end
+        else
+          nil
+        end
+      end
+    end
+
+    def default_ruby
+      if many
+        '[]'
+      else
+        default.presence ||
+          case type
+          when 'integer'
+            '0'
+          when 'number'
+            '0.0'
+          when 'boolean'
+            'false'
+          when 'string'
+            '""'
+          when 'hash'
+            '{}'
+          else
+            'nil'
+          end
+      end
+    end
+
+    def default_javascript
+      if many
+        '[]'
+      else
+        default.presence ||
+          case type
+          when 'integer'
+            '0'
+          when 'number'
+            '0.0'
+          when 'boolean'
+            'false'
+          when 'string'
+            '""'
+          when 'hash'
+            '{}'
+          else
+            'false' #TODO V8 does not recognize null or undefined
+          end
+      end
+    end
   end
 end

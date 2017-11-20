@@ -15,11 +15,12 @@ module RailsAdmin
               while looking_up
                 v = bindings[:view]
                 looking_up =
-                  if (amc = RailsAdmin::Config.registry[model.to_s.to_sym])
-                    am = amc.abstract_model
-                    wording = amc.navigation_label + ' > ' + amc.label
+                  if (model_config = RailsAdmin::Config.registry[model.to_s.to_sym]) ||
+                     (model_config = Config.model(model)).is_a?(RailsAdmin::MongoffModelConfig)
+                    am = model_config.abstract_model
+                    wording = model_config.navigation_label + ' > ' + model_config.label
                     if !am.embedded? && (index_action = v.action(:index, am))
-                      wording = v.link_to(amc.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax')
+                      wording = v.link_to(model_config.label, v.url_for(action: index_action.action_name, model_name: am.to_param), class: 'pjax')
                       false
                     else
                       model = model.superclass

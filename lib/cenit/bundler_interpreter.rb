@@ -137,7 +137,7 @@ module Cenit
             locals << p.name
             args_param ||= p.name == 'args'
             i += 1
-            "#{p.name}=args[#{i}]"
+            "#{p.name} = (args.length > #{i} ? args[#{i}] : #{p.default_ruby})"
           end.join(';') + ';'
         if args_param
           args = "__args#{rand}".tr('.', '_')
@@ -158,7 +158,7 @@ module Cenit
           algorithm.parameters.collect do |p|
             arguments_param ||= p.name == 'arguments'
             i += 1
-            "arguments['#{p.name}']=args[#{i}]"
+            "arguments['#{p.name}'] = (args.length > #{i} ? args[#{i}] : #{p.default_javascript})"
           end.join("\n") + "\n"
         params_initializer += "arguments['arguments']=args\n" unless arguments_param
         params_initializer += '@__js_arguments__ << arguments'

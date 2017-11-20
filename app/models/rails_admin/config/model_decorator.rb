@@ -2,6 +2,10 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      register_instance_option :api_path do
+        nil
+      end
+
       register_instance_option :filter_fields_names do
         nil
       end

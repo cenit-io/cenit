@@ -6,6 +6,7 @@ module RailsAdmin
     include SwaggerHelper
     include AlgorithmHelper
     include NotebooksHelper
+    include TraceHelper
 
     before_action :process_context
 

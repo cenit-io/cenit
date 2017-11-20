@@ -12,8 +12,8 @@ module RailsAdmin
             object_label_method { :custom_title }
 
             extra_associations do
-              association = Mongoid::Relations::Metadata.new(
-                name: :stored_outputs, relation: Mongoid::Relations::Referenced::Many,
+              association = ::Mongoid::Relations::Metadata.new(
+                name: :stored_outputs, relation: ::Mongoid::Relations::Referenced::Many,
                 inverse_class_name: ::Setup::Algorithm.to_s, class_name: ::Setup::AlgorithmOutput.to_s
               )
               [RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)]

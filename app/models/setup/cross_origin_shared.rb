@@ -46,10 +46,6 @@ module Setup
       attrs
     end
 
-    def trace_model
-      super.with(self.class.mongoid_root_class)
-    end
-
     def not_shared?
       !shared?
     end
