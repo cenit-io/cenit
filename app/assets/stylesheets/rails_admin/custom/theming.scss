@@ -345,9 +345,31 @@ ul.drawer li a span {
     width: 16.66666667%;
     float: left;
     transition: all 0.15s ease-in-out;
-
+    #toggle-subdomain-menu {
+      text-decoration: none;
+      &:after {
+        font-family: FontAwesome;
+        content: '\f066';
+        margin-right: 5px;
+        position: relative;
+        top: 2px;
+      }
+    }
+    #subdomain-related-menu ul li.no-childrens {
+      &.active {
+        background: #d9edf7;
+        a {
+          color: #1D92AF;
+          text-decoration: none;
+        }
+      }
+    }
     &.minified {
       width: 40px;
+      #toggle-subdomain-menu:after {
+        font-family: FontAwesome;
+        content: '\f065';
+      }
       #subdomain-related-menu .panel-default .panel-heading a:hover span.nav-caret {
         display: none;
       }
@@ -3865,7 +3887,7 @@ ul[type="ordered"] {
   .widget-content {
     padding: 0;
   }
-  &.widget-dashboard{
+  &.widget-dashboard {
     margin-bottom: 30px;
     background-color: #f9f9f9;
     border: solid 1px lightgrey;
@@ -3958,7 +3980,12 @@ ul[type="ordered"] {
         }
         span.nav-caret {
           float: right;
-          display: none;
+          display: inline-block;
+          margin-right: 15px;
+          &:after{
+            font-family: FontAwesome;
+            content: '\f106';
+          }
         }
         span.nav-icon {
           margin-right: 10px;
@@ -3967,10 +3994,13 @@ ul[type="ordered"] {
           background: #eeeeee;
           color: #1D92AF;
           text-decoration: none;
+        }
+        &.collapsed{
           span.nav-caret {
-            float: right;
-            display: inline-block;
-            margin-right: 15px;
+            &:after{
+              font-family: FontAwesome;
+              content: '\f107';
+            }
           }
         }
       }
@@ -4055,6 +4085,7 @@ span.nav-amount {
   margin-right: -15px;
   height: 41px;
 }
+
 .sidebar-scroll {
   border-top: solid 1px white;
 }

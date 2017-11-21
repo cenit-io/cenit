@@ -20,9 +20,6 @@
     - group = dashboard_root_group
     #subdomain-toggle.hidden-xs
       %span.subdomain_link
-        - unless group.nil?
-          %span.subdomain
-            = group[:label]
         %i.fa.fa-chevron-down{style: 'color: white;'}
   .collapse.navbar-collapse#secondary-navigation.hidden-xs
     = render partial: 'layouts/rails_admin/secondary_navigation'

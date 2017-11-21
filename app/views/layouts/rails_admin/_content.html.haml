@@ -11,12 +11,11 @@
             = group.nil? ? 'Menu': group[:label]
           .btn-group.widget-header-toolbar
             %a{ href: "#", title: "Focus", class: "btn-borderless", id:'toggle-subdomain-menu'}
-              %i.fa.fa-compress
         .widget-content
           #subdomain-related-menu
             %ul
               -if @dashboard_group_ref
-                %li.no-childrens
+                %li.no-childrens{ class: "#{@action.is_a?(RailsAdmin::Config::Actions::Dashboard) ? 'active' : ''}"}
                   = link_to "/#{@dashboard_group_ref}/dashboard", class: 'pjax' do
                     %span{class: 'with_icon fa fa-tachometer', title: 'Dashboard'}
                     %span{class: 'nav-caption', title: 'Dashboard'}
