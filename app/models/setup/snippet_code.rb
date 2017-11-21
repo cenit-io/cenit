@@ -87,7 +87,11 @@ module Setup
     end
 
     def code
-      snippet_ref.code
+      if snippet
+        snippet_ref.code
+      else
+        ''
+      end
     end
 
     def code=(code)
