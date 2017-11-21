@@ -10,7 +10,7 @@ module Cenit
     def cross(origin = :default)
       cross_traces = {}
       criteria.each do |record|
-        next if record.origin == origin || record.class.origins.exclude?(origin)
+        next unless record.can_cross?(origin)
         cross_traces[record.id] = record.traces
       end
       cross_criteria = criteria.any_in(id: cross_traces.keys)

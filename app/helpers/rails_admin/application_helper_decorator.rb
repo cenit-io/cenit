@@ -949,7 +949,7 @@ module RailsAdmin
         end.join).html_safe
     end
 
-    def found_menu(abstract_model = @abstract_model)
+    def found_menu(abstract_model = @context_abstract_model)
       actions = actions(:bulk_processable, abstract_model)
       return '' if actions.empty?
       label = (abstract_model.try(:config) || action.bindings[:custom_model_config]).contextualized_label_plural
