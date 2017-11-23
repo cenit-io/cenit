@@ -370,21 +370,22 @@ function initHomePage() {
             swiping = false;
         }, 1000);
     }
+
     // Uncomment this for automatic slide changing
     /*    interval = setInterval(function () {
-            if (swiping) {
-                return;
-            }
-            swiping = true;
+     if (swiping) {
+     return;
+     }
+     swiping = true;
 
-            actualIndex++;
-            if (actualIndex >= $slides.length) {
-                actualIndex = 0;
-            }
+     actualIndex++;
+     if (actualIndex >= $slides.length) {
+     actualIndex = 0;
+     }
 
-            updateSlides(actualIndex);
-        }, 5000);
-    */
+     updateSlides(actualIndex);
+     }, 5000);
+     */
 }
 function scroll_to(event) {
     event.preventDefault();
@@ -457,6 +458,25 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
+    $('.update-monitor').off().on('click', function (e) {
+        var $this = $(e.target)
+        var class_name = $this.attr('data-status');
+        var $numbers = $this.parents('.monitor').find('.number > span').removeClass('hidden');
+        var $descriptions = $this.parents('.monitor').find('.description > span').removeClass('hidden');
+        $numbers.each(function (i) {
+            var $this = $(this);
+            if (!$this.hasClass(class_name)) {
+                $this.addClass('hidden');
+            }
+        });
+        $descriptions.each(function (i) {
+            var $this = $(this);
+            if (!$this.hasClass(class_name)) {
+                $this.addClass('hidden');
+            }
+        });
+
+    });
     $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateDashboardCount(e);
     })

@@ -1,0 +1,28 @@
+- actions = actions || []
+.col-xs-12
+  .monitor{class: "#{label_name} #{name.parameterize('_')}"}
+    .col-xs-6.icon
+      %a
+        %i.fa{class: icon}
+    .col-xs-6.number
+      - actions.each do |a|
+        %span{class: "#{a[:class]== label_name ? '': 'hidden'} #{a[:class]}"}
+          = number_to_human(a[:value])
+      .description
+        - actions.each do |a|
+          %span{class: "#{a[:class]== label_name ? '': 'hidden'} #{a[:class]}"}
+            = number_to_human(a[:description])
+    .col-xs-12.actions
+      %a
+        = name
+      .pull-right
+        - if actions.length > 0
+          .dropdown
+            %a.dropdown-toggle{data: {toggle: "dropdown" } }
+              .btn.btn-link
+                %i.fa.fa-cog
+            %ul.dropdown-menu{style: "left:auto; right:0;"}
+              - actions.each do |a|
+                %li
+                  %a{class: "update-monitor", data:{status: "#{a[:class]}"}}
+                    =a[:label]

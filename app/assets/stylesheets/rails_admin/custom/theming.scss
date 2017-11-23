@@ -3981,7 +3981,7 @@ ul[type="ordered"] {
           float: right;
           display: inline-block;
           margin-right: 15px;
-          &:after{
+          &:after {
             font-family: FontAwesome;
             content: '\f106';
           }
@@ -3994,9 +3994,9 @@ ul[type="ordered"] {
           color: #1D92AF;
           text-decoration: none;
         }
-        &.collapsed{
+        &.collapsed {
           span.nav-caret {
-            &:after{
+            &:after {
               font-family: FontAwesome;
               content: '\f107';
             }
@@ -4088,6 +4088,83 @@ span.nav-amount {
 .sidebar-scroll {
   border-top: solid 1px white;
 }
+
 .ui-widget-content {
   border: none;
 }
+
+.monitors {
+  margin-bottom: 30px;
+  .monitor {
+    overflow: visible;
+    padding: 10px 0 0 0;
+    margin-bottom: 30px;
+    border: solid 1px lightgrey;
+    float: left;
+    width: 100%;
+    .icon {
+      font-size: 2em;
+      text-align: left;
+      a {
+        color: #555;
+      }
+    }
+    .number {
+      text-align: right;
+      font-size: 2em;
+      line-height: 1;
+      .description {
+        font-size: 12px;
+        line-height: 1;
+        margin-top: 5px;
+        text-transform: capitalize;
+      }
+    }
+    .actions {
+      padding: 5px 15px;
+      margin-top: 15px;
+      .btn-link {
+        border-color: transparent;
+        padding: 0;
+      }
+      a {
+        font-size: 12px;
+        text-decoration: none;
+        cursor: pointer;
+        color: #555;
+        text-transform: capitalize;
+        font-weight: bold;
+      }
+      i {
+        color: #555;
+      }
+      .open > .dropdown-menu {
+        padding: 0;
+        margin: 0;
+        li a {
+          font-weight: normal;
+        }
+      }
+    }
+    &.failed {
+      border-color: #d9534f;
+      .icon a {
+        color: #d9534f;
+      }
+      .number {
+        color: #d9534f;
+      }
+    }
+    &.good {
+      border-color: #4BA84B;
+      .icon a {
+        color: #4BA84B;
+      }
+      .number {
+        color: #4BA84B;
+      }
+    }
+  }
+
+}
+

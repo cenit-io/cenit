@@ -1,34 +1,92 @@
 -if @dashboard_group_ref
   - #Group Dashboard or Subdomain Dashboard
   - if @abstract_models
-    .dashboard{'data-model-count': 0}
-      - secondary = ['Monitors', 'Configuration', 'Administration']
-      - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
-      - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
-      .row
-        .col-xs-12
-          %ul.nav.nav-tabs{role: "tablist"}
-            - primaries.each_with_index do |d,index|
-              %li{class: index==0 ? 'active': ''}
-                %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                  %i{class: "fa #{d[:icon]}"}
-                  =d[:label]
-          .tab-content
-            - primaries.each_with_index do |d,index|
-              .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
-      .row
-        .col-xs-12
-          %ul.nav.nav-tabs{role: "tablist"}
-            - auxiliaries.each_with_index do |d,index|
-              %li{class: index==0 ? 'active': ''}
-                %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                  %i{class: "fa #{d[:icon]}"}
-                  =d[:label]
-          .tab-content
-            - auxiliaries.each_with_index do |d,index|
-              .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+    - totals = monitor_totals
+    .row
+      %div{class: "col-md-#{ current_user.nil? ? '12':'9'}"}
+        .dashboard{'data-model-count': 0}
+          - secondary = ['Monitors', 'Configuration', 'Administration']
+          - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
+          - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
+          .row
+            .col-xs-12
+              %ul.nav.nav-tabs{role: "tablist"}
+                - primaries.each_with_index do |d,index|
+                  %li{class: index==0 ? 'active': ''}
+                    %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                      %i{class: "fa #{d[:icon]}"}
+                      =d[:label]
+              .tab-content
+                - primaries.each_with_index do |d,index|
+                  .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+          .row
+            .col-xs-12
+              %ul.nav.nav-tabs{role: "tablist"}
+                - auxiliaries.each_with_index do |d,index|
+                  %li{class: index==0 ? 'active': ''}
+                    %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                      %i{class: "fa #{d[:icon]}"}
+                      =d[:label]
+              .tab-content
+                - auxiliaries.each_with_index do |d,index|
+                  .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+      -unless current_user.nil?
+        .col-md-3
+          .monitors
+            .row
+              -if (value = totals[:tasks][:failed]) > 0
+                - value = number_to_human(value)
+                - label = 'failed'
+              -elsif (value = totals[:tasks][:broken]) > 0
+                - value = number_to_human(value)
+                - label = 'broken'
+              -elsif (value = totals[:tasks][:unscheduled]) > 0
+                - value = number_to_human(value)
+                - label = 'unscheduled'
+              -elsif (value = totals[:tasks][:pending]) > 0
+                - value = number_to_human(value)
+                - label = 'pending'
+              -else
+                - value = 'All'
+                - label = 'good'
+              - name = t('admin.actions.dashboard.monitors.tasks')
+              - icon= 'fa-tasks'
+              - actions = [{label: 'failed', class: 'failed', value: totals[:tasks][:failed], description: 'failed'},
+                          {label: 'broken', class: 'broken', value: totals[:tasks][:broken], description: 'broken'},
+                          {label: 'unscheduled', class: 'unscheduled', value: totals[:tasks][:unscheduled], description: 'unscheduled'},
+                          {label: 'pending', class: 'pending', value: totals[:tasks][:pending], description: 'pending'} ]
+              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon, actions: actions}
+
+              -if (value = totals[:auths][:unauthorized]) > 0
+                - value = number_to_human(value)
+                - label = 'unauthorized'
+              -else
+                - value = ''
+                - label = 'All good'
+                - name  = t('admin.actions.dashboard.monitors.auths')
+                - icon= 'fa-check'
+              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
+
+              -if (value = totals[:notif][:error]) > 0
+                - value = number_to_human(value)
+                - label = 'errors'
+              -elsif (value = totals[:notif][:warning]) > 0
+                - value = number_to_human(value)
+                - label = 'warnings'
+              -else
+                - value = ''
+                - label = 'All good'
+                - name  = t('admin.actions.dashboard.monitors.notif')
+                - icon= 'fa-bell'
+              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
+
+              - value = '8'
+              - label = 'All good'
+              - name  = 'Tenants'
+              - icon= 'fa-users'
+              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
 -else
   -# Home Page or General Dahsboard
   = render partial: 'rails_admin/main/new_home'
