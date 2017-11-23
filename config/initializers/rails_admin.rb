@@ -135,15 +135,18 @@ module RailsAdmin
               sublinks: [
                 {
                   param: 'definitions',
-                  label: 'Definitions'
+                  label: 'Definitions',
+                  icon: 'fa fa-puzzle-piece',
                 },
                 {
                   param: 'files',
-                  label: 'Files'
+                  label: 'Files',
+                  icon: 'fa fa-file',
                 },
                 {
                   param: 'objects',
-                  label: 'Objects'
+                  label: 'Objects',
+                  icon: 'fa fa-database',
                 }
               ]
             },
@@ -173,11 +176,13 @@ module RailsAdmin
                 },
                 {
                   param: 'connectors',
-                  label: 'Connectors'
+                  label: 'Connectors',
+                  icon: 'fa fa fa-plug'
                 },
                 {
                   param: 'security',
-                  label: 'Security'
+                  label: 'Security',
+                  icon: 'fa fa-shield'
                 }
               ]
             },

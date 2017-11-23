@@ -3937,7 +3937,6 @@ ul[type="ordered"] {
         border-bottom: solid 1px #f9f9f9;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
         &:hover {
           background: #eeeeee;
           color: #1D92AF;
@@ -3969,7 +3968,7 @@ ul[type="ordered"] {
         border-bottom: solid 1px #f9f9f9;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+
         span.nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
@@ -4088,4 +4087,7 @@ span.nav-amount {
 
 .sidebar-scroll {
   border-top: solid 1px white;
+}
+.ui-widget-content {
+  border: none;
 }

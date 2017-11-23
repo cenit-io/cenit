@@ -1249,14 +1249,17 @@ module RailsAdmin
         else
           if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && @dashboard_group_ref
             value = value.to(value.index('<li') - 1) +
-              "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
+              "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
               "<li class=\"active\">Dashboard</li>" +
               value.from(value.index('</li>') + 5)
             value = value.to(value.index('</ol>')-1) + '</ol>'
           end
         end
       end
-      value.gsub!(/(class="pjax")>Dashboard/,'class="pjax"'=> '')
+      m = /(.*)(class="pjax")(.*)(Dashboard)(.*)/.match(value)
+      if m
+        value = m[1]+m[3]+m[4]+m[5]
+      end
       value.html_safe
     end
 
