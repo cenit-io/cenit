@@ -30,7 +30,10 @@
   <!-- END CONTENT WRAPPER -->
 </div>
 <!-- END WRAPPER -->
-
-
+<% if TourTrack.show_tour?(request.remote_ip, User.current) %>
+    <script>
+      initializeTour();
+    </script>
+<% end %>
 
 </body>

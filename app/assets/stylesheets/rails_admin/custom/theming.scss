@@ -424,8 +424,16 @@ ul.drawer li a span {
   min-height: calc(100vh - 50px);
 
   .alert {
-    margin-top: 15px;
+    padding: 11px 15px;
+    margin-top: 0;
+    margin-left: -15px;
+    margin-right: -15px;
+    .close {
+      position: relative;
+      top: -3px;
+    }
   }
+
 }
 
 body.rails_admin .sidebar-nav {
@@ -2079,7 +2087,9 @@ section#welcome_users {
   @media(min-width: 992px) {
     margin-top: 50px;
   }
-
+  .alert {
+    margin-top: 0;
+  }
 }
 
 #public_apis {
@@ -4102,7 +4112,7 @@ span.nav-amount {
     float: left;
     width: 100%;
     background: #c9cacc;
-    .white-back{
+    .white-back {
       background: white;
     }
     .icon {
@@ -4143,6 +4153,12 @@ span.nav-amount {
     }
     .actions {
       padding: 10px 0 0 0;
+      .btn-add-tenant {
+        margin-right: 5px;
+      }
+      .dropdown {
+        display: inline-block;
+      }
       .btn-link {
         border-color: transparent;
         padding: 0;
@@ -4169,20 +4185,10 @@ span.nav-amount {
     &:hover {
       box-shadow: 0 0 4px #3d4046
     }
-    &.success {
-      background: #5bc0de;
-    }
-    &.danger {
-      background: #d9534f;
-    }
-    &.errors, &.unauthorized, &.broken, &.failed {
-      background: #d9534f !important;
-    }
-    &.warnings {
-      background: #f0ad4e !important;
-    }
-    &.warning {
-      background: #f0ad4e;
+  }
+  &.tenants {
+    .monitor {
+      margin-bottom: 0;
     }
   }
 

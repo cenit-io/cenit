@@ -7,8 +7,8 @@
       .widget
         .widget-header
           %h3
-            %i{class: "fa #{group.nil? ? 'fa-bars': group[:icon]}"}
-            = group.nil? ? 'Menu': group[:label]
+            %i{class: "fa #{group.nil? ? 'fa-tachometer': group[:icon]}"}
+            = group.nil? ? 'Dashboard': group[:label]
           .btn-group.widget-header-toolbar
             %a{ href: "#", title: "Focus", class: "btn-borderless", id:'toggle-subdomain-menu'}
         .widget-content
@@ -23,6 +23,10 @@
               = main_navigation
     %main
       .xyz
-        .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+        = render partial: 'contact_us'
+        - if @action.is_a?(RailsAdmin::Config::Actions::Notebooks)
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
+        -else
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
 
 
