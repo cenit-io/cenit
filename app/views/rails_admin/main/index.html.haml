@@ -70,7 +70,7 @@
         = found_menu
         %input{name: 'enable_chart', value: false, type: 'hidden'}
         -# Patch
-        - if (model = @context_abstract_model.model).is_a?(Class) && model.include?(CrossOrigin::CenitDocument) && (origins = model.cross_origins).present?
+        - if (model = @context_abstract_model.model).is_a?(Class) && (model.include?(CrossOrigin::CenitDocument) || model == Mongoid::Tracer::Trace) && (origins = model.cross_origins).present?
           %span{style: 'float:right'}
             - acc = Account.current
             - origins.each do |origin|

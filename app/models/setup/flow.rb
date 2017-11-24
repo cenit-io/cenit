@@ -224,31 +224,19 @@ module Setup
     end
 
     def process(message={}, &block)
-      executing_id, execution_graph = current_thread_cache.last || [nil, {}]
-      if executing_id
-        execution_graph[executing_id] ||= []
-        adjacency_list = execution_graph[executing_id]
+      execution_graph = current_thread_cache.last ||{}
+      if (trigger_flow_id = execution_graph['trigger_flow_id'])
+        execution_graph[trigger_flow_id] ||= []
+        adjacency_list = execution_graph[trigger_flow_id]
         adjacency_list << id.to_s if adjacency_list.exclude?(id.to_s)
       end
-      result =
-        if (cycle = cyclic_execution(execution_graph, executing_id))
-          cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
-          Setup::SystemNotification.create_with(message: "Cyclic flow execution: #{cycle.to_a.join(' -> ')}",
-                                                attachment: {
-                                                  filename: 'execution_graph.json',
-                                                  contentType: 'application/json',
-                                                  body: JSON.pretty_generate(execution_graph)
-                                                })
-        else
-          message = message.merge(flow_id: id.to_s,
-                                  tirgger_flow_id: executing_id,
-                                  execution_graph: execution_graph,
-                                  auto_retry: auto_retry)
-          if (data_type = message.delete(:data_type))
-            message[:data_type_id] = data_type.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
-          end
-          Setup::FlowExecution.process(message, &block)
-        end
+      message = message.merge(flow_id: id.to_s,
+                              execution_graph: execution_graph,
+                              auto_retry: auto_retry)
+      if (data_type = message.delete(:data_type))
+        message[:data_type_id] = data_type.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
+      end
+      result = Setup::FlowExecution.process(message, &block)
       save
       result
     end
@@ -257,7 +245,7 @@ module Setup
       if translator.present?
         begin
           flow_execution = current_thread_cache
-          flow_execution << [id.to_s, message[:execution_graph] || {}]
+          flow_execution << (message[:execution_graph] || {}).merge('trigger_flow_id' => id.to_s)
           data_type = Setup::BuildInDataType[message[:data_type_id]] ||
             Setup::DataType.where(id: message[:data_type_id]).first
           using_data_type(data_type) if data_type
@@ -321,18 +309,6 @@ module Setup
 
     def schedule_task
       process(scheduler: event) if @scheduler_checked && event.activated
-    end
-
-    def cyclic_execution(execution_graph, start_id, cycle = [])
-      if cycle.include?(start_id)
-        cycle << start_id
-        return cycle
-      elsif (adjacency_list = execution_graph[start_id])
-        cycle << start_id
-        adjacency_list.each { |id| return cycle if cyclic_execution(execution_graph, id, cycle) }
-        cycle.pop
-      end
-      false
     end
 
     def simple_translate(message, &block)

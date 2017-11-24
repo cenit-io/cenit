@@ -502,7 +502,13 @@ module Api::V2
       if slug
         @data_types[slug] ||=
           if @ns_slug == 'setup' || @ns_slug == 'cenit'
-            Setup::BuildInDataType["#{@ns_slug.camelize}::#{slug.camelize}"] || Setup::BuildInDataType[slug.camelize]
+            build_in_name =
+              if slug == 'trace'
+                Mongoid::Tracer::Trace.to_s
+              else
+                "#{@ns_slug.camelize}::#{slug.camelize}"
+              end
+            Setup::BuildInDataType[build_in_name] || Setup::BuildInDataType[slug.camelize]
           else
             if @ns_name.nil?
               ns = Setup::Namespace.where(slug: @ns_slug).first

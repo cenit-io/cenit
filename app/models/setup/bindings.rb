@@ -19,14 +19,15 @@ module Setup
 
     module ClassMethods
 
-      def instantiate(attrs = nil, selected_fields = nil)
-        doc = super
-        binds.each do |metadata|
-          if (id = Setup::Binding.id_for(doc, metadata.klass))
-            doc.attributes[metadata.foreign_key] = id
+      def instantiate(attrs = nil, selected_fields = nil, &block)
+        super(attrs, selected_fields) do |doc|
+          binds.each do |metadata|
+            if (id = Setup::Binding.id_for(doc, metadata.klass))
+              doc.attributes[metadata.foreign_key] = id
+            end
           end
+          block.call(doc) if block
         end
-        doc
       end
 
       def local_binds
@@ -45,10 +46,6 @@ module Setup
         relation = belongs_to(name, *options)
         local_binds << relation
         relation
-      end
-
-      def bind_before_save
-        before_save :bind_bindings
       end
 
       def where(expression)
@@ -75,7 +72,7 @@ module Setup
         end
         q
       end
-      
+
     end
   end
 end

@@ -21,6 +21,10 @@ module RailsAdmin
       properties_hash[name] || associations_hash[name]
     end
 
+    def model_class
+      model
+    end
+
     def model
       @model
     end

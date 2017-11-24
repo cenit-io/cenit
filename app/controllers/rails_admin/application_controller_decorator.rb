@@ -7,7 +7,7 @@ module RailsAdmin
     def to_model_name(param_model_name)
       model_name = param_model_name.split('~').collect(&:camelize).join('::')
       #Patch
-      if (m = [Setup, Cenit, Forms].detect { |m| m.const_defined?(model_name, false) })
+      if (m = [Setup, Cenit, Forms, Mongoid::Tracer].detect { |m| m.const_defined?(model_name, false) })
         model_name = "#{m}::#{model_name}"
       end
       model_name

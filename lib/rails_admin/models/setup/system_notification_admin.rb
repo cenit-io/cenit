@@ -7,7 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
-            weight 600
+            weight 605
             visible true
             object_label_method { :label }
             label 'System Notification'

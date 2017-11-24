@@ -89,7 +89,7 @@ class Account
     (!(value = super).nil? &&
 
       (new_record? || !self.class.build_in_data_type.protecting?(name) ||
-        (current_user = User.try(:current)) && current_user.owns?(self)) &&
+        ((current_user = User.try(:current)) && current_user.owns?(self))) &&
 
       value) || nil
   end

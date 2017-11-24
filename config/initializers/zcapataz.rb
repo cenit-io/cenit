@@ -101,7 +101,7 @@ Capataz.config do
   allow_on IMGKit, [:image_from_html]
 
   allow_on Origami, [:sign_pdf]
-
+  
   allow_on WickedPdf, [:new_wickedpdf]
 
   allow_on Magick::Image, [:read]
