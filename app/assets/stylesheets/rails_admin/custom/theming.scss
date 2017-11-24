@@ -4094,35 +4094,55 @@ span.nav-amount {
 }
 
 .monitors {
-  margin-bottom: 30px;
+  padding: 15px;
   .monitor {
     overflow: visible;
-    padding: 10px 0 0 0;
     margin-bottom: 30px;
-    border: solid 1px lightgrey;
+    box-shadow: 0 0px 1px #3d4046;
     float: left;
     width: 100%;
+    background: #c9cacc;
+    .white-back{
+      background: white;
+    }
     .icon {
       font-size: 2em;
-      text-align: left;
+      text-align: center;
+      padding: 15px 5px;
       a {
-        color: #555;
+        color: white;
       }
     }
     .number {
-      text-align: right;
-      font-size: 2em;
-      line-height: 1;
+      font-size: 22px;
+      padding: 0 0 10px 0;
       .description {
         font-size: 12px;
         line-height: 1;
         margin-top: 5px;
         text-transform: capitalize;
+        display: inline-block;
+      }
+      span {
+        &.success {
+          color: #5bc0de;
+        }
+        &.danger {
+          color: #d9534f;
+        }
+        &.errors, &.unauthorized, &.broken, &.failed {
+          color: #d9534f !important;
+        }
+        &.warnings {
+          color: #f0ad4e !important;
+        }
+        &.warning {
+          color: #f0ad4e;
+        }
       }
     }
     .actions {
-      padding: 5px 15px;
-      margin-top: 15px;
+      padding: 10px 0 0 0;
       .btn-link {
         border-color: transparent;
         padding: 0;
@@ -4146,25 +4166,29 @@ span.nav-amount {
         }
       }
     }
-    &.failed {
-      border-color: #d9534f;
-      .icon a {
-        color: #d9534f;
-      }
-      .number {
-        color: #d9534f;
-      }
+    &:hover {
+      box-shadow: 0 0 4px #3d4046
     }
-    &.good {
-      border-color: #4BA84B;
-      .icon a {
-        color: #4BA84B;
-      }
-      .number {
-        color: #4BA84B;
-      }
+    &.success {
+      background: #5bc0de;
+    }
+    &.danger {
+      background: #d9534f;
+    }
+    &.errors, &.unauthorized, &.broken, &.failed {
+      background: #d9534f !important;
+    }
+    &.warnings {
+      background: #f0ad4e !important;
+    }
+    &.warning {
+      background: #f0ad4e;
     }
   }
 
 }
 
+.nav > li > a:hover, .nav > li > a:focus {
+  text-decoration: none;
+  background-color: rgba(238, 238, 238, 0.19);
+}

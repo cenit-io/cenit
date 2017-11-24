@@ -3,7 +3,84 @@
   - if @abstract_models
     - totals = monitor_totals
     .row
-      %div{class: "col-md-#{ current_user.nil? ? '12':'9'}"}
+      %div{class: "col-md-12"}
+        -unless current_user.nil?
+          .monitors
+            .row
+              -if (value = totals[:tasks][:failed]) > 0
+                - value = number_to_human(value)
+                - label = 'failed'
+              -elsif (value = totals[:tasks][:broken]) > 0
+                - value = number_to_human(value)
+                - label = 'broken'
+              -elsif (value = totals[:tasks][:unscheduled]) > 0
+                - value = number_to_human(value)
+                - label = 'unscheduled'
+              -elsif (value = totals[:tasks][:pending]) > 0
+                - value = number_to_human(value)
+                - label = 'pending'
+              -elsif (value = totals[:tasks][:retrying]) > 0
+                - value = number_to_human(value)
+                - label = 'retrying'
+              -elsif (value = totals[:tasks][:paused]) > 0
+                - value = number_to_human(value)
+                - label = 'paused'
+              -elsif (value = totals[:tasks][:running]) > 0
+                - value = number_to_human(value)
+                - label = 'running'
+              -else
+                - value = number_to_human(totals[:tasks][:completed])
+                - label = 'completed'
+              - name = t('admin.actions.dashboard.monitors.tasks')
+              - icon= 'fa-tasks'
+              - url= '/task'
+              - actions = [{label: 'failed', class: 'failed', value: totals[:tasks][:failed], description: 'failed'},
+                            {label: 'broken', class: 'broken', value: totals[:tasks][:broken], description: 'broken'},
+                            {label: 'unscheduled', class: 'unscheduled', value: totals[:tasks][:unscheduled], description: 'unscheduled'},
+                            {label: 'pending', class: 'pending', value: totals[:tasks][:pending], description: 'pending'},
+                            {label: 'retrying', class: 'retrying', value: totals[:tasks][:retrying], description: 'retrying'},
+                            {label: 'paused', class: 'paused', value: totals[:tasks][:paused], description: 'paused'},
+                            {label: 'running', class: 'running', value: totals[:tasks][:running], description: 'running'},
+                            {label: 'completed', class: 'completed', value: totals[:tasks][:completed], description: 'completed'} ]
+              =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
+
+              -if (value = totals[:auths][:unauthorized]) == 0
+                - value = totals[:auths][:total]
+                - label = 'total'
+              -else
+                - value = number_to_human(value)
+                - label = 'unauthorized'
+              - name  = t('admin.actions.dashboard.monitors.auths')
+              - icon= 'fa-check'
+              - url= '/authorization'
+              - actions = [{label: 'total', class: 'total', value: totals[:auths][:total], description: 'total'},
+                          {label: 'unauthorized', class: 'unauthorized', value: totals[:auths][:unauthorized], description: 'unauthorized'} ]
+              =  render partial: 'rails_admin/main/monitor', locals:{url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
+
+              -if (value = totals[:notif][:error]) > 0
+                - value = number_to_human(value)
+                - label = 'errors'
+              -elsif (value = totals[:notif][:warning]) > 0
+                - value = number_to_human(value)
+                - label = 'warnings'
+              -elsif (value = totals[:notif][:notice]) > 0
+                - value = number_to_human(value)
+                - label = 'notice'
+              -elsif (value = totals[:notif][:info]) > 0
+                - value = number_to_human(value)
+                - label = 'info'
+              -else
+                - value = totals[:notif][:total]
+                - label = 'total'
+              - name  = t('admin.actions.dashboard.monitors.notif')
+              - icon= 'fa-bell'
+              - url = '/system_notification'
+              - actions = [{label: 'total', class: 'total', value: totals[:notif][:total], description: 'total'},
+                          {label: 'errors', class: 'errors', value: totals[:notif][:error], description: 'errors'},
+                          {label: 'warnings', class: 'warnings', value: totals[:notif][:warning], description: 'warnings'} ,
+                          {label: 'notice', class: 'notice', value: totals[:notif][:notice], description: 'notices'},
+                          {label: 'info', class: 'info', value: totals[:notif][:info], description: 'info'}]
+              =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
         .dashboard{'data-model-count': 0}
           - secondary = ['Monitors', 'Configuration', 'Administration']
           - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
@@ -32,61 +109,7 @@
                 - auxiliaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
                     = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
-      -unless current_user.nil?
-        .col-md-3
-          .monitors
-            .row
-              -if (value = totals[:tasks][:failed]) > 0
-                - value = number_to_human(value)
-                - label = 'failed'
-              -elsif (value = totals[:tasks][:broken]) > 0
-                - value = number_to_human(value)
-                - label = 'broken'
-              -elsif (value = totals[:tasks][:unscheduled]) > 0
-                - value = number_to_human(value)
-                - label = 'unscheduled'
-              -elsif (value = totals[:tasks][:pending]) > 0
-                - value = number_to_human(value)
-                - label = 'pending'
-              -else
-                - value = 'All'
-                - label = 'good'
-              - name = t('admin.actions.dashboard.monitors.tasks')
-              - icon= 'fa-tasks'
-              - actions = [{label: 'failed', class: 'failed', value: totals[:tasks][:failed], description: 'failed'},
-                          {label: 'broken', class: 'broken', value: totals[:tasks][:broken], description: 'broken'},
-                          {label: 'unscheduled', class: 'unscheduled', value: totals[:tasks][:unscheduled], description: 'unscheduled'},
-                          {label: 'pending', class: 'pending', value: totals[:tasks][:pending], description: 'pending'} ]
-              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon, actions: actions}
 
-              -if (value = totals[:auths][:unauthorized]) > 0
-                - value = number_to_human(value)
-                - label = 'unauthorized'
-              -else
-                - value = ''
-                - label = 'All good'
-                - name  = t('admin.actions.dashboard.monitors.auths')
-                - icon= 'fa-check'
-              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
-
-              -if (value = totals[:notif][:error]) > 0
-                - value = number_to_human(value)
-                - label = 'errors'
-              -elsif (value = totals[:notif][:warning]) > 0
-                - value = number_to_human(value)
-                - label = 'warnings'
-              -else
-                - value = ''
-                - label = 'All good'
-                - name  = t('admin.actions.dashboard.monitors.notif')
-                - icon= 'fa-bell'
-              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
-
-              - value = '8'
-              - label = 'All good'
-              - name  = 'Tenants'
-              - icon= 'fa-users'
-              =  render partial: 'rails_admin/main/monitor', locals: {label_name: label, value: value, name: name, icon: icon}
 -else
   -# Home Page or General Dahsboard
   = render partial: 'rails_admin/main/new_home'
