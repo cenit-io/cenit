@@ -1,4 +1,4 @@
-![best_user_pictures_3](https://user-images.githubusercontent.com/4213488/27266266-718722d0-5454-11e7-987f-1f951610673d.png)
+![cenit1](https://user-images.githubusercontent.com/4213488/33232176-469cdfbc-d1b6-11e7-953c-243005d574b1.png)
 
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
@@ -15,6 +15,8 @@
 * [Join our Slack][join-slack-link]
 [(cenitio.slack.com)][join-slack-link]
 * [Shared Collections](https://cenit.io/setup~shared_collection)
+* [Cenit IO - Strategy](https://docs.google.com/presentation/d/144-9bKGudcm_OrE-8jb3DY_62X-fpFeG4J4_dBbzAGA/edit?usp=sharing)
+* [Cenit IO - Look What You Can Do](https://docs.google.com/presentation/d/1i2VGMaSlazoNHRn30c7UzRdrnxjLOE53fqHBLdw4WAY/edit?usp=sharing)
 * [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
@@ -389,6 +391,17 @@ Thank you for your contributions:
 * [Cesar Lage](https://github.com/kaerdsar)
 * [Aneli Valdés](https://github.com/avaldesa)
 * [José A. Cruz](https://github.com/jalbertcruz)
+
+### Screenshots
+
+![swagger](https://user-images.githubusercontent.com/4213488/33235685-8808ac9c-d1f2-11e7-824f-80604e785197.png)
+
+![notebooks](https://user-images.githubusercontent.com/4213488/33235699-e1386b86-d1f2-11e7-9ae7-37fcda4fdbfd.png)
+
+![traking](https://user-images.githubusercontent.com/4213488/33235720-79f220b0-d1f3-11e7-919a-332a0e750c41.png)
+
+
+![open_api_directory](https://user-images.githubusercontent.com/4213488/33235844-2107c42e-d1f7-11e7-81e8-9869324648f8.png)
 
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
