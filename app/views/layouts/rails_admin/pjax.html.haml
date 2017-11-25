@@ -7,7 +7,7 @@
 - page_slug = @page_name.parameterize
 
 - flash && flash.each do |key, value|
-  .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+  .alert{class: flash_alert_class(key)}
     %a.close{href: '#', :'data-dismiss' => "alert"} &times;
     = value
 

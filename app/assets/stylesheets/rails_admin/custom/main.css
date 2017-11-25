@@ -15377,6 +15377,7 @@ body.focus-mode .top-bar {
 ul.main-menu {
     padding-left: 0;
     list-style-type: none;
+    border-bottom: solid 1px white;
 }
 
 ul.main-menu > li a {
@@ -15462,7 +15463,7 @@ ul.main-menu > li > a,
     -ms-transition: all 0.3s ease-in-out;
     -o-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
-    width: 14%;
+    width: 13.99%;
     padding-right: 0;
     padding-left: 0;
     left: 0;

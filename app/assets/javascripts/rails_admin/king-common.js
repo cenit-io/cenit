@@ -46,12 +46,14 @@ $(document).ready(function () {
             $li.addClass('active');
             $li.find('ul.sub-menu')
                 .slideDown(300);
+            $li.find('ul.sub-menu').addClass('open');
         }
         else {
             $li.find(' > a .toggle-icon').removeClass('fa-angle-down').addClass('fa-angle-left');
             $li.removeClass('active');
             $li.find('ul.sub-menu')
                 .slideUp(300);
+            $li.find('ul.sub-menu').removeClass('open');
         }
     });
 
@@ -220,7 +222,7 @@ $(document).ready(function () {
             $(this).find('i.fa-chevron-up').toggleClass('fa-chevron-down');
         }
     );
-   $('.widget .btn-toggle-expand.closed').trigger('click');
+    $('.widget .btn-toggle-expand.closed').trigger('click');
 
     // widget focus
     $('.widget .btn-focus').clickToggle(
