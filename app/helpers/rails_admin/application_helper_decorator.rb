@@ -1249,7 +1249,7 @@ module RailsAdmin
         else
           if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && @dashboard_group_ref
             value = value.to(value.index('<li') - 1) +
-              "<li class=\"active\">#{@dashboard_group_ref.capitalize }</li>" +
+              "<li class=\"active\">#{@dashboard_group_ref.titleize }</li>" +
               "<li class=\"active\">Dashboard</li>" +
               value.from(value.index('</li>') + 5)
             value = value.to(value.index('</ol>')-1) + '</ol>'
