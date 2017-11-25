@@ -345,9 +345,31 @@ ul.drawer li a span {
     width: 16.66666667%;
     float: left;
     transition: all 0.15s ease-in-out;
-
+    #toggle-subdomain-menu {
+      text-decoration: none;
+      &:after {
+        font-family: FontAwesome;
+        content: '\f066';
+        margin-right: 5px;
+        position: relative;
+        top: 2px;
+      }
+    }
+    #subdomain-related-menu ul li.no-childrens {
+      &.active {
+        background: #d9edf7;
+        a {
+          color: #1D92AF;
+          text-decoration: none;
+        }
+      }
+    }
     &.minified {
       width: 40px;
+      #toggle-subdomain-menu:after {
+        font-family: FontAwesome;
+        content: '\f065';
+      }
       #subdomain-related-menu .panel-default .panel-heading a:hover span.nav-caret {
         display: none;
       }
@@ -402,8 +424,16 @@ ul.drawer li a span {
   min-height: calc(100vh - 50px);
 
   .alert {
-    margin-top: 15px;
+    padding: 11px 15px;
+    margin-top: 0;
+    margin-left: -15px;
+    margin-right: -15px;
+    .close {
+      position: relative;
+      top: -3px;
+    }
   }
+
 }
 
 body.rails_admin .sidebar-nav {
@@ -2057,7 +2087,9 @@ section#welcome_users {
   @media(min-width: 992px) {
     margin-top: 50px;
   }
-
+  .alert {
+    margin-top: 0;
+  }
 }
 
 #public_apis {
@@ -3865,7 +3897,7 @@ ul[type="ordered"] {
   .widget-content {
     padding: 0;
   }
-  &.widget-dashboard{
+  &.widget-dashboard {
     margin-bottom: 30px;
     background-color: #f9f9f9;
     border: solid 1px lightgrey;
@@ -3915,7 +3947,6 @@ ul[type="ordered"] {
         border-bottom: solid 1px #f9f9f9;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
         &:hover {
           background: #eeeeee;
           color: #1D92AF;
@@ -3947,7 +3978,7 @@ ul[type="ordered"] {
         border-bottom: solid 1px #f9f9f9;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+
         span.nav-caption {
           margin-left: 0px;
           font-size: 0.9em;
@@ -3958,7 +3989,12 @@ ul[type="ordered"] {
         }
         span.nav-caret {
           float: right;
-          display: none;
+          display: inline-block;
+          margin-right: 15px;
+          &:after {
+            font-family: FontAwesome;
+            content: '\f106';
+          }
         }
         span.nav-icon {
           margin-right: 10px;
@@ -3967,10 +4003,13 @@ ul[type="ordered"] {
           background: #eeeeee;
           color: #1D92AF;
           text-decoration: none;
+        }
+        &.collapsed {
           span.nav-caret {
-            float: right;
-            display: inline-block;
-            margin-right: 15px;
+            &:after {
+              font-family: FontAwesome;
+              content: '\f107';
+            }
           }
         }
       }
@@ -4055,6 +4094,111 @@ span.nav-amount {
   margin-right: -15px;
   height: 41px;
 }
+
 .sidebar-scroll {
   border-top: solid 1px white;
+}
+
+.ui-widget-content {
+  border: none;
+}
+
+.monitors {
+  padding: 15px;
+  .monitor {
+    overflow: visible;
+    margin-bottom: 30px;
+    box-shadow: 0 0px 1px #3d4046;
+    float: left;
+    width: 100%;
+    background: #c9cacc;
+    .white-back {
+      background: white;
+    }
+    .icon {
+      font-size: 2em;
+      text-align: center;
+      padding: 15px 5px;
+      a {
+        color: white;
+      }
+    }
+    .number {
+      font-size: 22px;
+      padding: 0 0 10px 0;
+      .description {
+        font-size: 12px;
+        line-height: 1;
+        margin-top: 5px;
+        text-transform: capitalize;
+        display: inline-block;
+      }
+      span {
+        &.success {
+          color: #5bc0de;
+        }
+        &.danger {
+          color: #d9534f;
+        }
+        &.errors, &.unauthorized, &.broken, &.failed {
+          color: #d9534f !important;
+        }
+        &.warnings {
+          color: #f0ad4e !important;
+        }
+        &.warning {
+          color: #f0ad4e;
+        }
+      }
+    }
+    .actions {
+      padding: 10px 0 0 0;
+      .btn-add-tenant {
+        margin-right: 5px;
+      }
+      .dropdown {
+        display: inline-block;
+      }
+      .btn-link {
+        border-color: transparent;
+        padding: 0;
+      }
+      a {
+        font-size: 12px;
+        text-decoration: none;
+        cursor: pointer;
+        color: #555;
+        text-transform: capitalize;
+        font-weight: bold;
+      }
+      i {
+        color: #555;
+      }
+      .open > .dropdown-menu {
+        padding: 0;
+        margin: 0;
+        li a {
+          font-weight: normal;
+        }
+      }
+    }
+    &:hover {
+      box-shadow: 0 0 4px #3d4046
+    }
+  }
+  &.tenants {
+    .monitor {
+      margin-bottom: 0;
+    }
+  }
+
+}
+
+.nav > li > a:hover, .nav > li > a:focus {
+  text-decoration: none;
+  background-color: rgba(238, 238, 238, 0.19);
+}
+
+.label {
+  font-size: 85%;
 }

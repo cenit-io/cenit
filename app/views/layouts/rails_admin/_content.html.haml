@@ -1,22 +1,21 @@
 - if Cenit.hide_admin_navigation
   .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
 - else
-  - group = dashboard_root_group
+  - group = dashboard_group
   #content-wrapper
     %aside
       .widget
         .widget-header
           %h3
-            %i{class: "fa #{group.nil? ? 'fa-bars': group[:icon]}"}
-            = group.nil? ? 'Menu': group[:label]
+            %i{class: "fa #{group.nil? ? 'fa-tachometer': group[:icon]}"}
+            = group.nil? ? 'Dashboard': group[:label]
           .btn-group.widget-header-toolbar
             %a{ href: "#", title: "Focus", class: "btn-borderless", id:'toggle-subdomain-menu'}
-              %i.fa.fa-compress
         .widget-content
           #subdomain-related-menu
             %ul
-              -if @dashboard_group_ref
-                %li.no-childrens
+              -if group
+                %li.no-childrens{ class: "#{@action.is_a?(RailsAdmin::Config::Actions::Dashboard) ? 'active' : ''}"}
                   = link_to "/#{@dashboard_group_ref}/dashboard", class: 'pjax' do
                     %span{class: 'with_icon fa fa-tachometer', title: 'Dashboard'}
                     %span{class: 'nav-caption', title: 'Dashboard'}
@@ -24,6 +23,10 @@
               = main_navigation
     %main
       .xyz
-        .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+        = render partial: 'contact_us'
+        - if @action.is_a?(RailsAdmin::Config::Actions::Notebooks)
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
+        -else
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
 
 

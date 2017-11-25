@@ -68,8 +68,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::RemoteSharedCollection,
   RailsAdmin::Config::Actions::OpenApiDirectory,
   RailsAdmin::Config::Actions::Collect,
-  RailsAdmin::Config::Actions::TraceShow,
-  RailsAdmin::Config::Actions::TraceIndex,
+  RailsAdmin::Config::Actions::MemberTraceIndex,
+  RailsAdmin::Config::Actions::CollectionTraceIndex,
   RailsAdmin::Config::Actions::DataTypeConfig
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
@@ -135,15 +135,18 @@ module RailsAdmin
               sublinks: [
                 {
                   param: 'definitions',
-                  label: 'Definitions'
+                  label: 'Definitions',
+                  icon: 'fa fa-puzzle-piece',
                 },
                 {
                   param: 'files',
-                  label: 'Files'
+                  label: 'Files',
+                  icon: 'fa fa-file',
                 },
                 {
                   param: 'objects',
-                  label: 'Objects'
+                  label: 'Objects',
+                  icon: 'fa fa-database',
                 }
               ]
             },
@@ -173,11 +176,13 @@ module RailsAdmin
                 },
                 {
                   param: 'connectors',
-                  label: 'Connectors'
+                  label: 'Connectors',
+                  icon: 'fa fa fa-plug'
                 },
                 {
                   param: 'security',
-                  label: 'Security'
+                  label: 'Security',
+                  icon: 'fa fa-shield'
                 }
               ]
             },
@@ -428,6 +433,8 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat', break_line: true
 
+  Mongoid::Tracer::Trace
+
   Setup::SystemNotification
 
   Setup::Task
@@ -522,9 +529,6 @@ RailsAdmin.config do |config|
 
   Setup::Category
 
-  # Tracing
-  Mongoid::Tracer::Trace
-
   config.actions do
     dashboard # mandatory
     # disk_usage
@@ -596,14 +600,8 @@ RailsAdmin.config do |config|
     send_to_flow
     delete_all
     data_type
-    trace_index do
-      only { Mongoid::Tracer::Trace::TRACEABLE_MODELS }
-    end
-    trace_show do
-      only do
-        @traceable_models ||= Mongoid::Tracer::Trace::TRACEABLE_MODELS + [Mongoid::Tracer::Trace]
-      end
-    end
+    member_trace_index
+    collection_trace_index
     algorithm_dependencies do
       only { Setup::Algorithm }
     end

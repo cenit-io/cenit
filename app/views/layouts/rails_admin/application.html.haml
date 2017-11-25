@@ -25,12 +25,10 @@
 
 
   - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-  - if dashboard_root
-    %body#home_page
-      = yield
+  - if (dashboard_root)
+    - if current_user.nil?
+      = render partial: 'rails_admin/main/new_home'
+    -else
+      = render "layouts/rails_admin/body"
   - else
     = render "layouts/rails_admin/body"
-  - if TourTrack.show_tour?(request.remote_ip, User.current)
-    :javascript
-      initializeTour();
-  = render partial: 'contact_us'

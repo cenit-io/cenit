@@ -339,6 +339,7 @@ module Mongoff
     }
 
     def mongo_value(value, field, schema = nil, &success_block)
+      field = '_id' if field.to_s == 'id'
       types =
         if !caching? || schema
           mongo_type_for(field, schema)

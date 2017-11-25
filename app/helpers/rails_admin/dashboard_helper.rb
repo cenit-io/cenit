@@ -40,7 +40,11 @@ module RailsAdmin
           failed: Setup::Task.where(status: :failed).count,
           broken: Setup::Task.where(status: :broken).count,
           unscheduled: Setup::Task.where(status: :unscheduled).count,
-          pending: Setup::Task.where(status: :pending).count
+          pending: Setup::Task.where(status: :pending).count,
+          retrying: Setup::Task.where(status: :retrying).count,
+          paused: Setup::Task.where(status: :paused).count,
+          running: Setup::Task.where(status: :running).count,
+          completed: Setup::Task.where(status: :completed).count
         }
         totals[:auths] = {
           total: Setup::Authorization.all.count,
@@ -49,6 +53,8 @@ module RailsAdmin
         totals[:notif] = {
           total: Setup::SystemNotification.dashboard_related[:total],
           error: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:error)],
+          info: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:info)],
+          notice: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:notice)],
           warning: Setup::SystemNotification.dashboard_related[Setup::SystemNotification.type_color(:warning)]
         }
       end
@@ -70,7 +76,20 @@ module RailsAdmin
       end
       list.html_safe
     end
+
+    def status_color v
+      if v < 20
+        'success'
+      else
+        if v < 100
+          'warning'
+        else
+          'danger'
+        end
+      end
+    end
   end
 end
+
 
 

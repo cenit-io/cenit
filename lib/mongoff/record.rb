@@ -192,7 +192,7 @@ module Mongoff
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?
-          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key != field.to_s)
+          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key.to_s != field.to_s)
           value.each do |v|
             field_array << v
           end
