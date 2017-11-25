@@ -1,4 +1,4 @@
-![cenit1](https://user-images.githubusercontent.com/4213488/33232176-469cdfbc-d1b6-11e7-953c-243005d574b1.png)
+![homepage](https://user-images.githubusercontent.com/4213488/33235908-f9a066d2-d1f8-11e7-9e30-8e64ac04f310.png)
 
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
@@ -393,6 +393,8 @@ Thank you for your contributions:
 * [José A. Cruz](https://github.com/jalbertcruz)
 
 ### Screenshots
+
+![cenit1](https://user-images.githubusercontent.com/4213488/33232176-469cdfbc-d1b6-11e7-953c-243005d574b1.png)
 
 ![swagger](https://user-images.githubusercontent.com/4213488/33235685-8808ac9c-d1f2-11e7-824f-80604e785197.png)
 
