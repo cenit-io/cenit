@@ -1,7 +1,7 @@
 - if @abstract_models
   - totals = monitor_totals
   .row
-    %div{class: "col-md-12"}
+    %div{class: "col-md-9"}
       -unless current_user.nil?
         -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
           .tenats
@@ -13,13 +13,13 @@
                 .row
                   .col-sm-6.col-md-4
                     .monitor{class: "tenant"}
-                      .col-xs-2.icon
+                      .col-xs-3.icon
                         - if (new_action = action(:new, acc_am))
                           = link_to '/account' do
                             %i.fa{class: 'fa-home'}
                         -else
                           %i.fa{class: 'fa-home'}
-                      .col-xs-10.white-back
+                      .col-xs-9.white-back
                         .actions
                           %a{ href: 'url'}
                             = current_user.account.name.split('@')[0]
@@ -150,3 +150,62 @@
                 - auxiliaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
                     = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+    .col-md-3.no-padding-left
+      %ul.nav.nav-tabs
+        %li.active
+          = link_to '/trace' do
+            %i.fa.fa-code-fork
+            = 'Traces'
+      - max_traces_count = 5
+      - trace_abstract_model = RailsAdmin.config(Mongoid::Tracer::Trace).abstract_model
+      -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+        - traces = Mongoid::Tracer::Trace.limit(max_traces_count).order(created_at: :desc)
+      -else
+        - models= @dashboard_models || []
+        - traces = Mongoid::Tracer::Trace.where(:target_model_name.in => models).limit(max_traces_count).order(created_at: :desc)
+      .traces-dashboard
+        %ol
+          - if traces.count > 0
+            - traces.each do |t|
+              %li{class: "#{t.action.to_s}"}
+                - unless t.id.nil?
+                  - url = url_for(action: :show, controller: 'rails_admin/main', model_name: trace_abstract_model, id: t.id)
+                - target = t.target
+                - tracer_model_config = RailsAdmin.config(t.target_model_name)
+                - tracer_abstract_model = tracer_model_config.abstract_model
+                .title
+                  .label{class: t.action}
+                    ="#{t.action.to_s.titleize}:"
+                  %span.trace-model
+                    %span.model
+                      ="#{tracer_model_config.label} /"
+                  - if !target.nil?
+                    =link_to  url_for(action: :show, model_name: tracer_abstract_model.to_param, id: target.id), class: 'pjax trace_object' do
+                      =target.send(tracer_model_config.object_label_method)
+                  -else
+                    ="##{t.target_id}"
+                =link_to  url, class: 'details-link pjax' do
+                  .details
+                    .author
+                      - if (author = User.where(id: t.author_id).first)
+                        = image_tag(author.picture_url, alt: '', width: '20px', title:  author.email)
+                    .changes
+                      %span
+                        = t.message || 'No message'
+                    .date
+                      .created
+                        =t.created_at
+            %li{class: "see_more"}
+              .title
+                - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
+                .label{class: "see_more"}
+                  =link_to  url, class: 'pjax' do
+                    ="More"
+          -else
+            %li{class: "no-traces"}
+            .title
+              - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
+              .label{class: "no-traces"}
+                =link_to  url, class: 'pjax' do
+                  ="No traces registered yet"
+

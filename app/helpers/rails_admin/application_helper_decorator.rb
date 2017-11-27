@@ -834,9 +834,7 @@ module RailsAdmin
       nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
         nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
         stack = dashboard_navigation_data nodes_stack, nodes
-
         label = navigation_label || t('admin.misc.navigation')
-
         icon = ((opts = RailsAdmin::Config.navigation_options[label]) && opts[:icon]) || 'fa fa-cube'
         icon =
           case icon
@@ -990,6 +988,7 @@ module RailsAdmin
               ''
             end
           data = {}
+          @dashboard_models << node.abstract_model.model_name
           if (model_path = node.abstract_model.api_path)
             data[:model] = model_path
             data[:origins] = origins

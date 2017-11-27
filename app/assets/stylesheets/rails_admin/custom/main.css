@@ -17233,7 +17233,7 @@ fieldset[disabled] .btn-default.active {
 }
 
 .panel-group .panel .panel-heading {
-    padding: 0 15px;
+    padding: 5px 10px;
 }
 
 .panel-group .panel .panel-title > a {
