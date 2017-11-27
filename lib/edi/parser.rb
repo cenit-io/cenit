@@ -72,32 +72,50 @@ module Edi
         end
       end
 
-      def extract_xml_value(element, model, property)
-        model.mongo_value(element.xpath("//#{property}").text, property)
+      def extract_xml_value(xml_element, model, property, property_schema = nil)
+        property_schema ||= model.property_schema(property)
+        name = (property_schema['edi'] && property_schema['edi']['segment']) || property.to_s
+        xml_value =
+          if property_schema.key?('xml') && property_schema['xml']['attribute']
+            xml_element.attributes[name].value
+          else
+            xml_element.xpath("//#{name}").text
+          end
+        model.mongo_value(xml_value, property, property_schema)
       end
 
       def do_parse_xml(data_type, model, element, options, json_schema, record = nil, new_record = nil, enclosed_property = nil, container = nil, container_schema = nil)
+        updating = !(record.nil? && new_record.nil?) || options[:add_only]
         json_schema = data_type.merge_schema(json_schema)
         name = json_schema['edi']['segment'] if json_schema['edi']
         name ||= enclosed_property || model.data_type.name
         return unless name == qualify_name(element)
+        resetting = options[:reset].collect(&:to_s)
         unless record ||= new_record
-          if (primary_field = options.delete(:primary_field)).present? && model && model.modelable?
-            record = find_record(model, container, container_schema) do |criteria|
-              primary_field.each do |property|
-                if (value = extract_xml_value(element, model, property))
-                  criteria[property.to_s] = value
+          if model && model.modelable?
+            primary_field = options.delete(:primary_field)
+            if primary_field.empty? && !extract_xml_value(element, model, :_id).nil?
+              primary_field << :_id
+            end
+            if primary_field.present?
+              record = find_record(model, container, container_schema) do |criteria|
+                primary_field.each do |property|
+                  if (value = extract_xml_value(element, model, property))
+                    criteria[property.to_s] = value
+                  end
                 end
               end
             end
           end
           if record
+            updating = true
             unless model == record.orm_model
               model = record.orm_model
               data_type = model.data_type
               json_schema = model.schema
             end
           else
+            updating = false
             (record = model.new).instance_variable_set(:@dynamically_created, true)
           end
         end
@@ -114,6 +132,10 @@ module Edi
         end
         element.attribute_nodes.each do |attr|
           if (property = model.property_for(attr.name))
+            property_schema = model.property_schema(property)
+            next unless property_schema.key?('xml') && property_schema['xml']['attribute']
+            next if options[:ignore].include?(property.to_sym) ||
+              (updating && ((property == '_id' || primary_field.include?(attr.name.to_sym)) && !record.send(property).nil?))
             value =
               if model.property_model(property).schema['type'] == 'array'
                 attr.value.split(' ')
@@ -133,33 +155,71 @@ module Edi
             end
           record.send("#{content_property}=", content)
         else
+          associations = {}
           elements = element.element_children.to_a
           elements.each do |sub_element|
             if (property = model.property_for(qualify_name(sub_element)))
-              property_model = model.property_model(property)
               property_schema = model.property_schema(property)
+              next if property_schema.key?('xml') && property_schema['xml']['attribute'] ||
+                options[:ignore].include?(property.to_sym)
+              property_model = model.property_model(property)
               if property_model.modelable?
+                persist = property_model.persistable?
                 if property_schema['type'] == 'array'
-                  property_schema = property_model.schema
-                  unless (association = record.send(property))
-                    record.send("#{property}=", [])
-                    association = record.send(property)
+                  if (association_track = associations[property])
+                    next unless associations[:kept]
+                    sub_values = association_track[:new]
+                  else
+                    associations[property] = {
+                      kept: kept = (updating || association.blank?),
+                      current: association = record.send(property)
+                    }
+                    next unless kept
+                    sub_values =
+                      if resetting.include?(property) || !options[:add_only]
+                        if association.nil?
+                          record.send("#{property}=", [])
+                          associations[property][:current] = association = record.send(property)
+                          nil
+                        elsif association.present?
+                          []
+                        end
+                      end
+                    associations[property][:new] = sub_values
                   end
-                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property, association, property_schema))
-                    association << sub_record
+                  items_schema = property_model.schema
+                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, items_schema, nil, nil, property, association, property_schema)) &&
+                    (sub_values || association).exclude?(sub_record)
+                    (sub_values || association) << sub_record
                   end
                 else # type 'object'
+                  associations[property] = { kept: kept = (updating || record.send(property).nil?) }
+                  next unless kept
                   if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property))
                     record.send("#{property}=", sub_record)
                   end
                 end
               else
-                record.send("#{property}=", Hash.from_xml(sub_element.to_xml).values.first)
+                next if updating && ((property == '_id' || primary_field.include?(qualify_name(sub_element))) && !record.send(property).nil?)
+                unless (property_value = Hash.from_xml(sub_element.to_xml).values.first).nil?
+                  record.send("#{property}=", property_value)
+                end
               end
+            end
+          end
+          associations.each do |property, association_track|
+            next unless (sub_values = association_track[:new])
+            record.send("#{property}=", sub_values)
+          end
+          unless options[:add_only]
+            json_schema['properties'].each do |property, property_schema|
+              next unless property_schema['type'] == 'object' && !associations.key?(property)
+              record.send("#{property}=", nil) if (property_model = model.property_model(property)) && property_model.modelable?
             end
           end
         end
         record.try(:run_after_initialized)
+        record.instance_variable_set(:@_edi_parsed, true)
         record
       end
 
