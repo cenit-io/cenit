@@ -2,11 +2,11 @@
   %h4.text-danger= @warning_message.to_s
 - limit = 10
 %form{method: 'delete', class: 'form-horizontal denser', action: url_for(action: @action.action_name)}
-  - if @object.present?
+  - if @collection.present?
     - unless @warning_message
       %h4.text-danger= t('admin.actions.trash.trash_warning')
     - Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-      - if (records = @object.send(relation.name)).present?
+      - if (records = @collection.send(relation.name)).present?
         .control-group
           %label.col-sm-2.control-label
             = relation.name.to_s.titleize

@@ -42,6 +42,8 @@ module RailsAdmin
                 redirect_path = back_or_index
               end
               redirect_to redirect_path
+            else
+              @collection = @object
             end
           end
         end
