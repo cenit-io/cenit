@@ -349,15 +349,22 @@ module Zip
     file.unlink
   end
 
-  def encode(entries)
-    zip = Zip::OutputStream.write_buffer do |zip|
-      entries.each do |name, data|
-        zip.put_next_entry(name.to_s)
+  def encode(entries, entry_prefix = nil)
+    zip = Zip::OutputStream.write_buffer { |zip| do_encode(zip, entries, entry_prefix) }
+    zip.rewind
+    zip.sysread
+  end
+
+  def do_encode(zip, entries, entry_prefix = nil)
+    entries.each do |name, data|
+      entry_name = entry_prefix ? "#{entry_prefix}/#{name}" : name
+      if data.is_a?(Hash)
+        do_encode(zip, data, entry_name)
+      else
+        zip.put_next_entry(entry_name)
         zip.write(data.to_s)
       end
     end
-    zip.rewind
-    zip.sysread
   end
 
   class Entry
