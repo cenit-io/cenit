@@ -16,7 +16,7 @@ module RailsAdmin
 
             model = abstract_model.model rescue nil
             if model
-              hash = @object.copy_hash
+              hash = @object.is_a?(::Mongoff::Record) ? @object.share_hash : @object.copy_hash
               hash.delete('_primary')
               token = Cenit::Token.create(data: hash.to_json, token_span: 300).token
               redirect_to rails_admin.new_path(model_name: model.to_s.underscore.gsub('/', '~'), params: { json_token: token })
