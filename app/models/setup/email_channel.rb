@@ -7,7 +7,7 @@ module Setup
 
     abstract_class true
 
-    build_in_data_type.referenced_by(:namespace, :name, :_type)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     def send_message(message)
       fail NotImplementedError
