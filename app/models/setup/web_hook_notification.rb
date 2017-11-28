@@ -1,5 +1,3 @@
-require 'rest-client'
-
 module Setup
   class WebHookNotification < Setup::Notification
     include RailsAdmin::Models::Setup::WebHookNotificationAdmin
