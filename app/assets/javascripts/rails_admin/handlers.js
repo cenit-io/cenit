@@ -437,8 +437,6 @@ function handlerInit() {
     if ($('select.input-sm', '.graphics-controls').length > 0)
         graphicsInit();
 
-    $('#subdomain-related-menu .nav-stacked').on('shown.bs.collapse', updateModelCountOneByOne);
-
     updateModelCountOneByOneNoChild();
 
     if ($('.dashboard').length > 0)
@@ -502,13 +500,13 @@ function setupAutoComplete(el) {
 // Side Menu Bar Update Model Counts Functions
 
 function updateModelCountOneByOneNoChild() {
-    $cenit_submenu_children = $('#subdomain-related-menu ul > li.no-childrens[data-model]');
+    $cenit_submenu_children = $('#subdomain-menu > li[data-model]');
     requestModelCount();
 }
 
 function updateModelCountOneByOne(e) {
     e.stopPropagation();
-    $cenit_submenu_children = $(e.currentTarget).children('li[data-model]');
+    $cenit_submenu_children = $(e.currentTarget).siblings().find('li[data-model]');
     requestModelCount();
 }
 function requestModelCount() {

@@ -480,9 +480,7 @@ function registerEvents() {
     $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateDashboardCount(e);
     })
-    $('#toggle-subdomain-menu').off('click').on('click', function () {
-        $('#content-wrapper aside').toggleClass('minified');
-    });
+
     $('#subdomain-related-menu a[data-toggle="collapse"]').off('click').on('click', function (e) {
         var $aside = $('#content-wrapper aside');
         if ($aside.hasClass('minified')) {
