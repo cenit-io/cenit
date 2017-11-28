@@ -93,7 +93,7 @@ module Edi
         resetting = options[:reset].collect(&:to_s)
         unless record ||= new_record
           if model && model.modelable?
-            primary_field = options.delete(:primary_field)
+            primary_field = options.delete(:primary_field) || []
             if primary_field.empty? && !extract_xml_value(element, model, :_id).nil?
               primary_field << :_id
             end
