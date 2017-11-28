@@ -15534,6 +15534,83 @@ ul.main-menu > li > a,
     left: -230px;
 }
 
+
+
+.related-sidebar {
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    padding-right: 0;
+    padding-left: 0;
+    left: 0;
+    float: none;
+    z-index: 999;
+    background-color: #3d4046;
+    border-top: solid 1px white;
+}
+
+.related-sidebar.minified {
+    width: 40px;
+    margin-right: -40px;
+    z-index: 8;
+}
+
+.related-sidebar.minified .subdomain-menu > li {
+    position: relative;
+}
+
+.related-sidebar.minified .subdomain-menu > li i {
+    width: 40px;
+}
+
+.related-sidebar.minified .subdomain-menu > li .toggle-icon {
+    display: none;
+}
+
+.related-sidebar.minified .subdomain-menu > li > a {
+    padding-left: 0;
+}
+
+.related-sidebar.minified .subdomain-menu > li > a > .text {
+    display: none;
+}
+
+.related-sidebar.minified .subdomain-menu > li:hover > a > .text {
+    position: absolute;
+    display: block;
+    left: 40px;
+    top: -1px;
+    min-width: 200px;
+    z-index: 9999;
+    padding: 13px 10px;
+    border: 2px solid #dfdfdf;
+    line-height: 1.5;
+    background: #dfdfdf;
+    font-weight: 700;
+    opacity: 1 !important;
+}
+
+.related-sidebar.minified .subdomain-menu > li:hover > ul.sub-menu {
+    display: block !important;
+    min-width: 200px;
+    position: absolute;
+    margin-left: 40px;
+    z-index: 9999;
+    border: 1px solid #E4E4E4;
+    border-top: none;
+    list-style-type: none;
+}
+
+.related-sidebar.minified .subdomain-menu > li:hover > ul.sub-menu > li > a {
+    padding-left: 10px;
+}
+
+.related-sidebar.sidebar-hide-left {
+    left: -230px;
+}
+
 @media screen and (max-width: 992px) {
     .left-sidebar {
         left: -230px;
@@ -22489,8 +22566,8 @@ ul.subdomain-menu > li a {
     position: relative;
     padding: 13px 0 13px 15px;
     font-size: 14px;
-    color: white;
-    background-color: #3d4046;
+    color: #555;
+    background-color: #f9f9f9;
     border-top: 1px solid #dfdfdf;
     text-decoration: none;
 }

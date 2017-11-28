@@ -347,6 +347,7 @@ ul.drawer li a span {
     transition: all 0.15s ease-in-out;
     #toggle-subdomain-menu {
       text-decoration: none;
+      padding-top: 0;
       &:after {
         font-family: FontAwesome;
         content: '\f066';
@@ -385,35 +386,8 @@ ul.drawer li a span {
         opacity: 0;
         height: 0;
       }
-      span.nav-amount {
-        display: none;
-      }
-      li.no-childrens {
-        .nav-amount {
-          display: none;
-        }
-        .nav-caption {
-          transition: all 0.15s ease-in-out;
-          width: 0;
-          opacity: 0;
-          height: 0;
-          display: inline-block;
-        }
-      }
-      #subdomain-related-menu .panel-default .panel-heading a span.nav-caption {
-        transition: all 0.15s ease-in-out;
-        width: 0;
-        opacity: 0;
-        height: 0;
-        display: inline-block;
-      }
     }
   }
-
-  main {
-
-  }
-
 }
 
 .content {
@@ -3076,14 +3050,6 @@ button#model-nav-xs {
     color: #ea7400;
   }
 }
-
-.menu-separator {
-  padding: 1px 0 0 0;
-  background: lightgrey;
-  margin: -1px;
-  border: none;
-}
-
 .navbar-default {
   border: none;
 }
@@ -4094,7 +4060,7 @@ span.nav-amount {
   margin-top: 1px;
   margin-left: -15px;
   margin-right: -15px;
-  height: 41px;
+  height: 42px;
 }
 
 .sidebar-scroll {
