@@ -171,8 +171,8 @@ module Edi
                     sub_values = association_track[:new]
                   else
                     associations[property] = {
-                      kept: kept = (updating || association.blank?),
-                      current: association = record.send(property)
+                      current: association = record.send(property),
+                      kept: kept = (updating || association.blank?)
                     }
                     next unless kept
                     sub_values =
