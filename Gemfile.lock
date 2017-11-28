@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 40026dfebfc5c9ab0a053e41f06d1774e8bcfeca
+  revision: 785ceaa35e634b8efe12757060818c97501163a8
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
