@@ -760,7 +760,6 @@ $merriweather: "Merriweather", Georgia;
         position: absolute;
         top: 0;
         left: 0;
-        height: 100%;
         width: 100%;
         padding-top: 0;
 
@@ -783,77 +782,41 @@ $merriweather: "Merriweather", Georgia;
           position: relative;
           z-index: 3;
           height: 100%;
-        }
 
-        .bg {
-          position: absolute;
-          top: 0;
-          left: -15px;
-          width: 102%;
-          height: 100%;
-          background-position: center center;
-          background-size: cover;
+          h1.hero-text {
+            margin-top: 70px;
+            letter-spacing: 1.2px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 45px;
+            line-height: 1.3;
+            font-family: "Lato", "Helvetica Neue", Arial, Helvetica, "Helvetica Neue", Arial, sans-serif;
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
 
-          @media(max-width: 767px) {
-            left: 0px;
-          }
-
-          &:before {
-            position: absolute;
-            top: 10%;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            content: '';
-            /*background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0,0,0,0)), color-stop(100%, rgba(0,0,0,0.25)));
-            background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(0,0,0,0.25) 100%);
-            background: -moz-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: -o-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));*/
-          }
-          &:after {
-            content: '';
-            position: absolute;
-            display: block;
-            height: 100%;
-            left: 0;
-            width: 100%;
-            top: 0;
-          }
-        }
-
-        &.first {
-          @media(max-width: 767px) {
-            padding-top: 50px;
-          }
-          .bg {
-            background-image: image_url('home/c5.jpeg');
-            background-position: center 18%;
-            &:after {
-              //background: rgba(52, 52, 58, 0.6);
-            }
-          }
-          .info {
-            h1.hero-text {
-              margin-top: 70px;
-              font-family: Arial, Helvetica, sans-serif;
-              font-size: 36px;
-              letter-spacing: 1.2px;
+            span {
               font-weight: bold;
-              color: #fff;
-              text-shadow: 1px 0px 5px rgba(0, 0, 0, 1);
+              color: #ea7400;
+            }
+            .sub-text {
+              -webkit-font-smoothing: antialiased;
+              margin: 10px 0 35px 0;
+              text-align: center;
+              color: #222222;
+              font-weight: bold;
+              font-size: 27px;
+              text-shadow: 15px 1px 15px #b5b2a6;
+              letter-spacing: 0;
+            }
 
-              @media (max-width: 767px) {
-                font-size: 28px;
-                text-align: center;
-              }
+            @media (max-width: 767px) {
+              font-size: 28px;
+              text-align: center;
             }
-            p {
-              color: white;
-              font-family: "Lato", "Helvetica Neue", Arial;
-              margin-top: 15px;
-              font-size: 18px;
-            }
+          }
+          .actions {
+            text-align: center;
             .cta {
               @include animationDelay(0.6s);
               margin-top: 15px;
@@ -895,197 +858,90 @@ $merriweather: "Merriweather", Georgia;
               }
             }
           }
+        }
 
-          .mobiles {
-            img {
-              display: block;
-              margin: 0 auto;
-              margin-top: 75px;
-              -webkit-animation-duration: 1.2s;
-              -moz-animation-duration: 1.2s;
-              -o-animation-duration: 1.2s;
-              animation-duration: 1.2s;
-            }
+        .bg {
+          position: absolute;
+          top: 0;
+          left: -15px;
+          width: 102%;
+          height: 100%;
+          background-position: center center;
+          background-size: cover;
+          background-image: image_url('home/bg3.png');
+
+          @media(max-width: 767px) {
+            left: 0px;
+          }
+
+          &:before {
+            position: absolute;
+            top: 10%;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            content: '';
+            /*background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0,0,0,0)), color-stop(100%, rgba(0,0,0,0.25)));
+            background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(0,0,0,0.25) 100%);
+            background: -moz-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
+            background: -o-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
+            background: linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));*/
+          }
+          &:after {
+            content: '';
+            position: absolute;
+            display: block;
+            height: 100%;
+            left: 0;
+            width: 100%;
+            top: 0;
           }
         }
 
+        &.first {
+          .container {
+            h1.hero-text {
+              margin-top: 100px;
+            }
+          }
+        }
         &.second {
-          @media(max-width: 767px) {
-            padding-top: 40px;
-          }
-
-          .bg {
-            background-image: image_url("home/bg3.png");
-            background-position: center 29%;
-
-            &:after {
-              //background: rgba(5, 11, 29, 0.55);
+          .container {
+            h1.hero-text {
+              margin-top: 100px;
             }
           }
-
-          h1.hero-text {
-            text-align: center;
-            font-family: $lato, Helvetica, "Helvetica Neue", Arial, sans-serif;
-            font-size: 37px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
-            text-transform: uppercase;
-            margin-top: 130px;
-            @media (max-width: 767px) {
-              font-size: 25px;
-            }
-          }
-          h2 {
-            text-shadow: 15px 1px 15px #b5b2a6;
-            color: #222222;
-            span {
-              font-weight: bold;
-            }
-          }
-          .button-outline {
-            margin-top: 50px;
-          }
-          .sub-text {
-            -webkit-font-smoothing: antialiased;
-            @include animationDelay(0.6s);
-            margin: 0 auto;
-            font-family: $lato;
-            line-height: 29px;
-            margin-top: 25px;
-            text-align: center;
-            color: #fff;
-            font-weight: 400;
-            font-size: 17px;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-            width: 50%;
-
-            @media (max-width: 991px) {
-              width: 70%;
-            }
-
-            @media (max-width: 767px) {
-              font-size: 15px;
-            }
-          }
-
         }
 
         &.third {
-          padding-top: 65px;
-
-          @media(max-width: 767px) {
-            padding-top: 50px;
+          .container {
+            h1.hero-text {
+              margin-top: 80px;
+            }
           }
+        }
 
+        &.fourth {
           .bg {
-            background-image: image_url("home/bg_sky");
-            //background-image: url('http://farm6.staticflickr.com/5267/5783999789_9d06e5d7df_b.jpg');
-            background-position: center 15%;
-
-            &:after {
-              //background: rgba(3, 9, 27, 0.5);
-            }
+            background-position: top;
           }
+          .container {
 
-          h1, .sub-text {
-            -webkit-animation-duration: 1s;
-            -moz-animation-duration: 1s;
-            -o-animation-duration: 1s;
-            animation-duration: 1s;
-          }
-
-          h1.hero-text {
-            text-align: center;
-            font-family: $roboto, Helvetica, "Helvetica Neue", Arial, sans-serif;
-            font-size: 38px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
-
-            @media (max-width: 767px) {
-              font-size: 28px;
-            }
-          }
-          .cloud_services {
-            position: relative;
-            i {
-              position: absolute;
-              z-index: 1;
-              &.fa-google {
-                top: 188px;
-                z-index: 1;
-                font-size: 81px;
-                color: #ec5a2c;
-                right: 56px;
-              }
-              &.fa-github {
-                top: 89px;
-                font-size: 93px;
-              }
-              &.fa-facebook {
-                font-size: 76px;
-                top: 35px;
-                left: 240px;
-                color: #3F51B5;
-              }
-              &.fa-twitter {
-                font-size: 100px;
-                top: 35px;
-                left: 120px;
-                color: orange;
-              }
-              &.fa-amazon {
-                font-size: 71px;
-                top: 130px;
-                left: 278px;
-                color: green;
-              }
-              &.fa-dropbox {
-                font-size: 71px;
-                top: 183px;
-                left: 79px;
-                color: brown;
+            h1.hero-text {
+              margin-top: 70px;
+              text-align: left;
+              white-space: nowrap;
+              letter-spacing: 0;
+              .sub-text {
+                text-align: left;
+                white-space: nowrap;
               }
             }
-            i.fa-cloud {
-              position: relative;
-              font-size: 329px;
-              color: white;
-              right: 0;
-              top: -33px;
+            img {
+              margin-top: 42px;
             }
-          }
-          .sub-text {
-            -webkit-font-smoothing: antialiased;
-            margin: 0 auto;
-            margin-top: 25px;
-            text-align: center;
-            color: #222222;
-            font-weight: bold;
-            font-size: 27px;
-            text-shadow: 1px 1px 1px rgb(255, 255, 255);
-
-            @media (max-width: 991px) {
-              width: 70%;
-            }
-
-            @media (max-width: 767px) {
-              font-size: 15px;
-            }
-          }
-          .cta {
-            @include animationDelay(0.6s);
-            text-align: center;
-            margin-top: 20px;
-            a {
-              margin: 0px 20px;
-
-              @media (max-width: 767px) {
-                font-size: 14px;
-                padding: 12px 25px;
-                margin: 0px 15px 15px 0px;
-              }
+            .actions {
+              text-align: left;
             }
           }
         }
