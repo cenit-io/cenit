@@ -393,7 +393,7 @@ ul.drawer li a span {
 .content {
   padding: 0 15px 15px;
   background: white;
-  overflow: auto;
+  overflow-y: scroll;
   border-left: solid 1px lightgray;
   min-height: calc(100vh - 50px);
 

@@ -22610,6 +22610,7 @@ ul.subdomain-menu .sub-menu {
     position: relative;
     display: none;
     padding-left: 0;
+    list-style-type: none;
 }
 
 ul.subdomain-menu .sub-menu.open {
