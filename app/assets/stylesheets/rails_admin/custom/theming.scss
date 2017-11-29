@@ -3050,6 +3050,7 @@ button#model-nav-xs {
     color: #ea7400;
   }
 }
+
 .navbar-default {
   border: none;
 }
@@ -4077,6 +4078,7 @@ span.nav-amount {
     overflow: visible;
     margin-bottom: 30px;
     box-shadow: 0 0px 1px #3d4046;
+    transition: all 0.3s ease;
     float: left;
     width: 100%;
     background: #c9cacc;
@@ -4153,9 +4155,7 @@ span.nav-amount {
     &:hover {
       box-shadow: 0 0 4px #3d4046
     }
-  }
-  &.tenants {
-    .monitor {
+    &.no-mb {
       margin-bottom: 0;
     }
   }
@@ -4208,6 +4208,7 @@ span.nav-amount {
         .details {
           padding: 8px;
           margin: 8px 0 8px 0;
+          transition: all 0.3s ease;
           .author {
             float: left;
             margin-right: 8px;
@@ -4244,9 +4245,11 @@ span.nav-amount {
             width: 1px;
             content: "";
             background-color: #dddddd;
+            transition: all 0.3s ease;
           }
           &:hover {
-            box-shadow: 0 0px 1px #3d4046;
+            background: rgba(173, 216, 230, 0.11);
+            cursor: pointer;
           }
         }
 
@@ -4279,11 +4282,12 @@ span.nav-amount {
           color: #DB3833;
         }
       }
-      &.cross{
-        &:before{
+      &.cross {
+        &:before {
           content: '\f0ec';
         }
       }
+
     }
   }
 }
