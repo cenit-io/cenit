@@ -73,15 +73,16 @@ module Edi
       end
 
       def extract_xml_value(xml_element, model, property, property_schema = nil)
-        property_schema ||= model.property_schema(property)
-        name = (property_schema['edi'] && property_schema['edi']['segment']) || property.to_s
-        xml_value =
-          if property_schema.key?('xml') && property_schema['xml']['attribute']
-            xml_element.attributes[name].value
-          else
-            xml_element.xpath("//#{name}").text
-          end
-        model.mongo_value(xml_value, property, property_schema)
+        if (property_schema ||= model.property_schema(property))
+          name = (property_schema['edi'] && property_schema['edi']['segment']) || property.to_s
+          xml_value =
+            if property_schema.key?('xml') && property_schema['xml']['attribute']
+              xml_element.attributes[name].value
+            else
+              xml_element.xpath("//#{name}").text
+            end
+          model.mongo_value(xml_value, property, property_schema)
+        end
       end
 
       def do_parse_xml(data_type, model, element, options, json_schema, record = nil, new_record = nil, enclosed_property = nil, container = nil, container_schema = nil)
@@ -93,7 +94,7 @@ module Edi
         resetting = options[:reset].collect(&:to_s)
         unless record ||= new_record
           if model && model.modelable?
-            primary_field = options.delete(:primary_field)
+            primary_field = options.delete(:primary_field) || []
             if primary_field.empty? && !extract_xml_value(element, model, :_id).nil?
               primary_field << :_id
             end
@@ -171,8 +172,8 @@ module Edi
                     sub_values = association_track[:new]
                   else
                     associations[property] = {
-                      kept: kept = (updating || association.blank?),
-                      current: association = record.send(property)
+                      current: association = record.send(property),
+                      kept: kept = (updating || association.blank?)
                     }
                     next unless kept
                     sub_values =

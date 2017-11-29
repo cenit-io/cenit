@@ -117,6 +117,31 @@ module Setup
           end
         end
       end
+      if (transformations_relation = collecting_models[Setup::Translator])
+        pending = []
+        processed = Set.new
+        translators.each do |transformation|
+          next unless transformation.is_a?(Setup::Converter) && transformation.style == 'mapping'
+          pending << transformation
+        end
+        until pending.empty?
+          processed << (converter = pending.pop)
+          converter.map_model.associations.each do |name, _|
+            next unless (t = converter.mapping.send(name)) && (t = t.transformation)
+            if scan_dependencies_on(t,
+                                    collecting_models: collecting_models,
+                                    dependencies: dependencies,
+                                    visited: visited)
+              dependencies[transformations_relation.name] << t
+              if processed.exclude?(t) &&
+                t.is_a?(Setup::Converter) &&
+                t.style == 'mapping'
+                pending << t
+              end
+            end
+          end
+        end
+      end
       params = {}
       if (data_types = dependencies[:data_types])
         data_types = data_types.to_a

@@ -12,9 +12,44 @@ module Setup
     field :authentication, type: Symbol, default: :plain
     field :from, type: String
 
+    validates_presence_of :provider
     validates_uniqueness_of :user_name, scope: :provider
 
     delegate :address, :port, :domain, to: :provider, allow_nil: true
+
+    before_validation do
+      if provider
+        if user_name.present?
+          self.namespace = 'SMTP Account'
+          self.name = email_address
+        else
+          self.namespace = nil
+          self.name = provider.custom_title
+        end
+      else
+        self.namespace = self.name = nil
+      end
+    end
+
+    def email_address
+      @email_address ||
+        (user_name.presence && (user_name =~ /@/ ? user_name : "#{user_name}@#{domain.presence || address}"))
+    end
+
+    def email_address=(email)
+      @email_address = email = email.to_s
+      if (match = email.match(/\A([^@]+)@(.+)\Z/))
+        self.user_name ||= match[1]
+        self.provider ||= Setup::SmtpProvider.where(domain: match[2]).first
+        self.from = email
+      else
+        self.user_name = email
+      end
+    end
+
+    def ready_to_save?
+      provider.present?
+    end
 
     def authentication_enum
       {
@@ -23,14 +58,6 @@ module Setup
         Login: :login,
         'Cram md5': :cram_md5
       }
-    end
-
-    def custom_title
-      if user_name.present?
-        user_name =~ /@/ ? user_name : "#{user_name}@#{domain || address}"
-      else
-        super
-      end
     end
 
     def send_message(message)
