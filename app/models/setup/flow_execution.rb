@@ -39,7 +39,7 @@ module Setup
           if (cycle = cyclic_execution(execution_graph, flow_id.to_s))
             cycles = execution_graph['cycles'] = (execution_graph['cycles'] || 0) + 1
             cycle = cycle.collect { |id| ((flow = Setup::Flow.where(id: id).first) && flow.custom_title) || id }
-            Setup::SystemNotification.create_with(
+            notify(
               message: "Cyclic flow execution detected (#{cycles}): #{cycle.to_a.join(' -> ')}",
               attachment: {
                 filename: 'execution_graph.json',
@@ -48,7 +48,17 @@ module Setup
               },
               type: :warning
             )
-            fail "Too many cyclic flow executions (#{cycles})" if cycles > Cenit.maximum_cyclic_flow_executions
+            if cycles > Cenit.maximum_cyclic_flow_executions
+              resume_manually
+              if scheduler
+                notify(
+                  message: "Detached from scheduler #{scheduler.custom_title} due to overflow cyclic executions",
+                  type: :warning
+                )
+                self.scheduler = nil
+              end
+              fail "Too many cyclic flow executions (#{cycles})"
+            end
           end
           flow.translate(message.merge(task: self)) { |notification_data| notify(notification_data) }
         else
