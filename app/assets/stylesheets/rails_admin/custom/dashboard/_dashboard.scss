@@ -5,7 +5,8 @@
     overflow: initial;
     min-height: 55px;
     background: #f9f9f9;
-    box-shadow: 0 0px 1px rgb(61, 64, 70);
+    box-shadow: 0 0 1px rgb(61, 64, 70);
+    transition: all 0.3s ease;
     float: left;
     width: 100%;
     a.name {
@@ -57,7 +58,7 @@
       }
     }
     &:hover {
-      box-shadow: 0 0px 4px #3d4046
+      box-shadow: 0 0 4px #3d4046
     }
   }
 

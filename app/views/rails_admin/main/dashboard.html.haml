@@ -4,15 +4,15 @@
     %div{class: "col-md-9"}
       -unless current_user.nil?
         -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-          .tenats
+          .tenats-actions
             - if current_user
               - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
               - tenant_list = []
               - count_tenants = current_user.all_accounts.count
-              .monitors.tenants
+              .monitors
                 .row
                   .col-sm-6.col-md-4
-                    .monitor{class: "tenant"}
+                    .monitor.no-mb
                       .col-xs-3.icon
                         - if (new_action = action(:new, acc_am))
                           = link_to '/account' do
