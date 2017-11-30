@@ -22559,6 +22559,7 @@ ul.subdomain-menu .sub-menu .sub-menu li a {
 ul.subdomain-menu {
     padding-left: 0;
     list-style-type: none;
+    margin-bottom: 0;
 }
 
 ul.subdomain-menu > li a {
