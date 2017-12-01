@@ -101,7 +101,8 @@
                     .spec
                       %span.variable='Integration'
                       = 'with cloud services'
-%script
+= content_for :script do
+  <script>
   $(function(){
   var current = 'weekly';
 
@@ -118,4 +119,4 @@
   }
   });
   });
-</script>
+  </script>
