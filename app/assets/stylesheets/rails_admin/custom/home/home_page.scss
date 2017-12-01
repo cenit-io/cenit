@@ -2134,4 +2134,27 @@ $home_blue: #5bc0de;
   .zendesk-icon {
     @include apps-icon(-592px, -260px);
   }
+
+  .app-icon-xs {
+    width: 30px;
+    height: 30px;
+    background-image: image_url('home/spritesheet.png');
+    background-repeat: no-repeat;
+    display: block;
+    background-position: -2px -342px;
+
+    &.gmail {
+      background-position: -2px -342px;
+    }
+    &.magento {
+      background-position: -36px -342px;
+    }
+    &.slack {
+      background-position: -69px -342px;
+    }
+    &.trello {
+      background-position: -105px -342px;
+    }
+  }
+
 }
