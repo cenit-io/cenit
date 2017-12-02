@@ -34,11 +34,11 @@
             - ''
           %li
             %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.type, :"data-field-value" => "", :"data-field-datetimepicker-format" => (field.try(:parser) && field.parser.to_momentjs)}= capitalize_first_letter(field.label)
-
-:javascript
-  jQuery(function($) {
-  #{ordered_filter_string}
-  });
+= content_for :script do
+  :javascript
+    jQuery(function($) {
+    #{ordered_filter_string}
+    });
 
 #list
   = form_tag(index_path(params.except(*%w[page f query])), method: :get, id: 'filter-form', class: "pjax-form form-inline") do
