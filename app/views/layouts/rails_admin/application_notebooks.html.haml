@@ -1,4 +1,3 @@
-!!! 5
 %html
   %head
     %meta{content: "IE=edge", "http-equiv" => "X-UA-Compatible"}
@@ -8,18 +7,18 @@
     
     = csrf_meta_tag
     = stylesheet_link_tag "rails_admin/rails_admin.css", media: :all
-    = javascript_include_tag "rails_admin/rails_admin.js"
     -# Initialize JS simple i18n
-    :javascript
-      RailsAdmin.I18n.init(JSON.parse("#{j I18n.t("admin.js").to_json}"));
-      
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    = content_for :script do
+      :javascript
+        RailsAdmin.I18n.init(JSON.parse("#{j I18n.t("admin.js").to_json}"));
 
-      ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
-      ga('send', 'pageview');
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
+        ga('send', 'pageview');
 
   %body.rails_admin
     #loading.label.label-warning{style: 'display:none; position:fixed; right:20px; bottom:20px; z-index:100000'}= t('admin.loading')
@@ -32,6 +31,10 @@
         .xyz
           .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
 
+    = javascript_include_tag "rails_admin/rails_admin.js"
+    = yield :script
     - if TourTrack.show_tour?(request.remote_ip, User.current)
-      = '<script>initializeTour();</script>'.html_safe
+      = content_for :script do
+        :javascript
+          initializeTour();
     = render partial: 'contact_us'
