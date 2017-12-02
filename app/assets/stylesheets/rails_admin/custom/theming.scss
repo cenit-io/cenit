@@ -240,10 +240,7 @@ ul.drawer li a span {
 }
 
 .social-links.absolute {
-  position: absolute;
-  width: calc(100% - 12px);
-  bottom: 0;
-  background-color: #3D4046;
+
 }
 
 .social-links a {
@@ -636,25 +633,31 @@ ul#main-accordion .panel-heading .nav-icon {
   padding: 12px;
 }
 
-#os-love {
-  white-space: nowrap;
-  overflow: hidden;
-  color: white;
-}
-
-#os-love span {
-  transition: all .5s ease-in-out;
-  visibility: collapse;
-  opacity: 0;
-  max-width: 0;
-  display: inline-block;
-}
-
-#wrapper.toggled #os-love span {
-  transition: all .5s ease-in-out .05s;
-  visibility: visible;
-  opacity: 1;
-  max-width: 100%;
+.related-sidebar {
+  #os-love {
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    margin-top: 80px;
+    span {
+      transition: all .5s ease-in-out .05s;
+      visibility: visible;
+      opacity: 1;
+      max-width: 100%;
+    }
+    i {
+      width: 14px;
+    }
+  }
+  &.minified {
+    #os-love span {
+      transition: all .5s ease-in-out;
+      visibility: collapse;
+      opacity: 0;
+      max-width: 0;
+      display: inline-block;
+    }
+  }
 }
 
 /* Signin Drawer */
