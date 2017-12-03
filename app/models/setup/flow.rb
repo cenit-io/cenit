@@ -418,6 +418,7 @@ module Setup
                   offset: offset,
                   limit: limit,
                   discard_events: discard_events,
+                  template_parameters: template_parameters,
                   parameters: template_parameters,
                   task: message[:task]
                 }
