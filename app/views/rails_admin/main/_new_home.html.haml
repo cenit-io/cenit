@@ -30,6 +30,8 @@
   = link_to '', id: 'go-up',class:'from-bottom scroll', data: {link: 'top'} do
     %i.fa.fa-arrow-up
   = render partial: 'contact_us'
+  = javascript_include_tag "rails_admin/rails_admin.js"
+  = yield :script
   - if TourTrack.show_tour?(request.remote_ip, User.current)
     %script
     initializeTour();

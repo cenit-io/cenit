@@ -30,6 +30,8 @@
   <!-- END CONTENT WRAPPER -->
 </div>
 <!-- END WRAPPER -->
+<%=  javascript_include_tag "rails_admin/rails_admin.js" %>
+<%= yield :script %>
 <% if TourTrack.show_tour?(request.remote_ip, User.current) %>
     <script>
       initializeTour();
