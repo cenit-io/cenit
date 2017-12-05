@@ -18,6 +18,18 @@
 
 body.rails_admin {
   padding-top: 0;
+  .sidebar-nav {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+  }
+  .form-horizontal.denser fieldset {
+    margin-bottom: 30px;
+  }
+  table {
+    font-size: 13px;
+  }
 }
 
 /*Theming variables*/
@@ -403,17 +415,6 @@ ul.drawer li a span {
     }
   }
 
-}
-
-body.rails_admin .sidebar-nav {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  overflow-y: auto;
-}
-
-.xyz {
-  min-width: 360px;
 }
 
 .fixed-brand {
@@ -1307,10 +1308,6 @@ ul#more_actions a {
     margin: 5px 0 0 6px;
     padding: 0 6px;
   }
-}
-
-body.rails_admin .form-horizontal.denser fieldset {
-  margin-bottom: 30px;
 }
 
 .filters-buttons {
@@ -4293,4 +4290,12 @@ span.nav-amount {
 
     }
   }
+}
+
+#loading {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100000
 }

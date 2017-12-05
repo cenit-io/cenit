@@ -1,13 +1,11 @@
--#rails_admin-1.0 ready
 %html{lang: I18n.locale}
   %head
-    %meta{content: "IE=edge", "http-equiv" => "X-UA-Compatible"}
-    %meta{content: "text/html; charset=utf-8", "http-equiv" => "Content-Type"}
-    %meta{name: "description", content: "iPaaS - Cenit IO has been designed to orchestrate data flows that may involve several APIs. It makes possible the automation of all operational processes in a company, connecting between on-premises infrastructure and cloud services."}
+    %meta{content: "IE=edge", 'http-equiv' => "X-UA-Compatible"}
+    %meta{content: "text/html; charset=utf-8", 'http-equiv' => "Content-Type"}
+    %meta{name: "description", content: 'iPaaS - Cenit IO has been designed to orchestrate data flows that may involve several APIs. It makes possible the automation of all operational processes in a company, connecting between on-premises infrastructure and cloud services.'}
     %title= 'Cenit IO | Open Platform for Data and Business Integration (iPaaS)'
-
     = csrf_meta_tag
-    = stylesheet_link_tag "rails_admin/rails_admin.css", media: :all
+    = stylesheet_link_tag 'rails_admin/rails_admin.css', media: :all
     = content_for :script do
       -# Initialize JS simple i18n
       :javascript
@@ -20,13 +18,17 @@
 
         ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
         ga('send', 'pageview');
-
-
   - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-  - if (dashboard_root)
-    - if current_user.nil?
-      = render partial: 'rails_admin/main/new_home'
-    -else
-      = render "layouts/rails_admin/body"
-  - else
-    = render "layouts/rails_admin/body"
+  - if (dashboard_root) &&  current_user.nil?
+    %body#home_page
+      = render partial: 'rails_admin/main/home'
+  -else
+    %body.topnav-fixed.rails_admin
+      = render partial: 'layouts/rails_admin/default_layout'
+  = render partial: 'contact_us'
+  = javascript_include_tag 'rails_admin/rails_admin.js'
+  = yield :script
+  - if TourTrack.show_tour?(request.remote_ip, User.current)
+    = content_for :script do
+      :javascript
+        initializeTour();

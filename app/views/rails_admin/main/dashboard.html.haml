@@ -81,7 +81,7 @@
                           {label: 'paused', class: 'paused', value: totals[:tasks][:paused], description: 'paused'},
                           {label: 'running', class: 'running', value: totals[:tasks][:running], description: 'running'},
                           {label: 'completed', class: 'completed', value: totals[:tasks][:completed], description: 'completed'} ]
-            =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
+            =  render partial: 'rails_admin/main/dashboard/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
 
             -if (value = totals[:auths][:unauthorized]) == 0
               - value = totals[:auths][:total]
@@ -94,7 +94,7 @@
             - url= '/authorization'
             - actions = [{label: 'total', class: 'total', value: totals[:auths][:total], description: 'total'},
                         {label: 'unauthorized', class: 'unauthorized', value: totals[:auths][:unauthorized], description: 'unauthorized'} ]
-            =  render partial: 'rails_admin/main/monitor', locals:{url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
+            =  render partial: 'rails_admin/main/dashboard/monitor', locals:{url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
 
             -if (value = totals[:notif][:error]) > 0
               - value = number_to_human(value)
@@ -119,7 +119,7 @@
                         {label: 'warnings', class: 'warnings', value: totals[:notif][:warning], description: 'warnings'} ,
                         {label: 'notice', class: 'notice', value: totals[:notif][:notice], description: 'notices'},
                         {label: 'info', class: 'info', value: totals[:notif][:info], description: 'info'}]
-            =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
+            =  render partial: 'rails_admin/main/dashboard/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
       .dashboard{'data-model-count': 0}
         - secondary = ['Monitors', 'Configuration', 'Administration']
         - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
@@ -136,7 +136,7 @@
               .tab-content
                 - primaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+                    = render partial: 'rails_admin/main/dashboard/widget_dashboard', locals: {d: d, index: index}
         - if auxiliaries.length > 0
           .row
             .col-xs-12
@@ -149,7 +149,7 @@
               .tab-content
                 - auxiliaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+                    = render partial: 'rails_admin/main/dashboard/widget_dashboard', locals: {d: d, index: index}
     .col-md-3.no-padding-left
       %ul.nav.nav-tabs
         %li.active
