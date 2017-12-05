@@ -8,10 +8,8 @@
           %p.text-center
             ='All popular apps for Marketplaces, Storefronts, ERP, CRM, Marketing, Webforms, Payments and more'
       .row.gallery_container.add-clearfix
-        -home_integrations_images.each do |i|
-          - name = /(\w*).(\w*)/.match(i)[1]
+        -home_integrations.each do |name|
           .col-md-2.col-sm-3.col-sms-3.col-xs-6
-            = link_to "/cross_shared_collection?utf8=✓&query=#{name}", class: 'thumbnail', target: '_blank' do
-              = image_tag "home/integrations/#{i}"
+            = icon_to_app name
       .row.see-all
         = link_to 'See all Apps', '/cross_shared_collection', target: '_blank'

@@ -2,21 +2,6 @@
 // Home Vars
 
 $home_blue: #5bc0de;
-/* roboto font */
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300italic,300,400italic,500,500italic,700,700italic,900,900italic);
-/* source sans pro */
-@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic);
-/* lato */
-@import url(http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic);
-/* merriweather */
-@import url(http://fonts.googleapis.com/css?family=Merriweather:400,300italic,300,400italic,700,700italic);
-
-$roboto: "Roboto";
-$lato: 'Lato', 'Helvetica Neue', Arial;
-$helvetica: "Helvetica Neue", Helvetica, Arial;
-$myriad: Myriad Pro, Lato, Helvetica Neue, Arial;
-$sourceSans: Source Sans Pro, Helvetica Neue, Arial;
-$merriweather: "Merriweather", Georgia;
 
 @keyframes submenu-show {
   from {
@@ -803,10 +788,9 @@ $merriweather: "Merriweather", Georgia;
               -webkit-font-smoothing: antialiased;
               margin: 10px 0 35px 0;
               text-align: center;
-              color: #222222;
+              color: white;
               font-weight: bold;
               font-size: 27px;
-              text-shadow: 15px 1px 15px #b5b2a6;
               letter-spacing: 0;
             }
 
@@ -2060,6 +2044,118 @@ $merriweather: "Merriweather", Georgia;
           width: 50px;
         }
       }
+    }
+  }
+  // Apps icon sprite (home/spritesheet.png)
+  // Grid: W-118px H-86px
+  .app-icon {
+    background-image: image_url('home/spritesheet.png');
+    background-repeat: no-repeat;
+    display: block;
+    width: 112px;
+    height: 78px;
+    overflow: hidden;
+    margin: auto;
+  }
+  // First row
+  .aftership-icon {
+    @include apps-icon(-2px, -2px);
+  }
+  .amazon-icon {
+    @include apps-icon(-120px, -2px);
+  }
+  .asana-icon {
+    @include apps-icon(-238px, -2px);
+  }
+  .bigcommerce-icon {
+    @include apps-icon(-356px, -2px);
+  }
+  .bronto-icon {
+    @include apps-icon(-474px, -2px);
+  }
+  .desk-icon {
+    @include apps-icon(-592px, -2px);
+  }
+
+  // Second row
+  .ebay-icon {
+    @include apps-icon(-2px, -88px);
+  }
+  .exact_target-icon {
+    @include apps-icon(-120px, -88px);
+  }
+  .jirafe-icon {
+    @include apps-icon(-238px, -88px);
+  }
+  .magento-icon {
+    @include apps-icon(-356px, -88px);
+  }
+  .mailchimp-icon {
+    @include apps-icon(-474px, -88px);
+  }
+  .mandrill-icon {
+    @include apps-icon(-592px, -88px);
+  }
+
+  // Third row
+  .netsuite-icon {
+    @include apps-icon(-2px, -174px);
+  }
+  .odoo-icon {
+    @include apps-icon(-120px, -174px);
+  }
+  .oscommerce-icon {
+    @include apps-icon(-238px, -174px);
+  }
+  .ql-icon {
+    @include apps-icon(-356px, -174px);
+  }
+  .quickbooks-icon {
+    @include apps-icon(-474px, -174px);
+  }
+  .sf-icon {
+    @include apps-icon(-592px, -174px);
+  }
+
+  // Fourth row
+  .shipstation-icon {
+    @include apps-icon(-2px, -260px);
+  }
+  .shipwire-icon {
+    @include apps-icon(-120px, -260px);
+  }
+  .square-icon {
+    @include apps-icon(-238px, -260px);
+  }
+  .trello-icon {
+    @include apps-icon(-356px, -260px);
+  }
+  .woocommerce-icon {
+    @include apps-icon(-474px, -260px);
+  }
+  .zendesk-icon {
+    @include apps-icon(-592px, -260px);
+  }
+
+  .app-icon-xs {
+    width: 30px;
+    height: 30px;
+    background-image: image_url('home/spritesheet.png');
+    background-repeat: no-repeat;
+    display: block;
+    background-position: -2px -342px;
+
+    &.gmail {
+      background-position: -2px -342px;
+    }
+    &.magento {
+      background-position: -36px -342px;
+    }
+    &.slack {
+      background-position: -69px -342px;
+    }
+    &.trello {
+      background-position: -105px -342px;
     }
   }
 

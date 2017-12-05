@@ -1,5 +1,4 @@
 -#rails_admin-1.0 ready
-!!! 5
 %html{lang: I18n.locale}
   %head
     %meta{content: "IE=edge", "http-equiv" => "X-UA-Compatible"}
@@ -9,19 +8,18 @@
 
     = csrf_meta_tag
     = stylesheet_link_tag "rails_admin/rails_admin.css", media: :all
-    <!-- Javascript -->
-    = javascript_include_tag "rails_admin/rails_admin.js"
-    -# Initialize JS simple i18n
-    :javascript
-      RailsAdmin.I18n.init('#{I18n.locale}', JSON.parse("#{j I18n.t('admin.js').to_json}"));
+    = content_for :script do
+      -# Initialize JS simple i18n
+      :javascript
+        RailsAdmin.I18n.init('#{I18n.locale}', JSON.parse("#{j I18n.t('admin.js').to_json}"));
 
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-      ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
-      ga('send', 'pageview');
+        ga('create',"#{ENV['GOOGLE_ANALYTIC_ID']}", 'auto');
+        ga('send', 'pageview');
 
 
   - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?

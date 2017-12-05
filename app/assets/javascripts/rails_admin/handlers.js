@@ -442,11 +442,6 @@ function handlerInit() {
     if ($('.dashboard').length > 0)
         updateDashboardCount();
 
-    if ($('#integration_list').length > 0) {
-        setInterval(function () {
-            getApiCouple();
-        }, 1000);
-    }
     slideshow.initialize();
 
     $('.auto-complete').each(function () {
@@ -853,25 +848,3 @@ function update_dashboard_model_percents() {
 
     });
 }
-
-// to show Random Apis couples at Home pages
-
-function getRandomIndex() {
-    var min = 0,
-        max = $('#integration_list #left img').length;
-    return parseInt(Math.random() * (max - min) + min);
-}
-function getApiCouple() {
-    var lIndex = getRandomIndex(),
-        rIndex = getRandomIndex();
-    while (lIndex == rIndex) {
-        rIndex = getRandomIndex();
-    }
-    showApi('left', lIndex);
-    showApi('right', rIndex);
-}
-function showApi(container_class, index) {
-    $('#' + container_class).find("img.block").removeClass("block").addClass("none");
-    $('#' + container_class + '  img:eq(' + index + ')').removeClass("none").addClass("block");
-}
-

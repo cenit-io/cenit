@@ -49,8 +49,9 @@
             - if a != _current_user.account
               - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
               %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
-        %script
-          load_tenant_list(#{raw tenant_list});
+        = content_for :script do
+          %script
+            load_tenant_list(#{raw tenant_list});
         - if (new_action = action(:new, acc_am))
           %li.divider{role:'separator'}
           - if count_tenants > 30
