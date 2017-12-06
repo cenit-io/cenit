@@ -1,0 +1,6 @@
+Rails.application.config.assets.precompile += %w( codemirror.css )
+Rails.application.config.assets.precompile += %w( codemirror.js )
+Rails.application.config.assets.precompile += %w( codemirror/modes/ruby.js )
+Rails.application.config.assets.precompile += %w( codemirror/themes/monokai.css )
+Rails.application.config.assets.precompile += %w( codemirror/modes/javascript.js )
+Rails.application.config.assets.precompile += %w( codemirror/modes/xml.js )
