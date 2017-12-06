@@ -88,6 +88,172 @@ module RailsAdmin
         end
       end
     end
+
+    def tenant_monitor_data
+      acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
+      { name: name = current_user.account.name.split('@')[0],
+        icon: 'fa fa-home',
+        url: inspect_path(model_name: acc_am.to_param, id: current_user.account.id),
+        menu: tenant_monitor_menu,
+        value: value = current_user.all_accounts.count,
+        actions: [{ label: 'tenants', class: name, value: value, description: 'tenants' }]
+      }
+    end
+
+    def task_monitor_data tasks
+      if (value = tasks[:failed]) > 0
+        value = number_to_human(value)
+        label = 'failed'
+      elsif (value = tasks[:broken]) > 0
+        value = number_to_human(value)
+        label = 'broken'
+      elsif (value = tasks[:unscheduled]) > 0
+        value = number_to_human(value)
+        label = 'unscheduled'
+      elsif (value = tasks[:pending]) > 0
+        value = number_to_human(value)
+        label = 'pending'
+      elsif (value = tasks[:retrying]) > 0
+        value = number_to_human(value)
+        label = 'retrying'
+      elsif (value = tasks[:paused]) > 0
+        value = number_to_human(value)
+        label = 'paused'
+      elsif (value = tasks[:running]) > 0
+        value = number_to_human(value)
+        label = 'running'
+      else
+        value = number_to_human(tasks[:completed])
+        label = 'completed'
+      end
+      name = t('admin.actions.dashboard.monitors.tasks')
+      icon= 'fa-tasks'
+      url= '/task'
+      actions = [{ label: 'failed', class: 'failed', value: tasks[:failed], description: 'failed' },
+                 { label: 'broken', class: 'broken', value: tasks[:broken], description: 'broken' },
+                 { label: 'unscheduled', class: 'unscheduled', value: tasks[:unscheduled], description: 'unscheduled' },
+                 { label: 'pending', class: 'pending', value: tasks[:pending], description: 'pending' },
+                 { label: 'retrying', class: 'retrying', value: tasks[:retrying], description: 'retrying' },
+                 { label: 'paused', class: 'paused', value: tasks[:paused], description: 'paused' },
+                 { label: 'running', class: 'running', value: tasks[:running], description: 'running' },
+                 { label: 'completed', class: 'completed', value: tasks[:completed], description: 'completed' }]
+      { name: name,
+        icon: icon,
+        url: url,
+        label: label,
+        value: value,
+        label_name: label,
+        actions: actions
+      }
+    end
+
+    def auth_monitor_data auth
+      if (value = auth[:unauthorized]) == 0
+        value = auth[:total]
+        label = 'total'
+      else
+        value = number_to_human(value)
+        label = 'unauthorized'
+      end
+      name = t('admin.actions.dashboard.monitors.auths')
+      icon= 'fa-check'
+      url= '/authorization'
+      actions = [{ label: 'total', class: 'total', value: auth[:total], description: 'total' },
+                 { label: 'unauthorized', class: 'unauthorized', value: auth[:unauthorized], description: 'unauthorized' }]
+      { name: name,
+        icon: icon,
+        url: url,
+        label: label,
+        value: value,
+        label_name: label,
+        actions: actions
+      }
+    end
+
+    def notif_monitor_data notif
+      abstract_model = linking(Setup::SystemNotification)
+      if (value = notif[:error]) > 0
+        value = number_to_human(value)
+        label = 'errors'
+      elsif (value = notif[:warning]) > 0
+        value = number_to_human(value)
+        label = 'warnings'
+      elsif (value = notif[:notice]) > 0
+        value = number_to_human(value)
+        label = 'notice'
+      elsif (value = notif[:info]) > 0
+        value = number_to_human(value)
+        label = 'info'
+      else
+        value = notif[:total]
+        label = 'total'
+      end
+      name = t('admin.actions.dashboard.monitors.notif')
+      icon= 'fa-bell'
+      url = '/system_notification'
+
+      actions = [{ label: 'total', class: 'total', value: notif[:total], description: 'total' },
+                 { label: 'errors', class: 'errors', value: notif[:error], description: 'errors' },
+                 { label: 'warnings', class: 'warnings', value: notif[:warning], description: 'warnings'},
+                 { label: 'notice', class: 'notice', value: notif[:notice], description: 'notices' },
+                 { label: 'info', class: 'info', value: notif[:info], description: 'info'}]
+      { url: url,
+        label_name: label,
+        value: value,
+        name: name,
+        icon: icon,
+        actions: actions
+      }
+    end
+
+    def model_monitor_data m
+      name = m[:label]
+      icon= m[:icon]
+      url = m[:url]
+      menu = m[:menu]
+      model = m[:data][:model]
+      origins = m[:data][:origins]
+      indicator = m[:indicator]
+      { url: url,
+        label_name: name,
+        value: 'loading',
+        name: name,
+        icon: icon,
+        menu: menu,
+        model: model,
+        origins: origins,
+        indicator: indicator }
+    end
+
+    def tenant_monitor_menu
+      acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
+      menu = []
+      menu <<
+        if (new_action = action(:new, acc_am))
+          url = url_for(action: new_action.action_name, model_name: acc_am.to_param)
+          name = 'Add new'
+          %(<li title="Add new" rel="" class="icon index_collection_link ">
+            <a class="pjax" href="#{url}">
+              <i class="fa fa-plus"></i>
+              <span>#{name}</span>
+            </a>
+          </li>)
+        end
+      current_user.all_accounts.each do |a|
+        if a != current_user.account
+          name = format_name(a.name)
+          url = inspect_path(model_name: acc_am.to_param, id: a.id)
+          menu << %(<li title="Inspect #{name}" rel="" class="icon index_collection_link ">
+              <a class="pjax" href="#{url}">
+                <i class="fa fa-home"></i>
+                <span>#{name}</span>
+              </a>
+            </li>)
+        end
+      end
+      menu.join.html_safe
+    end
+
   end
 end
 

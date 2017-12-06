@@ -1,34 +1,56 @@
-- actions ||= []
-- url ||= ''
+- options ||= {}
+- actions = options[:actions] ||= []
+- url = options[:url]||= ''
+- menu = options[:menu]||= nil
+- model = options[:model]||= false
+- origins = options[:origins]||= ''
+- indicator = options[:indicator]||= ''
+- label_name = options[:label_name] || options[:name] || 'default'
+- name = options[:name] ||= 'default'
+- icon = options[:icon] ||= 'fa fa-cube'
+
 .col-sm-6.col-md-4
-  .monitor{class: "#{label_name} #{name.parameterize('_')}"}
-    .col-xs-3.icon
+  .monitor{class: "#{label_name.parameterize('_')}"}
+    .col-xs-3.icon-box
       %a{ href: url}
         %i.fa{class: icon}
     .col-xs-9.white-back
       .actions
-        %a{ href: url}
-          = name
+        %a{ href: url, class: 'name'}
+          = name.capitalize
         .pull-right
-          - if actions.length > 0
-            .dropdown
-              %a.dropdown-toggle{data: {toggle: "dropdown" } }
-                .btn.btn-link
-                  %i.fa.fa-ellipsis-v
-              %ul.dropdown-menu{style: "left:auto; right:0;"}
-                - actions.each do |a|
-                  %li
-                    %a{class: "update-monitor", data:{status: "#{a[:class]}"}}
-                      =a[:label]
+          - if actions.length > 0 || menu
+            .options-menu
+              %span{'aria-haspopup':' true', class: 'btn dropdown-toggle', data: {toggle: 'dropdown'}, type: 'button'}
+                %i.fa.fa-ellipsis-v
+              %ul.dropdown-menu
+                - if !menu.nil?
+                  = menu
+                - else
+                  - actions.each do |a|
+                    %li
+                      %a{class: "update-monitor", data:{status: "#{a[:class]}"}, title: a[:label]}
+                        %span.text
+                          %span
+                            =a[:value]
+                          =a[:label]
       .number
-        - actions.each do |a|
-          - v = a[:value]
-          - color = status_color(v)
-          %span{class: "#{a[:class]== label_name ? '': 'hidden'} #{a[:class]} #{color}"}
-            = number_to_human(v)
-        %div.description
+        - if model
+          %span{class: "model_count #{indicator}", data:{'model': model, 'origins': origins}}
+            %i.fa.fa-spinner.fa-pulse.fa-fw
+        - else
           - actions.each do |a|
             - v = a[:value]
             - color = status_color(v)
             %span{class: "#{a[:class]== label_name ? '': 'hidden'} #{a[:class]} #{color}"}
-              = number_to_human(a[:description])
+              = number_to_human(v)
+        %div.description
+          - if model
+            %span{class: ''}
+              = ''
+          - else
+            - actions.each do |a|
+              - v = a[:value]
+              - color = status_color(v)
+              %span{class: "#{a[:class]== label_name ? '': 'hidden'} #{a[:class]} #{color}"}
+                = number_to_human(a[:description])

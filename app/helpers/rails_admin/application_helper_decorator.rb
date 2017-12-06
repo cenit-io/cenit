@@ -972,13 +972,8 @@ module RailsAdmin
           rc = {}
           rc[:url] = url
           rc[:model_name] = model_param
-          rc[:label] =
-            if current_user
-              # "#{capitalize_first_letter node.label_navigation}"
-              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-            else
-              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-            end
+          rc[:label] = "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+          rc[:icon] = (icon = capitalize_first_letter node.abstract_model.config.navigation_icon).nil? ? 'fa fa-cube' : icon
           origins =
             if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
               model.origins.join(',')
