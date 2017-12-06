@@ -1,4 +1,3 @@
-
 Capataz.config do
 
   disable ENV['CAPATAZ_DISABLE']
@@ -10,13 +9,13 @@ Capataz.config do
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
-                    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
-                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
-                    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
-                    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami
+    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
+    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
+    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
+    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
+    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
+    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, PdfForms, CombinePDF
 
   allow_on Setup::SystemNotification, :create_with
 
@@ -111,13 +110,13 @@ Capataz.config do
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
   allow_for [Class],
-            [
-              :where, :all, :now,
-              :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
-              :data_type, :id,
-              :write_buffer, :put_next_entry, :write,
-              :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
-            ] + Setup::Webhook.method_enum
+    [
+      :where, :all, :now,
+      :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
+      :data_type, :id,
+      :write_buffer, :put_next_entry, :write,
+      :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
+    ] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
@@ -148,4 +147,8 @@ Capataz.config do
     end
     instance.orm_model.property_schema(method).nil?
   end
+
+  allow_on PdfForms, [:new_pdfform, :to_pdf_data, :save_to, :get_field_names, :fill_form]
+  allow_on PdfForms::Fdf, [:new_pdf]
+  allow_on CombinePDF, [:new_pdf]
 end
