@@ -65,7 +65,7 @@ class User
   before_create do
     if self.class.empty?
       # The first User
-      %w(super_admin installer).each do |role_name|
+      %w(super_admin installer cross_shared).each do |role_name|
         unless roles.any? { |role| role.name.to_s == role_name }
           roles << ::Role.find_or_create_by(name: role_name)
         end
@@ -182,6 +182,9 @@ class User
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
     end
 
+    def current_id
+      current && current.id
+    end
   end
 
 end

@@ -17,7 +17,7 @@ module RailsAdmin
 
         register_instance_option :visible? do
           authorized? && (obj = bindings[:object]) && !obj.sealed? &&
-            (Account.current_tenant != obj || !User.current.owns?(obj))
+            (Account.current_tenant != obj || ((current_user = User.current) && !current_user.owns?(obj)))
         end
 
         register_instance_option :controller do

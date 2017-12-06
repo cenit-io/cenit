@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             weight 740
-            visible true
+            visible false
             object_label_method :to_s
 
             configure :model, :model
@@ -66,7 +66,7 @@ module RailsAdmin
                       excluded_ids.delete(pin[field])
                     end
                     criteria = { :id.nin => excluded_ids }
-                    criteria[:origin.ne] = :default unless associated_model_config.abstract_model.model.data_type.track_default_history
+                    criteria[:origin.ne] = :default unless associated_model_config.abstract_model.model.data_type.trace_on_default
                     Proc.new { |scope| scope.where(criteria).limit(limit) }
                   end
                 end

@@ -293,7 +293,7 @@ module Edi
           end
         else
           if property_schema['virtual'] ||
-            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name))) ||
+            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name.to_sym))) ||
             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
             options[:ignore].include?(name.to_sym) ||
             (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)

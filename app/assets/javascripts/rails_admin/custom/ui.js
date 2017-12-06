@@ -1,8 +1,9 @@
-// require rails_admin/d3
-// require rails_admin/highcharts
+//= require 'rails_admin/clipboard.min'
+//= require 'rails_admin/disabled-event'
+//= require 'horsey'
+//= require 'rails_admin/owl.carousel'
 //= require rails_admin/utils
 //= require rails_admin/toggle-buttons.js
-//= require rails_admin/bootstrap-tour.min
 //= require rails_admin/triggers-box
 //= require rails_admin/highlight_js/highlight.pack.js
 //= require rails_admin/handlers
@@ -477,6 +478,10 @@ function registerEvents() {
     })
 
     var $main_accordion = $('#main-accordion');
+
+    $('.expand_collapse').off().click(function (e) {
+        $(e.target).parents('.wrapped').toggleClass('open');
+    });
 
     $('.take-tour').off().click(function (e) {
         e.preventDefault();

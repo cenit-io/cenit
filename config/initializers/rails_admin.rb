@@ -67,7 +67,10 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::ImportApiSpec,
   RailsAdmin::Config::Actions::RemoteSharedCollection,
   RailsAdmin::Config::Actions::OpenApiDirectory,
-  RailsAdmin::Config::Actions::Collect
+  RailsAdmin::Config::Actions::Collect,
+  RailsAdmin::Config::Actions::MemberTraceIndex,
+  RailsAdmin::Config::Actions::CollectionTraceIndex,
+  RailsAdmin::Config::Actions::DataTypeConfig
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -246,130 +249,9 @@ RailsAdmin.config do |config|
     warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root open_api_directory).include?(action_name)
   end
   config.current_user_method { current_user }
-  config.audit_with :mongoid_audit
   config.authorize_with :cancan
 
   config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
-
-  config.actions do
-    dashboard # mandatory
-    # disk_usage
-    shared_collection_index
-    remote_shared_collection
-    open_api_directory
-    ecommerce_index
-    link_data_type
-    index # mandatory
-    swagger { only [Setup::ApiSpec] }
-    new
-    filters
-    data_events
-    notifications
-    flows
-    import
-    import_schema
-    import_api_spec
-    pull_import
-    translator_update
-    convert
-    export
-    bulk_delete
-    show
-    show_records
-    run
-    run_script
-    edit
-    configure
-    play
-    copy
-    share
-    simple_cross
-    bulk_cross
-    build_gem
-    pull
-    push
-    download_file
-    process_flow
-    authorize
-    simple_generate
-    bulk_generate
-    simple_expand
-    bulk_expand
-    records
-    filter_data_type
-    switch_navigation
-    render_chart
-    switch_scheduler
-    chart
-    simple_export
-    schedule
-    state
-    retry_task
-    submit
-    inspect
-    cancel
-    regist
-    reinstall
-    simple_delete_data_type
-    bulk_delete_data_type
-    collect
-    delete
-    trash
-    notebooks_root if Cenit.jupyter_notebooks
-    clean_up
-    #show_in_app
-    send_to_flow
-    delete_all
-    data_type
-    history_index do
-      only do
-        [
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::PlainWebhook,
-          Setup::Operation,
-          Setup::Resource,
-          Setup::Translator,
-          Setup::Flow,
-          Setup::OauthClient,
-          Setup::Oauth2Scope,
-          Setup::Snippet
-        ] +
-          Setup::DataType.class_hierarchy +
-          Setup::Validator.class_hierarchy +
-          Setup::BaseOauthProvider.class_hierarchy
-      end
-    end
-    history_show do
-      only do
-        [
-          Setup::Algorithm,
-          Setup::Connection,
-          Setup::PlainWebhook,
-          Setup::Operation,
-          Setup::Resource,
-          Setup::Translator,
-          Setup::Flow,
-          Setup::OauthClient,
-          Setup::Oauth2Scope,
-          Setup::Snippet
-        ] +
-          Setup::DataType.class_hierarchy +
-          Setup::Validator.class_hierarchy +
-          Setup::BaseOauthProvider.class_hierarchy
-      end
-      visible { only.include?((obj = bindings[:object]).class) && obj.try(:track_history?) }
-    end
-    algorithm_dependencies do
-      only do
-        Setup::Algorithm
-      end
-    end
-    rest_api1
-    rest_api2
-    documentation
-    notebooks if Cenit.jupyter_notebooks
-  end
 
   config.navigation 'Collections', icon: 'fa fa-cubes'
 
@@ -546,6 +428,8 @@ RailsAdmin.config do |config|
 
   config.navigation 'Monitors', icon: 'fa fa-heartbeat', break_line: true
 
+  Mongoid::Tracer::Trace
+
   Setup::SystemNotification
 
   Setup::Task
@@ -639,4 +523,86 @@ RailsAdmin.config do |config|
   Setup::ScriptExecution
 
   Setup::Category
+
+  config.actions do
+    dashboard # mandatory
+    # disk_usage
+    shared_collection_index
+    remote_shared_collection
+    open_api_directory
+    ecommerce_index
+    link_data_type
+    index # mandatory
+    swagger { only [Setup::ApiSpec] }
+    new
+    filters
+    data_events
+    notifications
+    flows
+    import
+    import_schema
+    import_api_spec
+    pull_import
+    translator_update
+    convert
+    export
+    bulk_delete
+    show
+    show_records
+    data_type_config
+    run
+    run_script
+    edit
+    configure
+    play
+    copy
+    share
+    simple_cross
+    bulk_cross
+    build_gem
+    pull
+    push
+    download_file
+    process_flow
+    authorize
+    simple_generate
+    bulk_generate
+    simple_expand
+    bulk_expand
+    records
+    filter_data_type
+    switch_navigation
+    render_chart
+    switch_scheduler
+    chart
+    simple_export
+    schedule
+    state
+    retry_task
+    submit
+    inspect
+    cancel
+    regist
+    reinstall
+    simple_delete_data_type
+    bulk_delete_data_type
+    collect
+    delete
+    trash
+    notebooks_root if Cenit.jupyter_notebooks
+    clean_up
+    #show_in_app
+    send_to_flow
+    delete_all
+    data_type
+    member_trace_index
+    collection_trace_index
+    algorithm_dependencies do
+      only { Setup::Algorithm }
+    end
+    rest_api1
+    rest_api2
+    documentation
+    notebooks if Cenit.jupyter_notebooks
+  end
 end

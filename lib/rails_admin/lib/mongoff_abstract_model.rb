@@ -21,6 +21,10 @@ module RailsAdmin
       properties_hash[name] || associations_hash[name]
     end
 
+    def model_class
+      model
+    end
+
     def model
       @model
     end
@@ -145,11 +149,6 @@ module Mongoff
     def relations
       associations
     end
-
-    def reflect_on_association(name)
-      relations[name.to_sym]
-    end
-
   end
 
   class Record

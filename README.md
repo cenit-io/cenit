@@ -1,4 +1,4 @@
-![best_user_pictures_3](https://user-images.githubusercontent.com/4213488/27266266-718722d0-5454-11e7-987f-1f951610673d.png)
+![homepage](https://user-images.githubusercontent.com/4213488/33235908-f9a066d2-d1f8-11e7-9e30-8e64ac04f310.png)
 
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
@@ -15,20 +15,59 @@
 * [Join our Slack][join-slack-link]
 [(cenitio.slack.com)][join-slack-link]
 * [Shared Collections](https://cenit.io/setup~shared_collection)
+* [Cenit IO - Strategy](https://docs.google.com/presentation/d/144-9bKGudcm_OrE-8jb3DY_62X-fpFeG4J4_dBbzAGA/edit?usp=sharing)
+* [Cenit IO - Look What You Can Do](https://docs.google.com/presentation/d/1i2VGMaSlazoNHRn30c7UzRdrnxjLOE53fqHBLdw4WAY/edit?usp=sharing)
 * [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
+[Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
 
-[Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is an Open Platform for Data and Business Integration (iPaaS). It is designed to orchestrate data flows that may involve several kinds of endpoints (APIs, Datasets, EDI). It makes possible a complete business automation of all operational processes in a company, connecting between organization's on-premises infrastructure and cloud provider services.
+**Why**
 
-**Backenless**
+The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services and, increasingly, the IoT is fertile ground for the growth in adoption of integration platforms.
 
-When it is created a new Data Type using a JSON Schema, is generated on the fly a complete REST API and a CRUD UI to manage the data. It is useful in different use cases, for example as the backend for a mobile application.
+Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. iPaaS platforms are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest in the general public.
 
-[see this video for more details](https://youtu.be/DsFicrI6cDg)
+The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing to rethink organizational models and technology platforms to an approach to pervasive integration.
 
-![mwjajn](https://user-images.githubusercontent.com/4213488/27265759-ec78001e-544e-11e7-9265-d6e5cc7559da.gif)
+None of the vendor leaders in the market really offers a completely open and transparent solution, with the freedom to use, customize or modified without restriction, we believe that is one of the keys to a wide adoption, and relevant to making the decision to use on-premise.
+
+**Mission**
+
+Enable everyone to contribute and benefit from the use of a modern Integration Platform (iPaaS).
+
+**Value proposition**
+
+Cenit makes possible that benefits of a modern iPaaS should be accessible to the small and midsize organizations, particularly valuable to embrace as a strategic component of a pervasive integration approach that allows a complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
+
+**How**
+
+* Developing a 100% open source integration Platform (iPaaS).
+* Provide options to use in the cloud https://cenit.io or on-premise server.
+* Include open catalogs for formal API specs.
+* Options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
+* Ensure that anyone can create, use and share integrations.
+* Be ready for enterprise environments.
+
+
+**Goals**
+
+* Be the most open integration platform on the market.
+* Become one of the most popular iPaaS solutions.
+* Be a viable option for enterprises.
+
+
+**Capabilities**
+
+* **Backendless**: After create a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.
+
+* **Routing and orchestration**: Integration flow development, monitoring and lifecycle management tools. Enables multi-step integration flows by compose atomic functionality (such as connection, transformation, data event, schedule, webhook).
+
+* **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
+
+* **Third party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
+
 
 **Data Pipelines between APIs**
 
@@ -81,57 +120,6 @@ docker-compose up
 ```
 
 and visit the browser: `localhost:3000`
-
-## General Features
-
-
-* **Backendless**: After create a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.
-* **Routing and orchestration**: Enables to create multistep integration flows by composing atomic integration functionality (such as connection, transformation, data event, schedule, webhook and flow).
-* **Data integration**: Includes data validation, transformation, mapping, and data quality. Exchange support for multiple data formats (JSON, XML, ASN) and data standards (EDIFACT, X12, UBL).
-* **Integration scenarios**: Cloud Service Integration, for Publication and Management of APIs, Mobile Application Integration, to support Business to Business, Application and Data Integration needs.
-* **Third party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
-* **Manage multiple Authentication Protocols**: Basic Auth, Digest Auth, OAuth 1.0a, OAuth 2.0
-
-## Key concepts
-
-* Data
-  + **Schemas & Validators** - XML Schema, EDI Grammars, Regular Expression, etc
-  + **Data Types** - Include Object Type defined and a Json Schema and File Type
-
-* Gateway
-  + **API Specs** - Allow uploading an OpenAPI Spec (Swagger 2.0) or create manually.
-  + **Connections** - Are representation of endpoints.
-  + **Resources** - Element that manages a kind of data and a state and provides processing on this kind
-  + **Operations** - An operation is a unit of a REST API that you can call
-
-* Compute
-  + **Snippets** - Small region of re-usable code
-  + **Algorithms**
-  + **Applications** - Associate path with algorithms to process the request and render the response.
-
-* Transforms
-  + **Renderers** - Exporting data outside Cenit.
-  + **Parsers** - Importing outside data into Cenit.
-  + **Converters** - Converting data already stored in Cenit.
-  + **Updaters** - Updating data already stored in Cenit.
-
-* Workflows
-  + **Flows** - Defines how data is processed by the execution of one or more actions.
-  + **Data Events** - Creation of new objects or changes in objects will result in events.
-  + **Schedulers** - Are events triggered at a certain moment and can be optionally recurrent.
-
-* Security
-  + **OAuth Clients**
-  + **Providers** - Authentication Providers.
-  + **OAuth 2.0 Scopes**
-  + **Authorizations** - Integrations authorizations.
-  + **Access Grants**
-
-* Monitors
-  + **Notifications** - Provide detailed trail of tenant activity.
-  + **Tasks** -  Asynchronous executions of flows.
-  + **Storages** - Info about the used space.
-
 
 ## Frameworks and Tools
 
@@ -425,6 +413,13 @@ Here are some ways **you** can contribute:
 * by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
 
+### To the Community
+
+Since the challenge is great, we have to build the solution in community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
+
+We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
+
+
 ### Contributors
 
 Thank you for your contributions:
@@ -439,10 +434,23 @@ Thank you for your contributions:
 * [Aneli Valdés](https://github.com/avaldesa)
 * [José A. Cruz](https://github.com/jalbertcruz)
 
+### Screenshots
+
+![cenit1](https://user-images.githubusercontent.com/4213488/33232176-469cdfbc-d1b6-11e7-953c-243005d574b1.png)
+
+![swagger](https://user-images.githubusercontent.com/4213488/33235685-8808ac9c-d1f2-11e7-824f-80604e785197.png)
+
+![notebooks](https://user-images.githubusercontent.com/4213488/33235699-e1386b86-d1f2-11e7-9ae7-37fcda4fdbfd.png)
+
+![traking](https://user-images.githubusercontent.com/4213488/33235720-79f220b0-d1f3-11e7-919a-332a0e750c41.png)
+
+
+![open_api_directory](https://user-images.githubusercontent.com/4213488/33235844-2107c42e-d1f7-11e7-81e8-9869324648f8.png)
+
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
 [endpoints-image]: https://api.apis.guru/badges/endpoints.svg
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMjU5MDMzMzY3MzM1LTI2ZGE5ODVmMWQwMzIzMGVmNzhjZGY0MTMzYTJkNDg4NWNiMTBhOTAyMTY0ZjI0ZTdjNGU2NWQzYjM0ZTEyNWY
+[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMjc1MTY1NzAxOTEwLTMwODlmNzMyMTNlMmM5YTJhZTFjNzExZmJkMWI5OGFmYjJhNGZlNGIwMWI0Nzg5YzE2YTM4MDI2MmZhYWRlZjg

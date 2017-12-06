@@ -17,6 +17,11 @@ Capataz.config do
     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
     Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, PdfForms, CombinePDF
 
+  # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
+  # allow_on Zip, [:decode, :encode]
+  #
+  # allow_for Zip::Entry, [:name, :read]
+
   allow_on Setup::SystemNotification, :create_with
 
   allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi]
@@ -100,7 +105,7 @@ Capataz.config do
   allow_on IMGKit, [:image_from_html]
 
   allow_on Origami, [:sign_pdf]
-
+  
   allow_on WickedPdf, [:new_wickedpdf]
 
   allow_on Magick::Image, [:read]

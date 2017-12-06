@@ -26,9 +26,11 @@ module RailsAdmin
               @object.clean_up
               redirect_to back_or_index
             else
-              @object = Setup::Collection.new
-              Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
-                @object.send("#{relation.name}=", relation.klass.where(origin: :default))
+              @object.switch do
+                @collection = Setup::Collection.new
+                Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).each do |relation|
+                  @collection.send("#{relation.name}=", relation.klass.where(origin: :default))
+                end
               end
               @warning_message = t('admin.actions.clean_up.warn')
               render :trash

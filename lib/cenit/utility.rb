@@ -251,7 +251,13 @@ module Cenit
             elsif scope.respond_to?(:where)
               scope = scope.where(key => value)
             else
-              scope = scope.select { |record| record[key] == value }
+              scope = scope.select do |record|
+                if (record_model = record.try(:orm_model))
+                  record[key] == record_model.mongo_value(value, key)
+                else
+                  record[key] == value
+                end
+              end
             end
           end
           record =

@@ -1,12 +1,17 @@
--text = 'Automate <span>sales</span>,<span> marketing</span> and <span>business process</span>'
+-text = 'beyond any pre-built point to point integration'
 .slide.second.active
   .bg
   .container
     %h1.hero-text
-      ='Integrate your cloud applications'
-    %h2.text-center
-      =text.html_safe
+      ='If you have'
+      %span
+        ='unique'
+      =' integration needs'
+      .sub-text
+        =text.html_safe
     - unless current_user
-      .text-center
-        = link_to '#', class: 'button-outline go-sign-in' do
-          ='TRY IT FREE'
+      .actions
+        .cta
+          = link_to '#', class: 'button-outline go-sign-in' do
+            = 'TRY IT FREE'
+            = content_tag :i, '', class: 'fa fa-chevron-right'

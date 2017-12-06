@@ -96,15 +96,9 @@
               ='and is a great tool to create your own integration from scratch.'
             .extra
               %ul.list-inline.list-unstyled
-                -#TODO:Change link to collection name not id
-                - apps = [{name: 'Gmail',src: 'google_gmail.png', link: 'https://cenit.io/cross_shared_collection?query=gmail'},
-                {name: 'Magento',src: 'magento.png', link: 'https://cenit.io/cross_shared_collection?query=magento'},
-                {name: 'Slack',src: 'slack.png', link:'https://cenit.io/cross_shared_collection?query=slack'},
-                {name: 'Trello',src: 'trello.png', link: 'https://cenit.io/cross_shared_collection?query=trello'}]
-                - apps.each do |a|
-                  - url = a[:src]
-                  - alt = a[:name]
-                  - title = a[:name]
+                -apps = %w(gmail magento slack trello)
+                - apps.each do |name|
+                  - url = "https://cenit.io/cross_shared_collection?query=#{name}"
                   %li
-                    = link_to a[:link], title: title do
-                      = image_tag "home/integrations/examples/#{url}", alt: alt, height: 30, width: 30
+                    = link_to url, title:"#{name.capitalize}", class: "app-icon-xs #{name}" do
+                      =''

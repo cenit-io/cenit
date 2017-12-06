@@ -67,6 +67,10 @@ module Setup
       end
     end
 
+    def tracing?
+      false
+    end
+
     class << self
 
       def init!

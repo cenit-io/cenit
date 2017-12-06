@@ -3,6 +3,10 @@ module RailsAdmin
     module Fields
       class Base
 
+        register_instance_option :compact_show_view do
+          RailsAdmin::config.compact_show_view
+        end
+
         SHARED_READ_ONLY = Proc.new do
           read_only { (obj = bindings[:object]).creator_id != User.current.id && obj.shared? }
         end

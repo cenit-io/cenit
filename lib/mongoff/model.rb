@@ -148,6 +148,14 @@ module Mongoff
       associations
     end
 
+    def reflect_on_all_associations(*macros)
+      associations.values.select { |a| macros.include?(a.macro) }
+    end
+
+    def reflect_on_association(name)
+      relations[name.to_sym]
+    end
+
     def for_each_association(&block)
       properties_schemas.each do |property, schema|
         block.yield(name: property, embedded: !schema['referenced'], many: schema['type'] == 'array') if property_model?(property)
@@ -331,6 +339,7 @@ module Mongoff
     }
 
     def mongo_value(value, field, schema = nil, &success_block)
+      field = '_id' if field.to_s == 'id'
       types =
         if !caching? || schema
           mongo_type_for(field, schema)

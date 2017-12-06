@@ -75,6 +75,19 @@ module Cenit
 
       Setup::CenitDataType.init!
 
+      require 'mongoff/model'
+      require 'mongoff/record'
+
+      Mongoff::Model.include(Mongoid::Tracer::Options::ClassMethods)
+      Mongoff::Record.class_eval do
+        include Mongoid::Tracer::DocumentExtension
+        include Mongoid::Tracer::TraceableDocument
+
+        def tracing?
+          self.class.data_type.trace_on_default && super
+        end
+      end
+
       Cenit::Notebooks.startup if Cenit.jupyter_notebooks
     end
 

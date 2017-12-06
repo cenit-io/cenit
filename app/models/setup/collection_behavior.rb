@@ -1,4 +1,4 @@
-require 'cenit/cross_tracking_criteria'
+require 'cenit/cross_tracing_criteria'
 
 module Setup
   module CollectionBehavior
@@ -117,6 +117,31 @@ module Setup
           end
         end
       end
+      if (transformations_relation = collecting_models[Setup::Translator])
+        pending = []
+        processed = Set.new
+        translators.each do |transformation|
+          next unless transformation.is_a?(Setup::Converter) && transformation.style == 'mapping'
+          pending << transformation
+        end
+        until pending.empty?
+          processed << (converter = pending.pop)
+          converter.map_model.associations.each do |name, _|
+            next unless (t = converter.mapping.send(name)) && (t = t.transformation)
+            if scan_dependencies_on(t,
+                                    collecting_models: collecting_models,
+                                    dependencies: dependencies,
+                                    visited: visited)
+              dependencies[transformations_relation.name] << t
+              if processed.exclude?(t) &&
+                t.is_a?(Setup::Converter) &&
+                t.style == 'mapping'
+                pending << t
+              end
+            end
+          end
+        end
+      end
       params = {}
       if (data_types = dependencies[:data_types])
         data_types = data_types.to_a
@@ -178,13 +203,13 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         next unless (model = r.klass).include?(Setup::CrossOriginShared)
-        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracking.cross(origin) do |_, non_tracked_ids|
-          next unless non_tracked_ids.present?
+        model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_traced_ids|
+          next unless non_traced_ids.present?
           Account.each do |account|
             if account == Account.current
-              model.clear_pins_for(account, non_tracked_ids)
+              model.clear_pins_for(account, non_traced_ids)
             else
-              model.clear_config_for(account, non_tracked_ids)
+              model.clear_config_for(account, non_traced_ids)
             end
           end
         end

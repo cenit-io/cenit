@@ -64,9 +64,10 @@ module RailsAdmin
 
     def menu_item(only_icon, action, abstract_model, parent, object)
       wording = wording_for(:menu, action)
+      url = url_for(action.url_options(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil)))
       %(
         <li title="#{wording if only_icon}" rel="#{'tooltip' if only_icon}" class="icon #{action.key}_#{parent}_link #{'active' if current_action?(action, abstract_model)}">
-          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url_for(action: action.action_name, controller: 'rails_admin/main', model_name: abstract_model.try(:to_param), id: (object.try(:persisted?) && object.try(:id) || nil))}">
+          <a class="#{action.pjax? ? 'pjax' : ''}" href="#{url}">
             <i class="#{(abstract_model && abstract_model.config.send("#{action.key}_link_icon")) || action.link_icon}"></i>
             <span#{only_icon ? " style='display:none'" : ''}>#{wording}</span>
           </a>
@@ -948,7 +949,7 @@ module RailsAdmin
         end.join).html_safe
     end
 
-    def found_menu(abstract_model = @abstract_model)
+    def found_menu(abstract_model = @context_abstract_model)
       actions = actions(:bulk_processable, abstract_model)
       return '' if actions.empty?
       label = (abstract_model.try(:config) || action.bindings[:custom_model_config]).contextualized_label_plural
@@ -1184,8 +1185,8 @@ module RailsAdmin
       ]
     end
 
-    def home_integrations_images
-      %w(aftership.png amazon.png asana.png bigcommerce.png bronto.png desk.png ebay.jpg exact_target.png jirafe.png magento.png mailchimp.png mandrill.png netsuite.png odoo.png oscommerce.png ql.png quickbooks.png sf.png shipstation.png shipwire.png square.png trello.png woocommerce.png zendesk.png)
+    def home_integrations
+      %w(aftership amazon asana bigcommerce bronto desk ebay exact_target jirafe magento mailchimp mandrill netsuite odoo oscommerce ql quickbooks sf shipstation shipwire square trello woocommerce zendesk)
     end
 
     def home_features
@@ -1207,6 +1208,12 @@ module RailsAdmin
 Configuration, customization and version control.' }
 
       ]
+    end
+
+    def icon_to_app(name)
+      link_to("/cross_shared_collection?utf8=✓&query=#{name}", class: "thumbnail", title: name, target: '_blank') do
+        content_tag :span, '', class: "app-icon #{name}-icon"
+      end
     end
   end
 end

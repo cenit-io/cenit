@@ -39,7 +39,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-  gem 'rubocop'
+#  gem 'rubocop', '0.49.0'
 end
 
 group :test do
@@ -134,3 +134,6 @@ gem 'net-sftp'
 
 gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
 gem 'combine_pdf'
+
+gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
+gem 'diffy'

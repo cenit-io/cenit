@@ -1,7 +1,7 @@
 module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
-    include RailsAdmin::Models::Setup::Oauth2AuthorizationAdmin    
+    include RailsAdmin::Models::Setup::Oauth2AuthorizationAdmin
 
     build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters, :scopes)
     build_in_data_type.referenced_by(:namespace, :name)
@@ -54,7 +54,11 @@ module Setup
 
     def request_token(params)
       http_client = create_http_client(token_url: provider.token_endpoint)
-      token = http_client.auth_code.get_token(params[:code], token_params)
+      # token = http_client.auth_code.get_token(params[:code], token_params)
+      ebay_token_params = token_params
+      ebay_token_params[:redirect_uri] = 'Alain_Fern_ndez-AlainFer-cenite-mtugbstb'
+      ebay_token_params[:headers] = { 'Authorization' => 'Basic QWxhaW5GZXItY2VuaXRlYmEtU0JYLTBiN2ViMjhhNi1lZTgyZWE0NTpTQlgtYjdlYjI4YTY4ZmE2LTM2MTUtNDdjMy1hZjM3LTZhNzI=' }
+      token = http_client.auth_code.get_token(params[:code], ebay_token_params)
       self.token_type = token.params['token_type']
       self.authorized_at =
         if (time = token.params['created_at'])
@@ -63,7 +67,7 @@ module Setup
           Time.now
         end
       self.access_token = token.token
-      self.token_span = token.expires_in ||  token.params['token_span']
+      self.token_span = token.expires_in || token.params['token_span']
       self.refresh_token = token.refresh_token if token.refresh_token
       self.id_token = token.params['id_token']
     end

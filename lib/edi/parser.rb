@@ -18,6 +18,18 @@ module Edi
 
       def parse_json(data_type, content, options={}, record=nil, model=nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
+        process_options(options)
+        do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
+      end
+
+      def parse_xml(data_type, content, options={}, record=nil)
+        process_options(options)
+        do_parse_xml(data_type, data_type.records_model, content.is_a?(Nokogiri::XML::Element) ? content : Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
+      end
+
+      private
+
+      def process_options(options)
         p =
           case (p = options.delete(:primary_fields) || options.delete('primary_fields'))
           when Array
@@ -43,26 +55,72 @@ module Edi
           val = val.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[opt] = val
         end
-        do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
-
-      def parse_xml(data_type, content, options={}, record=nil)
-        do_parse_xml(data_type, data_type.records_model, content.is_a?(Nokogiri::XML::Element) ? content : Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
-      end
-
-      private
 
       def qualify_name(xml_node)
         ns = (ns = xml_node.namespace) ? ns.href + ':' : ''
         ns + xml_node.name
       end
 
-      def do_parse_xml(data_type, model, element, options, json_schema, record=nil, new_record=nil, enclosed_property=nil)
+      def find_record(model, container, container_schema)
+        yield(criteria = {})
+        if criteria.empty?
+          nil
+        else
+          (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
+            ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model))
+        end
+      end
+
+      def extract_xml_value(xml_element, model, property, property_schema = nil)
+        if (property_schema ||= model.property_schema(property))
+          name = (property_schema['edi'] && property_schema['edi']['segment']) || property.to_s
+          xml_value =
+            if property_schema.key?('xml') && property_schema['xml']['attribute']
+              xml_element.attributes[name].value
+            else
+              xml_element.xpath("//#{name}").text
+            end
+          model.mongo_value(xml_value, property, property_schema)
+        end
+      end
+
+      def do_parse_xml(data_type, model, element, options, json_schema, record = nil, new_record = nil, enclosed_property = nil, container = nil, container_schema = nil)
+        updating = !(record.nil? && new_record.nil?) || options[:add_only]
         json_schema = data_type.merge_schema(json_schema)
         name = json_schema['edi']['segment'] if json_schema['edi']
         name ||= enclosed_property || model.data_type.name
         return unless name == qualify_name(element)
-        record ||= new_record || model.new
+        resetting = options[:reset].collect(&:to_s)
+        unless record ||= new_record
+          if model && model.modelable?
+            primary_field = options.delete(:primary_field) || []
+            if primary_field.empty? && !extract_xml_value(element, model, :_id).nil?
+              primary_field << :_id
+            end
+            if primary_field.present?
+              record = find_record(model, container, container_schema) do |criteria|
+                primary_field.each do |property|
+                  if (value = extract_xml_value(element, model, property))
+                    criteria[property.to_s] = value
+                  end
+                end
+              end
+            end
+          end
+          if record
+            updating = true
+            unless model == record.orm_model
+              model = record.orm_model
+              data_type = model.data_type
+              json_schema = model.schema
+            end
+          else
+            updating = false
+            (record = model.new).instance_variable_set(:@dynamically_created, true)
+          end
+        end
+        content_property = nil
         if (xml_opts = json_schema['xml']).nil? || (content_property = xml_opts['content_property']).nil?
           model.properties.each do |property|
             next if content_property
@@ -75,6 +133,10 @@ module Edi
         end
         element.attribute_nodes.each do |attr|
           if (property = model.property_for(attr.name))
+            property_schema = model.property_schema(property)
+            next unless property_schema.key?('xml') && property_schema['xml']['attribute']
+            next if options[:ignore].include?(property.to_sym) ||
+              (updating && ((property == '_id' || primary_field.include?(attr.name.to_sym)) && !record.send(property).nil?))
             value =
               if model.property_model(property).schema['type'] == 'array'
                 attr.value.split(' ')
@@ -94,33 +156,71 @@ module Edi
             end
           record.send("#{content_property}=", content)
         else
+          associations = {}
           elements = element.element_children.to_a
           elements.each do |sub_element|
             if (property = model.property_for(qualify_name(sub_element)))
-              property_model = model.property_model(property)
               property_schema = model.property_schema(property)
+              next if property_schema.key?('xml') && property_schema['xml']['attribute'] ||
+                options[:ignore].include?(property.to_sym)
+              property_model = model.property_model(property)
               if property_model.modelable?
+                persist = property_model.persistable?
                 if property_schema['type'] == 'array'
-                  property_schema = property_model.schema
-                  unless (association = record.send(property))
-                    record.send("#{property}=", [])
-                    association = record.send(property)
+                  if (association_track = associations[property])
+                    next unless associations[:kept]
+                    sub_values = association_track[:new]
+                  else
+                    associations[property] = {
+                      current: association = record.send(property),
+                      kept: kept = (updating || association.blank?)
+                    }
+                    next unless kept
+                    sub_values =
+                      if resetting.include?(property) || !options[:add_only]
+                        if association.nil?
+                          record.send("#{property}=", [])
+                          associations[property][:current] = association = record.send(property)
+                          nil
+                        elsif association.present?
+                          []
+                        end
+                      end
+                    associations[property][:new] = sub_values
                   end
-                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property))
-                    association << sub_record
+                  items_schema = property_model.schema
+                  if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, items_schema, nil, nil, property, association, property_schema)) &&
+                    (sub_values || association).exclude?(sub_record)
+                    (sub_values || association) << sub_record
                   end
                 else # type 'object'
+                  associations[property] = { kept: kept = (updating || record.send(property).nil?) }
+                  next unless kept
                   if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, property_schema, nil, nil, property))
                     record.send("#{property}=", sub_record)
                   end
                 end
               else
-                record.send("#{property}=", Hash.from_xml(sub_element.to_xml).values.first)
+                next if updating && ((property == '_id' || primary_field.include?(qualify_name(sub_element))) && !record.send(property).nil?)
+                unless (property_value = Hash.from_xml(sub_element.to_xml).values.first).nil?
+                  record.send("#{property}=", property_value)
+                end
               end
+            end
+          end
+          associations.each do |property, association_track|
+            next unless (sub_values = association_track[:new])
+            record.send("#{property}=", sub_values)
+          end
+          unless options[:add_only]
+            json_schema['properties'].each do |property, property_schema|
+              next unless property_schema['type'] == 'object' && !associations.key?(property)
+              record.send("#{property}=", nil) if (property_model = model.property_model(property)) && property_model.modelable?
             end
           end
         end
         record.try(:run_after_initialized)
+        record.instance_variable_set(:@_edi_parsed, true)
         record
       end
 
@@ -137,11 +237,12 @@ module Edi
         primary_fields = primary_fields.collect(&:to_sym)
         unless record ||= new_record
           if model && model.modelable?
-            if json.is_a?(Hash) &&
-               options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
-               (criteria = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
-              record = (container && (Cenit::Utility.find_record(criteria, container) || container.detect { |item| Cenit::Utility.match?(item, criteria) })) ||
-                ((container_schema && container_schema['exclusive']) ? nil : Cenit::Utility.find_record(criteria, model))
+            record = find_record(model, container, container_schema) do |criteria|
+              if json.is_a?(Hash) &&
+                options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+                (criterion = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
+                criteria.merge!(criterion)
+              end
             end
             if record
               return record if json['_reference'].to_b
@@ -300,7 +401,15 @@ module Edi
                 end
               end
             else
-              record.send("#{content_property}=", json)
+              if content_property == '_id'
+                if (existing = Cenit::Utility.find_record({ id: json }, container))
+                  record = existing
+                else
+                  record.id = json
+                end
+              else
+                record.send("#{content_property}=", json)
+              end
             end
           else
             fail "Can not assign #{json} as simple content to #{data_type.name}"

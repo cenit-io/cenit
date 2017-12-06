@@ -335,3 +335,45 @@ module BSON
     include ::Cenit::Liquidfier
   end
 end
+
+require 'zip'
+require 'zip/entry'
+
+module Zip
+
+  def decode(zipped_data)
+    file = Tempfile.new('zipped_data', encoding: 'ascii-8bit')
+    file.write(result = zipped_data)
+    file.rewind
+    Zip::File.open_buffer(file) { |zf| result = yield(zf.entries) }
+    result
+  ensure
+    file.close
+    file.unlink
+  end
+
+  def encode(entries, entry_prefix = nil)
+    zip = Zip::OutputStream.write_buffer { |zip| do_encode(zip, entries, entry_prefix) }
+    zip.rewind
+    zip.sysread
+  end
+
+  def do_encode(zip, entries, entry_prefix = nil)
+    entries.each do |name, data|
+      entry_name = entry_prefix ? "#{entry_prefix}/#{name}" : name
+      if data.is_a?(Hash)
+        do_encode(zip, data, entry_name)
+      else
+        zip.put_next_entry(entry_name)
+        zip.write(data.to_s)
+      end
+    end
+  end
+
+  class Entry
+
+    def read
+      get_input_stream.read
+    end
+  end
+end

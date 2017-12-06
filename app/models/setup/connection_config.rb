@@ -9,7 +9,7 @@ module Setup
 
     build_in_data_type
 
-    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil
+    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil, autosave: false
 
     attr_readonly :connection
 
@@ -20,7 +20,7 @@ module Setup
       (!(value = super).nil? &&
 
         (new_record? || !Setup::Connection.data_type.protecting?(name) ||
-          (current_user = User.current) && current_user.owns?(Account.current_tenant)) &&
+          ((current_user = User.current) && current_user.owns?(Account.current_tenant))) &&
 
         value) || nil
     end

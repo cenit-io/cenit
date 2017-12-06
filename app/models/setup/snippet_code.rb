@@ -6,7 +6,22 @@ module Setup
 
     included do
 
+      build_in_data_type.and(
+        properties: {
+          code: {
+            type: 'string',
+            edi: {
+              discard: true
+            }
+          }
+        }
+      )
+
       binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
+
+      trace_ignore :snippet_id
+
+      trace_include :code
 
       before_save do
         if snippet_required?
@@ -72,7 +87,11 @@ module Setup
     end
 
     def code
-      snippet_ref.code
+      if snippet
+        snippet_ref.code
+      else
+        ''
+      end
     end
 
     def code=(code)
@@ -117,6 +136,12 @@ module Setup
         end
       end
 
+      def copy_options
+        opts = super
+        (opts[:ignore] ||= []) << :snippet
+        (opts[:including] ||= []) << :code
+        opts
+      end
     end
   end
 end
