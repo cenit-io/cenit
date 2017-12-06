@@ -769,7 +769,7 @@ $home_blue: #5bc0de;
           height: 100%;
 
           h1.hero-text {
-            margin-top: 70px;
+            margin-top: 100px;
             letter-spacing: 1.2px;
             color: #fff;
             text-align: center;
@@ -810,7 +810,7 @@ $home_blue: #5bc0de;
                 margin: 0px 30px 0 0;
                 padding: 10px 32px;
                 letter-spacing: 1px;
-                font-family: "Lato", "Helvetica Neue", Arial;
+                font-family: Arial, Helvetica, sans-serif;
                 text-transform: uppercase;
                 border: 1px solid rgba(255, 255, 255, 0.8);
                 font-size: 14px;
@@ -865,11 +865,6 @@ $home_blue: #5bc0de;
             left: 0;
             right: 0;
             content: '';
-            /*background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0,0,0,0)), color-stop(100%, rgba(0,0,0,0.25)));
-            background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(0,0,0,0.25) 100%);
-            background: -moz-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: -o-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));*/
           }
           &:after {
             content: '';
@@ -881,30 +876,6 @@ $home_blue: #5bc0de;
             top: 0;
           }
         }
-
-        &.first {
-          .container {
-            h1.hero-text {
-              margin-top: 100px;
-            }
-          }
-        }
-        &.second {
-          .container {
-            h1.hero-text {
-              margin-top: 100px;
-            }
-          }
-        }
-
-        &.third {
-          .container {
-            h1.hero-text {
-              margin-top: 80px;
-            }
-          }
-        }
-
         &.fourth {
           .bg {
             background-position: top;
