@@ -21,40 +21,41 @@
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
-[Cenit](https://cenit.io) is a 100% open source integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve different formats and protocols, and bring API management capability, all of that allow to support a wide range of integration use cases. Cenit is particular valuable to embrace a pervasive integration approach.
+[Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
 
 **Why**
 
 The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services and, increasingly, the IoT is fertile ground for the growth in adoption of integration platforms.
 
-Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. The integration Platform as a Services (iPaaS) are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest in the general public.
+Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. iPaaS platforms are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest in the general public.
 
 The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing to rethink organizational models and technology platforms to an approach to pervasive integration.
 
-Any of the vendor leaders in the market really offers a complete and transparent open solution, with the freedom to use, customize or modified without restriction, we believe that is one of the keys for a wide adoption, and relevant to take the decision to use on-premise.
+None of the vendor leaders in the market really offers a completely open and transparent solution, with the freedom to use, customize or modified without restriction, we believe that is one of the keys to a wide adoption, and relevant to making the decision to use on-premise.
 
 **Mission**
 
-Make possible that everyone can contribute and benefit with the use of a modern integration Platform (iPaaS).
+Enable everyone to contribute and benefit from the use of a modern Integration Platform (iPaaS).
 
 **Value proposition**
 
-Cenit make possible that benefits of a modern iPaaS should be accessible to the small and midsize organizations, particularly valuable to embrace as a strategic component of a pervasive integration approach to enable a complete automation of all operational process. Adding value fast and continuously, which is essential to maintain competitiveness in the current economy.
+Cenit makes possible that benefits of a modern iPaaS should be accessible to the small and midsize organizations, particularly valuable to embrace as a strategic component of a pervasive integration approach that allows a complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
 
 **How**
 
-* Developing a 100% open source integration Platform (iPaaS)
-* With the options to use in the cloud https://cenit.io or on-premise server.
-* Open catalogs for Formal API Specs, and setting integrations (Shared Collections).
-* Option to share integrations with different openness levels: inside a tenant, to specific tenants, or for everyone.
-* To ensure that anyone can create, use and share integrations.
+* Developing a 100% open source integration Platform (iPaaS).
+* Provide options to use in the cloud https://cenit.io or on-premise server.
+* Include open catalogs for formal API specs.
+* Options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
+* Ensure that anyone can create, use and share integrations.
 * Be ready for enterprise environments.
+
 
 **Goals**
 
 * Be the most open integration platform on the market.
 * Become one of the most popular iPaaS solutions.
-* Be a good fit for enterprises.
+* Be a viable option for enterprises.
 
 
 **Capabilities**
@@ -412,11 +413,11 @@ Here are some ways **you** can contribute:
 * by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
 
-### Community
+### To the Community
 
-Like the challenge is big, we need to build that as a community. With the assumption that good open source provides great confidence, and a large community with answers to questions and advices.
+Since the challenge is great, we have to build the solution in community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
 
-We encourage the community to join the initiative and contribute to the dissemination of the project, sharing with integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. Those who join us hope that they enjoy the collaborative work and the challenge of achieving something innovative and useful that can serve many others.
+We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
 
 
 ### Contributors
