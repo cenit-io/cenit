@@ -15514,7 +15514,11 @@ ul.main-menu > li > a,
     font-weight: 700;
     opacity: 1 !important;
 }
-
+.left-sidebar.minified .main-menu > li:hover > a {
+    text-decoration: none;
+    background-color: #d9edf7;
+    color: #31708f;
+}
 .left-sidebar.minified .main-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
@@ -15591,7 +15595,11 @@ ul.main-menu > li > a,
     font-weight: 700;
     opacity: 1 !important;
 }
-
+.related-sidebar.minified .subdomain-menu > li:hover > a {
+    text-decoration: none;
+    background-color: #d9edf7;
+    color: #31708f;
+}
 .related-sidebar.minified .subdomain-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
