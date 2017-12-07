@@ -1,4 +1,3 @@
-
 Capataz.config do
 
   disable ENV['CAPATAZ_DISABLE']
@@ -16,7 +15,7 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client
+                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
   # allow_on Zip, [:decode, :encode]
@@ -106,7 +105,7 @@ Capataz.config do
   allow_on IMGKit, [:image_from_html]
 
   allow_on Origami, [:sign_pdf]
-  
+
   allow_on WickedPdf, [:new_wickedpdf]
 
   allow_on Magick::Image, [:read]
@@ -153,4 +152,8 @@ Capataz.config do
     end
     instance.orm_model.property_schema(method).nil?
   end
+
+  allow_on PdfForms, [:new_pdfform, :to_pdf_data, :save_to, :get_field_names, :fill_form]
+  allow_on PdfForms::Fdf, [:new_pdf]
+  allow_on CombinePDF, [:new_pdf]
 end
