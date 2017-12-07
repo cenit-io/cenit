@@ -1165,7 +1165,12 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #action-notify {
-  padding: 15px;
+  padding: 20px 15px 15px 15px;
+
+  &:hover {
+    text-decoration: none;
+    background-color: rgba(238, 238, 238, 0.19);
+  }
 }
 
 #actions-menu-list {
@@ -4087,4 +4092,18 @@ span.nav-amount {
   right: 20px;
   bottom: 20px;
   z-index: 100000
+}
+
+.root_links > li {
+  a {
+    padding-top: 19px;
+    padding-bottom: 18px;
+  }
+}
+
+#remove_filter {
+  i {
+    display: block;
+    line-height: 20px;
+  }
 }

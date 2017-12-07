@@ -1,4 +1,4 @@
-%ul.nav.navbar-nav.navbar-right.root_links
+%ul.nav.navbar-nav.navbar-right
   %button#nav-drawer-toggle.btn.a.navbar-brand.toggle-btn
     %i.fa.fa-fw.fa-navicon
 
@@ -73,9 +73,7 @@
             =link
     - if (t_link = storage_link)
       %li#action-storage= t_link
-
 - else
-
   %ul.nav.navbar-nav.navbar-right.root_links
     .a.navbar-btn
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
