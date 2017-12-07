@@ -972,13 +972,8 @@ module RailsAdmin
           rc = {}
           rc[:url] = url
           rc[:model_name] = model_param
-          rc[:label] =
-            if current_user
-              # "#{capitalize_first_letter node.label_navigation}"
-              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-            else
-              "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-            end
+          rc[:label] = "#{capitalize_first_letter node.abstract_model.config.label_plural}"
+          rc[:icon] = (icon = capitalize_first_letter node.abstract_model.config.navigation_icon).nil? ? 'fa fa-cube' : icon
           origins =
             if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
               model.origins.join(',')
@@ -1310,8 +1305,8 @@ module RailsAdmin
       ]
     end
 
-    def home_integrations_images
-      %w(aftership.png amazon.png asana.png bigcommerce.png bronto.png desk.png ebay.jpg exact_target.png jirafe.png magento.png mailchimp.png mandrill.png netsuite.png odoo.png oscommerce.png ql.png quickbooks.png sf.png shipstation.png shipwire.png square.png trello.png woocommerce.png zendesk.png)
+    def home_integrations
+      %w(aftership amazon asana bigcommerce bronto desk ebay exact_target jirafe magento mailchimp mandrill netsuite odoo oscommerce ql quickbooks sf shipstation shipwire square trello woocommerce zendesk)
     end
 
     def home_features
@@ -1333,6 +1328,12 @@ module RailsAdmin
 Configuration, customization and version control.' }
 
       ]
+    end
+
+    def icon_to_app(name)
+      link_to("/cross_shared_collection?utf8=✓&query=#{name}", class: "thumbnail", title: name, target: '_blank') do
+        content_tag :span, '', class: "app-icon #{name}-icon"
+      end
     end
   end
 end

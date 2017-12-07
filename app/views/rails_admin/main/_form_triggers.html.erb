@@ -1,16 +1,16 @@
 <%
-  data_type = @_controller.instance_variable_get(:@_data_type)
-  model = data_type.create_mongoff_model
-  fields = model.simple_properties_schemas.map do |property, schema|
-    {
-        label: schema['title'] || property.titleize,
-        name: property,
-        options: schema['enum'] || [],
-        type: schema['enum'] ? 'enum' : model.type_symbol_for(schema).first
-    }
-  end
-  triggers = field.form_value
-  element_id = "#{form.object_name.parameterize('_')}_triggers_field"
+   data_type = @_controller.instance_variable_get(:@_data_type)
+   model = data_type.create_mongoff_model
+   fields = model.simple_properties_schemas.map do |property, schema|
+     {
+         label: schema['title'] || property.titleize,
+         name: property,
+         options: schema['enum'] || [],
+         type: schema['enum'] ? 'enum' : model.type_symbol_for(schema).first
+     }
+   end
+   triggers = field.form_value
+   element_id = "#{form.object_name.parameterize('_')}_triggers_field"
 %>
 
 <div class="col-sm-12" style="padding: 0;">
@@ -28,7 +28,8 @@
     </ul>
   </div>
 </div>
-
-<script type="text/javascript">
-  $('#<%= "#{element_id}" %>').triggers(<%= raw triggers %>)
-</script>
+<% content_for :script do %>
+    <script type="text/javascript">
+      $('#<%= "#{element_id}" %>').triggers(<%= raw triggers %>)
+    </script>
+<% end %>

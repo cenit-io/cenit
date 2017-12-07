@@ -1,126 +1,18 @@
 - if @abstract_models
   - totals = monitor_totals
-  .row
-    %div{class: "col-md-9"}
+  .row.dashboard
+    %div{class: "col-md-9 monitors"}
       -unless current_user.nil?
         -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-          .tenats-actions
-            - if current_user
-              - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
-              - tenant_list = []
-              - count_tenants = current_user.all_accounts.count
-              .monitors
-                .row
-                  .col-sm-6.col-md-4
-                    .monitor.no-mb
-                      .col-xs-3.icon
-                        - if (new_action = action(:new, acc_am))
-                          = link_to '/account' do
-                            %i.fa{class: 'fa-home'}
-                        -else
-                          %i.fa{class: 'fa-home'}
-                      .col-xs-9.white-back
-                        .actions
-                          %a{ href: 'url'}
-                            = current_user.account.name.split('@')[0]
-                          .pull-right
-                            - if (new_action = action(:new, acc_am))
-                              = link_to url_for(action: new_action.action_name, model_name: acc_am.to_param), class: 'btn btn-link btn-add-tenant', title: 'Add a new Tenant' do
-                                %i.fa{class: 'fa-plus'}
-                            - if current_user.all_accounts.length > 1
-                              .dropdown
-                                %a.dropdown-toggle{data: {toggle: "dropdown" } }
-                                  .btn.btn-link
-                                    %i.fa.fa-ellipsis-v
-                                %ul.dropdown-menu{style: "left:auto; right:0;"}
-                                  - current_user.all_accounts.each do |a|
-                                    - name =  format_name(a.name)
-                                    - if a != _current_user.account
-                                      - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
-                                      %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
-                        .number
-                          %span{class: "success"}
-                            = number_to_human(count_tenants)
-                          %div.description
-                            %span{class: "success"}
-                              = 'tenants'
-        .monitors
+          .col-xs-12
+            .row
+              =  render partial: 'rails_admin/main/dashboard/monitor', locals:{options: tenant_monitor_data}
+        .col-xs-12
           .row
-            -if (value = totals[:tasks][:failed]) > 0
-              - value = number_to_human(value)
-              - label = 'failed'
-            -elsif (value = totals[:tasks][:broken]) > 0
-              - value = number_to_human(value)
-              - label = 'broken'
-            -elsif (value = totals[:tasks][:unscheduled]) > 0
-              - value = number_to_human(value)
-              - label = 'unscheduled'
-            -elsif (value = totals[:tasks][:pending]) > 0
-              - value = number_to_human(value)
-              - label = 'pending'
-            -elsif (value = totals[:tasks][:retrying]) > 0
-              - value = number_to_human(value)
-              - label = 'retrying'
-            -elsif (value = totals[:tasks][:paused]) > 0
-              - value = number_to_human(value)
-              - label = 'paused'
-            -elsif (value = totals[:tasks][:running]) > 0
-              - value = number_to_human(value)
-              - label = 'running'
-            -else
-              - value = number_to_human(totals[:tasks][:completed])
-              - label = 'completed'
-            - name = t('admin.actions.dashboard.monitors.tasks')
-            - icon= 'fa-tasks'
-            - url= '/task'
-            - actions = [{label: 'failed', class: 'failed', value: totals[:tasks][:failed], description: 'failed'},
-                          {label: 'broken', class: 'broken', value: totals[:tasks][:broken], description: 'broken'},
-                          {label: 'unscheduled', class: 'unscheduled', value: totals[:tasks][:unscheduled], description: 'unscheduled'},
-                          {label: 'pending', class: 'pending', value: totals[:tasks][:pending], description: 'pending'},
-                          {label: 'retrying', class: 'retrying', value: totals[:tasks][:retrying], description: 'retrying'},
-                          {label: 'paused', class: 'paused', value: totals[:tasks][:paused], description: 'paused'},
-                          {label: 'running', class: 'running', value: totals[:tasks][:running], description: 'running'},
-                          {label: 'completed', class: 'completed', value: totals[:tasks][:completed], description: 'completed'} ]
-            =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
-
-            -if (value = totals[:auths][:unauthorized]) == 0
-              - value = totals[:auths][:total]
-              - label = 'total'
-            -else
-              - value = number_to_human(value)
-              - label = 'unauthorized'
-            - name  = t('admin.actions.dashboard.monitors.auths')
-            - icon= 'fa-check'
-            - url= '/authorization'
-            - actions = [{label: 'total', class: 'total', value: totals[:auths][:total], description: 'total'},
-                        {label: 'unauthorized', class: 'unauthorized', value: totals[:auths][:unauthorized], description: 'unauthorized'} ]
-            =  render partial: 'rails_admin/main/monitor', locals:{url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
-
-            -if (value = totals[:notif][:error]) > 0
-              - value = number_to_human(value)
-              - label = 'errors'
-            -elsif (value = totals[:notif][:warning]) > 0
-              - value = number_to_human(value)
-              - label = 'warnings'
-            -elsif (value = totals[:notif][:notice]) > 0
-              - value = number_to_human(value)
-              - label = 'notice'
-            -elsif (value = totals[:notif][:info]) > 0
-              - value = number_to_human(value)
-              - label = 'info'
-            -else
-              - value = totals[:notif][:total]
-              - label = 'total'
-            - name  = t('admin.actions.dashboard.monitors.notif')
-            - icon= 'fa-bell'
-            - url = '/system_notification'
-            - actions = [{label: 'total', class: 'total', value: totals[:notif][:total], description: 'total'},
-                        {label: 'errors', class: 'errors', value: totals[:notif][:error], description: 'errors'},
-                        {label: 'warnings', class: 'warnings', value: totals[:notif][:warning], description: 'warnings'} ,
-                        {label: 'notice', class: 'notice', value: totals[:notif][:notice], description: 'notices'},
-                        {label: 'info', class: 'info', value: totals[:notif][:info], description: 'info'}]
-            =  render partial: 'rails_admin/main/monitor', locals: {url: url, label_name: label, value: value, name: name, icon: icon, actions: actions}
-      .dashboard{'data-model-count': 0}
+            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: task_monitor_data(totals[:tasks])}
+            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: auth_monitor_data(totals[:auths])}
+            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: notif_monitor_data(totals[:notif])}
+      .models{'data-model-count': 0}
         - secondary = ['Monitors', 'Configuration', 'Administration']
         - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
         - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
@@ -136,7 +28,7 @@
               .tab-content
                 - primaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
+                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
         - if auxiliaries.length > 0
           .row
             .col-xs-12
@@ -149,8 +41,8 @@
               .tab-content
                 - auxiliaries.each_with_index do |d,index|
                   .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/widget_dashboard', locals: {d: d, index: index}
-    .col-md-3.no-padding-left
+                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
+    .col-md-3.traces.no-padding-left
       %ul.nav.nav-tabs
         %li.active
           = link_to '/trace' do
@@ -163,49 +55,21 @@
       -else
         - models= @dashboard_models || []
         - traces = Mongoid::Tracer::Trace.where(:target_model_name.in => models).limit(max_traces_count).order(created_at: :desc)
-      .traces-dashboard
-        %ol
-          - if traces.count > 0
-            - traces.each do |t|
-              %li{class: "#{t.action.to_s}"}
-                - unless t.id.nil?
-                  - url = url_for(action: :show, controller: 'rails_admin/main', model_name: trace_abstract_model, id: t.id)
-                - target = t.target
-                - tracer_model_config = RailsAdmin.config(t.target_model_name)
-                - tracer_abstract_model = tracer_model_config.abstract_model
-                .title
-                  .label{class: t.action}
-                    ="#{t.action.to_s.titleize}:"
-                  %span.trace-model
-                    %span.model
-                      ="#{tracer_model_config.label} /"
-                  - if !target.nil?
-                    =link_to  url_for(action: :show, model_name: tracer_abstract_model.to_param, id: target.id), class: 'pjax trace_object' do
-                      =target.send(tracer_model_config.object_label_method)
-                  -else
-                    ="##{t.target_id}"
-                =link_to  url, class: 'details-link pjax' do
-                  .details
-                    .author
-                      - if (author = User.where(id: t.author_id).first)
-                        = image_tag(author.picture_url, alt: '', width: '20px', title:  author.email)
-                    .changes
-                      %span
-                        = t.message || 'No message'
-                    .date
-                      .created
-                        =t.created_at
-            %li{class: "see_more"}
-              .title
-                - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
-                .label{class: "see_more"}
-                  =link_to  url, class: 'pjax' do
-                    ="More"
-          -else
-            %li{class: "no-traces"}
+      %ol
+        - if traces.count > 0
+          - traces.each do |t|
+            = render partial: 'rails_admin/main/dashboard/trace', locals: {t: t}
+          %li{class: "see_more"}
             .title
               - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
-              .label{class: "no-traces"}
+              .label{class: "see_more"}
                 =link_to  url, class: 'pjax' do
-                  ="No traces registered yet"
+                  ="More"
+        -else
+          %li{class: "no-traces"}
+          .title
+            - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
+            .label{class: "no-traces"}
+              =link_to  url, class: 'pjax' do
+                ="No traces registered yet"
 

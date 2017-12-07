@@ -442,11 +442,6 @@ function handlerInit() {
     if ($('.dashboard').length > 0)
         updateDashboardCount();
 
-    if ($('#integration_list').length > 0) {
-        setInterval(function () {
-            getApiCouple();
-        }, 1000);
-    }
     slideshow.initialize();
 
     $('.auto-complete').each(function () {
@@ -647,11 +642,11 @@ function getModelCountOneByOne($element, model_name, origins, ext) {
 function updateDashboardCount(e) {
     if (e) {
         var tab_id = $(e.target).attr('href');
-        $cenit_dashboard_models = $(tab_id).find('.progress-bar');
+        $cenit_dashboard_models = $(tab_id).find('.model_count');
         $cenit_dashboard_max_model_count = -1;
     }
     else {
-        $cenit_dashboard_models = $('.tab-pane.active .progress-bar');
+        $cenit_dashboard_models = $($('.tab-pane.active .monitor .model_count'));
         $cenit_dashboard_max_model_count = -1;
 
     }
@@ -792,7 +787,7 @@ function getModelCountForDashBoard($element, model_name, origins, ext) {
     }
 }
 function update_dashboard_model_percents() {
-    var $progress_bars = $('.progress-bar'),
+    var $model_count = $('.model_count'),
         percent_value,
         $this, text, indicator, anim,
         max = parseInt($cenit_dashboard_max_model_count),
@@ -828,50 +823,15 @@ function update_dashboard_model_percents() {
             } else {
                 return -1
             }
-        },
-        animate_width_to = function (percent) {
-            var max_percent = 2.0;
-            if (percent > max_percent) {
-                max_percent = percent
-            }
-            return parseInt(max_percent) + '%';
         };
 
-    $progress_bars.each(function () {
+    $model_count.each(function () {
         $this = $(this);
         text = $this.text();
         percent_value = percent(parseInt(text), max);
         indicator = get_indicator(percent_value);
-        anim = animate_width_to(percent_value);
-        $this.attr('data-animate-length', anim);
-        $this.attr('data-animate-width-to', anim);
-        $this.css('width', anim);
-        $this.addClass('progress-bar-' + indicator);
-        var $count = $this.parent().parent().find('.model_count');
-        $count.html(text);
-        $count.removeClass().addClass('model_count').addClass(indicator);
+        $this.html(text);
+        $this.removeClass().addClass('model_count').addClass(indicator);
 
     });
 }
-
-// to show Random Apis couples at Home pages
-
-function getRandomIndex() {
-    var min = 0,
-        max = $('#integration_list #left img').length;
-    return parseInt(Math.random() * (max - min) + min);
-}
-function getApiCouple() {
-    var lIndex = getRandomIndex(),
-        rIndex = getRandomIndex();
-    while (lIndex == rIndex) {
-        rIndex = getRandomIndex();
-    }
-    showApi('left', lIndex);
-    showApi('right', rIndex);
-}
-function showApi(container_class, index) {
-    $('#' + container_class).find("img.block").removeClass("block").addClass("none");
-    $('#' + container_class + '  img:eq(' + index + ')').removeClass("none").addClass("block");
-}
-
