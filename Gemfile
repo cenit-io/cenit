@@ -20,6 +20,7 @@ gem 'figaro'
 gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
+gem 'peddler'
 
 group :doc do
   gem 'sdoc', require: false
