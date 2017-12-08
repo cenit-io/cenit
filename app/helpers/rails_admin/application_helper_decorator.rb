@@ -170,7 +170,7 @@ module RailsAdmin
       end
       counters.each do |type, count|
         color = Setup::SystemNotification.type_color(type)
-        a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
+        a=index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'type' => { '60852' => { 'v' => type } } })
         counter_links = link_to a, class: 'pjax' do
           link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
           link.html_safe

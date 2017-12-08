@@ -100,7 +100,17 @@ module RailsAdmin
       }
     end
 
+    def filter_url(abstract_model, field, value)
+      mn = abstract_model.to_param
+      if value == :all
+        index_path(model_name: mn)
+      else
+        index_path(model_name: mn, 'utf8' => '✓', 'f' => { field => { '60852' => { 'v' => value } } })
+      end
+    end
+
     def task_monitor_data tasks
+      _, am, _ = linking(Setup::Task)
       if (value = tasks[:failed]) > 0
         value = number_to_human(value)
         label = 'failed'
@@ -127,16 +137,17 @@ module RailsAdmin
         label = 'completed'
       end
       name = t('admin.actions.dashboard.monitors.tasks')
-      icon= 'fa-tasks'
-      url= '/task'
-      actions = [{ label: 'failed', class: 'failed', value: tasks[:failed], description: 'failed' },
-                 { label: 'broken', class: 'broken', value: tasks[:broken], description: 'broken' },
-                 { label: 'unscheduled', class: 'unscheduled', value: tasks[:unscheduled], description: 'unscheduled' },
-                 { label: 'pending', class: 'pending', value: tasks[:pending], description: 'pending' },
-                 { label: 'retrying', class: 'retrying', value: tasks[:retrying], description: 'retrying' },
-                 { label: 'paused', class: 'paused', value: tasks[:paused], description: 'paused' },
-                 { label: 'running', class: 'running', value: tasks[:running], description: 'running' },
-                 { label: 'completed', class: 'completed', value: tasks[:completed], description: 'completed' }]
+      icon = 'fa-tasks'
+      url = '/task'
+      filter = 'status'
+      actions = [{ label: 'failed', class: 'failed', value: tasks[:failed], description: 'failed', url: filter_url(am, filter, :failed) },
+                 { label: 'broken', class: 'broken', value: tasks[:broken], description: 'broken', url: filter_url(am, filter, :broken) },
+                 { label: 'unscheduled', class: 'unscheduled', value: tasks[:unscheduled], description: 'unscheduled', url: filter_url(am, filter, :unscheduled) },
+                 { label: 'pending', class: 'pending', value: tasks[:pending], description: 'pending', url: filter_url(am, filter, :pending) },
+                 { label: 'retrying', class: 'retrying', value: tasks[:retrying], description: 'retrying' , url: filter_url(am, filter, :retrying)},
+                 { label: 'paused', class: 'paused', value: tasks[:paused], description: 'paused', url: filter_url(am, filter, :paused) },
+                 { label: 'running', class: 'running', value: tasks[:running], description: 'running', url: filter_url(am, filter, :running) },
+                 { label: 'completed', class: 'completed', value: tasks[:completed], description: 'completed', url: filter_url(am, filter, :completed) }]
       { name: name,
         icon: icon,
         url: url,
@@ -148,6 +159,7 @@ module RailsAdmin
     end
 
     def auth_monitor_data auth
+      _, am, _ = linking(Setup::Authorization)
       if (value = auth[:unauthorized]) == 0
         value = auth[:total]
         label = 'total'
@@ -158,8 +170,9 @@ module RailsAdmin
       name = t('admin.actions.dashboard.monitors.auths')
       icon= 'fa-check'
       url= '/authorization'
-      actions = [{ label: 'total', class: 'total', value: auth[:total], description: 'total' },
-                 { label: 'unauthorized', class: 'unauthorized', value: auth[:unauthorized], description: 'unauthorized' }]
+      filter = 'authorized'
+      actions = [{ label: 'total', class: 'total', value: auth[:total], description: 'total', url: filter_url(am, filter, :all) },
+                 { label: 'unauthorized', class: 'unauthorized', value: auth[:unauthorized], description: 'unauthorized', url: filter_url(am, filter, :false) }]
       { name: name,
         icon: icon,
         url: url,
@@ -171,7 +184,7 @@ module RailsAdmin
     end
 
     def notif_monitor_data notif
-      abstract_model = linking(Setup::SystemNotification)
+      _, am, _ = linking(Setup::SystemNotification)
       if (value = notif[:error]) > 0
         value = number_to_human(value)
         label = 'errors'
@@ -191,12 +204,12 @@ module RailsAdmin
       name = t('admin.actions.dashboard.monitors.notif')
       icon= 'fa-bell'
       url = '/system_notification'
-
-      actions = [{ label: 'total', class: 'total', value: notif[:total], description: 'total' },
-                 { label: 'errors', class: 'errors', value: notif[:error], description: 'errors' },
-                 { label: 'warnings', class: 'warnings', value: notif[:warning], description: 'warnings'},
-                 { label: 'notice', class: 'notice', value: notif[:notice], description: 'notices' },
-                 { label: 'info', class: 'info', value: notif[:info], description: 'info'}]
+      filter= 'type'
+      actions = [{ label: 'total', class: 'total', value: notif[:total], description: 'total', url: filter_url(am, filter, :all) },
+                 { label: 'errors', class: 'errors', value: notif[:error], description: 'errors', url: filter_url(am, filter, :error) },
+                 { label: 'warnings', class: 'warnings', value: notif[:warning], description: 'warnings', url: filter_url(am, filter, :warning) },
+                 { label: 'notice', class: 'notice', value: notif[:notice], description: 'notices', url: filter_url(am, filter, :notice) },
+                 { label: 'info', class: 'info', value: notif[:info], description: 'info', url: filter_url(am, filter, :info) }]
       { url: url,
         label_name: label,
         value: value,

@@ -29,7 +29,7 @@
                 - else
                   - actions.each do |a|
                     %li
-                      %a{class: "update-monitor", data:{status: "#{a[:class]}"}, title: a[:label]}
+                      %a{href: a[:url], data:{status: "#{a[:class]}"}, title: a[:label]}
                         %span.text
                           %span
                             =a[:value]

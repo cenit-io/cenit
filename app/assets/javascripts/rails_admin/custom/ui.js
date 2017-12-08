@@ -459,25 +459,6 @@ function render_graphic($form, selector) {
     });
 }
 function registerEvents() {
-    $('.update-monitor').off().on('click', function (e) {
-        var $this = $(e.target)
-        var class_name = $this.attr('data-status');
-        var $numbers = $this.parents('.monitor').find('.number > span').removeClass('hidden');
-        var $descriptions = $this.parents('.monitor').find('.description > span').removeClass('hidden');
-        $numbers.each(function (i) {
-            var $this = $(this);
-            if (!$this.hasClass(class_name)) {
-                $this.addClass('hidden');
-            }
-        });
-        $descriptions.each(function (i) {
-            var $this = $(this);
-            if (!$this.hasClass(class_name)) {
-                $this.addClass('hidden');
-            }
-        });
-
-    });
     $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         updateDashboardCount(e);
     })
