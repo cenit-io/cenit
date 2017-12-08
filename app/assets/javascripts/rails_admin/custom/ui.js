@@ -493,6 +493,10 @@ function registerEvents() {
     })
 
     var $main_accordion = $('#main-accordion');
+    $('#toogle-submenu-header').off().click(function (e) {
+        $('.collapsed-sm').toggleClass('open');
+        $('#toogle-submenu-header').toggleClass('open');
+    });
 
     $('.expand_collapse').off().click(function (e) {
         $(e.target).parents('.wrapped').toggleClass('open');

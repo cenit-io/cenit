@@ -3,11 +3,17 @@ $(document).ready(function () {
     /************************
      /*    LAYOUT
      /************************/
-
-        // set minimum height for content wrapper
+    initRelatedMenu();
+    // set minimum height for content wrapper
     $(window).bind("load resize scroll", function () {
         calculateContentMinHeight();
     });
+    function initRelatedMenu() {
+        if (window.innerWidth < 992) {
+            $('.related-sidebar').addClass('minified');
+            $('aside').addClass('minified');
+        }
+    }
 
     function calculateContentMinHeight() {
         $('#main-content-wrapper').css('min-height', $('#left-sidebar').height());
@@ -109,17 +115,20 @@ $(document).ready(function () {
         checkMinified();
     });
 
+
     $('.js-related-toggle-minified').on('click', function () {
-        if (!$('.related-sidebar').hasClass('minified')) {
-            $('.related-sidebar').addClass('minified');
-            $('aside').addClass('minified');
+        if (window.innerWidth > 992) {
+            if (!$('.related-sidebar').hasClass('minified')) {
+                $('.related-sidebar').addClass('minified');
+                $('aside').addClass('minified');
 
-        } else {
-            $('.related-sidebar').removeClass('minified');
-            $('aside').removeClass('minified');
+            } else {
+                $('.related-sidebar').removeClass('minified');
+                $('aside').removeClass('minified');
+            }
+
+            checkMinifiedRelated();
         }
-
-        checkMinifiedRelated();
     });
 
     function checkMinified() {

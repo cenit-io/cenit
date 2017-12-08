@@ -1144,12 +1144,9 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #action-notify, #action-auth {
-  padding: 15px 15px 13px 15px;
-  &:hover {
-    text-decoration: none;
-    background-color: rgba(238, 238, 238, 0.19);
-  }
-  .counters-links{
+  .counters-links {
+    padding: 15px 8px 11px 8px;
+    display: inline-block;
     .counter {
       border-radius: 500px;
       top: -10px;
@@ -1171,6 +1168,9 @@ ul#main-accordion .panel-heading .nav-icon {
       &.red {
         background-color: red;
       }
+    }
+    &:hover {
+      background: #5f6267;
     }
   }
 }
@@ -2651,16 +2651,6 @@ section#welcome_users {
   }
 }
 
-.dashboard {
-
-  float: left;
-  width: 100%;
-
-  .nav-icon i {
-    font-size: 22px;
-  }
-}
-
 .panel-collapse {
   li.no-childrens {
     border: none;
@@ -3036,10 +3026,10 @@ button#model-nav-xs {
   color: #ddd;
   line-height: 1;
   &:hover {
-    color: black;
+    color: white;
   }
   &:focus {
-    color: black;
+    color: white;
   }
 }
 
@@ -4097,9 +4087,11 @@ span.nav-amount {
 }
 
 .root_links > li {
-  a {
+  > a {
     padding-top: 19px;
     padding-bottom: 18px;
+    text-align: center;
+    display: inline-block;
   }
 }
 
@@ -4119,7 +4111,46 @@ span.nav-amount {
     position: absolute;
   }
   .git-buttons {
+    display: none;
+    @media(min-width: 768px) {
+      display: block;
+    }
     margin: auto;
     width: 80%;
+
+  }
+
+}
+
+.navbar-toggle .icon-bar {
+  background: white;
+}
+
+@media(min-width: 768px) and (max-width: 991px) {
+  .collapsed-sm {
+    overflow: auto;
+    display: inline-block;
+    float: right;
+    height: 0;
+    transition: all 0.3s ease;
+    &.open {
+      height: 50px;
+      overflow: visible;
+      border-top: solid 1px white;
+      width: 100%;
+    }
+  }
+}
+
+button#toogle-submenu-header {
+  &:before {
+    font-family: FontAwesome;
+    content: '\f078';
+  }
+  padding: 8px 0 0;
+  &.open {
+    &:before {
+      content: '\f077';
+    }
   }
 }

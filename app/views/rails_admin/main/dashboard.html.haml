@@ -1,48 +1,44 @@
 - if @abstract_models
   - totals = monitor_totals
   .row.dashboard
-    %div{class: "col-md-9 monitors"}
+    .col-sm-9.monitors
       -unless current_user.nil?
         -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-          .col-xs-12
-            .row
-              =  render partial: 'rails_admin/main/dashboard/monitor', locals:{options: tenant_monitor_data}
-        .col-xs-12
           .row
-            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: task_monitor_data(totals[:tasks])}
-            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: auth_monitor_data(totals[:auths])}
-            = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: notif_monitor_data(totals[:notif])}
+            =  render partial: 'rails_admin/main/dashboard/monitor', locals:{options: tenant_monitor_data}
+        .row
+          = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: task_monitor_data(totals[:tasks])}
+          = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: auth_monitor_data(totals[:auths])}
+          = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: notif_monitor_data(totals[:notif])}
       .models{'data-model-count': 0}
         - secondary = ['Monitors', 'Configuration', 'Administration']
         - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
         - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
         - if primaries.length > 0
           .row
-            .col-xs-12
-              %ul.nav.nav-tabs{role: "tablist"}
-                - primaries.each_with_index do |d,index|
-                  %li{class: index==0 ? 'active': ''}
-                    %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                      %i{class: "fa #{d[:icon]}"}
-                      =d[:label]
-              .tab-content
-                - primaries.each_with_index do |d,index|
-                  .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
+            %ul.nav.nav-tabs{role: "tablist"}
+              - primaries.each_with_index do |d,index|
+                %li{class: index==0 ? 'active': ''}
+                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                    %i{class: "fa #{d[:icon]}"}
+                    =d[:label]
+            .tab-content
+              - primaries.each_with_index do |d,index|
+                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                  = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
         - if auxiliaries.length > 0
           .row
-            .col-xs-12
-              %ul.nav.nav-tabs{role: "tablist"}
-                - auxiliaries.each_with_index do |d,index|
-                  %li{class: index==0 ? 'active': ''}
-                    %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                      %i{class: "fa #{d[:icon]}"}
-                      =d[:label]
-              .tab-content
-                - auxiliaries.each_with_index do |d,index|
-                  .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
-    .col-md-3.traces.no-padding-left
+            %ul.nav.nav-tabs{role: "tablist"}
+              - auxiliaries.each_with_index do |d,index|
+                %li{class: index==0 ? 'active': ''}
+                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                    %i{class: "fa #{d[:icon]}"}
+                    =d[:label]
+            .tab-content
+              - auxiliaries.each_with_index do |d,index|
+                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                  = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
+    .col-sm-3.traces.no-padding-left
       %ul.nav.nav-tabs
         %li.active
           = link_to '/trace' do

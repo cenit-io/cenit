@@ -136,7 +136,7 @@ module RailsAdmin
         counter_link = link_to a, class: 'pjax', title: "#{unauthorized_count} #{'unauthorized'.pluralize(unauthorized_count)}" do
           ('<b class="label rounded label-xs up counter red">' + unauthorized_count.to_s + '</b>').html_safe
         end
-        all_links << counter_link.html_safe
+        all_links << %(<div class="counters-links">#{counter_link}</div>).html_safe
       end
       all_links
     end
@@ -171,7 +171,7 @@ module RailsAdmin
           link = '<b class="label rounded label-xs up counter '+ color + '">' + count.to_s + '</b>'
           link.html_safe
         end
-        all_links << counter_links.html_safe
+        all_links << %(<div class="counters-links">#{counter_links}</div>).html_safe
       end
       all_links
     end
