@@ -15553,6 +15553,8 @@ ul.main-menu > li > a,
     z-index: 999;
     background-color: #3d4046;
     border-top: solid 1px white;
+    width: 100%;
+    margin-right: 0;
 }
 
 .related-sidebar.minified {
