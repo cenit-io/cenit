@@ -16146,6 +16146,8 @@ body.sidebar-float .content-wrapper {
     border-top: solid 1px white;
     border-right: solid 1px lightgrey;
     margin-right: -1px;
+    min-height: calc(100vh - 50px);
+    position: relative;
 }
 
 .widget.widget-table {

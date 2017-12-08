@@ -13,6 +13,27 @@ $(document).ready(function () {
         $('#main-content-wrapper').css('min-height', $('#left-sidebar').height());
     }
 
+    function update_social_position() {
+
+        var $related_menu = $('#subdomain-sidebar .widget'),
+            $social = $('.social-links-at-menu'),
+            $header = $('.widget-header'),
+            min_height = parseInt($related_menu.css('min-height')),
+            social_height = parseInt($social.css('height')),
+            header_height = parseInt($header.css('height')),
+            real_height = parseInt($related_menu.find('ul.subdomain-menu').css('height'));
+        min_height = min_height - social_height - header_height - 25;
+        if (real_height > min_height) {
+            if ($social.hasClass('absolute')) {
+                $social.removeClass('absolute');
+            }
+        } else {
+            if (!$social.hasClass('absolute')) {
+                $social.addClass('absolute');
+            }
+        }
+
+    }
 
     /************************
      /*    MAIN NAVIGATION
@@ -28,7 +49,7 @@ $(document).ready(function () {
             $li.find(' > a .toggle-icon').removeClass('fa-angle-left').addClass('fa-angle-down');
             $li.addClass('active');
             $li.find(' > ul.sub-menu')
-                .slideDown(300);
+                .slideDown(300, update_social_position);
             if ($subdomain_side_bar_open) {
                 $li.find(' > ul.sub-menu').addClass('open');
             }
@@ -38,7 +59,7 @@ $(document).ready(function () {
             $li.find(' > a .toggle-icon').removeClass('fa-angle-down').addClass('fa-angle-left');
             $li.removeClass('active');
             $li.find(' > ul.sub-menu')
-                .slideUp(300);
+                .slideUp(300, update_social_position);
             if ($subdomain_side_bar_open) {
                 $li.find('> ul.sub-menu').removeClass('open');
             }

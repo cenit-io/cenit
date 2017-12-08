@@ -223,8 +223,8 @@ ul.drawer {
 ul.drawer #sign-links,
 ul.drawer #nav-links {
   overflow-y: auto;
-  margin-bottom: 67px;
-  height: calc(100% - 67px);
+  margin-bottom: 100px;
+  height: calc(100% - 100px);
 }
 
 ul.drawer.open {
@@ -252,7 +252,10 @@ ul.drawer li a span {
 }
 
 .social-links.absolute {
-
+  position: absolute;
+  width: calc(100% - 12px);
+  bottom: 20px;
+  background-color: #3D4046;
 }
 
 .social-links a {
@@ -639,7 +642,6 @@ ul#main-accordion .panel-heading .nav-icon {
     white-space: nowrap;
     overflow: hidden;
     text-align: center;
-    margin-top: 80px;
     span {
       transition: all .5s ease-in-out .05s;
       visibility: visible;
@@ -1165,7 +1167,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 #action-notify {
-  padding: 20px 15px 15px 15px;
+  padding: 17px 15px 14px 15px;
 
   &:hover {
     text-decoration: none;
@@ -4105,5 +4107,19 @@ span.nav-amount {
   i {
     display: block;
     line-height: 20px;
+  }
+}
+
+.social-links-at-menu {
+  overflow: auto;
+  margin-top: 25px;
+  bottom: 15px;
+
+  &.absolute{
+    position: absolute;
+  }
+  .git-buttons{
+    margin: auto;
+    width: 80%;
   }
 }
