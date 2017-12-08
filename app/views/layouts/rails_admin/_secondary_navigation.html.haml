@@ -65,10 +65,13 @@
     - if (t_link = tasks_link)
       %li#action-tasks= t_link
     - if (auth_link = authorizations_link)
-      %li#action-auth= auth_link
+      %li#action-auth
+        .counters-links
+          - auth_link.each do |link|
+            =link.html_safe
     - if (links = notifications_links)
       %li#action-notify
-        .notification-links
+        .counters-links
           - links.each do |link|
             =link
     - if (t_link = storage_link)

@@ -1143,35 +1143,35 @@ ul#main-accordion .panel-heading .nav-icon {
   outline: none;
 }
 
-.notify-counter-link {
-  border-radius: 500px;
-  // position: relative;
-  top: -10px;
-  min-width: 4px;
-  min-height: 4px;
-  display: inline-block;
-  font-size: 9px;
-
-  &.green {
-    background-color: green;
-  }
-  &.blue {
-    background-color: blue;
-  }
-  &.orange {
-    background-color: orange;
-  }
-  &.red {
-    background-color: red;
-  }
-}
-
-#action-notify {
-  padding: 17px 15px 14px 15px;
-
+#action-notify, #action-auth {
+  padding: 15px 15px 13px 15px;
   &:hover {
     text-decoration: none;
     background-color: rgba(238, 238, 238, 0.19);
+  }
+  .counters-links{
+    .counter {
+      border-radius: 500px;
+      top: -10px;
+      min-width: 4px;
+      min-height: 4px;
+      display: inline-block;
+      padding: 5px 8px;
+      font-weight: bold;
+
+      &.green {
+        background-color: green;
+      }
+      &.blue {
+        background-color: blue;
+      }
+      &.orange {
+        background-color: orange;
+      }
+      &.red {
+        background-color: red;
+      }
+    }
   }
 }
 
@@ -4115,10 +4115,10 @@ span.nav-amount {
   margin-top: 25px;
   bottom: 15px;
 
-  &.absolute{
+  &.absolute {
     position: absolute;
   }
-  .git-buttons{
+  .git-buttons {
     margin: auto;
     width: 80%;
   }
