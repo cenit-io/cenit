@@ -15514,7 +15514,11 @@ ul.main-menu > li > a,
     font-weight: 700;
     opacity: 1 !important;
 }
-
+.left-sidebar.minified .main-menu > li:hover > a {
+    text-decoration: none;
+    background-color: #d9edf7;
+    color: #31708f;
+}
 .left-sidebar.minified .main-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
@@ -15549,6 +15553,8 @@ ul.main-menu > li > a,
     z-index: 999;
     background-color: #3d4046;
     border-top: solid 1px white;
+    width: 100%;
+    margin-right: 0;
 }
 
 .related-sidebar.minified {
@@ -15591,7 +15597,11 @@ ul.main-menu > li > a,
     font-weight: 700;
     opacity: 1 !important;
 }
-
+.related-sidebar.minified .subdomain-menu > li:hover > a {
+    text-decoration: none;
+    background-color: #d9edf7;
+    color: #31708f;
+}
 .related-sidebar.minified .subdomain-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
@@ -15618,10 +15628,7 @@ ul.main-menu > li > a,
 }
 
 body.sidebar-float .left-sidebar {
-    left: -230px;
-    -moz-box-shadow: 1px 4px 5px 4px rgba(0, 0, 0, 0.3);
-    -webkit-box-shadow: 1px 4px 5px 4px rgba(0, 0, 0, 0.3);
-    box-shadow: 1px 4px 5px 4px rgba(0, 0, 0, 0.3);
+    left: 0;
 }
 
 body.sidebar-float .left-sidebar.sidebar-float-active {
@@ -16138,6 +16145,8 @@ body.sidebar-float .content-wrapper {
     border-top: solid 1px white;
     border-right: solid 1px lightgrey;
     margin-right: -1px;
+    min-height: calc(100vh - 50px);
+    position: relative;
 }
 
 .widget.widget-table {
@@ -16190,12 +16199,6 @@ body.sidebar-float .content-wrapper {
     border-bottom-style: solid;
     border-bottom-color: lightgray;
     background-color: #eeeeee;
-}
-
-@media screen and (max-width: 480px) {
-    .widget .widget-header {
-        height: 100%;
-    }
 }
 
 .widget .widget-header h3 {

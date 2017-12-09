@@ -9,7 +9,7 @@
 - name = options[:name] ||= 'default'
 - icon = options[:icon] ||= 'fa fa-cube'
 
-.col-sm-6.col-md-4
+.col-sms-6.col-sm-6.col-md-4
   .monitor{class: "#{label_name.parameterize('_')}"}
     .col-xs-3.icon-box
       %a{ href: url}
@@ -29,7 +29,7 @@
                 - else
                   - actions.each do |a|
                     %li
-                      %a{class: "update-monitor", data:{status: "#{a[:class]}"}, title: a[:label]}
+                      %a{href: a[:url], data:{status: "#{a[:class]}"}, title: a[:label]}
                         %span.text
                           %span
                             =a[:value]

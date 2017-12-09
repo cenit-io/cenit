@@ -126,25 +126,21 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
-        html = "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>"
-        if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
-          label_html = <<-HTML
-            <b class="label rounded label-xs success up" style='border-radius: 500px;
-              position: relative;
-              top: -10px;
-              min-width: 4px;
-              min-height: 4px;
-              display: inline-block;
-              font-size: 9px;
-              background-color: #{Setup::SystemNotification.type_color(:error)}'>#{unauthorized_count}
-            </b>
-          HTML
-          html += label_html
+      all_links =[]
+      auth_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+        "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
+      end.html_safe
+      all_links << auth_link
+      if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
+        a=index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'authorized' => { '60852' => { 'v' => 'false' } } })
+        counter_link = link_to a, class: 'pjax', title: "#{unauthorized_count} #{'unauthorized'.pluralize(unauthorized_count)}" do
+          ('<b class="label rounded label-xs up counter red">' + unauthorized_count.to_s + '</b>').html_safe
         end
-        html.html_safe
+        all_links << %(<div class="counters-links">#{counter_link}</div>).html_safe
       end
+      all_links
     end
+
 
     def notifications_links
       account, abstract_model, index_action = linking(Setup::SystemNotification)
@@ -170,12 +166,12 @@ module RailsAdmin
       end
       counters.each do |type, count|
         color = Setup::SystemNotification.type_color(type)
-        a=index_path(model_name: abstract_model.to_param, "type" => type, "model_name" => abstract_model.to_param, "utf8" => "✓", "f" => { "type" => { "60852" => { "v" => type } } })
-        counter_links = link_to a, class: 'pjax' do
-          link = '<b class="label rounded label-xs up notify-counter-link '+ color + '">' + count.to_s + '</b>'
+        a=index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'type' => { '60852' => { 'v' => type } } })
+        counter_links = link_to a, class: 'pjax', title: "#{count} #{type.to_s.pluralize(count)}" do
+          link = '<b class="label rounded label-xs up counter '+ color + '">' + count.to_s + '</b>'
           link.html_safe
         end
-        all_links << counter_links.html_safe
+        all_links << %(<div class="counters-links">#{counter_links}</div>).html_safe
       end
       all_links
     end

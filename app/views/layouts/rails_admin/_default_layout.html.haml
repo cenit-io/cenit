@@ -37,13 +37,13 @@
                         %span{class: 'text', title: 'Dashboard'}
                           = 'Dashboard'
                   = main_navigation
-              .social-links
+              .social-links-at-menu.absolute
                 #os-love
                   %span= 'We'
                   %i.fa.fa-heart-o{ title: 'We love Open Source'}
                   %span= 'Open Source'
                 %br
-                .div
+                .git-buttons
                   %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=star&count=true", :width => "170px"}
                   %iframe.col-sm-6{:frameborder => "0", :height => "20px", :scrolling => "0", :src => "https://ghbtns.com/github-btn.html?user=cenit-io&repo=cenit&type=fork&count=true", :width => "170px"}
                   %script{:async => "", :defer => "defer", :src => "https://buttons.github.io/buttons.js"}

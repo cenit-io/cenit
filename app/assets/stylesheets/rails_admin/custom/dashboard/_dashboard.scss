@@ -10,6 +10,11 @@
   .nav-pills-custom-minimal {
     border-bottom: none;
   }
+  .models {
+    @media(min-width: 768px) {
+      padding: 0 15px;
+    }
+  }
   .monitor {
     overflow: visible;
     margin-bottom: 30px;
@@ -111,14 +116,21 @@
     .number {
       font-size: 22px;
       padding: 0 0 10px 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
       .description {
         font-size: 12px;
         line-height: 1;
         margin-top: 5px;
         text-transform: capitalize;
         display: inline-block;
+
       }
       span {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
         i {
           color: #5bc0de;
         }
