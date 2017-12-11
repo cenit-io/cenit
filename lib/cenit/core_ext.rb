@@ -228,6 +228,7 @@ end
   WickedPdf => :new_wickedpdf,
   PDFKit => :new_pdfkit,
   Tempfile => :new_tempfile,
+  MWS::Feeds::Client => :new_feed,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
