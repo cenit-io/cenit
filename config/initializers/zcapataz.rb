@@ -15,12 +15,14 @@ Capataz.config do
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF
+                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF, MWS::Feeds::Client
+
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
   # allow_on Zip, [:decode, :encode]
   #
   # allow_for Zip::Entry, [:name, :read]
+
 
   allow_on Setup::SystemNotification, :create_with
 
@@ -107,6 +109,8 @@ Capataz.config do
   allow_on Origami, [:sign_pdf]
 
   allow_on WickedPdf, [:new_wickedpdf]
+
+  allow_on MWS::Feeds::Client, [:new_feed]
 
   allow_on Magick::Image, [:read]
 
