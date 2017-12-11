@@ -135,3 +135,6 @@ gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
+
+gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
+gem 'combine_pdf', '1.0.4'
