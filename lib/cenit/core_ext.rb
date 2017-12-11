@@ -230,7 +230,8 @@ end
   Tempfile => :new_tempfile,
   PdfForms => :new_pdfform,
   PdfForms::Fdf => :new_pdf,
-  CombinePDF => :new_pdf
+  CombinePDF => :new_pdf,
+  MWS::Feeds::Client => :new_feed,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
     new(*args)
