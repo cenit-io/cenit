@@ -442,13 +442,23 @@ ul.drawer li a span {
 }
 
 .navbar-header {
-  .cenit-logo img {
-    max-height: 140%;
-
+  .cenit-logo {
+    display: inline-block;
+    position: relative;
+    top: -4px;
+    img {
+      height: 30px;
+    }
   }
+
   .cenit-hub {
     color: white;
-    font-size: 22px;
+    font-size: 24px;
+
+    margin-left: 10px;
+    margin-bottom: 5px;
+    position: relative;
+    top: 1px;
   }
 }
 
