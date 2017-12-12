@@ -1193,13 +1193,17 @@ ul#main-accordion .panel-heading .nav-icon {
   }
   #links {
     float: right;
+    top: -2px;
     > span {
-      padding: 0 12px;
+      padding: 3px 8px;
       color: #333333;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       position: absolute;
       right: 0;
+      i {
+        margin: auto;
+      }
     }
     &.options-menu {
       position: relative;
