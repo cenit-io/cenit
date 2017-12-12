@@ -8,6 +8,7 @@ module RailsAdmin
           weight 810
           navigation_label 'Administration'
           label 'Tenants'
+          navigation_icon 'fa fa-home'
           object_label_method { :label }
 
           visible { User.current.present? }

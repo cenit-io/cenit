@@ -10,6 +10,7 @@ module RailsAdmin
             navigation_label 'Definitions'
             weight 112
             label 'File Type'
+            navigation_icon 'fa fa-file-o'
             object_label_method { :custom_title }
 
             configure :namespace, :enum_edit
