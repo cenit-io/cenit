@@ -11,7 +11,7 @@ var cenit = (function ($) {
 
         graphics_handle,
 
-        // widget toggle expand
+    // widget toggle expand
         affectedElement = $('.widget-content'),
 
         tour_steps = {
@@ -282,7 +282,7 @@ var cenit = (function ($) {
 
     // Functions
 
-        initHomePage = function () {
+    initHomePage = function () {
 
         $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
@@ -1788,6 +1788,69 @@ var cenit = (function ($) {
             $('.alert .close').click(function (e) {
                 e.preventDefault();
                 $(this).parents('.alert').fadeOut(300);
+            });
+
+            $(document).on('click', ".toggle-origin", function (e) {
+                this.nextElementSibling.value++;
+            });
+
+            $(document).on('click', ".toggle-boolean", function (e) {
+                var that = this,
+                    $this = $(this),
+                    field = $this.data('field'),
+                    data = {},
+                    value = this.attributes['data-value'].value,
+                    xhr = new XMLHttpRequest();
+
+                data[field] = value == 'true' ? false : true
+
+                xhr.open("POST", $this.data('url'), true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        $this.attr('data-value', response[field]);
+                    } else {
+                        $this.attr('data-value', value);
+                    }
+                    setupToggleBoolean(that);
+                };
+                xhr.onerror = function () {
+                    setupToggleBoolean(that);
+                };
+                this.previousElementSibling.innerHTML = '<i class="fa fa-spinner fa-spin fa-fw"></i>';
+                this.innerHTML = '<i class="fa fa-toggle-' + (data[field] ? 'on' : 'off') + '"></i>';
+                xhr.send(JSON.stringify(data));
+            });
+            $.propHooks.disabled = {
+                set: function (el, value) {
+                    if (el.disabled !== value) {
+                        el.disabled = value;
+                        $(el).trigger(value ? 'disabled' : 'enabled');
+                    }
+                }
+            };
+            $(".soc-btn").on("click", function (ev) {
+                $(this).addClass("selected");
+                $(this).siblings().addClass("unused");
+
+                var parent = $(this).parent().parent().parent();
+                console.log($(parent));
+
+                var forms = $(parent).find('form');
+                $(forms).each(function () {
+                    $(this).find("input, button")
+                        .prop("disabled", true);
+                });
+
+                $(this).prop("disabled", false);
+
+                var links = $(parent).find('a');
+                $(links).each(function () {
+                    $(this).on('click', function (ev) {
+                        ev.preventDefault();
+                    });
+                });
             });
         },
 

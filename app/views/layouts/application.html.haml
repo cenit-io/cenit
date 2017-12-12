@@ -6,8 +6,8 @@
     %meta{content: "width=device-width,initial-scale=1", name: "viewport"}
     = csrf_meta_tag
     = stylesheet_link_tag 'application', media: :all
-    = javascript_include_tag 'application'
   %body.rails_admin
     %main{role:"main"}
       = render 'layouts/messages'
       = yield
+    = javascript_include_tag 'rails_admin/rails_admin.js'
