@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             object_label_method { :custom_title }
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-envelope-o'
             label 'Email'
             weight 500
 

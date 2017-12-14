@@ -8,14 +8,13 @@
 - page_slug = @page_name.parameterize
 
 - flash && flash.each do |key, value|
-  .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+  .alert{class: flash_alert_class(key)}
     %a.close{href: '#', :'data-dismiss' => "alert"} &times;
     = value
 
-- dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-- unless dashboard_root
-  = breadcrumb
-  =render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
+= breadcrumb
+
+=render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
 
 -if @abstract_model
   %ul.nav.nav-tabs

@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
+            navigation_icon 'fa fa-tasks'
             visible true
             weight 610
             object_label_method { :to_s }

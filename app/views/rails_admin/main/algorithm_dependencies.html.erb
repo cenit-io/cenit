@@ -1,5 +1,5 @@
 <% options = codemirror_options.to_json %>
-<% flash.discard(:warning)   %>
+<% flash.discard(:warning) %>
 
 <ul class="algorithms nav nav-tabs tabs-left">
   <% algorithm_langs.each do |lang| %>
@@ -16,6 +16,7 @@
         <%= form_tag('#', remote: true) do %>
             <div class="row form-group">
               <label class="col-sm-12 control-label">File <%= lang[:dependencies_file] %>:</label>
+
               <div class="col-sm-12 controls">
                 <input type="hidden" name="lang_id" value="<%= lang[:id] %>">
                 <textarea name="dependencies" required="true" id="dependencies-<%= lang[:id] %>"
@@ -35,15 +36,16 @@
       </div>
   <% end %>
 </div>
+<% content_for :script do %>
+    <script>
+      $(document).ready(function () {
+        // To solve problem with codemirror and nav-tabs.
+        $('.algorithms.nav-tabs a').on('shown.bs.tab', function (e) {
+          $($(e.target).attr('href')).find('.CodeMirror')[0].CodeMirror.refresh();
+        });
 
-<script>
-  $(document).ready(function () {
-    // To solve problem with codemirror and nav-tabs.
-    $('.algorithms.nav-tabs a').on('shown.bs.tab', function (e) {
-      $($(e.target).attr('href')).find('.CodeMirror')[0].CodeMirror.refresh();
-    });
+        pleaseWaitDiv = $('<div class="modal hide" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false"><div class="modal-header"><h1>Processing...</h1></div><div class="modal-body"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div></div>');
 
-    pleaseWaitDiv = $('<div class="modal hide" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false"><div class="modal-header"><h1>Processing...</h1></div><div class="modal-body"><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div></div>');
-
-  });
-</script>
+      });
+    </script>
+<% end %>
