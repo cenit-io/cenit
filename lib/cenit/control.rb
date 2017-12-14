@@ -59,7 +59,7 @@ module Cenit
       @app.namespace
     end
 
-    def name
+    def application
       @app.name
     end
 
@@ -77,6 +77,11 @@ module Cenit
 
     def algorithm(name)
       get_resource(:algorithm, name)
+    end
+
+    def data_file(name)
+      files = data_type("#{application}-Files").where(name: name)
+      files[0]
     end
 
     def method_missing(symbol, *args)
