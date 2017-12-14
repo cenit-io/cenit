@@ -9,13 +9,13 @@ Capataz.config do
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
-                    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
-                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
-                    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
-                    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-                    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF, MWS::Feeds::Client
+    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
+    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
+    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
+    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
+    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
+    Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF, MWS::Feeds::Client
 
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
@@ -68,7 +68,31 @@ Capataz.config do
 
   allow_on OpenSSL::Digest::SHA1, [:digest, :new_sha1]
 
-  allow_for ActionView::Base, [:escape_javascript, :j]
+  allow_for ActionView::Base, [
+    # Form and form fields helpers
+    :text_field, :password_field, :hidden_field, :file_field, :color_field, :search_field, :telephone_field,
+    :phone_field, :date_field, :time_field, :datetime_field, :datetime_local_field, :month_field, :week_field,
+    :url_field, :email_field, :number_field, :range_field,
+
+    :text_field_tag, :hidden_field_tag, :file_field_tag, :password_field_tag, :color_field_tag, :search_field_tag,
+    :telephone_field_tag, :phone_field_tag, :date_field_tag, :time_field_tag, :datetime_field_tag,
+    :datetime_local_field_tag, :month_field_tag, :week_field_tag, :url_field_tag, :email_field_tag, :number_field_tag,
+    :range_field_tag, :select_tag, :check_box_tag, :radio_button_tag, :submit_tag, :button_tag, :image_submit_tag,
+    :form_tag, :text_area_tag, :utf8_enforcer_tag,
+
+    # Other html tags helpers
+    :javascript_tag, :label_tag, :field_set_tag, :auto_discovery_link_tag, :favicon_link_tag, :image_tag, :video_tag,
+    :audio_tag, :content_tag, :time_tag, :csrf_meta_tag,
+
+    # Cenit session urls helpers
+    :session_url, :new_session_url, :destroy_session_url, :registration_url,
+
+    # Asset urls helpers
+    :asset_url, :javascript_url, :stylesheet_url, :image_url, :video_url, :audio_url, :font_url,
+
+    # Other helpers
+    :escape_javascript, :j
+  ]
 
   allow_on Setup::Task, [:current, :where, :all]
 
@@ -119,13 +143,13 @@ Capataz.config do
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
   allow_for [Class],
-            [
-              :where, :all, :now,
-              :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
-              :data_type, :id,
-              :write_buffer, :put_next_entry, :write,
-              :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
-            ] + Setup::Webhook.method_enum
+    [
+      :where, :all, :now,
+      :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
+      :data_type, :id,
+      :write_buffer, :put_next_entry, :write,
+      :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
+    ] + Setup::Webhook.method_enum
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
