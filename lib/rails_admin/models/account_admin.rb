@@ -37,7 +37,9 @@ module RailsAdmin
             field :token
             field :owner
             field :users
-            field :meta
+            field :meta do
+              visible { Account.current_super_admin? }
+            end
             field :notification_level
             field :time_zone
           end
@@ -54,6 +56,9 @@ module RailsAdmin
               visible { Account.current_super_admin? }
             end
             field :token do
+              visible { Account.current_super_admin? }
+            end
+            field :meta do
               visible { Account.current_super_admin? }
             end
             field :notification_level
