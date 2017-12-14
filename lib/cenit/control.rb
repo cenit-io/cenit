@@ -55,6 +55,14 @@ module Cenit
       end
     end
 
+    def render_template(name, locals)
+      name, ns = name.split(/::\//).reverse
+      ns ||= 'Basic'
+      translator = Cenit.namespace(ns).translator(name)
+      raise "The (#{ns}::#{name}) translator was not found." unless translator
+      translator.run(locals.merge(control: self))
+    end
+
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
         render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
