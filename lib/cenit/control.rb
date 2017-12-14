@@ -63,6 +63,26 @@ module Cenit
       translator.run(locals.merge(control: self))
     end
 
+    def application
+      @app
+    end
+
+    def namespace
+      @app.namespace
+    end
+
+    def name
+      @app.name
+    end
+
+    def data_type(name)
+      name, ns = name.split(/::\//).reverse
+      ns ||= @app.namespace
+      data_type = Cenit.namespace(ns).data_type(name)
+      raise "The (#{ns}::#{name}) data type was not found." unless data_type
+      data_type
+    end
+
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
         render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
