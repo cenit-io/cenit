@@ -57,7 +57,7 @@ module Cenit
 
     def render_template(name, locals)
       name, ns = name.split(/::\//).reverse
-      ns ||= 'Basic'
+      ns ||= @app.namespace
       translator = Cenit.namespace(ns).translator(name)
       raise "The (#{ns}::#{name}) translator was not found." unless translator
       translator.run(locals.merge(control: self))
