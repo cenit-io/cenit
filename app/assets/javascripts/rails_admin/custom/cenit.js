@@ -1598,7 +1598,7 @@ var cenit = (function ($) {
             $(window).bind("load resize scroll", function () {
                 calculateContentMinHeight();
             });
-            $('.subdomain-menu .js-sub-menu-toggle').on('click', function (e) {
+            $('.subdomain-menu .js-sub-menu-toggle').off().on('click', function (e) {
 
                 e.preventDefault();
 
@@ -1626,7 +1626,7 @@ var cenit = (function ($) {
                 }
             });
 
-            $('.main-menu .js-sub-menu-toggle').on('click', function (e) {
+            $('.main-menu .js-sub-menu-toggle').off().on('click', function (e) {
 
                 e.preventDefault();
 
@@ -1653,7 +1653,7 @@ var cenit = (function ($) {
                 }
             });
 
-            $('.js-toggle-minified').on('click', function () {
+            $('.js-toggle-minified').off().on('click', function () {
                 if (!$('.left-sidebar').hasClass('minified')) {
                     $('.left-sidebar').addClass('minified');
                     $('.content-wrapper').addClass('expanded');
@@ -1667,7 +1667,7 @@ var cenit = (function ($) {
             });
 
 
-            $('.js-related-toggle-minified').on('click', function () {
+            $('.js-related-toggle-minified').off().on('click', function () {
                 if (window.innerWidth > 992) {
                     if (!$('.related-sidebar').hasClass('minified')) {
                         $('.related-sidebar').addClass('minified');
@@ -1682,7 +1682,7 @@ var cenit = (function ($) {
                 }
             });
 
-            $('.toggle-sidebar-collapse').on('click', function () {
+            $('.toggle-sidebar-collapse').off().on('click', function () {
                 if ($(window).width() < 992) {
                     // use float sidebar
                     if (!$('.left-sidebar').hasClass('sidebar-float-active')) {
