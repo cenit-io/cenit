@@ -442,13 +442,23 @@ ul.drawer li a span {
 }
 
 .navbar-header {
-  .cenit-logo img {
-    max-height: 140%;
-
+  .cenit-logo {
+    display: inline-block;
+    position: relative;
+    top: -4px;
+    img {
+      height: 30px;
+    }
   }
+
   .cenit-hub {
     color: white;
-    font-size: 22px;
+    font-size: 24px;
+
+    margin-left: 10px;
+    margin-bottom: 5px;
+    position: relative;
+    top: 1px;
   }
 }
 
@@ -1183,13 +1193,17 @@ ul#main-accordion .panel-heading .nav-icon {
   }
   #links {
     float: right;
+    top: -2px;
     > span {
-      padding: 0 12px;
+      padding: 3px 8px;
       color: #333333;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
       position: absolute;
       right: 0;
+      i {
+        margin: auto;
+      }
     }
     &.options-menu {
       position: relative;
@@ -2751,7 +2765,8 @@ li.no-childrens {
 
 .popover-title {
   background: #f9f9f9;
-  color: #428bca;
+  color: #ea7400;
+  font-weight: bold;
 }
 
 .panel[id^='main-dashboard-'] .nav-icon {

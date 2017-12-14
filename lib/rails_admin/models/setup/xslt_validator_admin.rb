@@ -9,6 +9,7 @@ module RailsAdmin
             weight 102
             parent ::Setup::Validator
             navigation_label 'Definitions'
+            navigation_icon 'fa fa-check-square-o'
             label 'XSLT Validator'
             object_label_method { :custom_title }
 

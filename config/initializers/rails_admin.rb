@@ -178,11 +178,6 @@ module RailsAdmin
                   param: 'connectors',
                   label: 'Connectors',
                   icon: 'fa fa fa-plug'
-                },
-                {
-                  param: 'security',
-                  label: 'Security',
-                  icon: 'fa fa-shield'
                 }
               ]
             },
