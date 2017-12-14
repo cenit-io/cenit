@@ -55,7 +55,7 @@ module Cenit
       end
     end
 
-    def render_template(name, locals)
+    def render_template(name, locals={})
       name, ns = name.split(/::\//).reverse
       ns ||= @app.namespace
       translator = Cenit.namespace(ns).translator(name)
