@@ -64,17 +64,19 @@ module Cenit
     end
 
     def render_template(name, locals={})
-      name, ns = parse_resource_name(name)
-      translator = Cenit.namespace(ns).translator(name)
-      raise "The (#{ns}::#{name}) translator was not found." unless translator
-      translator.run(locals.merge(control: self))
+      get_resource(:translator, name).run(locals.merge(control: self))
     end
 
     def data_type(name)
-      name, ns = parse_resource_name(name)
-      data_type = Cenit.namespace(ns).data_type(name)
-      raise "The (#{ns}::#{name}) data type was not found." unless data_type
-      data_type
+      get_resource(:data_type, name)
+    end
+
+    def resource(name)
+      get_resource(:resource, name)
+    end
+
+    def algorithm(name)
+      get_resource(:algorithm, name)
     end
 
     def method_missing(symbol, *args)
@@ -161,6 +163,13 @@ module Cenit
       name, ns = name.split(/::\//).reverse
       ns ||= @app.namespace
       [name, ns]
+    end
+
+    def get_resource(type, name)
+      name, ns = parse_resource_name(name)
+      item = Cenit.namespace(ns).send(type, name)
+      raise "The (#{ns}::#{name}) #{type.humanize.downcase} was not found." unless item
+      item
     end
 
     class Struct
