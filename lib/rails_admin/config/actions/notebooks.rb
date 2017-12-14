@@ -20,7 +20,7 @@ module RailsAdmin
             # Generate rest-api doc as notebook.
             api_langs.each { |lang| api_notebook(lang) if lang[:runnable] }
             # Renter user interface of jupyter-notebook.
-            render :layout => 'rails_admin/application_notebooks' if @model_name == 'Setup::Notebook'
+            #render :layout => 'rails_admin/application_notebooks' if @model_name == 'Setup::Notebook'
           end
         end
       end

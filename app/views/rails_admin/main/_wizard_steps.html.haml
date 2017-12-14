@@ -4,7 +4,7 @@
 - if count_steps > 0
   - current_step = @model_config.with(object: @object, controller: controller).current_step
   .wizard
-    %ul.nav.nav-tabs
+    %ul.steps
       - c = 0
       - style = 'done'
       - wizard_steps.each do |step, step_desc|
@@ -13,10 +13,12 @@
         - if current_step == step
           - step_style = 'active'
           - style = 'pending'
-        %li{class: step_style}= step_desc[:label]
-        - if c < count_steps
-          %li{class: 'next'}
-            %i{class: 'fa fa-angle-double-right fa-2x'}
-    %h6
-      - current_step = wizard_steps[current_step] || {}
-      = current_step[:description] || current_step[:label] || current_step.to_s.to_title
+        %li{class: step_style}
+          %span{class: 'badge badge-info'}
+            =c
+          = step_desc[:label]
+          - if c < count_steps
+            %span{class: 'chevron'}
+  %h6
+    - current_step = wizard_steps[current_step] || {}
+    = current_step[:description] || current_step[:label] || current_step.to_s.to_title

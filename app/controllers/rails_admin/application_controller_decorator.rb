@@ -29,7 +29,9 @@ module RailsAdmin
         end
       end
 
-      fail(RailsAdmin::ModelNotFound) if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
+      if @abstract_model.nil? || (@model_config = @abstract_model.config).excluded?
+        fail(RailsAdmin::ModelNotFound)
+      end
 
       @dashboard_group_ref =
         if ecommerce_model?
