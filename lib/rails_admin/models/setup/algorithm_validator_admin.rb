@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             parent ::Setup::Validator
             navigation_label 'Definitions'
+            navigation_icon 'fa fa-check-square-o'
             weight 104
             label 'Algorithm Validator'
             object_label_method { :custom_title }

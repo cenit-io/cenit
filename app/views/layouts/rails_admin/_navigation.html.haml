@@ -1,10 +1,5 @@
 .container-fluid
   .navbar-header
-    %button.navbar-toggle.toogle.hidden-xs{ type: 'button', data: { toggle: 'collapse', target: '#secondary-navigation' } }
-      %span.sr-only= t('admin.toggle_navigation')
-      %span.icon-bar
-      %span.icon-bar
-      %span.icon-bar
     %button.navbar-toggle.toogle.visible-xs#secondary-nav-xs{ type: 'button', data: { toggle: 'collapse', target: '#secondary-navigation-xs' } }
       %span.sr-only= t('admin.toggle_navigation')
       %span.icon-bar
@@ -20,14 +15,11 @@
     - group = dashboard_root_group
     #subdomain-toggle.hidden-xs
       %span.subdomain_link
-        - unless group.nil?
-          %span.subdomain
-            = group[:label]
         %i.fa.fa-chevron-down{style: 'color: white;'}
   .collapse.navbar-collapse#secondary-navigation.hidden-xs
     = render partial: 'layouts/rails_admin/secondary_navigation'
   .collapse.navbar-collapse#secondary-navigation-xs.xs-menu
-    = render partial: 'layouts/rails_admin/secondary_nav_xs'
+    = render partial: 'layouts/rails_admin/mobile/secondary_nav_xs'
   .collapse.navbar-collapse#models-navigation-xs.xs-menu
     = dashboard_primary_xs
   #subdomain-panel.collapsed

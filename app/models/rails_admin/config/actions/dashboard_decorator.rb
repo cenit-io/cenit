@@ -4,6 +4,7 @@ module RailsAdmin
       Dashboard.class_eval do
         register_instance_option :controller do
           proc do
+            @dashboard_models = []
             @dashboard_group_ref = params['group'] || nil
             @dashboard_group = dashboard_group(@dashboard_group_ref)
             if @action.statistics?

@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Workflows'
+            navigation_icon 'fa fa-share'
             object_label_method { :custom_title }
 
             fields :namespace, :name, :send_flow, :updated_at

@@ -1,7 +1,8 @@
-%ul.nav.navbar-nav.navbar-right.root_links
+
+%ul.nav.navbar-nav.navbar-right
   %button#nav-drawer-toggle.btn.a.navbar-brand.toggle-btn
     %i.fa.fa-fw.fa-navicon
-
+%button.btn.btn-link.toggle-btn.pull-right.visible-sm#toogle-submenu-header
 %ul#nav-drawer.drawer
   #nav-links
     = render partial: 'rails_admin/main/secondary_links'
@@ -9,72 +10,74 @@
 
 
 - if _current_user.present?
-  %ul#user-nav.nav.navbar-nav.navbar-right{style: 'padding-left: 0px;'}
-    %li.dropdown
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
-        %i.fa.fa-fw.fa-user
-        - if _current_user.name.present?
-          = _current_user.name
-        - else
-          = _current_user.email
-        %span.caret
-      %ul#user-menu.dropdown-menu
-        - if (user_link = edit_user_link)
-          - user_link = [user_link] unless user_link.is_a?(Enumerable)
-          %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
-          - user_link.each do |link|
-            %li= link
+  .collapsed-sm
+    %ul#user-nav.nav.navbar-nav.navbar-right{style: 'padding-left: 0px;'}
+      %li.dropdown
+        %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
+          %i.fa.fa-fw.fa-user
+          - if _current_user.name.present?
+            = _current_user.name
+          - else
+            = _current_user.email
+          %span.caret
+        %ul#user-menu.dropdown-menu
+          - if (user_link = edit_user_link)
+            - user_link = [user_link] unless user_link.is_a?(Enumerable)
+            %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
+            - user_link.each do |link|
+              %li= link
 
-        %li.divider{role:'separator'}
-        .actions.clearfix
-          %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: 'text-muted', target: '_blank'
-          - if logout_path.present?
-            %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
-
-  - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
-  %ul#tenant-nav.nav.navbar-nav.navbar-right
-    %li.dropdown{style: 'min-width: 140px;' ,id: 'dropdown-tenants'}
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'drop-menu','aria-haspopup':'true','aria-expanded':'false', id: 'show_tenant_menu'}
-        %i.fa.fa-fw.fa-home
-        %span#tenant_name
-          = format_name(_current_user.account.name)
-        %span.caret
-      %ul#tenant-menu.dropdown-menu
-        .tenants
-          - tenant_list = []
-          - count_tenants = _current_user.all_accounts.count
-          - _current_user.all_accounts.each do |a|
-            - name =  format_name(a.name)
-            - if a != _current_user.account
-              - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
-              %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
-        %script
-          load_tenant_list(#{raw tenant_list});
-        - if (new_action = action(:new, acc_am))
           %li.divider{role:'separator'}
-          - if count_tenants > 30
-            %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
           .actions.clearfix
-            %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
-            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
-  %ul#help-nav.nav.navbar-nav.navbar-right
-    = render partial: 'rails_admin/main/help_links'
-  %ul.nav.navbar-nav.navbar-right.root_links
-    - if (t_link = tasks_link)
-      %li#action-tasks= t_link
-    - if (auth_link = authorizations_link)
-      %li#action-auth= auth_link
-    - if (links = notifications_links)
-      %li#action-notify
-        .notification-links
+            %li.terms.pull-left
+              %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: 'text-muted', target: '_blank'
+            - if logout_path.present?
+              %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
+
+    - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
+
+    %ul#tenant-nav.nav.navbar-nav.navbar-right
+      %li.dropdown{style: 'min-width: 140px;' ,id: 'dropdown-tenants'}
+        %a.dropdown-toggle{href:'#', role:'button','data-toggle':'drop-menu','aria-haspopup':'true','aria-expanded':'false', id: 'show_tenant_menu'}
+          %i.fa.fa-fw.fa-home
+          %span#tenant_name
+            = format_name(_current_user.account.name)
+          %span.caret
+        %ul#tenant-menu.dropdown-menu
+          .tenants
+            - tenant_list = []
+            - count_tenants = _current_user.all_accounts.count
+            - _current_user.all_accounts.each do |a|
+              - name =  format_name(a.name)
+              - if a != _current_user.account
+                - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
+                %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
+          = content_for :script do
+            %script
+              load_tenant_list(#{raw tenant_list});
+          - if (new_action = action(:new, acc_am))
+            %li.divider{role:'separator'}
+            - if count_tenants > 30
+              %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
+            .actions.clearfix
+              %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
+              %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
+    %ul#help-nav.nav.navbar-nav.navbar-right
+      = render partial: 'rails_admin/main/help_links'
+    %ul.nav.navbar-nav.navbar-right.root_links
+      - if (t_link = tasks_link)
+        %li#action-tasks= t_link
+      - if (auth_link = authorizations_link)
+        %li#action-auth
+          - auth_link.each do |link|
+            =link.html_safe
+      - if (links = notifications_links)
+        %li#action-notify
           - links.each do |link|
             =link
-    - if (t_link = storage_link)
-      %li#action-storage= t_link
-
+      - if (t_link = storage_link)
+        %li#action-storage= t_link
 - else
-
   %ul.nav.navbar-nav.navbar-right.root_links
     .a.navbar-btn
       =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
@@ -142,9 +145,8 @@
               %a#do-user.btn.btn-xs.pull-left{href: '#'}
                 =t('admin.registration.sign')
     = render partial: 'shared/socials'
-
-- query = params[:query]
-%ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
+  - query = params[:query]
+%ul.nav.navbar-nav.navbar-right.root_links.hidden-sm{style: 'padding-left: 0px;'}
   %li#navbar-search
     - shared_path = index_path(model_name: 'cross_shared_collection')
     = form_tag(shared_path, method: :get, class: 'pjax-form') do

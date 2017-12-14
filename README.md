@@ -21,7 +21,42 @@
 * [Documentation](https://cenit-io.github.io/docs/)
 * support@cenit.io
 
-[Cenit](https://cenit.io)  [(https://cenit.io)](https://cenit.io) is a 100% open source integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the Cloud (https://cenit.io) or On-Premise. It is designed to orchestrate data flows in an easy way that may involve several kinds of data formats and protocol communications.
+[Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
+
+**Why**
+
+The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services and, increasingly, the IoT is fertile ground for the growth in adoption of integration platforms.
+
+Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. iPaaS platforms are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest in the general public.
+
+The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing to rethink organizational models and technology platforms to an approach to pervasive integration.
+
+None of the vendor leaders in the market really offers a completely open and transparent solution, with the freedom to use, customize or modified without restriction, we believe that is one of the keys to a wide adoption, and relevant to making the decision to use on-premise.
+
+**Mission**
+
+Enable everyone to contribute and benefit from the use of a modern Integration Platform (iPaaS).
+
+**Value proposition**
+
+Cenit makes possible that benefits of a modern iPaaS should be accessible to the small and midsize organizations, particularly valuable to embrace as a strategic component of a pervasive integration approach that allows a complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
+
+**How**
+
+* Developing a 100% open source integration Platform (iPaaS).
+* Provide options to use in the cloud https://cenit.io or on-premise server.
+* Include open catalogs for formal API specs.
+* Options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
+* Ensure that anyone can create, use and share integrations.
+* Be ready for enterprise environments.
+
+
+**Goals**
+
+* Be the most open integration platform on the market.
+* Become one of the most popular iPaaS solutions.
+* Be a viable option for enterprises.
+
 
 **Capabilities**
 
@@ -377,6 +412,13 @@ Here are some ways **you** can contribute:
 * by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
+
+### To the Community
+
+Since the challenge is great, we have to build the solution in community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
+
+We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
+
 
 ### Contributors
 

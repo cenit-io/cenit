@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Monitors'
+            navigation_icon 'fa fa-bell'
             weight 605
             visible true
             object_label_method { :label }

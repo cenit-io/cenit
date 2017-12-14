@@ -2,21 +2,6 @@
 // Home Vars
 
 $home_blue: #5bc0de;
-/* roboto font */
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300italic,300,400italic,500,500italic,700,700italic,900,900italic);
-/* source sans pro */
-@import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic);
-/* lato */
-@import url(http://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic);
-/* merriweather */
-@import url(http://fonts.googleapis.com/css?family=Merriweather:400,300italic,300,400italic,700,700italic);
-
-$roboto: "Roboto";
-$lato: 'Lato', 'Helvetica Neue', Arial;
-$helvetica: "Helvetica Neue", Helvetica, Arial;
-$myriad: Myriad Pro, Lato, Helvetica Neue, Arial;
-$sourceSans: Source Sans Pro, Helvetica Neue, Arial;
-$merriweather: "Merriweather", Georgia;
 
 @keyframes submenu-show {
   from {
@@ -30,6 +15,9 @@ $merriweather: "Merriweather", Georgia;
 }
 
 #home_page {
+
+  background: white;
+
   .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
     border-color: transparent;
   }
@@ -757,7 +745,6 @@ $merriweather: "Merriweather", Georgia;
         position: absolute;
         top: 0;
         left: 0;
-        height: 100%;
         width: 100%;
         padding-top: 0;
 
@@ -780,77 +767,40 @@ $merriweather: "Merriweather", Georgia;
           position: relative;
           z-index: 3;
           height: 100%;
-        }
 
-        .bg {
-          position: absolute;
-          top: 0;
-          left: -15px;
-          width: 102%;
-          height: 100%;
-          background-position: center center;
-          background-size: cover;
+          h1.hero-text {
+            margin-top: 100px;
+            letter-spacing: 1.2px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 45px;
+            line-height: 1.3;
+            font-family: "Lato", "Helvetica Neue", Arial, Helvetica, "Helvetica Neue", Arial, sans-serif;
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
 
-          @media(max-width: 767px) {
-            left: 0px;
-          }
-
-          &:before {
-            position: absolute;
-            top: 10%;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            content: '';
-            /*background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(0,0,0,0)), color-stop(100%, rgba(0,0,0,0.25)));
-            background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(0,0,0,0.25) 100%);
-            background: -moz-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: -o-linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));
-            background: linear-gradient(top, rgba(0,0,0,0),rgba(0,0,0,0.25));*/
-          }
-          &:after {
-            content: '';
-            position: absolute;
-            display: block;
-            height: 100%;
-            left: 0;
-            width: 100%;
-            top: 0;
-          }
-        }
-
-        &.first {
-          @media(max-width: 767px) {
-            padding-top: 50px;
-          }
-          .bg {
-            background-image: image_url('home/c5.jpeg');
-            background-position: center 18%;
-            &:after {
-              //background: rgba(52, 52, 58, 0.6);
-            }
-          }
-          .info {
-            h1.hero-text {
-              margin-top: 70px;
-              font-family: Arial, Helvetica, sans-serif;
-              font-size: 36px;
-              letter-spacing: 1.2px;
+            span {
               font-weight: bold;
-              color: #fff;
-              text-shadow: 1px 0px 5px rgba(0, 0, 0, 1);
-
-              @media (max-width: 767px) {
-                font-size: 28px;
-                text-align: center;
-              }
+              color: #ea7400;
             }
-            p {
+            .sub-text {
+              -webkit-font-smoothing: antialiased;
+              margin: 10px 0 35px 0;
+              text-align: center;
               color: white;
-              font-family: "Lato", "Helvetica Neue", Arial;
-              margin-top: 15px;
-              font-size: 18px;
+              font-weight: bold;
+              font-size: 27px;
+              letter-spacing: 0;
             }
+
+            @media (max-width: 767px) {
+              font-size: 28px;
+              text-align: center;
+            }
+          }
+          .actions {
+            text-align: center;
             .cta {
               @include animationDelay(0.6s);
               margin-top: 15px;
@@ -860,7 +810,7 @@ $merriweather: "Merriweather", Georgia;
                 margin: 0px 30px 0 0;
                 padding: 10px 32px;
                 letter-spacing: 1px;
-                font-family: "Lato", "Helvetica Neue", Arial;
+                font-family: Arial, Helvetica, sans-serif;
                 text-transform: uppercase;
                 border: 1px solid rgba(255, 255, 255, 0.8);
                 font-size: 14px;
@@ -892,197 +842,61 @@ $merriweather: "Merriweather", Georgia;
               }
             }
           }
+        }
 
-          .mobiles {
+        .bg {
+          position: absolute;
+          top: 0;
+          left: -15px;
+          width: 102%;
+          height: 100%;
+          background-position: center center;
+          background-size: cover;
+          background-image: image_url('home/bg3.png');
+
+          @media(max-width: 767px) {
+            left: 0px;
+          }
+
+          &:before {
+            position: absolute;
+            top: 10%;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            content: '';
+          }
+          &:after {
+            content: '';
+            position: absolute;
+            display: block;
+            height: 100%;
+            left: 0;
+            width: 100%;
+            top: 0;
+          }
+        }
+        &.fourth {
+          .bg {
+            background-position: top;
+          }
+          .container {
+
+            h1.hero-text {
+              margin-top: 70px;
+              text-align: left;
+              white-space: nowrap;
+              letter-spacing: 0;
+              .sub-text {
+                text-align: left;
+                white-space: nowrap;
+              }
+            }
             img {
-              display: block;
-              margin: 0 auto;
-              margin-top: 75px;
-              -webkit-animation-duration: 1.2s;
-              -moz-animation-duration: 1.2s;
-              -o-animation-duration: 1.2s;
-              animation-duration: 1.2s;
+              margin-top: 42px;
             }
-          }
-        }
-
-        &.second {
-          @media(max-width: 767px) {
-            padding-top: 40px;
-          }
-
-          .bg {
-            background-image: image_url("home/bg3.png");
-            background-position: center 29%;
-
-            &:after {
-              //background: rgba(5, 11, 29, 0.55);
-            }
-          }
-
-          h1.hero-text {
-            text-align: center;
-            font-family: $lato, Helvetica, "Helvetica Neue", Arial, sans-serif;
-            font-size: 37px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.65);
-            text-transform: uppercase;
-            margin-top: 130px;
-            @media (max-width: 767px) {
-              font-size: 25px;
-            }
-          }
-          h2 {
-            text-shadow: 15px 1px 15px #b5b2a6;
-            color: #222222;
-            span {
-              font-weight: bold;
-            }
-          }
-          .button-outline {
-            margin-top: 50px;
-          }
-          .sub-text {
-            -webkit-font-smoothing: antialiased;
-            @include animationDelay(0.6s);
-            margin: 0 auto;
-            font-family: $lato;
-            line-height: 29px;
-            margin-top: 25px;
-            text-align: center;
-            color: #fff;
-            font-weight: 400;
-            font-size: 17px;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
-            width: 50%;
-
-            @media (max-width: 991px) {
-              width: 70%;
-            }
-
-            @media (max-width: 767px) {
-              font-size: 15px;
-            }
-          }
-
-        }
-
-        &.third {
-          padding-top: 65px;
-
-          @media(max-width: 767px) {
-            padding-top: 50px;
-          }
-
-          .bg {
-            background-image: image_url("home/bg_sky");
-            //background-image: url('http://farm6.staticflickr.com/5267/5783999789_9d06e5d7df_b.jpg');
-            background-position: center 15%;
-
-            &:after {
-              //background: rgba(3, 9, 27, 0.5);
-            }
-          }
-
-          h1, .sub-text {
-            -webkit-animation-duration: 1s;
-            -moz-animation-duration: 1s;
-            -o-animation-duration: 1s;
-            animation-duration: 1s;
-          }
-
-          h1.hero-text {
-            text-align: center;
-            font-family: $roboto, Helvetica, "Helvetica Neue", Arial, sans-serif;
-            font-size: 38px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
-
-            @media (max-width: 767px) {
-              font-size: 28px;
-            }
-          }
-          .cloud_services {
-            position: relative;
-            i {
-              position: absolute;
-              z-index: 1;
-              &.fa-google {
-                top: 188px;
-                z-index: 1;
-                font-size: 81px;
-                color: #ec5a2c;
-                right: 56px;
-              }
-              &.fa-github {
-                top: 89px;
-                font-size: 93px;
-              }
-              &.fa-facebook {
-                font-size: 76px;
-                top: 35px;
-                left: 240px;
-                color: #3F51B5;
-              }
-              &.fa-twitter {
-                font-size: 100px;
-                top: 35px;
-                left: 120px;
-                color: orange;
-              }
-              &.fa-amazon {
-                font-size: 71px;
-                top: 130px;
-                left: 278px;
-                color: green;
-              }
-              &.fa-dropbox {
-                font-size: 71px;
-                top: 183px;
-                left: 79px;
-                color: brown;
-              }
-            }
-            i.fa-cloud {
-              position: relative;
-              font-size: 329px;
-              color: white;
-              right: 0;
-              top: -33px;
-            }
-          }
-          .sub-text {
-            -webkit-font-smoothing: antialiased;
-            margin: 0 auto;
-            margin-top: 25px;
-            text-align: center;
-            color: #222222;
-            font-weight: bold;
-            font-size: 27px;
-            text-shadow: 1px 1px 1px rgb(255, 255, 255);
-
-            @media (max-width: 991px) {
-              width: 70%;
-            }
-
-            @media (max-width: 767px) {
-              font-size: 15px;
-            }
-          }
-          .cta {
-            @include animationDelay(0.6s);
-            text-align: center;
-            margin-top: 20px;
-            a {
-              margin: 0px 20px;
-
-              @media (max-width: 767px) {
-                font-size: 14px;
-                padding: 12px 25px;
-                margin: 0px 15px 15px 0px;
-              }
+            .actions {
+              text-align: left;
             }
           }
         }
@@ -2201,6 +2015,118 @@ $merriweather: "Merriweather", Georgia;
           width: 50px;
         }
       }
+    }
+  }
+  // Apps icon sprite (home/spritesheet.png)
+  // Grid: W-118px H-86px
+  .app-icon {
+    background-image: image_url('home/spritesheet.png');
+    background-repeat: no-repeat;
+    display: block;
+    width: 112px;
+    height: 78px;
+    overflow: hidden;
+    margin: auto;
+  }
+  // First row
+  .aftership-icon {
+    @include apps-icon(-2px, -2px);
+  }
+  .amazon-icon {
+    @include apps-icon(-120px, -2px);
+  }
+  .asana-icon {
+    @include apps-icon(-238px, -2px);
+  }
+  .bigcommerce-icon {
+    @include apps-icon(-356px, -2px);
+  }
+  .bronto-icon {
+    @include apps-icon(-474px, -2px);
+  }
+  .desk-icon {
+    @include apps-icon(-592px, -2px);
+  }
+
+  // Second row
+  .ebay-icon {
+    @include apps-icon(-2px, -88px);
+  }
+  .exact_target-icon {
+    @include apps-icon(-120px, -88px);
+  }
+  .jirafe-icon {
+    @include apps-icon(-238px, -88px);
+  }
+  .magento-icon {
+    @include apps-icon(-356px, -88px);
+  }
+  .mailchimp-icon {
+    @include apps-icon(-474px, -88px);
+  }
+  .mandrill-icon {
+    @include apps-icon(-592px, -88px);
+  }
+
+  // Third row
+  .netsuite-icon {
+    @include apps-icon(-2px, -174px);
+  }
+  .odoo-icon {
+    @include apps-icon(-120px, -174px);
+  }
+  .oscommerce-icon {
+    @include apps-icon(-238px, -174px);
+  }
+  .ql-icon {
+    @include apps-icon(-356px, -174px);
+  }
+  .quickbooks-icon {
+    @include apps-icon(-474px, -174px);
+  }
+  .sf-icon {
+    @include apps-icon(-592px, -174px);
+  }
+
+  // Fourth row
+  .shipstation-icon {
+    @include apps-icon(-2px, -260px);
+  }
+  .shipwire-icon {
+    @include apps-icon(-120px, -260px);
+  }
+  .square-icon {
+    @include apps-icon(-238px, -260px);
+  }
+  .trello-icon {
+    @include apps-icon(-356px, -260px);
+  }
+  .woocommerce-icon {
+    @include apps-icon(-474px, -260px);
+  }
+  .zendesk-icon {
+    @include apps-icon(-592px, -260px);
+  }
+
+  .app-icon-xs {
+    width: 30px;
+    height: 30px;
+    background-image: image_url('home/spritesheet.png');
+    background-repeat: no-repeat;
+    display: block;
+    background-position: -2px -342px;
+
+    &.gmail {
+      background-position: -2px -342px;
+    }
+    &.magento {
+      background-position: -36px -342px;
+    }
+    &.slack {
+      background-position: -69px -342px;
+    }
+    &.trello {
+      background-position: -105px -342px;
     }
   }
 

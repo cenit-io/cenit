@@ -13,22 +13,23 @@
       </div>
   <% end %>
 </div>
+<% content_for :script do %>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        // Connected copy to clipboard actions.
+        $('.copy-to-clipboard').each(function (idx, el) {
+          new Clipboard(el);
+        });
 
-<script type="text/javascript">
-  $(document).ready(function () {
-    // Connected copy to clipboard actions.
-    $('.copy-to-clipboard').each(function (idx, el) {
-      new Clipboard(el);
-    });
+        // Async highlight code blocks.
+        var worker = new Worker('/highlight-worker.js');
 
-    // Async highlight code blocks.
-    var worker = new Worker('/highlight-worker.js');
-
-    worker.onmessage = function (event) {
-      $('.rest-api-codes pre.code').each(function (index, block) {
-        hljs.highlightBlock(block);
+        worker.onmessage = function (event) {
+          $('.rest-api-codes pre.code').each(function (index, block) {
+            hljs.highlightBlock(block);
+          });
+        };
+        worker.postMessage('start');
       });
-    };
-    worker.postMessage('start');
-  });
-</script>
+    </script>
+<% end %>

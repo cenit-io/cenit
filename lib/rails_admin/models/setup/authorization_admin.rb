@@ -34,6 +34,7 @@ module RailsAdmin
 
             fields :namespace, :name, :status, :_type, :metadata, :updated_at
             show_in_dashboard false
+            filter_fields :namespace, :name, :authorized, :_type, :metadata, :updated_at
           end
         end
 

@@ -202,6 +202,8 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     colorize (0.7.7)
+    combine_pdf (1.0.4)
+      ruby-rc4 (>= 0.1.5)
     commonjs (0.2.7)
     concurrent-ruby (1.0.5)
     coveralls (0.8.9)
@@ -231,6 +233,7 @@ GEM
       warden (~> 1.2.3)
     diff-lcs (1.2.5)
     diffy (3.2.0)
+    dig_rb (1.0.1)
     docile (1.1.5)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
@@ -240,6 +243,7 @@ GEM
     exception_notification (4.1.4)
       actionmailer (~> 4.0)
       activesupport (~> 4.0)
+    excon (0.59.0)
     execjs (2.7.0)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
@@ -305,6 +309,8 @@ GEM
     jbuilder (2.3.2)
       activesupport (>= 3.0.0, < 5)
       multi_json (~> 1.2)
+    jeff (2.0.0)
+      excon (>= 0.22.1)
     jeweler (2.0.1)
       builder
       bundler (>= 1.0)
@@ -402,7 +408,15 @@ GEM
     parser (2.3.1.4)
       ast (~> 2.2)
     pdf-core (0.6.0)
+    pdf-forms (1.1.1)
+      cliver (~> 0.3.2)
+      safe_shell (>= 1.0.3, < 2.0)
     pdfkit (0.8.2)
+    peddler (1.6.5)
+      dig_rb (~> 1.0)
+      excon (>= 0.50.0)
+      jeff (>= 1.5.2, < 3.0)
+      multi_xml (>= 0.5.0)
     poltergeist (1.7.0)
       capybara (~> 2.1)
       cliver (~> 0.3.1)
@@ -513,10 +527,12 @@ GEM
       rspec-support (~> 3.4.0)
     rspec-support (3.4.0)
     ruby-ole (1.2.12)
+    ruby-rc4 (0.1.5)
     ruby_parser (3.7.2)
       sexp_processor (~> 4.1)
     rubyzip (1.2.1)
     rufus-scheduler (3.1.9)
+    safe_shell (1.1.0)
     sass (3.4.23)
     sass-rails (5.0.4)
       railties (>= 4.0.0, < 5.0)
@@ -629,6 +645,7 @@ DEPENDENCIES
   chartkick
   codemirror-rails
   coffee-rails
+  combine_pdf (= 1.0.4)
   coveralls
   cross_origin!
   database_cleaner
@@ -671,7 +688,9 @@ DEPENDENCIES
   omniauth-oauth2 (~> 1.3.1)
   origami!
   parser
+  pdf-forms (~> 1.1, >= 1.1.1)
   pdfkit (= 0.8.2)
+  peddler
   poltergeist
   prawn-qrcode (= 0.2.2.1)
   prawn-rails (= 0.1.1)

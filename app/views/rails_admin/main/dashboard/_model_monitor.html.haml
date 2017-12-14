@@ -1,0 +1,9 @@
+-children = []
+-stack = d[:stack]
+-stack.each do |s|
+  - if s.is_a?(Array)
+    -children.concat(s)
+  - else
+    -children << s
+- children.each do |m|
+  =  render partial: 'rails_admin/main/dashboard/monitor', locals: {options: model_monitor_data(m)}

@@ -83,7 +83,7 @@
   background: $back-color;
   &:hover {
     border-color: $color;
-    box-shadow: 0px 0px 10px  $back-color;
+    box-shadow: 0px 0px 10px $back-color;
     text-decoration: none;
   }
   .image {
@@ -106,3 +106,10 @@
     }
   }
 }
+
+@mixin apps-icon($x-offset: -2px, $y-offset: -2px) {
+  background-position: $x-offset $y-offset;
+}
+
+
+
