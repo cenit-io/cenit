@@ -11,6 +11,8 @@ module RailsAdmin
               navigation_icon 'fa fa-code-fork'
               object_label_method :label
               weight 600
+              visible true
+              show_in_dashboard false
 
               api_path "#{::Setup.to_s.underscore}/trace"
 

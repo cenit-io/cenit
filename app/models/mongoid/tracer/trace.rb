@@ -36,8 +36,8 @@ module Mongoid
         #   Setup::BaseOauthProvider.class_hierarchy +
         #   Setup::Translator.class_hierarchy +
         [
-          Setup::Algorithm
-        # Setup::Connection,
+          Setup::Algorithm,
+          Setup::Connection,
         # Setup::PlainWebhook,
         # Setup::Resource,
         # Setup::Flow,
