@@ -85,7 +85,7 @@ Capataz.config do
     :audio_tag, :content_tag, :time_tag, :csrf_meta_tag,
 
     # Cenit session urls helpers
-    :session_url, :new_session_url, :destroy_session_url, :registration_url,
+    :main_app, :session_url, :new_session_url, :destroy_session_url, :registration_url,
 
     # Asset urls helpers
     :asset_url, :javascript_url, :stylesheet_url, :image_url, :video_url, :audio_url, :font_url,
