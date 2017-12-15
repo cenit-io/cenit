@@ -91,6 +91,14 @@ module Cenit
       data_type("#{application}-Files").where(filename: name).first
     end
 
+    def cenit_user
+      controller.current_user
+    end
+
+    def cenit_account
+      cenit_user.try(:account)
+    end
+
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
         render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
