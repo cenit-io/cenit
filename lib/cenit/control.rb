@@ -68,6 +68,7 @@ module Cenit
       url = "/app/#{controller.request.params[:id_or_ns]}"
       url << "/#{path.gsub(/^\/+|\/+$/, '')}" unless path.blank?
       url << "?#{query}" unless query.blank?
+      url
     end
 
     def render_template(name, locals={})
