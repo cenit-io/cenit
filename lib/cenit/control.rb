@@ -63,6 +63,13 @@ module Cenit
       @app.name
     end
 
+    def url_for(path=nil, params=nil)
+      query = params.is_a?(Hash) ? params.to_query() : params.to_s
+      url = "/app/#{controller.request.params[:id_or_ns]}"
+      url << "/#{path}" unless path.blank?
+      url << "/#{query}" unless query.blank?
+    end
+
     def render_template(name, locals={})
       get_resource(:translator, name).run(locals.merge(control: self))
     end
