@@ -67,7 +67,8 @@ module Cenit
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
       url = "/app/#{controller.request.params[:id_or_ns]}"
       url << "/#{path}" unless path.blank?
-      url << "/#{query}" unless query.blank?
+      url << "?#{query}" unless query.blank?
+      url
     end
 
     def render_template(name, locals={})
