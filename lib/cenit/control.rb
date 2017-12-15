@@ -80,8 +80,7 @@ module Cenit
     end
 
     def data_file(name)
-      files = data_type("#{application}-Files").where(name: name)
-      files[0]
+      data_type("#{application}-Files").where(filename: name).first
     end
 
     def method_missing(symbol, *args)
