@@ -2,7 +2,7 @@ module Setup
   module BuildIn
 
     def tracing?
-      false
+      origin != :cenit
     end
 
     def share_hash(options = {})

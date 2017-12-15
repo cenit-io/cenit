@@ -317,9 +317,11 @@ module Setup
         default_consumes = spec['consumes'] || ['application/json']
 
         data['operations'] = operations = []
-        data['resources'] = paths.keys.collect do |path|
+        resources = {}
+        paths.each do |path, path_desc|
+          path = path.squeeze('/')
+          path.chop! if path.end_with?('/')
           path_parameters = { template_parameters: template_parameters = [] }.stringify_keys
-          path_desc = paths[path]
           (path_desc.delete('parameters') || []).each do |param_desc|
             if param_desc.is_a?(Hash)
               if param_desc.size == 1 && (ref = param_desc['$ref']).is_a?(String)
@@ -334,16 +336,19 @@ module Setup
               fail I18n.t('cenit.api_spec.swagger_parser.error.invalid_parameter_path_description_type', path: path, type: param_desc.class)
             end
           end
-          resource_name = path.split('/').collect(&:capitalize).join(' ').strip
-          resource =
-            {
+          if (resource = resources[path])
+            resource_name = resource[:name]
+            resource_operations_refs = resource[:operations]
+          else
+            resources[path] = resource = {
               namespace: namespace,
-              name: resource_name,
+              name: resource_name = path.split('/').collect(&:capitalize).join(' ').strip,
               path: path.gsub('{', '{{').gsub('}', '}}'),
               operations: resource_operations_refs = [],
               _reset: :operations,
               metadata: {}
             }
+          end
           resource_operations = path_desc.keys.collect do |method|
             request_desc = path_desc[method]
             method = method.to_s.downcase
@@ -417,8 +422,8 @@ module Setup
           resource.merge!(path_parameters)
           factorize_params(resource, resource_operations)
           operations.concat(resource_operations)
-          resource
         end
+        data['resources'] = resources.values
 
         factorize_params(connections_params, data['resources'])
         connections_params.each do |params_key, params|
