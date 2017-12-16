@@ -31,20 +31,20 @@ module Mongoid
       end
 
       TRACEABLE_MODELS =
-        # Setup::DataType.class_hierarchy +
-        #   Setup::Validator.class_hierarchy +
-        #   Setup::BaseOauthProvider.class_hierarchy +
-        #   Setup::Translator.class_hierarchy +
-        [
-          Setup::Algorithm,
-          Setup::Connection,
-        # Setup::PlainWebhook,
-        # Setup::Resource,
-        # Setup::Flow,
-        # Setup::Oauth2Scope,
-        # Setup::Snippet,
-        # Setup::RemoteOauthClient
-        ] -
+          #   Setup::Validator.class_hierarchy +
+          #   Setup::BaseOauthProvider.class_hierarchy +
+          #   Setup::Translator.class_hierarchy +
+          [
+            Setup::Algorithm,
+            Setup::Connection,
+            Setup::JsonDataType
+          # Setup::PlainWebhook,
+          # Setup::Resource,
+          # Setup::Flow,
+          # Setup::Oauth2Scope,
+          # Setup::Snippet,
+          # Setup::RemoteOauthClient
+          ] -
           [
             Setup::CenitDataType
           ]
