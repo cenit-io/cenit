@@ -7,6 +7,8 @@ module Setup
 
     legacy_code_attribute :schema
 
+    trace_include :schema
+
     build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
     build_in_data_type.and(
       properties: {
@@ -27,7 +29,11 @@ module Setup
     end
 
     def validates_configuration
-      super && validate_model && check_indices
+      super && validate_model && check_indices &&
+        begin
+          remove_attribute(:schema)
+          true
+        end
     end
 
     def code=(code)

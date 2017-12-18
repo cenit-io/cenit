@@ -12,6 +12,8 @@ module Setup
 
     legacy_code_attribute :code
 
+    trace_include :code
+
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :description, type: String
