@@ -184,10 +184,21 @@ module Setup
         url = url.gsub('/?', '?')
 
         if body
+          if (attachment_body = body).is_a?(Hash)
+            attachment_body.each do |key, value|
+              attachment_body[key] =
+                if value.respond_to?(:default_hash)
+                  value.default_hash
+                else
+                  value
+                end
+            end
+            attachment_body = JSON.pretty_generate(attachment_body)
+          end
           attachment = {
             filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
             contentType: options[:contentType] || 'application/octet-stream',
-            body: body
+            body: attachment_body
           }
           if (request_attachment = options[:request_attachment]).respond_to?(:call)
             attachment = request_attachment.call(attachment)
