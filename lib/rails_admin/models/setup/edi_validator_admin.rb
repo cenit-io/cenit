@@ -9,6 +9,7 @@ module RailsAdmin
             weight 103
             parent ::Setup::Validator
             navigation_label 'Definitions'
+            navigation_icon 'fa fa-check-square-o'
             object_label_method { :custom_title }
             label 'EDI Validator'
 

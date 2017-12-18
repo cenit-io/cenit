@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Configuration'
             label 'Connection Config'
+            navigation_icon 'fa fa-wrench'
             visible true
             weight 730
 

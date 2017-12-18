@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Configuration'
+            navigation_icon 'fa fa-wrench'
             label 'Flow Config'
             weight 720
             visible true

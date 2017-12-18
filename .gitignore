@@ -25,7 +25,6 @@ public/assets/
 config/deploy.rb
 /vendor/bundle
 /vendor/cache
-/vendor
 .DS_Store
 # these should all be checked in to normalise the environment:
 # , .ruby-version, .ruby-gemset
