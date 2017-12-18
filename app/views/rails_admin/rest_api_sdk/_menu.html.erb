@@ -66,38 +66,37 @@
         </div>
     <% end %>
 <% end %>
-<% content_for :script do %>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        // Connected copy to clipboard actions.
-        var clipboard = new Clipboard('#copy-to-clipboard', {
-          target: function (trigger) {
-            return $('.modal-body:visible pre:visible')[0];
-          }
-        });
 
-        // Async highlight code blocks.
-        var worker = new Worker('/highlight-worker.js');
+<script type="text/javascript">
+  $(document).ready(function () {
+    // Connected copy to clipboard actions.
+    var clipboard = new Clipboard('#copy-to-clipboard', {
+      target: function (trigger) {
+        return $('.modal-body:visible pre:visible')[0];
+      }
+    });
 
-        worker.onmessage = function (event) {
-          $('.modal-dialog pre.code').each(function (index, block) {
-            hljs.highlightBlock(block);
-          });
-        };
-        worker.postMessage('start');
+    // Async highlight code blocks.
+    var worker = new Worker('/highlight-worker.js');
 
-        // Remove all rest-api-code-dlg moved to body in previews request.
-        $('body > .rest-api-code-dlg').remove();
-
-        // Show dlg with code block.
-        $('.menu-api .dropdown-menu li a').on('click', function (e) {
-          var dlg = $('#' + $(this).data('dlg-id'));
-
-          // Move dialog to document body to resolve incompatibility with the styles in this section.
-          if (!dlg.parent().is('body')) $('body').append(dlg);
-
-          dlg.modal();
-        });
+    worker.onmessage = function (event) {
+      $('.modal-dialog pre.code').each(function (index, block) {
+        hljs.highlightBlock(block);
       });
-    </script>
-<% end %>
+    };
+    worker.postMessage('start');
+
+    // Remove all rest-api-code-dlg moved to body in previews request.
+    $('body > .rest-api-code-dlg').remove();
+
+    // Show dlg with code block.
+    $('.menu-api .dropdown-menu li a').on('click', function (e) {
+      var dlg = $('#' + $(this).data('dlg-id'));
+
+      // Move dialog to document body to resolve incompatibility with the styles in this section.
+      if (!dlg.parent().is('body')) $('body').append(dlg);
+
+      dlg.modal();
+    });
+  });
+</script>
