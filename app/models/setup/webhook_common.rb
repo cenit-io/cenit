@@ -205,7 +205,7 @@ module Setup
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
-        msg[:timeout] = Cenit.request_timeout || 300
+        msg[:timeout] = remaining_request_time
         msg[:verify] = false # TODO: Https verify option by Connection
         if (http_proxy = options[:http_proxy_address])
           msg[:http_proxyaddr] = http_proxy
@@ -214,6 +214,7 @@ module Setup
           msg[:http_proxyport] = http_proxy_port
         end
         begin
+          start_time = Time.current
           http_response = HTTMultiParty.send(method, url, msg)
         rescue Timeout::Error
           http_response = Setup::Webhook::HttpResponse.new(
@@ -235,6 +236,8 @@ module Setup
           )
         rescue Exception => ex
           raise ex
+        ensure
+          remaining_request_time(start_time - Time.current)
         end
         last_response = http_response.body
         http_response = Setup::Webhook::HttpResponse.new(false, http_response) unless http_response.is_a?(Setup::Webhook::HttpResponse)
@@ -295,11 +298,12 @@ module Setup
           attachment: attachment,
           skip_notification_level: options[:skip_notification_level] || options[:notify_request]
         )
-        # msg[:timeout] = Cenit.request_timeout || 300
+        msg[:timeout] = remaining_request_time
         begin
           uri = URI.parse(url)
           process_method = "process_#{uri.scheme}"
           if respond_to?(process_method)
+            start_time = Time.current
             result = send(
               process_method,
               host: uri.host,
@@ -328,6 +332,8 @@ module Setup
           response = Setup::Webhook::Response.new(true, code: :timeout)
         rescue Exception => ex
           raise ex
+        ensure
+          remaining_request_time(start_time - Time.current)
         end
         last_response = response.body
         notification_model.create_with(
@@ -416,7 +422,7 @@ module Setup
     def attachment_from(response)
       if response && (body = response.body)
         file_extension = ((types = MIME::Types[response.content_type]).present? &&
-                         (ext = types.first.extensions.first).present? && '.' + ext) || ''
+          (ext = types.first.extensions.first).present? && '.' + ext) || ''
         {
           filename: response.object_id.to_s + file_extension,
           contentType: response.content_type || 'application/octet-stream',
@@ -424,6 +430,21 @@ module Setup
         }
       else
         nil
+      end
+    end
+
+    REQUEST_TIME_KEY = '[cenit]remaining_request_time'
+
+    DEFAULT_REQUEST_TIMEOUT = 300
+
+    def remaining_request_time(*args)
+      unless (remaining = Thread.current[REQUEST_TIME_KEY])
+        Thread.current[REQUEST_TIME_KEY] = remaining = Cenit.request_timeout || DEFAULT_REQUEST_TIMEOUT
+      end
+      if (delta = args[0])
+        Thread.current[REQUEST_TIME_KEY] = [remaining + delta, 1].max
+      else
+        remaining
       end
     end
 
