@@ -34,6 +34,10 @@ module Mongoff
         file_store.read(self, *args) unless self.new_record?
       end
 
+      def path
+        filename
+      end
+
       def save(options = {})
         if stash_data.nil?
           errors.add(:data, "can't be nil") if new_record?
