@@ -15,7 +15,7 @@ module RailsAdmin
       blocks = ''
       added, deleted =
         if (total = additions + deletions) > 0
-          if (total <= 5)
+          if total <= 5
             [additions, deletions]
           else
             [(additions*100)/total/20, (deletions*100)/total/20]
@@ -62,12 +62,23 @@ module RailsAdmin
       model = abstract_model.model
       context_bindings = { abstract_model: abstract_model }
       changes_set.each do |attr, values|
-        fields_labels <<
-          if (field = model_config._fields.detect { |f| f.name.to_s == attr })
+        field_name = attr
+        metadata = nil
+        if (field = model.fields[attr]) && field.foreign_key?
+          metadata = field.metadata
+          field_name = metadata.name.to_s
+        end
+        label =
+          if (field = model_config._fields.detect { |f| f.name.to_s == field_name })
             field.with(context_bindings).label
           else
-            attr
+            field_name.to_title
           end
+        if metadata
+          label = "#{label} ID"
+          label = "#{label}s" if metadata.many?
+        end
+        fields_labels << label
         fields_diffs <<
           if (relation = model.reflect_on_association(attr))
             if relation.many?
