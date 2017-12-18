@@ -20,22 +20,16 @@ module Setup
 
     validate do
       if type
-        if type.blank?
-          remove_attribute(:type)
-        else
+        unless type.blank?
           errors.add(:type, 'is not valid') unless type_enum.include?(type)
         end
       end
       if required
-        if default.blank?
-          remove_attribute(:default)
-        else
+        unless default.blank?
           errors.add(:default, 'is not allowed')
         end
       else
-        if default.blank?
-          remove_attribute(:default)
-        else
+        unless default.blank?
           if type == 'string'
             self.default = "\"#{default}" unless default.start_with?('"')
             self.default = "#{default}\"" unless default.end_with?('"')
