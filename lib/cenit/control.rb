@@ -7,20 +7,20 @@ module Cenit
       @cenit_action = action
       params = controller.request.params.merge(action.path_params).with_indifferent_access
       {
-         controller: ['app'],
-         action: ['index'],
-         id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
-         app_slug: [app.slug]
+        controller: ['app'],
+        action: ['index'],
+        id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
+        app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
       end
       @action = Struct.new(http_method: action.method,
-                           path: action.request_path,
-                           params: params,
-                           query_parameters: controller.request.query_parameters,
-                           body: controller.request.body,
-                           content_type: controller.request.content_type,
-                           content_length: controller.request.content_length)
+        path: action.request_path,
+        params: params,
+        query_parameters: controller.request.query_parameters,
+        body: controller.request.body,
+        content_type: controller.request.content_type,
+        content_length: controller.request.content_length)
     end
 
     def identifier
@@ -102,6 +102,8 @@ module Cenit
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
         render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
+      elsif @controller.respond_to?(symbol)
+        @controller.send(symbol, *args)
       else
         super
       end
@@ -173,11 +175,11 @@ module Cenit
       end
     end
 
-    attr_reader :action, :app
+    attr_reader :action, :app, :controller
 
     private
 
-    attr_reader :controller, :cenit_action
+    attr_reader :cenit_action
 
     def parse_resource_name(name)
       name, ns = name.split(/::\//).reverse
