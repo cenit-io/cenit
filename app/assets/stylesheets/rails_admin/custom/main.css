@@ -21880,6 +21880,7 @@ ul.subdomain-menu > li a:hover {
 ul.subdomain-menu > li.active > a {
     background-color: #d9edf7;
     color: #31708f ;
+    font-weight: 700;
 }
 
 ul.subdomain-menu > li:first-child > a {
@@ -21923,6 +21924,8 @@ ul.subdomain-menu .sub-menu li a {
 
 ul.subdomain-menu .sub-menu li.active > a {
     font-weight: 700;
+    background-color: #d9edf7;
+    color: #31708f;
 }
 
 ul.subdomain-menu .sub-menu .sub-menu li a {

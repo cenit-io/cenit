@@ -473,7 +473,8 @@ module RailsAdmin
               data[:model] = model_path
               data[:origins] = origins
             end
-            content_tag :li, data: data, class: '' do
+            active = params['model_name']== model_param ? 'active' : ''
+            content_tag :li, data: data, class: active do
               link_to url, class: 'pjax' do
                 rc = ''
 

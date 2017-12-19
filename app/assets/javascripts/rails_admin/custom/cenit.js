@@ -1338,6 +1338,16 @@ var cenit = (function ($) {
                 $('body').removeClass('sidebar-float');
             }
         },
+        update_active_nav_link = function () {
+            var active_model,
+                paths = window.location.pathname.split('/')
+            if (paths.length > 1) {
+                active_model = paths[1]
+            }
+            $('.subdomain-menu li').removeClass('active')
+            $('.subdomain-menu a[href="/'+ active_model +'"]').parent().addClass('active')
+
+        },
 
         registerEvents = function () {
 
@@ -1939,6 +1949,8 @@ var cenit = (function ($) {
                     wheelStep: 5,
                 });
             }
+
+            update_active_nav_link();
         },
 
         // Module exposed functions
