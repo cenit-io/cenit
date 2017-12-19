@@ -63,6 +63,12 @@ module Cenit
       @app.name
     end
 
+    def title
+      alg = algorithm('get_app_title', false)
+      result = alg ? alg.run(self) : false
+      result === false ? @app.name : result
+    end
+
     def render_template(name, locals={})
       get_resource(:translator, name).run(locals.merge(control: self))
     end
