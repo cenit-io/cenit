@@ -18,22 +18,24 @@
   .monitor {
     overflow: visible;
     margin-bottom: 30px;
-    box-shadow: 0 0px 1px #3d4046;
     transition: all 0.3s ease;
     float: left;
     width: 100%;
     height: 69px;
-    background: #c9cacc;
+    background: #1D92AF;
+    border: solid 1px #1d92af;
     .white-back {
       background: white;
-      height: 69px;
+      height: 67px;
     }
     .icon-box {
       font-size: 2em;
-      text-align: center;
-      padding: 15px 5px;
+      display: flex;
+      align-items: center;
+      height: 100%;
       a {
         color: white;
+        margin: auto;
       }
     }
     .options-menu {
@@ -196,7 +198,7 @@
       }
     }
     &:hover {
-      box-shadow: 0 0 4px #3d4046
+      box-shadow: 0 0 4px #1D92AF;
     }
   }
   .traces {
