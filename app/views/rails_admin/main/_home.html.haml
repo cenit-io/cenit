@@ -28,6 +28,5 @@
 = link_to '', id: 'go-up',class:'from-bottom scroll', data: {link: 'top'} do
   %i.fa.fa-arrow-up
 - if TourTrack.show_tour?(request.remote_ip, User.current)
-  = content_for :script do
-    :javascript
-      startTour(anonymous_tour_at_home);
+  :javascript
+    startTour(anonymous_tour_at_home);
