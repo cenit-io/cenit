@@ -84,14 +84,19 @@ Capataz.config do
     :javascript_tag, :label_tag, :field_set_tag, :auto_discovery_link_tag, :favicon_link_tag, :image_tag, :video_tag,
     :audio_tag, :content_tag, :time_tag, :csrf_meta_tag,
 
-    # Cenit session urls helpers
-    :main_app, :session_url, :new_session_url, :destroy_session_url, :registration_url,
-
     # Asset urls helpers
     :asset_url, :javascript_url, :stylesheet_url, :image_url, :video_url, :audio_url, :font_url,
 
+    # Link tags helpers
+    :stylesheet_link_tag, :link_to_previous_page, :link_to_next_page, :strip_links, :link_to, :link_to_if,
+    :favicon_link_tag,
+
+    # App control helpers
+    :application, :namespace, :url_for, :render_template, :data_type, :data_file, :resource,
+    :current_user, :current_account, :sign_in_url, :sign_out_url,
+
     # Other helpers
-    :escape_javascript, :j
+    :escape_javascript, :j, :main_app
   ]
 
   allow_on Setup::Task, [:current, :where, :all]

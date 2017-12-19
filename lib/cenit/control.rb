@@ -63,6 +63,38 @@ module Cenit
       @app.name
     end
 
+    def render_template(name, locals={})
+      get_resource(:translator, name).run(locals.merge(control: self))
+    end
+
+    def data_type(name, throw=true)
+      get_resource(:data_type, name, throw)
+    end
+
+    def resource(name, throw=true)
+      get_resource(:resource, name, throw)
+    end
+
+    def algorithm(name, throw=true)
+      get_resource(:algorithm, name, throw)
+    end
+
+    def data_file(name, throw=true)
+      data_type('Files', throw).where(filename: name).first
+    end
+
+    def current_user
+      alg = algorithm('get_current_user', false)
+      result = alg ? alg.run(self) : false
+      result === false ? controller.current_user : result
+    end
+
+    def current_account
+      alg = algorithm("get_current_account", false)
+      result = alg ? alg.run(self) : false
+      result === false ? current_user.try(:account) : result
+    end
+
     def url_for(path=nil, params=nil)
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
       url = "/app/#{controller.request.params[:id_or_ns]}"
@@ -71,32 +103,16 @@ module Cenit
       url
     end
 
-    def render_template(name, locals={})
-      get_resource(:translator, name).run(locals.merge(control: self))
+    def sign_in_url
+      alg = algorithm("get_sign_in_url", false)
+      result = alg ? alg.run(self) : false
+      result === false ? controller.new_user_session_url : result
     end
 
-    def data_type(name)
-      get_resource(:data_type, name)
-    end
-
-    def resource(name)
-      get_resource(:resource, name)
-    end
-
-    def algorithm(name)
-      get_resource(:algorithm, name)
-    end
-
-    def data_file(name)
-      data_type("#{application}-Files").where(filename: name).first
-    end
-
-    def cenit_user
-      controller.current_user
-    end
-
-    def cenit_account
-      cenit_user.try(:account)
+    def sign_out_url
+      alg = algorithm("get_sign_out_url", false)
+      result = alg ? alg.run(self) : false
+      result === false ? controller.destroy_user_session_url : result
     end
 
     def method_missing(symbol, *args)
@@ -187,10 +203,10 @@ module Cenit
       [name, ns]
     end
 
-    def get_resource(type, name)
+    def get_resource(type, name, throw=true)
       name, ns = parse_resource_name(name)
       item = Cenit.namespace(ns).send(type, name)
-      raise "The (#{ns}::#{name}) #{type.humanize.downcase} was not found." unless item
+      raise "The (#{ns}::#{name}) #{type.humanize.downcase} was not found." if throw && item.nil?
       item
     end
 
