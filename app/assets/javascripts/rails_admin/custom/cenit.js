@@ -1257,28 +1257,6 @@ var cenit = (function ($) {
             $('#main-content-wrapper').css('min-height', $('#left-sidebar').height());
         },
 
-        update_social_position = function () {
-
-            var $related_menu = $('#subdomain-sidebar .widget'),
-                $social = $('.social-links-at-menu'),
-                $header = $('.widget-header'),
-                min_height = parseInt($related_menu.css('min-height')),
-                social_height = parseInt($social.css('height')),
-                header_height = parseInt($header.css('height')),
-                real_height = parseInt($related_menu.find('ul.subdomain-menu').css('height'));
-            min_height = min_height - social_height - header_height - 25;
-            if (real_height > min_height) {
-                if ($social.hasClass('absolute')) {
-                    $social.removeClass('absolute');
-                }
-            } else {
-                if (!$social.hasClass('absolute')) {
-                    $social.addClass('absolute');
-                }
-            }
-
-        },
-
         checkMinified = function () {
             if (!$('.left-sidebar').hasClass('minified')) {
                 setTimeout(function () {
@@ -1337,6 +1315,16 @@ var cenit = (function ($) {
             } else {
                 $('body').removeClass('sidebar-float');
             }
+        },
+        update_active_nav_link = function () {
+            var active_model,
+                paths = window.location.pathname.split('/')
+            if (paths.length > 1) {
+                active_model = paths[1]
+            }
+            $('.subdomain-menu li').removeClass('active')
+            $('.subdomain-menu a[href="/'+ active_model +'"]').parent().addClass('active')
+
         },
 
         registerEvents = function () {
@@ -1609,7 +1597,7 @@ var cenit = (function ($) {
                     $li.find(' > a .toggle-icon').removeClass('fa-angle-left').addClass('fa-angle-down');
                     $li.addClass('active');
                     $li.find(' > ul.sub-menu')
-                        .slideDown(300, update_social_position);
+                        .slideDown(300);
                     if ($subdomain_side_bar_open) {
                         $li.find(' > ul.sub-menu').addClass('open');
                     }
@@ -1619,7 +1607,7 @@ var cenit = (function ($) {
                     $li.find(' > a .toggle-icon').removeClass('fa-angle-down').addClass('fa-angle-left');
                     $li.removeClass('active');
                     $li.find(' > ul.sub-menu')
-                        .slideUp(300, update_social_position);
+                        .slideUp(300);
                     if ($subdomain_side_bar_open) {
                         $li.find('> ul.sub-menu').removeClass('open');
                     }
@@ -1939,6 +1927,8 @@ var cenit = (function ($) {
                     wheelStep: 5,
                 });
             }
+
+            update_active_nav_link();
         },
 
         // Module exposed functions

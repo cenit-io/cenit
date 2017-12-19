@@ -39,11 +39,11 @@
             - ''
           %li
             %a{href: '#', :"data-field-label" => field.label, :"data-field-name" => field.name, :"data-field-options" => field_options.html_safe, :"data-field-type" => field.filter_type, :"data-field-value" => "", :"data-field-datetimepicker-format" => (field.try(:parser) && field.parser.to_momentjs)}= capitalize_first_letter(field.label)
-= content_for :script do
-  :javascript
-    jQuery(function($) {
-    #{ordered_filter_string}
-    });
+
+:javascript
+  jQuery(function($) {
+  #{ordered_filter_string}
+  });
 
 %style
   - properties.select{ |p| p.column_width.present? }.each do |property|

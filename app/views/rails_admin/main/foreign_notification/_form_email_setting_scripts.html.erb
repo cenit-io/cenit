@@ -1,23 +1,22 @@
-<% content_for :script do %>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        var prefixId = '<%= form.object_name.parameterize('_') %>';
 
-        // Connect events to select the email body type.
-        var $eMailTemplate = $('#{0}_body_template_id'.format(prefixId));
+<script type="text/javascript">
+  $(document).ready(function () {
+    var prefixId = '<%= form.object_name.parameterize('_') %>';
 
-        $eMailTemplate.on('change', function (e) {
-          var $eMailBody = $('#{0}_body'.format(prefixId));
+    // Connect events to select the email body type.
+    var $eMailTemplate = $('#{0}_body_template_id'.format(prefixId));
 
-          if ($(this).prop('value') == '') {
-            $eMailBody.prop('disabled', false);
-            $eMailBody.parents('.body_field').show('slow');
-          } else {
-            $eMailBody.prop('disabled', true);
-            $eMailBody.parents('.body_field').hide('slow');
-          }
-        });
-        $eMailTemplate.change();
-      });
-    </script>
-<% end %>
+    $eMailTemplate.on('change', function (e) {
+      var $eMailBody = $('#{0}_body'.format(prefixId));
+
+      if ($(this).prop('value') == '') {
+        $eMailBody.prop('disabled', false);
+        $eMailBody.parents('.body_field').show('slow');
+      } else {
+        $eMailBody.prop('disabled', true);
+        $eMailBody.parents('.body_field').hide('slow');
+      }
+    });
+    $eMailTemplate.change();
+  });
+</script>

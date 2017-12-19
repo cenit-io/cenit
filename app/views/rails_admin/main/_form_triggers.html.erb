@@ -28,8 +28,6 @@
     </ul>
   </div>
 </div>
-<% content_for :script do %>
-    <script type="text/javascript">
-      $('#<%= "#{element_id}" %>').triggers(<%= raw triggers %>)
-    </script>
-<% end %>
+<script type="text/javascript">
+  $('#<%= "#{element_id}" %>').triggers(<%= raw triggers %>)
+</script>
