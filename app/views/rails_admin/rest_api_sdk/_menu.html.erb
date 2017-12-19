@@ -1,11 +1,11 @@
-<div class="dropdown menu-api" id="rest-api">
-  <button class="btn btn-link dropdown-toggle" type="button"
+<li class="dropdown menu-api" id="rest-api">
+  <a class="dropdown-toggle" type="button"
           title="<%= t('admin.actions.rest_api.hint') %>"
           data-toggle="dropdown">
     <span class="text">REST API</span>
     <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu dropdown-menu-right">
+  </a>
+  <ul class="dropdown-menu">
     <% @api_current_paths.each do |path, methods| %>
         <% methods.each do |method, definition| %>
             <li>
@@ -18,7 +18,7 @@
         <% end %>
     <% end %>
   </ul>
-</div>
+</li>
 
 <% @api_current_paths.each do |path, methods| %>
     <% methods.each do |method, definition| %>

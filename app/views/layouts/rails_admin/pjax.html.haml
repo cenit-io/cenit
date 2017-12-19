@@ -6,17 +6,17 @@
 
 - page_slug = @page_name.parameterize
 
-- flash && flash.each do |key, value|
-  .alert{class: flash_alert_class(key)}
-    %a.close{href: '#', :'data-dismiss' => "alert"} &times;
-    = value
 
-= breadcrumb
-
-=render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
-
--if @abstract_model
-  %ul.nav.nav-tabs
-    = menu_for((@object.try(:persisted?) ? :member : :collection) , @abstract_model, @abstract_model && @object, false, Cenit.max_tab_actions_count.to_i.abs)
-    = content_for :contextual_tabs
-= yield
+.fixed-top-area
+  = breadcrumb
+.scrollable-container
+  - flash && flash.each do |key, value|
+    .alert{class: flash_alert_class(key)}
+      %a.close{href: '#', :'data-dismiss' => "alert"} &times;
+      = value
+  -if @abstract_model
+    %ul.nav.nav-tabs
+      = menu_for((@object.try(:persisted?) ? :member : :collection) , @abstract_model, @abstract_model && @object, false, Cenit.max_tab_actions_count.to_i.abs)
+      = content_for :contextual_tabs
+      =render :partial => 'rails_admin/rest_api_sdk/menu' if respond_to?(:api_current_paths) && !api_current_paths.empty?
+  = yield

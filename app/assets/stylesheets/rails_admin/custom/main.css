@@ -14688,12 +14688,12 @@ ul.main-menu > li a {
 ul.main-menu > li a:hover {
     text-decoration: none;
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
 }
 
 ul.main-menu > li.active > a {
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
 }
 
 ul.main-menu > li:first-child > a {
@@ -14774,6 +14774,14 @@ ul.main-menu > li > a,
     z-index: 9;
 }
 
+.left-sidebar.minified .sidebar-scroll .main-nav {
+   overflow: visible;
+}
+
+.left-sidebar.minified .sidebar-scroll {
+    overflow: visible;
+}
+
 .left-sidebar.minified .main-menu > li {
     position: relative;
 }
@@ -14803,16 +14811,18 @@ ul.main-menu > li > a,
     z-index: 9999;
     padding: 13px 10px;
     border: 2px solid #dfdfdf;
-    line-height: 1.5;
+    line-height: 1;
     background: #dfdfdf;
     font-weight: 700;
     opacity: 1 !important;
 }
+
 .left-sidebar.minified .main-menu > li:hover > a {
     text-decoration: none;
     background-color: #d9edf7;
     color: #31708f;
 }
+
 .left-sidebar.minified .main-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
@@ -14831,8 +14841,6 @@ ul.main-menu > li > a,
 .left-sidebar.sidebar-hide-left {
     left: -230px;
 }
-
-
 
 .related-sidebar {
     -webkit-transition: all 0.3s ease-in-out;
@@ -14886,16 +14894,18 @@ ul.main-menu > li > a,
     z-index: 9999;
     padding: 13px 10px;
     border: 2px solid #dfdfdf;
-    line-height: 1.5;
+    line-height: 1;
     background: #dfdfdf;
     font-weight: 700;
     opacity: 1 !important;
 }
+
 .related-sidebar.minified .subdomain-menu > li:hover > a {
     text-decoration: none;
     background-color: #d9edf7;
     color: #31708f;
 }
+
 .related-sidebar.minified .subdomain-menu > li:hover > ul.sub-menu {
     display: block !important;
     min-width: 200px;
@@ -15434,7 +15444,7 @@ body.sidebar-float .content-wrapper {
 }
 
 .widget {
-    margin-bottom:0;
+    margin-bottom: 0;
     background-color: #f9f9f9;
     border-top: solid 1px white;
     border-right: solid 1px lightgrey;
@@ -16375,7 +16385,9 @@ fieldset {
 
 .btn i {
     margin-right: 3px;
+    line-height: 1.42857143;
 }
+
 
 .btn.active.focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn:active:focus, .btn:focus {
     outline: none;
@@ -21801,12 +21813,12 @@ ul.subdomain-menu > li a {
 ul.subdomain-menu > li a:hover {
     text-decoration: none;
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
 }
 
 ul.subdomain-menu > li.active > a {
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
 }
 
 ul.subdomain-menu > li:first-child > a {
@@ -21853,11 +21865,15 @@ ul.subdomain-menu .sub-menu li.active > a {
 
 ul.subdomain-menu .sub-menu .sub-menu li a {
     padding-left: 50px;
-}/* main menu */
+}
+
+/* main menu */
 ul.subdomain-menu {
     padding-left: 0;
     list-style-type: none;
     margin-bottom: 0;
+    height: calc(100vh - 91px);
+    overflow-y: auto;
 }
 
 ul.subdomain-menu > li a {
@@ -21874,12 +21890,12 @@ ul.subdomain-menu > li a {
 ul.subdomain-menu > li a:hover {
     text-decoration: none;
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
 }
 
 ul.subdomain-menu > li.active > a {
     background-color: #d9edf7;
-    color: #31708f ;
+    color: #31708f;
     font-weight: 700;
 }
 

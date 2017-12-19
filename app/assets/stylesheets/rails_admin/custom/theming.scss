@@ -273,7 +273,8 @@ ul.drawer li a span {
   position: relative;
   background: #3d4046;
   padding-top: 50px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #wrapper.toggled {
@@ -350,13 +351,13 @@ ul.drawer li a span {
 #content-wrapper {
   background: #f9f9f9;
   padding: 0;
-  overflow: auto;
-  min-height: calc(100vh - 50px);
+  height: calc(100vh - 50px);
   width: 100%;
   aside {
-    width: 16.66666667%;
+    width: 17.66666667%;
     float: left;
     transition: all 0.3s ease-in-out;
+    height: calc(100vh - 50px);
     #toggle-subdomain-menu {
       text-decoration: none;
       padding-top: 0;
@@ -379,6 +380,10 @@ ul.drawer li a span {
     }
     &.minified {
       width: 40px;
+      overflow: visible;
+      ul.subdomain-menu {
+        overflow: visible;
+      }
       #toggle-subdomain-menu:after {
         font-family: FontAwesome;
         content: '\f065';
@@ -407,11 +412,13 @@ ul.drawer li a span {
   background: white;
   overflow-y: scroll;
   border-left: solid 1px lightgray;
-  min-height: calc(100vh - 50px);
+  height: calc(100vh - 50px);
 
   .alert {
     padding: 11px 15px;
-    margin: 0 -15px 0 -15px;
+    padding: 11px 15px;
+    margin: 0;
+    margin-bottom: 15px;
     .close {
       position: relative;
       top: -3px;
@@ -4070,14 +4077,21 @@ span.nav-amount {
   border-radius: 0;
   border-bottom: solid 1px lightgray;
   background: #f9f9f9;
-  margin-top: 1px;
+  margin-top: 0;
   margin-left: -15px;
   margin-right: -15px;
-  height: 42px;
+  height: 43px;
+  border-top: solid 2px white;
 }
 
 .sidebar-scroll {
   border-top: solid 1px white;
+  height: calc(100vh - 91px);
+  .main-nav {
+    height: calc(100vh - 197px);
+    overflow-y: auto;
+  }
+
 }
 
 .ui-widget-content {
@@ -4117,10 +4131,21 @@ span.nav-amount {
   }
 }
 
+.left-sidebar.minified {
+  .social-links-at-menu {
+    padding: 0;
+    span {
+      display: none;
+    }
+  }
+}
+
 .social-links-at-menu {
   overflow: auto;
-  margin-top: 25px;
-  bottom: 15px;
+  padding: 25px 0;
+  bottom: 0;
+  text-align: center;
+  color: white;
 
   &.absolute {
     position: absolute;
@@ -4168,4 +4193,14 @@ button#toogle-submenu-header {
       content: '\f077';
     }
   }
+}
+
+.fixed-top-area {
+  position: absolute;
+  width: 100%;
+  z-index: 1029;
+}
+
+.scrollable-container {
+  margin-top: 60px;
 }
