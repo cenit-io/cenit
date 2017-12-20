@@ -15,7 +15,7 @@
   #grid-wrapper
     .row.add-clearfix
       - @objects.each_with_index do |object_root, index|
-        - object = object_root['versions'][object_root['preferred']]
+        - object = (preferred = object_root['preferred']) ? object_root['versions'][preferred] : object_root['versions'].values.first
         - object_info = object['info'] || {}
         - x_logo = object_info['x-logo'] || {}
         .col-xs-6.col-sm-4.col-md-3
@@ -47,7 +47,7 @@
                         =updated
                   .col-xs-6.version
                     %span
-                      = "v #{object_root['preferred']}"
+                      = "v #{object_info['version']}"
                   .col-xs-4.col-xs-offset-4
                     =link_to open_api_directory_path(id: object_root['id']), class: 'pjax' do
                       %i.fa.fa-download

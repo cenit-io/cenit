@@ -1,5 +1,5 @@
 .well.col-xs-12.api-details
-  - object = @object['versions'][@object['preferred']]
+  - object = (preferred = @object['preferred']) ? @object['versions'][preferred] : @object['versions'].values.first
   - object_info = object['info'] || {}
   - x_logo = object_info['x-logo'] || {}
   - x_origin =  object_info['x-origin'].first
@@ -75,7 +75,7 @@
       = t('admin.actions.remote_shared_collection.go_back')
     %h3
       = object_info['title'].presence || @object['id'].to_title
-      %span= object_info['x-release'].presence || @object['preferred']
+      %span= object_info['x-release'].presence || @object['preferred'] || object_info['version']
     %h5
       %span
         ="#{'Added'}: "

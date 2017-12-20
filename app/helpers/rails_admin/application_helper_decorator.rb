@@ -1100,7 +1100,7 @@ module RailsAdmin
       end
       apis = apis.collect do |key, api|
         api['id'] = key
-        info = api['versions'][api['preferred']]['info'] || {}
+        info = api_info(api)
         cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
         api
       end
@@ -1117,7 +1117,7 @@ module RailsAdmin
         end
       else
         apis.select! do |api|
-          info = api['versions'][api['preferred']]['info']
+          info = api_info(api)
           api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
           query.all? do |token|
             api['id'].to_s.downcase[token] ||
@@ -1153,7 +1153,7 @@ module RailsAdmin
       apis = load_apis_specs
       apis = apis.collect do |key, api|
         api['id'] = key
-        info = api['versions'][api['preferred']]['info'] || {}
+        info = api_info(api)
         cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
         api
       end
@@ -1176,6 +1176,14 @@ module RailsAdmin
         end
       end
       { total: apis.count, categories: categories_count }
+    end
+
+    def api_info(api)
+      if (preferred = api['preferred'])
+        api['versions'][preferred]
+      else
+        api['versions'].values.first
+      end['info'] || {}
     end
 
     def process_context(opts = {})
