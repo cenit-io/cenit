@@ -63,8 +63,8 @@ module Setup
           connections << connection
         end
         @connections_cache = connections unless @connection_role_options &&
-                                                @connection_role_options.key?(:cache) &&
-                                                !@connection_role_options[:cache]
+          @connection_role_options.key?(:cache) &&
+          !@connection_role_options[:cache]
         connections
       end
     end
@@ -139,11 +139,11 @@ module Setup
             uri = URI.parse(url)
 
             last_response = case uri.scheme
-            when nil, '', 'http', 'https'
-              process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
-            else
-              process_connection(template_parameters, verbose_response, last_response, options, &block)
-            end
+                            when nil, '', 'http', 'https'
+                              process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
+                            else
+                              process_connection(template_parameters, verbose_response, last_response, options, &block)
+                            end
           else
             notification_model.create(message: "Invalid submit data type: #{submitter_body.class}")
           end
@@ -185,14 +185,15 @@ module Setup
 
         if body
           if (attachment_body = body).is_a?(Hash)
-            attachment_body.each do |key, value|
-              attachment_body[key] =
-                if value.respond_to?(:default_hash)
-                  value.default_hash
-                else
-                  value
-                end
-            end
+            attachment_body = attachment_body.collect do |key, value|
+              [
+                key, if value.respond_to?(:default_hash)
+                       value.default_hash
+                     else
+                       value
+                     end
+              ]
+            end.to_h
             attachment_body = JSON.pretty_generate(attachment_body)
           end
           attachment = {
@@ -207,11 +208,11 @@ module Setup
           attachment = nil
         end
         notification_model.create_with(message: JSON.pretty_generate(method: method,
-                                                                     url: url,
-                                                                     headers: headers),
-                                       type: :notice,
-                                       attachment: attachment,
-                                       skip_notification_level: options[:skip_notification_level] || options[:notify_request])
+          url: url,
+          headers: headers),
+          type: :notice,
+          attachment: attachment,
+          skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
