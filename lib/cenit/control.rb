@@ -212,7 +212,7 @@ module Cenit
     def get_resource(type, name, throw=true)
       name, ns = parse_resource_name(name)
       item = Cenit.namespace(ns).send(type, name)
-      raise "The (#{ns}::#{name}) #{type.humanize.downcase} was not found." if throw && item.nil?
+      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
       item
     end
 
