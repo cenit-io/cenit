@@ -92,7 +92,7 @@ Capataz.config do
     :favicon_link_tag,
 
     # App control helpers
-    :application, :namespace, :title, :url_for, :render_template, :data_type, :data_file, :resource,
+    :application, :namespace, :title, :url_for, :app_url, :render_template, :data_type, :data_file, :resource,
     :current_user, :current_account, :sign_in_url, :sign_out_url,
 
     # Other helpers

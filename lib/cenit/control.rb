@@ -101,7 +101,7 @@ module Cenit
       result === false ? current_user.try(:account) : result
     end
 
-    def url_for(path=nil, params=nil)
+    def app_url(path=nil, params=nil)
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
       url = "/app/#{controller.request.params[:id_or_ns]}"
       url << "/#{path.gsub(/^\/+|\/+$/, '')}" unless path.blank?
