@@ -302,7 +302,7 @@ module Setup
                 { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
               end
             else
-              collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+              collection.send(r.name).collect { |record| record.shared? ? { _id: record.id.to_s } : record.share_hash(opts) }
             end
           else
             collection.send(r.name).collect { |record| record.share_hash(opts) }
