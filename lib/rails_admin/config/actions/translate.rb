@@ -6,8 +6,11 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model rescue nil
-            model.try(:data_type).present?
+            begin
+              bindings[:abstract_model].model.data_type.present?
+            rescue
+              false
+            end
           else
             false
           end
@@ -31,16 +34,16 @@ module RailsAdmin
               if (data = params[translation_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 if (@form_object = Forms::TransformationSelector.new(translator_type: translator_type,
-                                                                     bulk_source: bulk_source,
-                                                                     data_type: data_type,
-                                                                     translator: translator,
-                                                                     options: data[:options])).valid?
+                  bulk_source: bulk_source,
+                  data_type: data_type,
+                  translator: translator,
+                  options: data[:options])).valid?
                   begin
                     do_flash_process_result Setup::Translation.process(translator_id: translator.id,
-                                                                       bulk_ids: @bulk_ids,
-                                                                       data_type_id: data_type.id,
-                                                                       skip_notification_level: true,
-                                                                       options: @form_object.options)
+                      bulk_ids: @bulk_ids,
+                      data_type_id: data_type.id,
+                      skip_notification_level: true,
+                      options: @form_object.options)
                     done = true
                   rescue Exception => ex
                     flash[:error] = ex.message
@@ -53,9 +56,9 @@ module RailsAdmin
             else
               @model_config = translation_config
               @form_object ||= Forms::TransformationSelector.new(translator_type: translator_type,
-                                                                 bulk_source: bulk_source,
-                                                                 data_type: data_type,
-                                                                 translator: translator)
+                bulk_source: bulk_source,
+                data_type: data_type,
+                translator: translator)
               if @form_object.errors.present?
                 do_flash_now(:error, "There are errors in the #{@action.class.translator_type.to_s.downcase} data specification", @form_object.errors.full_messages)
               end

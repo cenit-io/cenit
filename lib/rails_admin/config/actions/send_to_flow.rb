@@ -5,10 +5,11 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model rescue nil
-            model && (data_type = model.try(:data_type)).present?
-            #TODO Set send to flow action visible only if there is a flow
-            # Setup::Flow.where(data_type: data_type).present?
+            begin
+              bindings[:abstract_model].model.data_type.present?
+            rescue
+              false
+            end
           else
             false
           end
@@ -34,10 +35,10 @@ module RailsAdmin
               if (select_data = params[selector_config.abstract_model.param_key])
                 flow = Setup::Flow.where(id: select_data[:flow_id]).first
                 if (@form_object = Forms::FlowSelector.new(flow: flow,
-                                                           data_type: data_type)).valid?
+                  data_type: data_type)).valid?
                   begin
                     do_flash_process_result flow.process(object_ids: @bulk_ids,
-                                                         data_type_id: data_type.id.to_s)
+                      data_type_id: data_type.id.to_s)
                     render_form = false
                   rescue Exception => ex
                     flash[:error] = ex.message

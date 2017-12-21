@@ -8,7 +8,7 @@ module RailsAdmin
         end
 
         register_instance_option :visible? do
-          authorized? && bindings[:object] && bindings[:object].can_schedule?
+          authorized? && (obj = bindings[:object]) && obj.can_schedule?
         end
 
         register_instance_option :member do

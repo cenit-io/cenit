@@ -9,8 +9,11 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model rescue nil
-            model.try(:data_type).present?
+            begin
+              bindings[:abstract_model].model.data_type.present?
+            rescue
+              false
+            end
           else
             false
           end
@@ -37,10 +40,10 @@ module RailsAdmin
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 decompress = data[:decompress_content].to_b
                 if (@form_object = Forms::ImportTranslatorSelector.new(translator: translator,
-                                                                       data_type: data_type_selector,
-                                                                       options: data[:options],
-                                                                       file: (file = data[:file]),
-                                                                       data: (data = data[:data]))).valid?
+                  data_type: data_type_selector,
+                  options: data[:options],
+                  file: (file = data[:file]),
+                  data: (data = data[:data]))).valid?
                   begin
                     msg =
                       {

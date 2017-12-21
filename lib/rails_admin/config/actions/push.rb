@@ -4,7 +4,7 @@ module RailsAdmin
       class Push < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible do
-          authorized? && Setup::CrossSharedCollection.where(name: bindings[:object].name).exists?
+          authorized? && (obj = bindings[:object]) && Setup::CrossSharedCollection.where(name: obj.name).exists?
         end
         register_instance_option :only do
           Setup::Collection
