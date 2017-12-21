@@ -5,7 +5,7 @@ module Forms
     include AccountScoped
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    belongs_to :translator, class_name: Setup::Parser.to_s, inverse_of: nil
 
     validates_presence_of :translator
 
@@ -14,12 +14,10 @@ module Forms
       register_instance_option(:discard_submit_buttons) { true }
       edit do
         field :translator do
-          inline_edit false
-          inline_add false
-          associated_collection_scope do
-            limit = (associated_collection_cache_all ? nil : 30)
-            data_type = bindings[:object].try(:data_type)
-            Proc.new { |scope| scope.any_in(target_data_type: [nil, data_type]).and(type: :Import).limit(limit) }
+          contextual_params do
+            if (dt = bindings[:object].data_type)
+              { target_data_type_id: [nil, dt.id] }
+            end
           end
         end
 

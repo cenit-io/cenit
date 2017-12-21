@@ -12,7 +12,6 @@ module RailsAdmin
           if abstract_model.model == ::Setup::CrossSharedCollection
             configure :readme, :html_erb
             configure :pull_data, :json_value
-            configure :data, :json_value
             configure :swagger_spec, :json_value
           end
 
@@ -78,10 +77,6 @@ module RailsAdmin
           end
 
           configure :schemas do
-            group :data
-          end
-
-          configure :data do
             group :data
           end
 
@@ -213,7 +208,6 @@ module RailsAdmin
             field :oauth_providers, &SHARING_INVISIBLE
             field :oauth_clients, &SHARING_INVISIBLE
             field :oauth2_scopes, &SHARING_INVISIBLE
-            field :data, &SHARING_INVISIBLE
             field :metadata, :json_value, &SHARING_INVISIBLE
           end
 
@@ -345,7 +339,6 @@ module RailsAdmin
                   value.count > 0 ? value.count : '-'
                 end
               end
-              field :data
               field :updated_at
             end
           end

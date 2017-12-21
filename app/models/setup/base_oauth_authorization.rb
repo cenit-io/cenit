@@ -42,6 +42,14 @@ module Setup
       client && client.provider
     end
 
+    def authorization_endpoint
+      provider && template_value_of(provider.authorization_endpoint)
+    end
+
+    def token_endpoint
+      provider && template_value_of(provider.token_endpoint)
+    end
+
     def fresh_access_token
       (p = provider) && p.refresh_token(self)
     end

@@ -61,7 +61,7 @@ en:
         cross_shared_collection: 'eCommerce'
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
-      link_cross_shared_collection: 'Connect Store'
+      link_cross_shared_collection: 'Integration'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
       add: 'Add'
