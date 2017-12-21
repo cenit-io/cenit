@@ -203,6 +203,7 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         next unless (model = r.klass).include?(Setup::CrossOriginShared)
+        criteria = criteria.merge(:origin.ne => :default) if model == Setup::RemoteOauthClient
         model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_traced_ids|
           next unless non_traced_ids.present?
           Account.each do |account|

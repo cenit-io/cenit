@@ -12,6 +12,10 @@ module Setup
     auth_template_parameters oauth_token: ->(oauth_auth) { oauth_auth.fresh_access_token },
                              oauth_token_secret: :access_token_secret
 
+    def request_token_endpoint
+      provider && template_value_of(provider.request_token_endpoint)
+    end
+
     def build_auth_header(template_parameters)
       self.class.auth_header(template_parameters.reverse_merge(consumer_key: client.get_identifier,
                                                                consumer_secret: client.get_secret,
@@ -27,9 +31,9 @@ module Setup
       if (http_proxy = Cenit.http_proxy)
         options[:proxy] ||= http_proxy
       end
-      options[:request_token_url] ||= provider.request_token_endpoint
-      options[:authorize_url] ||= provider.authorization_endpoint
-      options[:access_token_url] ||= provider.token_endpoint
+      options[:request_token_url] ||= request_token_endpoint
+      options[:authorize_url] ||= authorization_endpoint
+      options[:access_token_url] ||= token_endpoint
       OAuth::Consumer.new(client.get_identifier, client.get_secret, options)
     end
 

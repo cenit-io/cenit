@@ -5,8 +5,11 @@ module RailsAdmin
 
         register_instance_option :visible? do
           if authorized?
-            model = bindings[:abstract_model].model rescue nil
-            model.try(:data_type).present?
+            begin
+              bindings[:abstract_model].model.data_type.present?
+            rescue
+              false
+            end
           else
             false
           end
