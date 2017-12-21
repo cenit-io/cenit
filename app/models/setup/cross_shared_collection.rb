@@ -51,7 +51,7 @@ module Setup
     field :logo_background, type: String
 
     field :installed, type: Boolean, default: false
-    field :pull_asynchronous, type: Boolean, default: false
+    field :pull_asynchronous, type: Boolean, default: true
 
     before_validation do
       self.shared_version ||= '0.0.1'
