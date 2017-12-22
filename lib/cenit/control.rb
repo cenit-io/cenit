@@ -1,6 +1,8 @@
 module Cenit
   class Control
 
+    attr_reader :action, :app, :controller
+
     def initialize(app, controller, action)
       @app = app
       @controller = controller
@@ -109,16 +111,18 @@ module Cenit
       url
     end
 
-    def sign_in_url
+    def sign_in_url(return_to = nil)
+      return_to ||= app_url(@action.path) if @action.http_method == :get
       alg = algorithm("get_sign_in_url", false)
       result = alg ? alg.run(self) : false
-      result === false ? controller.new_user_session_url : result
+      result === false ? controller.new_user_session_url(return_to: return_to) : result
     end
 
-    def sign_out_url
+    def sign_out_url(return_to = nil)
+      return_to ||= app_url(@action.path) if @action.http_method == :get
       alg = algorithm("get_sign_out_url", false)
       result = alg ? alg.run(self) : false
-      result === false ? controller.destroy_user_session_url : result
+      result === false ? controller.destroy_user_session_url(return_to: return_to) : result
     end
 
     def cache_store
@@ -204,8 +208,6 @@ module Cenit
         fail 'Invalid authorization scope'
       end
     end
-
-    attr_reader :action, :app, :controller
 
     private
 

@@ -10,9 +10,9 @@ class SessionsController < Devise::SessionsController
         end.to_json
       client = OAuth2::Client.new(ENV['OPEN_ID_CLIENT_ID'], ENV['OPEN_ID_CLIENT_SECRET'], authorize_url: ENV['OPEN_ID_AUTH_URL'])
       redirect_to client.auth_code.authorize_url(scope: 'openid',
-                                                 redirect_uri: ENV['OPEN_ID_REDIRECT_URI'],
-                                                 state: state,
-                                                 with: provider)
+        redirect_uri: ENV['OPEN_ID_REDIRECT_URI'],
+        state: state,
+        with: provider)
     elsif (code = params[:code])
       client = OAuth2::Client.new(ENV['OPEN_ID_CLIENT_ID'], ENV['OPEN_ID_CLIENT_SECRET'], token_url: ENV['OPEN_ID_TOKEN_URL'])
       token = nil
@@ -40,6 +40,10 @@ class SessionsController < Devise::SessionsController
         super
       end
     else
+      if params[:return_to]
+        resource = resource_class.new(sign_in_params)
+        store_location_for(resource, params[:return_to])
+      end
       super
     end
   end
