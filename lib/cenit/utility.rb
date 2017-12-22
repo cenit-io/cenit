@@ -72,36 +72,35 @@ module Cenit
             references[obj] = record_refs
           end
         end
-        start_size = references.size + 1
-        while references.present? && references.size < start_size
-          start_size = references.size
-          options[:visited].each do |obj|
-            references.each do |obj_waiting, to_bind|
-              to_bind.each do |property_name, property_binds|
-                is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
-                property_binds.each do |property_bind|
-                  if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
-                    if is_array
-                      unless (array_property = obj_waiting.send(property_name))
-                        obj_waiting.send("#{property_name}=", array_property = [])
+
+        visited = options.delete(:visited)
+
+        while_modifying references do
+          while_modifying references do
+            visited.each do |obj|
+              references.each do |obj_waiting, to_bind|
+                to_bind.each do |property_name, property_binds|
+                  is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
+                  property_binds.each do |property_bind|
+                    if obj.is_a?(property_bind[:model]) && match?(obj, property_bind[:criteria])
+                      if is_array
+                        unless (array_property = obj_waiting.send(property_name))
+                          obj_waiting.send("#{property_name}=", array_property = [])
+                        end
+                        array_property << obj
+                      else
+                        obj_waiting.send("#{property_name}=", obj)
                       end
-                      array_property << obj
-                    else
-                      obj_waiting.send("#{property_name}=", obj)
+                      property_binds.delete(property_bind)
                     end
-                    property_binds.delete(property_bind)
+                    to_bind.delete(property_name) if property_binds.empty?
                   end
-                  to_bind.delete(property_name) if property_binds.empty?
+                  references.delete(obj_waiting) if to_bind.empty?
                 end
-                references.delete(obj_waiting) if to_bind.empty?
               end
             end
           end
-        end
 
-        options.delete(:visited)
-
-        if references.present?
           references.each do |obj, to_bind|
             to_bind.each do |property_name, property_binds|
               is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
@@ -132,6 +131,14 @@ module Cenit
           end
         end
         record.errors.blank?
+      end
+
+      def while_modifying(hash)
+        start_size = hash.size + 1
+        while hash.present? && hash.size < start_size
+          start_size = hash.size
+          yield
+        end
       end
 
       def match?(obj, criteria)

@@ -133,7 +133,7 @@ module Setup
 
     def validates_pull_parameters
       with_errors = false
-      data = self[installed ? :pull_data : :data]
+      data = send(installed ? :pull_data : :data)
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(data)
         with_errors ||= pull_parameter.errors.present?
