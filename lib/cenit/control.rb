@@ -121,6 +121,14 @@ module Cenit
       result === false ? controller.destroy_user_session_url : result
     end
 
+    def cache_store
+      @cache_store ||= ActiveSupport::Cache.lookup_store(:file_store, "#{Rails.root}/tmp/cache/#{@app.slug_id}")
+    end
+
+    def cache(key, options = {}, &block)
+      cache_store.fetch(key, options, &block)
+    end
+
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Arender_(.+)\Z/))
         render "cenit/#{match[1]}", locals: args[0] || {}, layout: 'cenit'
