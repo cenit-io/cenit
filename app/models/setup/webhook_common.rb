@@ -181,7 +181,6 @@ module Setup
       begin
         conformed_path += '?' + query if query.present?
         url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
-        url = url.gsub('/?', '?')
 
         if body
           if (attachment_body = body).is_a?(Hash)
