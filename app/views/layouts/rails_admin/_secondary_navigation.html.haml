@@ -44,9 +44,9 @@
             = format_name(_current_user.account.name)
           %span.caret
         %ul#tenant-menu.dropdown-menu
+          - count_tenants = _current_user.all_accounts.count
           .tenants
             - tenant_list = []
-            - count_tenants = _current_user.all_accounts.count
             - _current_user.all_accounts.each do |a|
               - name =  format_name(a.name)
               - if a != _current_user.account
@@ -55,7 +55,8 @@
           %script
             load_tenant_list(#{raw tenant_list});
           - if (new_action = action(:new, acc_am))
-            %li.divider{role:'separator'}
+            - if count_tenants > 1 
+              %li.divider{role:'separator'}
             - if count_tenants > 30
               %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
             .actions.clearfix
