@@ -71,6 +71,10 @@ module Setup
       false
     end
 
+    def tenant_version
+      self
+    end
+
     class << self
 
       def init!

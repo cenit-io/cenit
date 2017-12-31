@@ -86,6 +86,10 @@ module Cenit
         def tracing?
           self.class.data_type.trace_on_default && super
         end
+
+        def set_association_values(association_name, values)
+          send("#{association_name}=", values)
+        end
       end
 
       Cenit::Notebooks.startup if Cenit.jupyter_notebooks
