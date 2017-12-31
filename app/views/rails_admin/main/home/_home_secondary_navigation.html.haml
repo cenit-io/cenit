@@ -74,33 +74,25 @@
             %a#do-user.btn.btn-xs.pull-left{href: '#'}
               =t('admin.registration.sign')
   = render partial: 'shared/socials'
-- unless _current_user.present?
-- query = params[:query]
-%ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
-  %li#navbar-search
-    - shared_path = index_path(model_name: 'cross_shared_collection')
-    = form_tag(shared_path, method: :get) do
-      %input.navbar-brand{name: 'query', type: 'search', value: query, placeholder: t('admin.misc.shared_collections')}
-      %button#search-toggle.btn.a.navbar-brand.toggle-btn
-        %i.fa.fa-fw.fa-search
+
 %ul.nav.navbar-nav.navbar-right#home-nav
-%li.dropdown
-  = link_to 'Services','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
-  %ul.sub-menu.explore
-    - home_services_menu.each do |i|
-      %li
-        = link_to i[:url], title: i[:title], target: '_blank' do
-          = content_tag :i,'', class: i[:icon],'aria-hidden': true
-          = content_tag :span, i[:title]
-%li.dropdown
-  = link_to 'Explore','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
-  %ul.sub-menu.explore
-    - home_explore_menu.each do |i|
-      %li
-        = link_to i[:url], title: i[:title], target: '_blank' do
-          = content_tag :i,'', class: i[:icon],'aria-hidden': true
-          = content_tag :span, i[:title]
-%li
-  = link_to 'App Integrations', '#' ,class:'scroll', data: {link: 'integrations'}
-%li
-  = link_to 'Features', '#' ,class:'scroll', data: {link: 'features'}
+  %li.dropdown
+    = link_to 'Services','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
+    %ul.sub-menu.explore
+      - home_services_menu.each do |i|
+        %li
+          = link_to i[:url], title: i[:title], target: '_blank' do
+            = content_tag :i,'', class: i[:icon],'aria-hidden': true
+            = content_tag :span, i[:title]
+  %li.dropdown
+    = link_to 'Explore','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
+    %ul.sub-menu.explore
+      - home_explore_menu.each do |i|
+        %li
+          = link_to i[:url], title: i[:title], target: '_blank' do
+            = content_tag :i,'', class: i[:icon],'aria-hidden': true
+            = content_tag :span, i[:title]
+  %li
+    = link_to 'App Integrations', '#' ,class:'scroll', data: {link: 'integrations'}
+  %li
+    = link_to 'Features', '#' ,class:'scroll', data: {link: 'features'}
