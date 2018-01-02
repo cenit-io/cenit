@@ -10,13 +10,18 @@
           %i.fa.fa-ellipsis-v
         %ul.dropdown-menu
           = menu_for :member, @tracer_abstract_model, target
+    - if User.current_super_admin?
+      - url = url_for(action: :show, controller: 'rails_admin/main', id: @trace.id, pin: true)
+      =link_to  url, class: 'btn btn-info btn-xs pjax', style: 'margin-left:60px' do
+        ='Pin this version'
+        %i.fa.fa-flag
   -else
     %span
       %span.label.label-default
         ="#{@tracer_model_config.label}"
       %span.object-id.text-danger
         ="##{@trace.target_id}"
-      - url = url_for(action: :show, controller: 'rails_admin/main', model: @tracer_abstract_model.to_param, id: @trace.id, try_recover: true)
+      - url = url_for(action: :show, controller: 'rails_admin/main', id: @trace.id, try_recover: true)
       =link_to  url, class: 'btn btn-warning btn-xs pjax' do
         ='Try Recover'
         %i.fa.fa-life-ring

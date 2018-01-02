@@ -159,7 +159,7 @@ module RailsAdmin
         end
 
         def show_values(limit = 10)
-          if (v = bindings[:object].try(association.name, limit: limit) || bindings[:object].send(association.name))
+          if (v = bindings[:object].try(association.name) || bindings[:object].send(association.name))
             if v.is_a?(Enumerable)
               total = v.size
               if total > limit
