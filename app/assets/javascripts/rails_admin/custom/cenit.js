@@ -1827,7 +1827,7 @@ var cenit = (function ($) {
 
                 var forms = $(parent).find('form');
                 $(forms).each(function () {
-                    $(this).find("input, button")
+                    $(this).find("input, button").not(':hidden')
                         .prop("disabled", true);
                 });
 
