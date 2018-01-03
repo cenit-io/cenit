@@ -93,7 +93,7 @@ Capataz.config do
 
     # App control helpers
     :application, :namespace, :title, :url_for, :app_url, :render_template, :data_type, :data_file, :resource,
-    :current_user, :current_account, :sign_in_url, :sign_out_url,
+    :current_user, :current_account, :sign_in_url, :sign_out_url, :can?, :cannot?,
 
     # Other helpers
     :escape_javascript, :j, :main_app

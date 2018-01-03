@@ -1,5 +1,6 @@
 module Cenit
   class Control
+    include CanCan::Ability
 
     attr_reader :action, :app, :controller
 
@@ -8,6 +9,7 @@ module Cenit
       @controller = controller
       @cenit_action = action
       params = controller.request.params.merge(action.path_params).with_indifferent_access
+
       {
         controller: ['app'],
         action: ['index'],
@@ -16,13 +18,17 @@ module Cenit
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
       end
+
       @action = Struct.new(http_method: action.method,
         path: action.request_path,
         params: params,
         query_parameters: controller.request.query_parameters,
         body: controller.request.body,
         content_type: controller.request.content_type,
-        content_length: controller.request.content_length)
+        content_length: controller.request.content_length
+      )
+
+      set_abilities
     end
 
     def identifier
@@ -66,7 +72,7 @@ module Cenit
     end
 
     def title
-      alg = algorithm('get_app_title', false)
+      alg = algorithm(:get_app_title, false)
       result = alg ? alg.run(self) : false
       result === false ? @app.name : result
     end
@@ -92,13 +98,13 @@ module Cenit
     end
 
     def current_user
-      alg = algorithm('get_current_user', false)
+      alg = algorithm(:get_current_user, false)
       result = alg ? alg.run(self) : false
       result === false ? controller.current_user : result
     end
 
     def current_account
-      alg = algorithm("get_current_account", false)
+      alg = algorithm(:get_current_account, false)
       result = alg ? alg.run(self) : false
       result === false ? current_user.try(:account) : result
     end
@@ -113,14 +119,14 @@ module Cenit
 
     def sign_in_url(return_to = nil)
       return_to ||= app_url(@action.path) if @action.http_method == :get
-      alg = algorithm("get_sign_in_url", false)
+      alg = algorithm(:get_sign_in_url, false)
       result = alg ? alg.run(self) : false
       result === false ? controller.new_user_session_url(return_to: return_to) : result
     end
 
     def sign_out_url(return_to = nil)
       return_to ||= app_url(@action.path) if @action.http_method == :get
-      alg = algorithm("get_sign_out_url", false)
+      alg = algorithm(:get_sign_out_url, false)
       result = alg ? alg.run(self) : false
       result === false ? controller.destroy_user_session_url(return_to: return_to) : result
     end
@@ -213,8 +219,13 @@ module Cenit
 
     attr_reader :cenit_action
 
+    def set_abilities
+      alg = algorithm(:set_abilities, false)
+      alg.run([self, current_user]) if alg.present?
+    end
+
     def parse_resource_name(name)
-      name, ns = name.split(/::\//).reverse
+      name, ns = name.to_s.split(/::\//).reverse
       ns ||= @app.namespace
       [name, ns]
     end
