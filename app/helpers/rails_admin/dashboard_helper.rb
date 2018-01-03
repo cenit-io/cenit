@@ -141,13 +141,13 @@ module RailsAdmin
       url = '/task'
       filter = 'status'
       actions = [{ label: 'failed', class: 'failed', value: tasks[:failed], description: 'failed', url: filter_url(am, filter, :failed) },
-                 { label: 'broken', class: 'broken', value: tasks[:broken], description: 'broken', url: filter_url(am, filter, :broken) },
-                 { label: 'unscheduled', class: 'unscheduled', value: tasks[:unscheduled], description: 'unscheduled', url: filter_url(am, filter, :unscheduled) },
-                 { label: 'pending', class: 'pending', value: tasks[:pending], description: 'pending', url: filter_url(am, filter, :pending) },
-                 { label: 'retrying', class: 'retrying', value: tasks[:retrying], description: 'retrying' , url: filter_url(am, filter, :retrying)},
-                 { label: 'paused', class: 'paused', value: tasks[:paused], description: 'paused', url: filter_url(am, filter, :paused) },
-                 { label: 'running', class: 'running', value: tasks[:running], description: 'running', url: filter_url(am, filter, :running) },
-                 { label: 'completed', class: 'completed', value: tasks[:completed], description: 'completed', url: filter_url(am, filter, :completed) }]
+        { label: 'broken', class: 'broken', value: tasks[:broken], description: 'broken', url: filter_url(am, filter, :broken) },
+        { label: 'unscheduled', class: 'unscheduled', value: tasks[:unscheduled], description: 'unscheduled', url: filter_url(am, filter, :unscheduled) },
+        { label: 'pending', class: 'pending', value: tasks[:pending], description: 'pending', url: filter_url(am, filter, :pending) },
+        { label: 'retrying', class: 'retrying', value: tasks[:retrying], description: 'retrying', url: filter_url(am, filter, :retrying) },
+        { label: 'paused', class: 'paused', value: tasks[:paused], description: 'paused', url: filter_url(am, filter, :paused) },
+        { label: 'running', class: 'running', value: tasks[:running], description: 'running', url: filter_url(am, filter, :running) },
+        { label: 'completed', class: 'completed', value: tasks[:completed], description: 'completed', url: filter_url(am, filter, :completed) }]
       { name: name,
         icon: icon,
         url: url,
@@ -172,7 +172,7 @@ module RailsAdmin
       url= '/authorization'
       filter = 'authorized'
       actions = [{ label: 'total', class: 'total', value: auth[:total], description: 'total', url: filter_url(am, filter, :all) },
-                 { label: 'unauthorized', class: 'unauthorized', value: auth[:unauthorized], description: 'unauthorized', url: filter_url(am, filter, :false) }]
+        { label: 'unauthorized', class: 'unauthorized', value: auth[:unauthorized], description: 'unauthorized', url: filter_url(am, filter, :false) }]
       { name: name,
         icon: icon,
         url: url,
@@ -206,10 +206,10 @@ module RailsAdmin
       url = '/system_notification'
       filter= 'type'
       actions = [{ label: 'total', class: 'total', value: notif[:total], description: 'total', url: filter_url(am, filter, :all) },
-                 { label: 'errors', class: 'errors', value: notif[:error], description: 'errors', url: filter_url(am, filter, :error) },
-                 { label: 'warnings', class: 'warnings', value: notif[:warning], description: 'warnings', url: filter_url(am, filter, :warning) },
-                 { label: 'notice', class: 'notice', value: notif[:notice], description: 'notices', url: filter_url(am, filter, :notice) },
-                 { label: 'info', class: 'info', value: notif[:info], description: 'info', url: filter_url(am, filter, :info) }]
+        { label: 'errors', class: 'errors', value: notif[:error], description: 'errors', url: filter_url(am, filter, :error) },
+        { label: 'warnings', class: 'warnings', value: notif[:warning], description: 'warnings', url: filter_url(am, filter, :warning) },
+        { label: 'notice', class: 'notice', value: notif[:notice], description: 'notices', url: filter_url(am, filter, :notice) },
+        { label: 'info', class: 'info', value: notif[:info], description: 'info', url: filter_url(am, filter, :info) }]
       { url: url,
         label_name: label,
         value: value,

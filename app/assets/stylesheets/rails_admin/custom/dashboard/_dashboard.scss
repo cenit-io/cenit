@@ -200,6 +200,14 @@
     &:hover {
       box-shadow: 0 0 4px #1D92AF;
     }
+    &.subgroup {
+      background: #50a861;
+      border: solid 1px #50a861;
+
+      &:hover {
+        box-shadow: 0 0 4px #50a861;
+      }
+    }
   }
   .traces {
     ol {

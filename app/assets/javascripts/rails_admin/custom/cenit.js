@@ -1,17 +1,17 @@
 var cenit = (function ($) {
     // Module scope variables
     var
-    // Set constants
+        // Set constants
 
         configMap = {
             sample: 0,
         },
 
-    // Vars
+        // Vars
 
         graphics_handle,
 
-    // widget toggle expand
+        // widget toggle expand
         affectedElement = $('.widget-content'),
 
         tour_steps = {
@@ -825,9 +825,9 @@ var cenit = (function ($) {
                 },
                 retrieve_data = function (attachment_url) {
                     $.ajax({
-                            type: "GET",
-                            url: attachment_url
-                        })
+                        type: "GET",
+                        url: attachment_url
+                    })
                         .done(function (data) {
                             graphic_data = data;
                             console.log(graphic_data);
@@ -839,10 +839,10 @@ var cenit = (function ($) {
                 },
                 encuest_api = function () {
                     $.ajax({
-                            type: "GET",
-                            url: host + execution_route + exec_id,
-                            cache: false
-                        })
+                        type: "GET",
+                        url: host + execution_route + exec_id,
+                        cache: false
+                    })
                         .done(function (data) {
                             if (data.status == "failed") {
                                 $('.new_g').html('');
@@ -996,12 +996,12 @@ var cenit = (function ($) {
                     if (origin) {
                         ajx_url = ajx_url + '&origin=' + origin;
                         $.ajax({
-                                type: "GET",
-                                url: ajx_url,
-                                beforeSend: function () {
-                                    update_counts($element, {});
-                                }
-                            })
+                            type: "GET",
+                            url: ajx_url,
+                            beforeSend: function () {
+                                update_counts($element, {});
+                            }
+                        })
                             .done(function (data) {
                                 counts[origin] = data.count;
                                 update_counts($element, counts);
@@ -1014,12 +1014,12 @@ var cenit = (function ($) {
                     }
                     else {
                         $.ajax({
-                                type: "GET",
-                                url: ajx_url,
-                                beforeSend: function () {
-                                    update_counts($element, {});
-                                }
-                            })
+                            type: "GET",
+                            url: ajx_url,
+                            beforeSend: function () {
+                                update_counts($element, {});
+                            }
+                        })
                             .done(function (data) {
                                 counts['no_origins'] = data.count;
                                 update_counts($element, counts);
@@ -1144,12 +1144,12 @@ var cenit = (function ($) {
                     if (origin) {
                         var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id&origin=' + origin
                         $.ajax({
-                                type: "GET",
-                                url: ajx_url,
-                                beforeSend: function () {
-                                    update_counts($element, {});
-                                }
-                            })
+                            type: "GET",
+                            url: ajx_url,
+                            beforeSend: function () {
+                                update_counts($element, {});
+                            }
+                        })
                             .done(function (data) {
                                 counts[origin] = data.count;
                                 update_max_count(data.count);
@@ -1164,12 +1164,12 @@ var cenit = (function ($) {
                     }
                     else {
                         $.ajax({
-                                type: "GET",
-                                url: host + model_route + '/' + model_name + '?limit=1&only=id',
-                                beforeSend: function () {
-                                    update_counts($element, {});
-                                }
-                            })
+                            type: "GET",
+                            url: host + model_route + '/' + model_name + '?limit=1&only=id',
+                            beforeSend: function () {
+                                update_counts($element, {});
+                            }
+                        })
                             .done(function (data) {
                                 counts['no_origins'] = data.count;
                                 update_counts($element, counts);
@@ -1209,11 +1209,7 @@ var cenit = (function ($) {
                             if (percent < 67) {
                                 return 'success'
                             } else {
-                                if (percent < 84) {
-                                    return 'warning'
-                                } else {
-                                    return 'danger'
-                                }
+                                return 'warning'
                             }
                         }
                     }
@@ -1323,7 +1319,7 @@ var cenit = (function ($) {
                 active_model = paths[1]
             }
             $('.subdomain-menu li').removeClass('active')
-            $('.subdomain-menu a[href="/'+ active_model +'"]').parent().addClass('active')
+            $('.subdomain-menu a[href="/' + active_model + '"]').parent().addClass('active')
 
         },
 
