@@ -1233,7 +1233,7 @@ ul#main-accordion .panel-heading .nav-icon {
         opacity: 0;
         height: 0;
         border-top: none;
-        top: 20px;
+        top: 26px;
       }
       &.open {
         > span {
@@ -3860,9 +3860,10 @@ ul[type="ordered"] {
       display: inline;
       .dropdown-menu {
         right: auto !important;
-        left: -32px !important;
+        left: -21px !important;
         margin-top: 0 !important;
         border-top-left-radius: 0;
+        top: 26px;
       }
     }
   }
