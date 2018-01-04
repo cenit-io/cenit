@@ -33,19 +33,20 @@
           #subdomain-sidebar.related-sidebar
             .widget
               .widget-header
-                %h3
-                  %i{class: "fa #{group.nil? ? 'fa-tachometer': group[:icon]}"}
-                  = group.nil? ? 'Dashboard': group[:label]
+                -if group
+                  = link_to "/#{@dashboard_group_ref}/dashboard", class: 'pjax' do
+                    %h3
+                      %i{class: "fa #{group[:icon]}"}
+                      = group[:label]
+                -else
+                  = link_to dashboard_path, class: 'pjax' do
+                    %h3
+                      %i{class: 'fa fa-tachometer'}
+                      = 'Dashboard'
                 .btn-group.widget-header-toolbar
                   %a{ href: "#", title: "Focus", class: "btn-borderless sidebar-minified js-related-toggle-minified", id:'toggle-subdomain-menu'}
               %nav.main-nav
                 %ul.subdomain-menu
-                  -if group
-                    %li{ class: "#{@action.is_a?(RailsAdmin::Config::Actions::Dashboard) ? 'active' : ''}"}
-                      = link_to "/#{@dashboard_group_ref}/dashboard", class: 'pjax' do
-                        %i{class: 'fa fa-tachometer fa-fw', title: 'Dashboard'}
-                        %span{class: 'text', title: 'Dashboard'}
-                          = 'Dashboard'
                   = main_navigation
         %main
           - if @action.is_a?(RailsAdmin::Config::Actions::Notebooks)
