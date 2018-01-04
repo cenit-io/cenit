@@ -3,12 +3,13 @@ module Cenit
     include CanCan::Ability
 
     attr_reader :action, :app, :controller
+    attr_accessor :view
 
     def initialize(app, controller, action)
       @app = app
       @controller = controller
       @cenit_action = action
-      params = controller.request.params.merge(action.path_params).with_indifferent_access
+      params = @controller.request.params.merge(action.path_params).with_indifferent_access
 
       {
         controller: ['app'],
@@ -19,16 +20,21 @@ module Cenit
         params.delete(key) if value.include?(params[key])
       end
 
-      @action = Struct.new(http_method: action.method,
+      action_hash = {
+        http_method: action.method,
         path: action.request_path,
         params: params,
-        query_parameters: controller.request.query_parameters,
-        body: controller.request.body,
-        content_type: controller.request.content_type,
-        content_length: controller.request.content_length
-      )
+        query_parameters: @controller.request.query_parameters,
+        body: @controller.request.body,
+        content_type: @controller.request.content_type,
+        content_length: @controller.request.content_length,
+        name: nil
+      }
 
-      set_abilities
+      Struct.new('Action', *action_hash.keys)
+      @action = Struct::Action.new(*action_hash.values)
+
+      setup_abilities
     end
 
     def identifier
@@ -43,9 +49,9 @@ module Cenit
       fail 'Double-rendering' if done?
       @render_called = true
       if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::HttpResponse)
-        controller.send_data res.body, content_type: res.content_type, status: res.code
+        @controller.send_data res.body, content_type: res.content_type, status: res.code
       else
-        controller.send_data(*args)
+        @controller.send_data(*args)
       end
     end
 
@@ -54,12 +60,12 @@ module Cenit
       @render_called = true
       if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::HttpResponse)
         if res.headers['content-transfer-encoding']
-          controller.send_data res.body, content_type: res.content_type, status: res.code
+          @controller.send_data res.body, content_type: res.content_type, status: res.code
         else
-          controller.render text: res.body, content_type: res.content_type, status: res.code
+          @controller.render text: res.body, content_type: res.content_type, status: res.code
         end
       else
-        controller.render(*args)
+        @controller.render(*args)
       end
     end
 
@@ -72,13 +78,21 @@ module Cenit
     end
 
     def title
-      alg = algorithm(:get_app_title, false)
+      alg = algorithm(:app_title, false)
       result = alg ? alg.run(self) : false
       result === false ? @app.name : result
     end
 
-    def render_template(name, locals={})
-      get_resource(:translator, name).run(locals.merge(control: self))
+    def render_template(name, layout=nil, locals={})
+      if layout.is_a?(Hash)
+        locals = layout
+        layout = nil
+      end
+      layout ||= locals.delete(:layout)
+
+      locals.merge!(control: self)
+      content = get_resource(:translator, name).run(locals)
+      layout ? get_resource(:translator, layout).run(locals) : content
     end
 
     def data_type(name, throw=true)
@@ -98,37 +112,43 @@ module Cenit
     end
 
     def current_user
-      alg = algorithm(:get_current_user, false)
+      alg = algorithm(:current_user, false)
       result = alg ? alg.run(self) : false
-      result === false ? controller.current_user : result
+      result === false ? @controller.current_user : result
     end
 
     def current_account
-      alg = algorithm(:get_current_account, false)
+      alg = algorithm(:current_account, false)
       result = alg ? alg.run(self) : false
       result === false ? current_user.try(:account) : result
     end
 
     def app_url(path=nil, params=nil)
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
-      url = "/app/#{controller.request.params[:id_or_ns]}"
+      url = "/app/#{@controller.request.params[:id_or_ns]}"
       url << "/#{path.gsub(/^\/+|\/+$/, '')}" unless path.blank?
       url << "?#{query}" unless query.blank?
       url
     end
 
     def sign_in_url(return_to = nil)
+      return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
       return_to ||= app_url(@action.path) if @action.http_method == :get
-      alg = algorithm(:get_sign_in_url, false)
+      alg = algorithm(:sign_in_url, false)
       result = alg ? alg.run(self) : false
-      result === false ? controller.new_user_session_url(return_to: return_to) : result
+      result === false ? @controller.new_user_session_url(return_to: return_to) : result
     end
 
     def sign_out_url(return_to = nil)
+      return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
       return_to ||= app_url(@action.path) if @action.http_method == :get
-      alg = algorithm(:get_sign_out_url, false)
+      alg = algorithm(:sign_out_url, false)
       result = alg ? alg.run(self) : false
-      result === false ? controller.destroy_user_session_url(return_to: return_to) : result
+      result === false ? @controller.destroy_user_session_url(return_to: return_to) : result
+    end
+
+    def flash
+      @controller.flash
     end
 
     def cache_store
@@ -165,11 +185,12 @@ module Cenit
       fail 'Re-calling redirect_to' if redirect_to_called?
       fail 'Double-rendering' if done?
       @redirect_to_called = true
-      if URI.parse(path = args.first).relative?
+      path = args.first
+      if URI.parse(path).relative?
         path = "#{base_path}/#{path}".gsub(/\/+/, '/')
         args[0] = "#{Cenit.homepage}#{path}"
       end
-      controller.redirect_to(*args)
+      @controller.redirect_to(*args)
     end
 
     def redirect_to_called?
@@ -186,7 +207,7 @@ module Cenit
         cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
         redirect_to auth.authorize_url(cenit_token: cenit_token)
       else
-        redirect_to controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
+        redirect_to @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
       end
     end
 
@@ -219,8 +240,8 @@ module Cenit
 
     attr_reader :cenit_action
 
-    def set_abilities
-      alg = algorithm(:set_abilities, false)
+    def setup_abilities
+      alg = algorithm(:setup_abilities, false)
       alg.run([self, current_user]) if alg.present?
     end
 
@@ -235,24 +256,6 @@ module Cenit
       item = Cenit.namespace(ns).send(type, name)
       raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
       item
-    end
-
-    class Struct
-      def initialize(hash)
-        @hash = hash.symbolize_keys
-      end
-
-      def respond_to?(*args)
-        @hash.has_key?(args[0])
-      end
-
-      def method_missing(symbol, *args)
-        if args.length == 0 && @hash.has_key?(symbol)
-          @hash[symbol]
-        else
-          super
-        end
-      end
     end
   end
 end

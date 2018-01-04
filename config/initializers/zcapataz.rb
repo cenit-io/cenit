@@ -4,7 +4,7 @@ Capataz.config do
 
   maximum_iterations ENV['CAPATAZ_MAXIMUM_ITERATIONS'] || 3000
 
-  deny_declarations_of :module, :class, :yield, :self, :def, :const, :ivar, :cvar, :gvar, :return
+  deny_declarations_of :module, :class, :self, :def, :const, :ivar, :cvar, :gvar, :return
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
@@ -93,10 +93,10 @@ Capataz.config do
 
     # App control helpers
     :application, :namespace, :title, :url_for, :app_url, :render_template, :data_type, :data_file, :resource,
-    :current_user, :current_account, :sign_in_url, :sign_out_url, :can?, :cannot?,
+    :current_user, :current_account, :sign_in_url, :sign_out_url, :can?, :cannot?, :action,
 
     # Other helpers
-    :escape_javascript, :j, :main_app
+    :escape_javascript, :j, :main_app, :content_for, :content_for?, :flash
   ]
 
   allow_on Setup::Task, [:current, :where, :all]
