@@ -17,7 +17,7 @@ class AppController < ApplicationController
   def find_app_control_action
     path = request.path.split('/').from(@id_routing ? 3 : 4).join('/')
     path ||= '/' if path.blank?
-    method = request.method.to_s.downcase.to_sym
+    method = request.request_method.to_s.downcase.to_sym
     @app_action = @app.actions.detect { |a| a.method == method && a.match?(path) }
     @app_control = Cenit::Control.new(@app, self, @app_action) if @app_action
 
