@@ -174,6 +174,11 @@ class Account
     switch { Setup::SystemNotification.create_with(attrs.merge(skip_notification_level: true)) }
   end
 
+  def notification_span_for(type)
+    (owner && owner.notification_span_for(type)) ||
+      Cenit[:"default_#{type}_notifications_span"] || 1.hour
+  end
+
   class << self
 
     def notify(attrs)
@@ -213,6 +218,11 @@ class Account
 
     def data_type_collection_name(data_type)
       tenant_collection_name(data_type.data_type_name)
+    end
+
+    def notification_span_for(type)
+      ((current = self.current) && current.notification_span_for(type)) ||
+        Cenit[:"default_#{type}_notifications_span"] || 1.hour
     end
   end
 end
