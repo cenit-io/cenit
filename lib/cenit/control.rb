@@ -160,12 +160,8 @@ module Cenit
       end
     end
 
-    def cache_store
+    def cache
       @cache_store ||= ActiveSupport::Cache.lookup_store(:file_store, "#{Rails.root}/tmp/cache/#{@app.slug_id}")
-    end
-
-    def cache(key, options = {}, &block)
-      cache_store.fetch(key, options, &block)
     end
 
     def method_missing(symbol, *args)
