@@ -10,24 +10,9 @@ module Forms
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     def translator_options
-      data_type_id =
-        if [:Export, :Conversion].include?(translator_type)
-          :source_data_type_id
-        else
-          :target_data_type_id
-        end
-      opts =
-        {
-          type: translator_type,
-          data_type_id.in => data_type_ids = [nil]
-        }
-      data_type_ids << data_type.id if data_type
+      opts = { type: translator_type }
       opts[:bulk_source] = true if translator_type == :Export && bulk_source
       opts
-    end
-
-    after_initialize do
-      self.translator = Setup::Translator.where(translator_options).first unless translator.present?
     end
 
     validates_presence_of :translator_type, :translator
@@ -43,10 +28,29 @@ module Forms
       register_instance_option(:discard_submit_buttons) { true }
       edit do
         field :translator do
-          associated_collection_scope do
-            limit = (associated_collection_cache_all ? nil : 30)
+          types do
+            [
+              {
+                Export: Setup::Renderer,
+                Conversion: Setup::Converter,
+                Update: Setup::Updater
+              }[bindings[:object].translator_type].to_s
+            ]
+          end
+          contextual_params do
+            if (data_type = bindings[:object].data_type)
+              {
+                if [:Export, :Conversion].include?(bindings[:object].translator_type)
+                  :source_data_type_id
+                else
+                  :target_data_type_id
+                end => [nil, data_type.id]
+              }
+            end
+          end
+          contextual_association_scope do
             translator_options = bindings[:object].translator_options
-            Proc.new { |scope| scope.where(translator_options).limit(limit) }
+            Proc.new { |scope| scope.where(translator_options) }
           end
         end
         field :options

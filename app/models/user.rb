@@ -163,6 +163,23 @@ class User
     has_role?(:admin) || has_role?(:super_admin)
   end
 
+  def notification_span_for(type)
+    type = type.to_s.to_sym
+    unless @notification_spans
+      @notification_spans = {}
+      regex = Regexp.new("\\A(#{Setup::SystemNotification.type_enum.join('|')})_notifications_span\\Z")
+      roles.each do |role|
+        next unless (metadata = role.metadata).is_a?(Hash)
+        metadata.each do |key, value|
+          next unless (match = key.to_s.match(regex))
+          t = match[1].to_sym
+          @notification_spans[t] = [@notification_spans[t] || 0, value.to_i].max
+        end
+      end
+    end
+    @notification_spans[type]
+  end
+
   class << self
 
     def method_missing(symbol, *args)

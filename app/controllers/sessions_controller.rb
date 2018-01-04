@@ -21,9 +21,10 @@ class SessionsController < Devise::SessionsController
       rescue Exception => ex
         flash[:error] = ex.message
       end
+      id_token = nil
       if token && (id_token = token.params['id_token']) &&
         (id_token = JWT.decode(id_token, nil, false, verfify_expiration: false)[0]) &&
-        id_token['email_verified']
+        id_token['email'].present? && id_token['email_verified']
         resource = resource_class.find_or_create_by(email: id_token['email'])
         resource.confirmed_at = Time.now
         resource.password = pwd = Devise.friendly_token
@@ -37,6 +38,9 @@ class SessionsController < Devise::SessionsController
         end
         sign_in_and_redirect resource
       else
+        if id_token
+          flash[:error] = 'It seems that your account at the selected provider is not confirmed so it can not be used for authentication'
+        end
         super
       end
     else

@@ -63,8 +63,8 @@ module Setup
           connections << connection
         end
         @connections_cache = connections unless @connection_role_options &&
-                                                @connection_role_options.key?(:cache) &&
-                                                !@connection_role_options[:cache]
+          @connection_role_options.key?(:cache) &&
+          !@connection_role_options[:cache]
         connections
       end
     end
@@ -139,11 +139,11 @@ module Setup
             uri = URI.parse(url)
 
             last_response = case uri.scheme
-            when nil, '', 'http', 'https'
-              process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
-            else
-              process_connection(template_parameters, verbose_response, last_response, options, &block)
-            end
+                            when nil, '', 'http', 'https'
+                              process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
+                            else
+                              process_connection(template_parameters, verbose_response, last_response, options, &block)
+                            end
           else
             notification_model.create(message: "Invalid submit data type: #{submitter_body.class}")
           end
@@ -181,13 +181,24 @@ module Setup
       begin
         conformed_path += '?' + query if query.present?
         url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
-        url = url.gsub('/?', '?')
 
         if body
+          if (attachment_body = body).is_a?(Hash)
+            attachment_body = attachment_body.collect do |key, value|
+              [
+                key, if value.respond_to?(:default_hash)
+                       value.default_hash
+                     else
+                       value
+                     end
+              ]
+            end.to_h
+            attachment_body = JSON.pretty_generate(attachment_body)
+          end
           attachment = {
             filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
             contentType: options[:contentType] || 'application/octet-stream',
-            body: body
+            body: attachment_body
           }
           if (request_attachment = options[:request_attachment]).respond_to?(:call)
             attachment = request_attachment.call(attachment)
@@ -196,16 +207,16 @@ module Setup
           attachment = nil
         end
         notification_model.create_with(message: JSON.pretty_generate(method: method,
-                                                                     url: url,
-                                                                     headers: headers),
-                                       type: :notice,
-                                       attachment: attachment,
-                                       skip_notification_level: options[:skip_notification_level] || options[:notify_request])
+          url: url,
+          headers: headers),
+          type: :notice,
+          attachment: attachment,
+          skip_notification_level: options[:skip_notification_level] || options[:notify_request])
 
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
-        msg[:timeout] = Cenit.request_timeout || 300
+        msg[:timeout] = remaining_request_time
         msg[:verify] = false # TODO: Https verify option by Connection
         if (http_proxy = options[:http_proxy_address])
           msg[:http_proxyaddr] = http_proxy
@@ -214,6 +225,7 @@ module Setup
           msg[:http_proxyport] = http_proxy_port
         end
         begin
+          start_time = Time.current
           http_response = HTTMultiParty.send(method, url, msg)
         rescue Timeout::Error
           http_response = Setup::Webhook::HttpResponse.new(
@@ -235,6 +247,8 @@ module Setup
           )
         rescue Exception => ex
           raise ex
+        ensure
+          remaining_request_time(start_time - Time.current)
         end
         last_response = http_response.body
         http_response = Setup::Webhook::HttpResponse.new(false, http_response) unless http_response.is_a?(Setup::Webhook::HttpResponse)
@@ -295,11 +309,12 @@ module Setup
           attachment: attachment,
           skip_notification_level: options[:skip_notification_level] || options[:notify_request]
         )
-        # msg[:timeout] = Cenit.request_timeout || 300
+        msg[:timeout] = remaining_request_time
         begin
           uri = URI.parse(url)
           process_method = "process_#{uri.scheme}"
           if respond_to?(process_method)
+            start_time = Time.current
             result = send(
               process_method,
               host: uri.host,
@@ -328,6 +343,8 @@ module Setup
           response = Setup::Webhook::Response.new(true, code: :timeout)
         rescue Exception => ex
           raise ex
+        ensure
+          remaining_request_time(start_time - Time.current)
         end
         last_response = response.body
         notification_model.create_with(
@@ -416,7 +433,7 @@ module Setup
     def attachment_from(response)
       if response && (body = response.body)
         file_extension = ((types = MIME::Types[response.content_type]).present? &&
-                         (ext = types.first.extensions.first).present? && '.' + ext) || ''
+          (ext = types.first.extensions.first).present? && '.' + ext) || ''
         {
           filename: response.object_id.to_s + file_extension,
           contentType: response.content_type || 'application/octet-stream',
@@ -424,6 +441,21 @@ module Setup
         }
       else
         nil
+      end
+    end
+
+    REQUEST_TIME_KEY = '[cenit]remaining_request_time'
+
+    DEFAULT_REQUEST_TIMEOUT = 300
+
+    def remaining_request_time(*args)
+      unless (remaining = Thread.current[REQUEST_TIME_KEY])
+        Thread.current[REQUEST_TIME_KEY] = remaining = Cenit.request_timeout || DEFAULT_REQUEST_TIMEOUT
+      end
+      if (delta = args[0])
+        Thread.current[REQUEST_TIME_KEY] = [remaining + delta, 1].max
+      else
+        remaining
       end
     end
 

@@ -80,7 +80,7 @@ module Setup
     def default_refresh_token(authorization)
       unless authorization.authorized_at + authorization.token_span > Time.now - 60
         fail 'Missing client configuration' unless authorization.client
-        http_response = HTTMultiParty.post(authorization.provider.token_endpoint,
+        http_response = HTTMultiParty.post(authorization.token_endpoint,
                                            headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
                                            body: {
                                              grant_type: :refresh_token,

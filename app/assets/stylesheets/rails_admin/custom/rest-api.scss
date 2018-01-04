@@ -24,11 +24,6 @@
 }
 
 .menu-api {
-  position: relative;
-  right: 0;
-  top: -55px;
-  float: right;
-
   button {
     padding: 2px 10px;
     position: absolute;
@@ -40,7 +35,6 @@
   }
 
   .dropdown-menu {
-    top: 25px;
     li {
       a {
         @include request-methods();

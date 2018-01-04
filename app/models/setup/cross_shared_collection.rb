@@ -51,7 +51,7 @@ module Setup
     field :logo_background, type: String
 
     field :installed, type: Boolean, default: false
-    field :pull_asynchronous, type: Boolean, default: false
+    field :pull_asynchronous, type: Boolean, default: true
 
     before_validation do
       self.shared_version ||= '0.0.1'
@@ -133,7 +133,7 @@ module Setup
 
     def validates_pull_parameters
       with_errors = false
-      data = self[installed ? :pull_data : :data]
+      data = send(installed ? :pull_data : :data)
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(data)
         with_errors ||= pull_parameter.errors.present?
@@ -302,7 +302,7 @@ module Setup
                 { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
               end
             else
-              collection.send(r.name).collect { |record| { _id: record.id.to_s } }
+              collection.send(r.name).collect { |record| record.shared? ? { _id: record.id.to_s } : record.share_hash(opts) }
             end
           else
             collection.send(r.name).collect { |record| record.share_hash(opts) }

@@ -26,6 +26,21 @@
               - primaries.each_with_index do |d,index|
                 .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
                   = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
+        -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+          .row
+            -home_groups = RailsAdmin::Config.dashboard_groups
+            %ul.nav.nav-tabs{role: "tablist"}
+              - home_groups.each_with_index do |d,index|
+                %li{class: index==0 ? 'active': ''}
+                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                    %i{class: "fa #{d[:icon]}"}
+                    =d[:label]
+            .tab-content
+              - home_groups.each_with_index do |d,index|
+                - locals = d[:sublinks]
+                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                  - locals.each_with_index do |l,i|
+                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {a: l, index: i}
         - if auxiliaries.length > 0
           .row
             %ul.nav.nav-tabs{role: "tablist"}

@@ -61,7 +61,7 @@ en:
         cross_shared_collection: 'eCommerce'
       link_json_data_type: 'Link Object Type'
       link_file_data_type: 'Link File Type'
-      link_cross_shared_collection: 'Connect Store'
+      link_cross_shared_collection: 'Integration'
       and_more: "and %{count} more"
       save_filter: 'Save Filter'
       add: 'Add'
@@ -705,17 +705,6 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
-      pin:
-        wizard:
-          model:
-            label: 'Select the model'
-            description: 'Please select the model'
-          record:
-            label: 'Select the record'
-            description: 'Please select the record'
-          version:
-            label: 'Select the version and save'
-            description: 'Please select the version and save'
       observer:
         wizard:
           start:

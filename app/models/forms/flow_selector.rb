@@ -13,8 +13,6 @@ module Forms
       register_instance_option(:discard_submit_buttons) { true }
       edit do
         field :flow do
-          inline_edit false
-          inline_add false
           associated_collection_scope do
             limit = (associated_collection_cache_all ? nil : 30)
             data_type = bindings[:object].try(:data_type)

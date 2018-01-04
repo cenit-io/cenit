@@ -24,7 +24,7 @@ module Setup
     end
 
     def build_auth_header(template_parameters)
-      ((token_type || 'OAuth').to_s + ' ' + fresh_access_token.to_s).strip #TODO For Facebook that do not use token type
+      ((token_type.to_s.capitalize || 'OAuth').to_s + ' ' + fresh_access_token.to_s).strip #TODO For Facebook that do not use token type
     end
 
     def callback_key
@@ -43,7 +43,7 @@ module Setup
       if (cenit_token = params.delete(:cenit_token)) && !params.has_key?(:state)
         params[:state] = cenit_token.token
       end
-      create_http_client(authorize_url: provider.authorization_endpoint).auth_code.authorize_url(authorize_params(params))
+      create_http_client(authorize_url: authorization_endpoint).auth_code.authorize_url(authorize_params(params))
     end
 
     def authorize_params(params)
@@ -53,7 +53,7 @@ module Setup
     end
 
     def request_token(params)
-      http_client = create_http_client(token_url: provider.token_endpoint)
+      http_client = create_http_client(token_url: token_endpoint)
       token = http_client.auth_code.get_token(params[:code], token_params)
       self.token_type = token.params['token_type']
       self.authorized_at =

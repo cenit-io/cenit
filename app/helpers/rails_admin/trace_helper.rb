@@ -2,20 +2,41 @@ module RailsAdmin
   module TraceHelper
 
     def show_mongoid_tracer_trace
-      if params[:try_recover]
-        flash[:warning] = 'Recover action is not yet supported, keep your traces, it will comes soon'
+      redirect_url = nil
+      if params[:try_recover].to_b
+        if @object.target
+          flash[:error] = 'Invalid recover option, target already exist'
+        else
+          flash[:warning] = 'Recover action is not yet supported, keep your traces, it will comes soon'
+        end
       end
-      @trace = @object
-      @tracer_model_config = RailsAdmin.config(@object.target_model_name)
-      @tracer_abstract_model = @tracer_model_config.abstract_model
-      render :trace_show
+      if params[:pin].to_b
+        if @object.target
+          if (pin = Setup::Pin.for(@object.target))
+            pin.destroy
+          end
+          Setup::Pin.create(trace: @object)
+          target_model_config = RailsAdmin.config(@object.target)
+          redirect_url = show_path(target_model_config.abstract_model.to_param, id: @object.target_id)
+        else
+          flash[:error] = 'Invalid pin option, target does not exists'
+        end
+      end
+      if redirect_url
+        redirect_to redirect_url
+      else
+        @trace = @object
+        @tracer_model_config = RailsAdmin.config(@object.target_model_name)
+        @tracer_abstract_model = @tracer_model_config.abstract_model
+        render :trace_show
+      end
     end
 
     def diffstat(additions, deletions, resume = false)
       blocks = ''
       added, deleted =
         if (total = additions + deletions) > 0
-          if (total <= 5)
+          if total <= 5
             [additions, deletions]
           else
             [(additions*100)/total/20, (deletions*100)/total/20]
@@ -62,12 +83,23 @@ module RailsAdmin
       model = abstract_model.model
       context_bindings = { abstract_model: abstract_model }
       changes_set.each do |attr, values|
-        fields_labels <<
-          if (field = model_config._fields.detect { |f| f.name.to_s == attr })
+        field_name = attr
+        metadata = nil
+        if (field = model.fields[attr]) && field.foreign_key?
+          metadata = field.metadata
+          field_name = metadata.name.to_s
+        end
+        label =
+          if (field = model_config._fields.detect { |f| f.name.to_s == field_name })
             field.with(context_bindings).label
           else
-            attr
+            field_name.to_title
           end
+        if metadata
+          label = "#{label} ID"
+          label = "#{label}s" if metadata.many?
+        end
+        fields_labels << label
         fields_diffs <<
           if (relation = model.reflect_on_association(attr))
             if relation.many?

@@ -7,6 +7,8 @@ class Role
 
   field :name, type: String
 
+  field :metadata
+
   index({
     :name => 1,
     :resource_type => 1,

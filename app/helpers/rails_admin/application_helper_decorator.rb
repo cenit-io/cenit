@@ -412,8 +412,8 @@ module RailsAdmin
         name = data_type_model.to_s.split('::').last.underscore
         action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
         link_link = link_to url_for(action: action,
-                                    controller: 'rails_admin/main',
-                                    data_type_model: data_type_model.to_s) do
+          controller: 'rails_admin/main',
+          data_type_model: data_type_model.to_s) do
           %{
                 <i class="fa fa-plus" title="Add #{t("admin.misc.link_#{name}")}"></i>
 
@@ -473,7 +473,8 @@ module RailsAdmin
               data[:model] = model_path
               data[:origins] = origins
             end
-            content_tag :li, data: data, class: '' do
+            active = params['model_name']== model_param ? 'active' : ''
+            content_tag :li, data: data, class: active do
               link_to url, class: 'pjax' do
                 rc = ''
 
@@ -669,7 +670,7 @@ module RailsAdmin
 
     def subdomains_left_side_menu()
       home_groups = RailsAdmin::Config.dashboard_groups
-      html = '<ul class="main-menu">'
+      html = '<ul class="main-menu"><li><a href="'+dashboard_path+'"><i class="fa fa-tachometer fa-fw"></i><span class="text"> '+ 'Dashboard' +'</span></a>'
       group = dashboard_root_group
       home_groups.each_with_index do |g, index|
         html += '<li class="'+ (@dashboard_group && @dashboard_group[:param] == g[:param] ? 'active' : '') +'">
@@ -679,7 +680,6 @@ module RailsAdmin
         html+='<ul class="sub-menu ">'
         html+= '<li><a href="/' + g[:param] +'/dashboard"><span class="text">Dashboard</span></a></li>'
         unless models.empty?
-
           models.each do |m|
             if m.is_a?(Hash)
               if (link = m[:link])
@@ -953,6 +953,37 @@ module RailsAdmin
       </div>'
     end
 
+    def wrap_model_for_dashboard abstract_model
+      model_param = abstract_model.to_param
+      url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+      rc = {}
+      rc[:url] = url
+      rc[:model_name] = model_param
+      rc[:label] = "#{capitalize_first_letter abstract_model.config.label_plural}"
+      rc[:icon] = (icon = capitalize_first_letter abstract_model.config.navigation_icon).nil? ? 'fa fa-cube' : icon
+      origins =
+        if (model=abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
+          model.origins.join(',')
+        else
+          ''
+        end
+      data = {}
+      if (model_path = abstract_model.api_path)
+        data[:model] = model_path
+        data[:origins] = origins
+      end
+      rc[:data] =data
+      menu = menu_for(:collection, abstract_model, nil)
+      rc[:menu] = menu
+
+      indicator = 'info'
+      anim = '2.0%'
+
+      rc[:indicator] = indicator
+      rc[:anim] = anim
+      rc
+    end
+
     def dashboard_navigation_data(nodes_stack, nodes)
       return unless nodes.present?
       i = -1
@@ -963,35 +994,8 @@ module RailsAdmin
         if children.present?
           dashboard_navigation_data nodes_stack, children
         else
-          model_param = node.abstract_model.to_param
-          url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
-          rc = {}
-          rc[:url] = url
-          rc[:model_name] = model_param
-          rc[:label] = "#{capitalize_first_letter node.abstract_model.config.label_plural}"
-          rc[:icon] = (icon = capitalize_first_letter node.abstract_model.config.navigation_icon).nil? ? 'fa fa-cube' : icon
-          origins =
-            if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
-              model.origins.join(',')
-            else
-              ''
-            end
-          data = {}
           @dashboard_models << node.abstract_model.model_name
-          if (model_path = node.abstract_model.api_path)
-            data[:model] = model_path
-            data[:origins] = origins
-          end
-          rc[:data] =data
-          menu = menu_for(:collection, node.abstract_model, nil)
-          rc[:menu] = menu
-
-          indicator = 'info'
-          anim = '2.0%'
-
-          rc[:indicator] = indicator
-          rc[:anim] = anim
-          rc
+          wrap_model_for_dashboard(node.abstract_model)
         end
       end
     end
@@ -1074,10 +1078,10 @@ module RailsAdmin
 
     def load_apis_specs
       file_name = APIS_GURU_FILE_NAME
-      if File.exists?(file_name)
+      if File.exist?(file_name)
         list = File.read(file_name)
       else
-        File.delete(APIS_CATEGORIES_COUNT_FILE_NAME) if File.exists?(APIS_CATEGORIES_COUNT_FILE_NAME)
+        File.delete(APIS_CATEGORIES_COUNT_FILE_NAME) if File.exist?(APIS_CATEGORIES_COUNT_FILE_NAME)
         list = Setup::Connection.get('http://api.apis.guru/v2/list.json').submit!
         File.open(file_name, 'w') { |file| file.write(list) }
       end
@@ -1099,7 +1103,7 @@ module RailsAdmin
       end
       apis = apis.collect do |key, api|
         api['id'] = key
-        info = api['versions'][api['preferred']]['info'] || {}
+        info = api_info(api)
         cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
         api
       end
@@ -1116,7 +1120,7 @@ module RailsAdmin
         end
       else
         apis.select! do |api|
-          info = api['versions'][api['preferred']]['info']
+          info = api_info(api)
           api['categories'] = api['categories'].collect { |id| categories[id] || { 'id' => id } }
           query.all? do |token|
             api['id'].to_s.downcase[token] ||
@@ -1130,7 +1134,7 @@ module RailsAdmin
 
     def load_apis_specs_cat_count
       file_name = APIS_CATEGORIES_COUNT_FILE_NAME
-      if File.exists?(file_name)
+      if File.exist?(file_name)
         begin
           JSON.parse(File.read(file_name)).symbolize_keys
         rescue Exception => ex
@@ -1152,7 +1156,7 @@ module RailsAdmin
       apis = load_apis_specs
       apis = apis.collect do |key, api|
         api['id'] = key
-        info = api['versions'][api['preferred']]['info'] || {}
+        info = api_info(api)
         cat_ids.merge(api['categories'] = info['x-apisguru-categories'] || [])
         api
       end
@@ -1175,6 +1179,14 @@ module RailsAdmin
         end
       end
       { total: apis.count, categories: categories_count }
+    end
+
+    def api_info(api)
+      if (preferred = api['preferred'])
+        api['versions'][preferred]
+      else
+        api['versions'].values.first
+      end['info'] || {}
     end
 
     def process_context(opts = {})

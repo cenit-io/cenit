@@ -101,22 +101,21 @@
                     .spec
                       %span.variable='Integration'
                       = 'with cloud services'
-= content_for :script do
-  <script>
-  $(function(){
-  var current = 'weekly';
+<script>
+$(function(){
+var current = 'weekly';
 
-  $('#payments').find('.tabs .tab').click(function() {
-  if (!($(this).hasClass('active'))) {
-  $(this).addClass('active');
-  $('#payments').find('.tabs .tab.'+current).removeClass('active');
-  $('#payments').find('.plans').removeClass(current);
-  if (current == 'weekly')
-  current = 'monthly';
-  else
-  current = 'weekly';
-  $('#payments').find('.plans').addClass(current);
-  }
-  });
-  });
-  </script>
+$('#payments').find('.tabs .tab').click(function() {
+if (!($(this).hasClass('active'))) {
+$(this).addClass('active');
+$('#payments').find('.tabs .tab.'+current).removeClass('active');
+$('#payments').find('.plans').removeClass(current);
+if (current == 'weekly')
+current = 'monthly';
+else
+current = 'weekly';
+$('#payments').find('.plans').addClass(current);
+}
+});
+});
+</script>

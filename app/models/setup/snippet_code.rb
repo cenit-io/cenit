@@ -21,8 +21,6 @@ module Setup
 
       trace_ignore :snippet_id
 
-      trace_include :code
-
       before_save do
         if snippet_required?
           configure_snippet

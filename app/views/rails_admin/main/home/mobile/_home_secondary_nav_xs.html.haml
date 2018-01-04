@@ -73,7 +73,6 @@
                 = link_to url_for(action: new_action.action_name, model_name: acc_am.to_param) do
                   %span.btn.btn-primary
                     = t('admin.misc.add_tenant')
-        = content_for :script do
-          %script
-            load_tenant_list(#{raw tenant_list});
+        %script
+          load_tenant_list(#{raw tenant_list});
   = render partial: 'rails_admin/main/secondary_links'

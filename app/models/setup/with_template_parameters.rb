@@ -16,6 +16,10 @@ module Setup
       end
     end
 
+    def template_value_of(value, template_parameters = {})
+      Liquid::Template.parse(value).render(template_parameters.reverse_merge(template_parameters_hash))
+    end
+
     protected
 
     METHOD_MISSING_PREFIX = 'conformed_'
