@@ -15504,6 +15504,11 @@ body.sidebar-float .content-wrapper {
     border-bottom-color: lightgray;
     background-color: #eeeeee;
 }
+.widget .widget-header a {
+    color: #3d4046;
+    padding-left: 5px;
+    display: inline-block;
+}
 
 .widget .widget-header h3 {
     display: inline-block;
@@ -21798,7 +21803,9 @@ ul.subdomain-menu {
     padding-left: 0;
     list-style-type: none;
 }
-
+ul.subdomain-menu li:last-child {
+    border-bottom: solid 1px #dfdfdf;
+}
 ul.subdomain-menu > li a {
     display: block;
     position: relative;

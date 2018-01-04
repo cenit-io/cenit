@@ -7,133 +7,74 @@
     = render partial: 'rails_admin/main/home/home_secondary_links'
     = render partial: 'shared/socials'
 
-- if _current_user.present?
-  %ul#user-nav.nav.navbar-nav.navbar-right{style: 'padding-left: 0px;'}
-    %li.dropdown
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'dropdown','aria-haspopup':'true','aria-expanded':'false'}
-        %i.fa.fa-fw.fa-user
-        - if _current_user.name.present?
-          = _current_user.name
-        - else
-          = _current_user.email
-        %span.caret
-      %ul#user-menu.dropdown-menu
-        - if (user_link = edit_user_link)
-          - user_link = [user_link] unless user_link.is_a?(Enumerable)
-          %li.edit_user_root_link{style: 'padding-right:5px'}= user_link.shift
-          - user_link.each do |link|
-            %li= link
-
-        %li.divider{role:'separator'}
-        .actions.clearfix
-          %li.terms.pull-left
-            %small= link_to t('admin.misc.terms'), "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", class: 'text-muted', target: '_blank'
-          - if logout_path.present?
-            %li.pull-right= link_to t('admin.misc.log_out'), logout_path, method: logout_method, class: 'btn btn-xs btn-danger'
-
-  - acc_am = RailsAdmin::Config.model(Cenit::MultiTenancy.tenant_model).abstract_model
-  %ul#tenant-nav.nav.navbar-nav.navbar-right
-    %li.dropdown{style: 'min-width: 140px;' ,id: 'dropdown-tenants'}
-      %a.dropdown-toggle{href:'#', role:'button','data-toggle':'drop-menu','aria-haspopup':'true','aria-expanded':'false', id: 'show_tenant_menu'}
-        %i.fa.fa-fw.fa-home
-        %span#tenant_name
-          = format_name(_current_user.account.name)
-        %span.caret
-      %ul#tenant-menu.dropdown-menu
-        .tenants
-          - tenant_list = []
-          - count_tenants = _current_user.all_accounts.count
-          - _current_user.all_accounts.each do |a|
-            - name =  format_name(a.name)
-            - if a != _current_user.account
-              - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
-              %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
-        %script
-          load_tenant_list(#{raw tenant_list});
-        - if (new_action = action(:new, acc_am))
-          %li.divider{role:'separator'}
-          - if count_tenants > 30
-            %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
+%ul.nav.navbar-nav.navbar-right.root_links
+  .a.navbar-btn
+    =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
+%ul#sign-drawer.drawer.user-auth
+  #sign-links.holder
+    .form-top
+      =t('admin.session.new_title')
+    - resource = User.new
+    - resource_name = :user
+    = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
+      - if (return_to = params[:return_to])
+        - f.hidden_field :return_to, value: return_to
+      = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
+      = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
+        %i{class:'fa fa-fw fa-github'}
+      = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
+        %i{class:'fa fa-fw fa-google'}
+      = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
+        %i{class:'fa fa-fw fa-facebook'}
+    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+      .form-option
+        =t('admin.misc.or')
+      .local-forms
+        = form_for(resource, as: resource_name, url: session_path(resource_name), html: {id: 'do-user-form', class: 'local active'}) do |f|
+          .field.text-justify
+            = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+          .field.text-justify
+            = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
           .actions.clearfix
-            %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
-            %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
-- else
-  %ul.nav.navbar-nav.navbar-right.root_links
-    .a.navbar-btn
-      =link_to t('admin.registration.new'), new_registration_path(User), class: 'btn btn-primary', id: 'sign-in-link', style: 'padding-right:10px'
-  %ul#sign-drawer.drawer.user-auth
-    #sign-links.holder
-      .form-top
-        =t('admin.session.new_title')
-      - resource = User.new
-      - resource_name = :user
-      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
-        - if (return_to = params[:return_to])
-          - f.hidden_field :return_to, value: return_to
-        = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-        = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
-          %i{class:'fa fa-fw fa-github'}
-        = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
-          %i{class:'fa fa-fw fa-google'}
-        = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-          %i{class:'fa fa-fw fa-facebook'}
-      - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
-        .form-option
-          =t('admin.misc.or')
-        .local-forms
-          = form_for(resource, as: resource_name, url: session_path(resource_name), html: {id: 'do-user-form', class: 'local active'}) do |f|
-            .field.text-justify
-              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
-            .field.text-justify
-              = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
-            .actions.clearfix
-              %button.btn.btn-primary.pull-right{type:'submit'}
-                =t('admin.session.submit')
-              %a#no-user.btn.btn-xs.pull-left{href: '#'}
-                =t('admin.session.register')
-              %a#no-pass.btn.btn-xs.pull-left{href: '#'}
-                =t('admin.session.forgotten')
+            %button.btn.btn-primary.pull-right{type:'submit'}
+              =t('admin.session.submit')
+            %a#no-user.btn.btn-xs.pull-left{href: '#'}
+              =t('admin.session.register')
+            %a#no-pass.btn.btn-xs.pull-left{href: '#'}
+              =t('admin.session.forgotten')
 
-          = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {id: 'no-user-form', class: 'local'}) do |f|
-            .field.text-justify
-              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
-            .field.text-justify
-              = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
-            .field.text-justify
-              = f.password_field :password_confirmation, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.pass_confirm')
-            .actions.clearfix
-              %button.btn.btn-primary.pull-right{type:'submit'}
-                =t('admin.registration.submit')
-              %a#do-user.btn.btn-xs.pull-left{href: '#'}
-                =t('admin.registration.sign')
-            .terms.text-left
-              %small.text-muted
-                =t('admin.registration.terms_preface')
-                =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
-                  %span=t('admin.misc.terms')
+        = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {id: 'no-user-form', class: 'local'}) do |f|
+          .field.text-justify
+            = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+          .field.text-justify
+            = f.password_field :password, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.password')
+          .field.text-justify
+            = f.password_field :password_confirmation, autocomplete: 'off', class: 'form-control', placeholder: t('admin.placeholders.pass_confirm')
+          .actions.clearfix
+            %button.btn.btn-primary.pull-right{type:'submit'}
+              =t('admin.registration.submit')
+            %a#do-user.btn.btn-xs.pull-left{href: '#'}
+              =t('admin.registration.sign')
+          .terms.text-left
+            %small.text-muted
+              =t('admin.registration.terms_preface')
+              =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
+                %span=t('admin.misc.terms')
 
-          = form_for(resource, as: resource_name, url: password_path(resource_name), html: {id: 'no-pass-form', class: 'local'}) do |f|
-            .form-top
-              =t('admin.forgotten.new_submit')
-            .field.text-justify
-              = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
-            .actions.clearfix
-              %button.btn.btn-primary.pull-right{type:'submit'}
-                = t('admin.forgotten.short_submit')
-              %a#no-user.btn.btn-xs.pull-left{href: '#'}
-                =t('admin.session.register')
-              %a#do-user.btn.btn-xs.pull-left{href: '#'}
-                =t('admin.registration.sign')
-    = render partial: 'shared/socials'
-- unless _current_user.present?
-  - query = params[:query]
-  %ul.nav.navbar-nav.navbar-right.root_links{style: 'padding-left: 0px;'}
-    %li#navbar-search
-      - shared_path = index_path(model_name: 'cross_shared_collection')
-      = form_tag(shared_path, method: :get) do
-        %input.navbar-brand{name: 'query', type: 'search', value: query, placeholder: t('admin.misc.shared_collections')}
-        %button#search-toggle.btn.a.navbar-brand.toggle-btn
-          %i.fa.fa-fw.fa-search
+        = form_for(resource, as: resource_name, url: password_path(resource_name), html: {id: 'no-pass-form', class: 'local'}) do |f|
+          .form-top
+            =t('admin.forgotten.new_submit')
+          .field.text-justify
+            = f.email_field :email, autofocus: true, class: 'form-control', placeholder: t('admin.placeholders.email')
+          .actions.clearfix
+            %button.btn.btn-primary.pull-right{type:'submit'}
+              = t('admin.forgotten.short_submit')
+            %a#no-user.btn.btn-xs.pull-left{href: '#'}
+              =t('admin.session.register')
+            %a#do-user.btn.btn-xs.pull-left{href: '#'}
+              =t('admin.registration.sign')
+  = render partial: 'shared/socials'
+
 %ul.nav.navbar-nav.navbar-right#home-nav
   %li.dropdown
     = link_to 'Services','', class: 'dropdown-toggle', data: {toggle: 'dropdown'}
