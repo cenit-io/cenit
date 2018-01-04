@@ -7,7 +7,7 @@ module Mongoid
       include CrossOrigin::CenitDocument
       include RailsAdmin::Models::Mongoid::Tracer::TraceAdmin
 
-      build_in_data_type
+      build_in_data_type.including(:created_at)
 
       deny :all
       allow :index, :show, :member_trace_index, :collection_trace_index

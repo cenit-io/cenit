@@ -211,6 +211,8 @@
   }
   .traces {
     ol {
+      height: calc(100vh - 200px);
+      overflow: auto;
       padding-left: 30px;
       li {
         list-style-type: none;

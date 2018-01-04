@@ -1,4 +1,5 @@
-var cenit = (function ($) {
+var cenit;
+cenit = function ($) {
     // Module scope variables
     var
         // Set constants
@@ -282,101 +283,101 @@ var cenit = (function ($) {
 
     // Functions
 
-    initHomePage = function () {
+    var initHomePage = function () {
 
-        $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
+            $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
-        var $navDots = $("#hero nav a")
-        var $next = $(".slide-nav.next");
-        var $prev = $(".slide-nav.prev");
-        var $slides = $("#hero .slides .slide");
-        var actualIndex = 0;
-        var swiping = false;
-        var interval;
+            var $navDots = $("#hero nav a")
+            var $next = $(".slide-nav.next");
+            var $prev = $(".slide-nav.prev");
+            var $slides = $("#hero .slides .slide");
+            var actualIndex = 0;
+            var swiping = false;
+            var interval;
 
-        $navDots.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
+            $navDots.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                actualIndex = $navDots.index(this);
+                updateSlides(actualIndex);
+            });
+
+            $next.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                clearInterval(interval);
+                interval = null;
+
+                actualIndex++;
+                if (actualIndex >= $slides.length) {
+                    actualIndex = 0;
+                }
+
+                updateSlides(actualIndex);
+            });
+
+            $prev.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                clearInterval(interval);
+                interval = null;
+
+                actualIndex--;
+                if (actualIndex < 0) {
+                    actualIndex = $slides.length - 1;
+                }
+
+                updateSlides(actualIndex);
+            });
+
+            function updateSlides(index) {
+                // update nav dots
+                $navDots.removeClass("active");
+                $navDots.eq(index).addClass("active");
+
+                // update slides
+                var $activeSlide = $("#hero .slide.active");
+                var $nextSlide = $slides.eq(index);
+
+                $activeSlide.fadeOut();
+                $nextSlide.addClass("next").fadeIn();
+
+                setTimeout(function () {
+                    $slides.removeClass("next").removeClass("active");
+                    $nextSlide.addClass("active");
+                    $activeSlide.removeAttr('style');
+                    swiping = false;
+                }, 1000);
             }
-            swiping = true;
 
-            actualIndex = $navDots.index(this);
-            updateSlides(actualIndex);
-        });
+            // Uncomment this for automatic slide changing
+            /*    interval = setInterval(function () {
+             if (swiping) {
+             return;
+             }
+             swiping = true;
 
-        $next.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
-            }
-            swiping = true;
+             actualIndex++;
+             if (actualIndex >= $slides.length) {
+             actualIndex = 0;
+             }
 
-            clearInterval(interval);
-            interval = null;
-
-            actualIndex++;
-            if (actualIndex >= $slides.length) {
-                actualIndex = 0;
-            }
-
-            updateSlides(actualIndex);
-        });
-
-        $prev.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
-            }
-            swiping = true;
-
-            clearInterval(interval);
-            interval = null;
-
-            actualIndex--;
-            if (actualIndex < 0) {
-                actualIndex = $slides.length - 1;
-            }
-
-            updateSlides(actualIndex);
-        });
-
-        function updateSlides(index) {
-            // update nav dots
-            $navDots.removeClass("active");
-            $navDots.eq(index).addClass("active");
-
-            // update slides
-            var $activeSlide = $("#hero .slide.active");
-            var $nextSlide = $slides.eq(index);
-
-            $activeSlide.fadeOut();
-            $nextSlide.addClass("next").fadeIn();
-
-            setTimeout(function () {
-                $slides.removeClass("next").removeClass("active");
-                $nextSlide.addClass("active");
-                $activeSlide.removeAttr('style');
-                swiping = false;
-            }, 1000);
-        }
-
-        // Uncomment this for automatic slide changing
-        /*    interval = setInterval(function () {
-         if (swiping) {
-         return;
-         }
-         swiping = true;
-
-         actualIndex++;
-         if (actualIndex >= $slides.length) {
-         actualIndex = 0;
-         }
-
-         updateSlides(actualIndex);
-         }, 5000);
-         */
-    },
+             updateSlides(actualIndex);
+             }, 5000);
+             */
+        },
 
         scroll_to = function (event) {
             event.preventDefault();
@@ -1314,22 +1315,67 @@ var cenit = (function ($) {
         },
         update_active_nav_link = function () {
             var active_model,
-                paths = window.location.pathname.split('/')
+                paths = window.location.pathname.split('/');
             if (paths.length > 1) {
                 active_model = paths[1]
             }
-            $('.subdomain-menu li').removeClass('active')
+            $('.subdomain-menu li').removeClass('active');
             $('.subdomain-menu a[href="/' + active_model + '"]').parent().addClass('active')
 
         },
+        request_traces_for_dashboard = function () {
 
+            var $widget = $('.traces').find('.tab-pane.active').find('ol'),
+                dashboard_models = $widget.attr('data-models'),
+                model_route = '/api/v2',
+                host = window.location.origin,
+                page_size = 5,
+                page = $widget.data('page'),
+                origin = $widget.attr('data-origin'),
+                model_name = 'setup/trace',
+                data = {
+                    limit: page_size,
+                    page: page + 1,
+                    origin: origin
+                };
+            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(data);
+            if (dashboard_models !== 'all') {
+                ajax_url += '&target_model_name={"$in":' + dashboard_models + '}'
+            }
+            $.ajax({
+                type: "GET",
+                url: ajax_url,
+                beforeSend: function () {
+                    console.log('starting');
+                }
+            }).done(function (data) {
+                var traces = data['traces'];
+                var add_trace = function (t) {
+                    data = {
+                        action: t['action'],
+                        name: t['attributes_trace']['name'],
+                        created_at: t['created_at']
+                    };
+                    $new = template_engine.render('dashboard_trace', data);
+                    $widget.append($new);
+
+                };
+                jQuery.each(traces, function (i, t) {
+                    add_trace(t);
+                });
+
+
+            }).fail(function () {
+
+            });
+        },
         registerEvents = function () {
 
             $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 updateDashboardCount(e);
-            })
+            });
 
-            $('#subdomain-related-menu a[data-toggle="collapse"]').off('click').on('click', function (e) {
+            $('#subdomain-related-menu').find('a[data-toggle="collapse"]').off('click').on('click', function (e) {
                 var $aside = $('#content-wrapper aside');
                 if ($aside.hasClass('minified')) {
                     $aside.removeClass('minified');
@@ -1836,6 +1882,10 @@ var cenit = (function ($) {
                     });
                 });
             });
+            $('#load_more_traces').off().on('click', function (e) {
+                e.preventDefault();
+                request_traces_for_dashboard();
+            });
         },
 
         initializing = function () {
@@ -1940,5 +1990,26 @@ var cenit = (function ($) {
         };
 
     return {initModule: initModule};
+
+}(jQuery);
+
+var template_engine = (function ($) {
+    // Module scope variables
+    var
+        // Set constants
+        configMap = {},
+        render = function (template_name, data) {
+            var html = $('#' + template_name).clone().html(),
+                keys = Object.keys(data), reg_exp;
+
+            $.each(keys, function (index, value) {
+                reg_exp = new RegExp("{{" + value + "}}", "g");
+                html = html.replace(reg_exp, data[value]);
+            });
+            return $(html);
+        },
+        initModule = function () {
+        };
+    return {initModule: initModule, render: render};
 
 }(jQuery));
