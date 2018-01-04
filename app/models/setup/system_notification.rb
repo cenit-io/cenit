@@ -19,6 +19,12 @@ module Setup
 
     before_save :check_notification_level, :assign_execution_thread
 
+    after_save :process_old_notifications
+
+    def process_old_notifications
+      self.class.process_old_notifications(type)
+    end
+
     def check_notification_level
       @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
     end
@@ -90,8 +96,14 @@ module Setup
         end
         counters
       end
-      
-    end
 
+      def process_old_notifications(type)
+        without_default_scope do
+          if (n = where(type: type).first) && (Time.now - n.created_at) > Tenant.notification_span_for(type)
+            n.destroy
+          end
+        end
+      end
+    end
   end
 end
