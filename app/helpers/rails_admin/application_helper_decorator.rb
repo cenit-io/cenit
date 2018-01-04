@@ -994,6 +994,7 @@ module RailsAdmin
         if children.present?
           dashboard_navigation_data nodes_stack, children
         else
+          @dashboard_models << node.abstract_model.model_name
           wrap_model_for_dashboard(node.abstract_model)
         end
       end
