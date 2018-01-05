@@ -59,15 +59,18 @@ module RailsAdmin
 
     def get_object
       #Patch
-      if (@object = @abstract_model.get(params[:id]))
-        unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
-          #Right model context for object
-          @model_config = RailsAdmin::Config.model(@object.class)
-          @abstract_model = @model_config.abstract_model
+      action_class = RailsAdmin::Config::Actions.find(@_action_name.to_sym).class
+      action_class.loading_member do
+        if (@object = @abstract_model.get(params[:id]))
+          unless @object.is_a?(Mongoff::Record) || @object.class == @abstract_model.model
+            #Right model context for object
+            @model_config = RailsAdmin::Config.model(@object.class)
+            @abstract_model = @model_config.abstract_model
+          end
+          @object
+        elsif (model = @abstract_model.model)
+          @object = model.try(:find_by_id, params[:id])
         end
-        @object
-      elsif (model = @abstract_model.model)
-        @object = model.try(:find_by_id, params[:id])
       end
       @object || fail(RailsAdmin::ObjectNotFound)
     end

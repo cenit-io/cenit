@@ -2,6 +2,15 @@ module RailsAdmin
   module Config
     module Actions
       Edit.class_eval do
+
+        def self.loading_member
+          Thread.current[:cenit_pins_off] = true
+          yield
+        ensure
+          Thread.current[:cenit_pins_off] = nil
+        end
+
+
         register_instance_option :controller do
           proc do
 

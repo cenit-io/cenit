@@ -705,17 +705,6 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
-      pin:
-        wizard:
-          model:
-            label: 'Select the model'
-            description: 'Please select the model'
-          record:
-            label: 'Select the record'
-            description: 'Please select the record'
-          version:
-            label: 'Select the version and save'
-            description: 'Please select the version and save'
       observer:
         wizard:
           start:

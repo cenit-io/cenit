@@ -159,4 +159,12 @@ Cenit.config do
   maximum_task_resumes 500
 
   maximum_cyclic_flow_executions 5
+
+  default_error_notifications_span 1.week
+
+  default_warning_notifications_span 5.days
+
+  default_notice_notifications_span 3.days
+
+  default_info_notifications_span 1.hour
 end

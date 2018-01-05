@@ -2,13 +2,43 @@ module RailsAdmin
   module TraceHelper
 
     def show_mongoid_tracer_trace
-      if params[:try_recover]
-        flash[:warning] = 'Recover action is not yet supported, keep your traces, it will comes soon'
+      respond_to do |format|
+
+        format.json do
+          render json: @object
+        end
+
+        format.html do
+          redirect_url = nil
+          if params[:try_recover].to_b
+            if @object.target
+              flash[:error] = 'Invalid recover option, target already exist'
+            else
+              flash[:warning] = 'Recover action is not yet supported, keep your traces, it will comes soon'
+            end
+          end
+          if params[:pin].to_b
+            if @object.target
+              if (pin = Setup::Pin.for(@object.target))
+                pin.destroy
+              end
+              Setup::Pin.create(trace: @object)
+              target_model_config = RailsAdmin.config(@object.target)
+              redirect_url = show_path(target_model_config.abstract_model.to_param, id: @object.target_id)
+            else
+              flash[:error] = 'Invalid pin option, target does not exists'
+            end
+          end
+          if redirect_url
+            redirect_to redirect_url
+          else
+            @trace = @object
+            @tracer_model_config = RailsAdmin.config(@object.target_model_name)
+            @tracer_abstract_model = @tracer_model_config.abstract_model
+            render :trace_show
+          end
+        end
       end
-      @trace = @object
-      @tracer_model_config = RailsAdmin.config(@object.target_model_name)
-      @tracer_abstract_model = @tracer_model_config.abstract_model
-      render :trace_show
     end
 
     def diffstat(additions, deletions, resume = false)

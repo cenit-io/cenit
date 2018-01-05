@@ -14,6 +14,27 @@ module RailsAdmin
               visible true
               show_in_dashboard false
 
+              json_formatter do
+                proc do |traces, options|
+                  attrs = %w(model_label).except(options[:except])
+                  attrs = attrs.select { |attr| options[:only].include?(attr) } unless options[:only].empty?
+                  traces.collect do |trace|
+                    json = options ? trace.as_json(options) : trace.as_json
+                    attrs.each do |attr|
+                      json[attr] =
+                        case attr
+                        when 'model_label'
+                          (target_model = trace.target_model_name) &&
+                            RailsAdmin.config(target_model).label
+                        else
+                          nil
+                        end
+                    end
+                    json
+                  end
+                end
+              end
+
               api_path "#{::Setup.to_s.underscore}/trace"
 
               configure :target_id, :json_value do
