@@ -111,7 +111,7 @@ module RailsAdmin
         scope = scope.any_in(_id: options[:bulk_ids]) if options[:bulk_ids]
         scope = scope.where(query_conditions(options[:query])) if options[:query]
         scope = scope.where(filter_conditions(options[:filters])) if options[:filters]
-        scope = scope.where(filter_query_conditions(options[:filter_query])) if options[:filter_query]
+        scope = scope.and(filter_query_conditions(options[:filter_query])) if options[:filter_query]
         if options[:page] && options[:per]
           scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
         end
