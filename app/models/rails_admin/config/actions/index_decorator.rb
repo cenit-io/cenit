@@ -55,7 +55,11 @@ module RailsAdmin
                           label_method = @model_config.object_label_method
                           @objects.collect { |o| { id: o.send(primary_key_method).to_s, label: o.send(label_method).to_s } }
                         else
-                          @objects.to_json(@schema)
+                          opts = @schema || {}
+                          %w(only except).each do |opt|
+                            opts[opt.to_sym] = params[opt].to_s.split(',')
+                          end
+                          @model_config.json_formatter.call(@objects, opts)
                         end
                       end
                       if params[:send_data]
