@@ -2,6 +2,7 @@ var cenit;
 cenit = function ($) {
     // Module scope variables
     var
+        requesting_traces = false,
         // Set constants
 
         configMap = {
@@ -1323,22 +1324,19 @@ cenit = function ($) {
             $('.subdomain-menu a[href="/' + active_model + '"]').parent().addClass('active')
 
         },
-        request_traces_for_dashboard = function () {
-
-            var $widget = $('.traces').find('.tab-pane.active').find('ol'),
-                dashboard_models = $widget.attr('data-models'),
-                model_route = '/api/v2',
+        request_traces_for_dashboard = function ($widget, e, $that) {
+            requesting_traces = true;
+            var dashboard_models = $widget.attr('data-models'),
+                model_route = '',
                 host = window.location.origin,
-                page_size = 5,
-                page = $widget.data('page'),
+                page = $widget.attr('data-page'),
                 origin = $widget.attr('data-origin'),
-                model_name = 'setup/trace',
-                data = {
-                    limit: page_size,
-                    page: page + 1,
+                model_name = 'trace.json',
+                params = {
+                    page: page,
                     origin: origin
                 };
-            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(data);
+            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(params);
             if (dashboard_models !== 'all') {
                 ajax_url += '&target_model_name={"$in":' + dashboard_models + '}'
             }
@@ -1346,31 +1344,60 @@ cenit = function ($) {
                 type: "GET",
                 url: ajax_url,
                 beforeSend: function () {
-                    console.log('starting');
+                    var $loading = $('<div class="loading_traces">' +
+                        '<i class="fa fa-spinner fa-pulse fa-fw"></i>' +
+                        '</div>');
+                    $widget.append($loading);
                 }
             }).done(function (data) {
-                var traces = data['traces'];
+                var traces = data;
                 var add_trace = function (t) {
                     data = {
                         action: t['action'],
                         name: t['attributes_trace']['name'],
-                        created_at: t['created_at']
+                        created_at: t['created_at'],
+                        message: t['message'] || 'No message',
+                        model_label: t['model_label'],
+                        target_show_url: t['target_show_url'],
+                        url: '/trace/' + t['_id']['$oid'],
+                        object_name: t['object_name'],
+                        picture: t['author_data']['picture'],
+                        email: t['author_data']['email']
                     };
                     $new = template_engine.render('dashboard_trace', data);
                     $widget.append($new);
 
                 };
-                jQuery.each(traces, function (i, t) {
-                    add_trace(t);
-                });
 
+                $widget.attr('data-page', parseInt(params['page']) + 1);
+
+                if (traces.length > 0) {
+                    $widget.find('.loading_traces').remove();
+                    jQuery.each(traces, function (i, t) {
+                        add_trace(t);
+                    });
+                    requesting_traces = false;
+                }
+                else {
+                    var text = 'No more results';
+                    var $no_more = $('<span class="no_more show">' + text + '</span>');
+                    $widget.find('.loading_traces').html('');
+                    $widget.find('.loading_traces').append($no_more);
+                    setTimeout(function () {
+                        $widget.find('.no_more').removeClass('show');
+                        setTimeout(function () {
+                            $widget.find('.loading_traces').remove();
+                            requesting_traces = false;
+                        }, 2000);
+
+                    }, 3000);
+                }
 
             }).fail(function () {
-
+                requesting_traces = false;
             });
         },
         registerEvents = function () {
-
             $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 updateDashboardCount(e);
             });
@@ -1884,7 +1911,18 @@ cenit = function ($) {
             });
             $('#load_more_traces').off().on('click', function (e) {
                 e.preventDefault();
-                request_traces_for_dashboard();
+                $widget = $('.traces').find('.tab-pane.active').find('ol');
+                request_traces_for_dashboard($widget);
+            });
+            $('.traces').find('ol').scroll(function (e) {
+                var target = e.currentTarget;
+                var end = target.scrollHeight - target.scrollTop === target.clientHeight;
+                if (end === true) {
+                    if (requesting_traces == false) {
+                        var $widget = $(target);
+                        request_traces_for_dashboard($widget, e, $(this));
+                    }
+                }
             });
         },
 
@@ -1944,8 +1982,13 @@ cenit = function ($) {
 
             updateModelCountOneByOneNoChild();
 
-            if ($('.dashboard').length > 0)
+            if ($('.dashboard').length > 0) {
                 updateDashboardCount();
+                $widget = $('.traces').find('.tab-pane.active').find('ol');
+                if ($widget.length > 0) {
+                    request_traces_for_dashboard($widget);
+                }
+            }
 
             slideshow.initialize();
 

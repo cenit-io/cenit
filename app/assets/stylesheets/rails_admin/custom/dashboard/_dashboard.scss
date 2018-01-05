@@ -211,9 +211,10 @@
   }
   .traces {
     ol {
-      height: calc(100vh - 200px);
+      height: calc(100vh - 245px);
       overflow: auto;
       padding-left: 30px;
+      padding-right: 15px;
       li {
         list-style-type: none;
         position: relative;
@@ -222,6 +223,7 @@
             color: #555;
             font-size: 1em;
             padding-left: 0;
+            text-transform: capitalize;
             &.create {
 
               color: #4BA84B;
@@ -274,6 +276,9 @@
                 color: gray;
                 font-size: .9em;
                 padding-left: 30px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
               }
             }
             &:before {
@@ -328,6 +333,23 @@
           }
         }
 
+      }
+      .loading_traces {
+        text-align: center;
+        font-size: 16px;
+        color: #46b0cf;
+        margin: 15px 0;
+        span.no_more {
+          font-size: 12px;
+          color: white;
+          background: #f0ad4e;
+          padding: 3px;
+          opacity: 0;
+          transition: all 2s ease;
+          &.show {
+            opacity: 1;
+          }
+        }
       }
     }
   }
