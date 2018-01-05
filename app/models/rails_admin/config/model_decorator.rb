@@ -2,6 +2,12 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      register_instance_option :json_formatter do
+        proc do |entries, options|
+          entries.to_json(options)
+        end
+      end
+
       register_instance_option :api_path do
         nil
       end
