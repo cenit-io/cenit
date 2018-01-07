@@ -120,6 +120,8 @@ module RailsAdmin
               rescue
                 {}
               end
+            criteria = {} unless criteria.is_a?(Hash)
+            criteria = validate_criteria(criteria)
             scope = scope.where(criteria)
           end
         end
@@ -128,6 +130,24 @@ module RailsAdmin
         end
         scope = sort_by(options, scope) if options[:sort]
         scope
+      end
+
+      def validate_criteria(criteria)
+        if criteria.is_a?(Hash)
+          criteria.each do |key, value|
+            if key.start_with?('$') && %w($and $or $in).exclude?(key)
+              criteria.delete(key)
+            elsif value.is_a?(Hash)
+              if (value = validate_criteria(value)).empty?
+                criteria.delete(key)
+              else
+                criteria[key] = value
+              end
+            end
+          end
+        else
+          criteria
+        end
       end
 
       def filter_query_conditions(query, fields = nil)
