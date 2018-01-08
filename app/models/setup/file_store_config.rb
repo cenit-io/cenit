@@ -9,7 +9,7 @@ module Setup
 
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
-    field :file_store, type: Class, default: -> { Cenit.default_file_store }
+    field :file_store, type: Module, default: -> { Cenit.default_file_store }
 
     attr_readonly :data_type
 
