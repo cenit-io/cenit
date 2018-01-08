@@ -82,14 +82,15 @@
             %a{href: "##{o}", role:"tab", data: {toggle: "tab"} }
               %label{class: o}
                 = t("admin.origin.#{o}")
-      .tab-content
+      -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+        - models = 'all'
+      -else
+        - models= @dashboard_models || []
+      .tab-content{data:{models: models, logged: "#{!current_user.nil?}"}}
         - origins.each_with_index do |o, index|
-          -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-            - models = 'all'
-          -else
-            - models= @dashboard_models || []
           .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: o }
-            %ol{data:{models: models, page: 1, origin: o}}
+            %ol{data:{page: 1, origin: o}}
         =link_to  "#", id: 'load_more_traces' do
           %i.fa.fa-code-fork
-          ="More"
+          %span
+            ="Load more Traces"
