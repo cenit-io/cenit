@@ -14,6 +14,8 @@ module RailsAdmin
               visible true
               show_in_dashboard false
 
+              public_access true
+
               json_formatter do
                 proc do |traces, options|
                   attrs = %w(model_label target_show_url object_name author_data).except(options[:except])
