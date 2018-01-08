@@ -4,7 +4,7 @@ Capataz.config do
 
   maximum_iterations ENV['CAPATAZ_MAXIMUM_ITERATIONS'] || 3000
 
-  deny_declarations_of :module, :class, :self, :def, :const, :ivar, :cvar, :gvar, :return
+  deny_declarations_of :module, :class, :self, :def, :const, :ivar, :cvar, :gvar
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
@@ -78,7 +78,7 @@ Capataz.config do
     :telephone_field_tag, :phone_field_tag, :date_field_tag, :time_field_tag, :datetime_field_tag,
     :datetime_local_field_tag, :month_field_tag, :week_field_tag, :url_field_tag, :email_field_tag, :number_field_tag,
     :range_field_tag, :select_tag, :check_box_tag, :radio_button_tag, :submit_tag, :button_tag, :image_submit_tag,
-    :form_tag, :text_area_tag, :utf8_enforcer_tag,
+    :form_tag, :text_area_tag, :utf8_enforcer_tag, :options_for_select,
 
     # Other html tags helpers
     :javascript_tag, :label_tag, :field_set_tag, :auto_discovery_link_tag, :favicon_link_tag, :image_tag, :video_tag,
