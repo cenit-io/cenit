@@ -211,10 +211,11 @@
   }
   .traces {
     ol {
-      height: calc(100vh - 245px);
+      max-height: calc(100vh - 290px);
       overflow: auto;
       padding-left: 30px;
       padding-right: 15px;
+      margin-bottom: 15px;
       li {
         list-style-type: none;
         position: relative;
@@ -350,6 +351,12 @@
             opacity: 1;
           }
         }
+      }
+    }
+    a#load_more_traces {
+      margin-left: 8px;
+      i {
+        margin-right: 7px;
       }
     }
   }

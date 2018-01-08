@@ -1334,12 +1334,14 @@ cenit = function ($) {
                 model_name = 'trace.json',
                 params = {
                     page: page,
-                    origin: origin
+                    per: '5',
+                    c: '{"origin":"' + origin + '"}'
                 };
-            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(params);
+
             if (dashboard_models !== 'all') {
-                ajax_url += '&target_model_name={"$in":' + dashboard_models + '}'
+                params.c = '{"target_model_name":{"$in":' + dashboard_models + '},"origin":"' + origin + '"}';
             }
+            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(params);
             $.ajax({
                 type: "GET",
                 url: ajax_url,
@@ -1914,14 +1916,11 @@ cenit = function ($) {
                 $widget = $('.traces').find('.tab-pane.active').find('ol');
                 request_traces_for_dashboard($widget);
             });
-            $('.traces').find('ol').scroll(function (e) {
-                var target = e.currentTarget;
-                var end = target.scrollHeight - target.scrollTop === target.clientHeight;
-                if (end === true) {
-                    if (requesting_traces == false) {
-                        var $widget = $(target);
-                        request_traces_for_dashboard($widget, e, $(this));
-                    }
+            $('.traces a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if (e) {
+                    var tab_id = $(e.target).attr('href');
+                    $widget = $('.traces').find(tab_id).find('ol');
+                    request_traces_for_dashboard($widget);
                 }
             });
         },
