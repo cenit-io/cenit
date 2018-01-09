@@ -112,11 +112,42 @@ module RailsAdmin
         scope = scope.where(query_conditions(options[:query])) if options[:query]
         scope = scope.where(filter_conditions(options[:filters])) if options[:filters]
         scope = scope.and(filter_query_conditions(options[:filter_query])) if options[:filter_query]
+        if (criteria = options[:criteria])
+          unless criteria.is_a?(Hash)
+            criteria =
+              begin
+                JSON.parse(criteria.to_s)
+              rescue
+                {}
+              end
+            criteria = {} unless criteria.is_a?(Hash)
+            criteria = validate_criteria(criteria)
+            scope = scope.where(criteria)
+          end
+        end
         if options[:page] && options[:per]
           scope = scope.send(Kaminari.config.page_method_name, options[:page]).per(options[:per])
         end
         scope = sort_by(options, scope) if options[:sort]
         scope
+      end
+
+      def validate_criteria(criteria)
+        if criteria.is_a?(Hash)
+          criteria.each do |key, value|
+            if key.start_with?('$') && %w($and $or $in).exclude?(key)
+              criteria.delete(key)
+            elsif value.is_a?(Hash)
+              if (value = validate_criteria(value)).empty?
+                criteria.delete(key)
+              else
+                criteria[key] = value
+              end
+            end
+          end
+        else
+          criteria
+        end
       end
 
       def filter_query_conditions(query, fields = nil)

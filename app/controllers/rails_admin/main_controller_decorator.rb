@@ -200,6 +200,7 @@ module RailsAdmin
       options = options.merge(bulk_ids: params[:bulk_ids]) if params[:bulk_ids]
       # Patch
       options = options.merge(filter_query: params[:filter_query]) if params[:filter_query].present?
+      options = options.merge(criteria: params[:c]) if params[:c].present?
       model_config.abstract_model.all(options, scope)
     end
   end

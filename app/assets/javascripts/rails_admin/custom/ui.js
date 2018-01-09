@@ -11,6 +11,7 @@
 //=  require 'rails_admin/custom/cenit'
 
 $(document).on('rails_admin.dom_ready', function () {
+    template_engine.initModule();
     cenit.initModule();
 });
 
