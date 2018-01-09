@@ -1,3 +1,24 @@
+- content_for :html_templates do
+  %script{type:"text/html",id:"dashboard_trace"}
+    %li{class: "{{action}}"}
+      .title
+        .label{class: "{{action}}"}
+          ="{{action}}:"
+        %span.trace-model
+          %span.model
+            ="{{model_label}} /"
+            %a{class: "pjax trace_object", href: "{{target_show_url}}"}
+              = '{{object_name}}'
+      %a{href: '{{url}}', class: 'details-link pjax'}
+        .details
+          .author
+            %img{ src: "{{picture}}", alt: '{{email}}', width: '20px', title: '{{email}}'}
+          .changes
+            %span
+              = "{{message}}"
+          .date
+            .created{title: "{{created_at}}"}
+              ="{{created_at}}"
 - if @abstract_models
   - totals = monitor_totals
   .row.dashboard
@@ -55,32 +76,21 @@
                   = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
     .col-sm-3.traces.no-padding-left
       %ul.nav.nav-tabs
-        %li.active
-          = link_to '/trace' do
-            %i.fa.fa-code-fork
-            = 'Traces'
-      - max_traces_count = 5
-      - trace_abstract_model = RailsAdmin.config(Mongoid::Tracer::Trace).abstract_model
+        - origins = Mongoid::Tracer::Trace.origins
+        - origins.each_with_index do |o, index|
+          %li{class: index==0 ? 'active': ''}
+            %a{href: "##{o}", role:"tab", data: {toggle: "tab"} }
+              %label{class: o}
+                = t("admin.origin.#{o}")
       -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-        - traces = Mongoid::Tracer::Trace.limit(max_traces_count).order(created_at: :desc)
+        - models = 'all'
       -else
         - models= @dashboard_models || []
-        - traces = Mongoid::Tracer::Trace.where(:target_model_name.in => models).limit(max_traces_count).order(created_at: :desc)
-      %ol
-        - if traces.count > 0
-          - traces.each do |t|
-            = render partial: 'rails_admin/main/dashboard/trace', locals: {t: t}
-          %li{class: "see_more"}
-            .title
-              - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
-              .label{class: "see_more"}
-                =link_to  url, class: 'pjax' do
-                  ="More"
-        -else
-          %li{class: "no-traces"}
-          .title
-            - url = url_for(action: :index, controller: 'rails_admin/main', model_name: trace_abstract_model)
-            .label{class: "no-traces"}
-              =link_to  url, class: 'pjax' do
-                ="No traces registered yet"
-
+      .tab-content{data:{models: models, logged: "#{!current_user.nil?}"}}
+        - origins.each_with_index do |o, index|
+          .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: o }
+            %ol{data:{page: 1, origin: o}}
+        =link_to  "#", id: 'load_more_traces' do
+          %i.fa.fa-code-fork
+          %span
+            ="Load more Traces"
