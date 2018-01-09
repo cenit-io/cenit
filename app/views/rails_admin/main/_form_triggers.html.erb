@@ -10,7 +10,7 @@
      }
    end
    triggers = field.form_value
-   element_id = "#{form.object_name.parameterize('_')}_triggers_field"
+   element_id = "#{form.dom_id(field)}_field"
 %>
 
 <div class="col-sm-12" style="padding: 0;">
