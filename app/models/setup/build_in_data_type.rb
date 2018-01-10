@@ -230,7 +230,9 @@ module Setup
         String => { 'type' => 'string' },
         Symbol => { 'type' => 'string' },
         nil => {},
-        Object => {}
+        Object => {},
+        Module => { 'type' => 'string' },
+        Class => { 'type' => 'string' }
       }.freeze
 
     def excluded?(name)
@@ -259,19 +261,19 @@ module Setup
           model.instance_variable_set(:@mongoff_models, mongoff_models = {})
         end
         mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
-                                                        name: field_name.camelize,
-                                                        parent: model,
-                                                        schema: properties[field_name],
-                                                        cache: false,
-                                                        modelable: false,
-                                                        root_schema: schema)
+          name: field_name.camelize,
+          parent: model,
+          schema: properties[field_name],
+          cache: false,
+          modelable: false,
+          root_schema: schema)
       end
       model.reflect_on_all_associations(:embeds_one,
-                                        :embeds_many,
-                                        :has_one,
-                                        :belongs_to,
-                                        :has_many,
-                                        :has_and_belongs_to_many).each do |relation|
+        :embeds_many,
+        :has_one,
+        :belongs_to,
+        :has_many,
+        :has_and_belongs_to_many).each do |relation|
         next unless included?((relation_name = relation.name.to_s))
         property_schema =
           case relation.macro
