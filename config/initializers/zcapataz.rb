@@ -143,6 +143,8 @@ Capataz.config do
 
   allow_on Magick::Image, [:read]
 
+  allow_on Hash, Hash.methods
+
   allow_for [Mongoff::Model], [:where, :all, :data_type]
 
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
