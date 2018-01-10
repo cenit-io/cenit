@@ -15,6 +15,7 @@ module Cenit
       ###
       # Save file content.
       def save(file, data, options)
+        file.instance_variable_set(:@_store_io, nil)
         opts = {
           content_type: file[:contentType],
           metadata: {
@@ -29,21 +30,19 @@ module Cenit
             obj.upload_file(data.path, opts)
           end
         end
-        file.remove_instance_variable(:@_store_io)
       end
 
       ###
       # Read file content.
       def read_from_store(file, len)
         unless (store_io = file.instance_variable_get(:@_store_io))
-          data = object(file) do |obj|
+          store_io = object(file) do |obj|
             if obj.exists?
-              obj.get.body.read
+              obj.get.body
             else
-              ''
+              StringIO.new
             end
           end
-          store_io = StringIO.new(data)
           file.instance_variable_set(:@_store_io, store_io)
         end
         store_io.seek(file.cursor)
@@ -53,7 +52,7 @@ module Cenit
       ###
       # Remove file from amazon
       def destroy(file)
-        file.remove_instance_variable(:@_store_io)
+        file.instance_variable_set(:@_store_io, nil)
         object(file) { |obj| obj.delete if obj.exists? }
       end
 

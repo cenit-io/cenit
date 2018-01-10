@@ -27,7 +27,9 @@ module Cenit
             stash_data.read(len)
           end
         else
-          read_from_store(file, len)
+          data = read_from_store(file, len)
+          file.seek(file.cursor + (data ? data.length : 0))
+          data
         end
       end
 

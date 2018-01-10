@@ -56,7 +56,6 @@ module Cenit
           end
           chunk_start = 0
         end
-        file.seek(cursor + data.length)
         data
       end
 
