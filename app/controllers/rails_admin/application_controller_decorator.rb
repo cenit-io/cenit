@@ -74,5 +74,9 @@ module RailsAdmin
       end
       @object || fail(RailsAdmin::ObjectNotFound)
     end
+
+    rescue_from ::NameError do
+      send_file 'public/404.html', type: 'text/html; charset=utf-8', disposition: :inline, status: :not_found
+    end
   end
 end

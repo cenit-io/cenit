@@ -953,7 +953,7 @@ module RailsAdmin
       </div>'
     end
 
-    def wrap_model_for_dashboard abstract_model
+    def wrap_model_for_dashboard(abstract_model)
       model_param = abstract_model.to_param
       url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
       rc = {}
