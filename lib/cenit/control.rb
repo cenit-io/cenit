@@ -249,6 +249,10 @@ module Cenit
       @controller.request.xhr?
     end
 
+    def logger
+      Rails.logger
+    end
+
     private
 
     attr_reader :cenit_action
