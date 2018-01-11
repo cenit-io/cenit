@@ -10,6 +10,10 @@ module RailsAdmin
             label 'File Store Config'
             weight 715
 
+            visible do
+              ::Setup::FileStoreMigration.enabled?
+            end
+
             configure :data_type do
               read_only true
             end
