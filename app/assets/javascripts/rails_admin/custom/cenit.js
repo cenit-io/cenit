@@ -1860,11 +1860,11 @@ cenit = function ($) {
                 $(this).parents('.alert').fadeOut(300);
             });
 
-            $(document).on('click', ".toggle-origin", function (e) {
+            $(document).off('click', ".toggle-origin").on('click', ".toggle-origin", function (e) {
                 this.nextElementSibling.value++;
             });
 
-            $(document).on('click', ".toggle-boolean", function (e) {
+            $(document).off('click', ".toggle-boolean").on('click', ".toggle-boolean", function (e) {
                 var that = this,
                     $this = $(this),
                     field = $this.data('field'),
