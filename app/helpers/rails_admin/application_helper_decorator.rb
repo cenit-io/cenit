@@ -987,17 +987,22 @@ module RailsAdmin
     def dashboard_navigation_data(nodes_stack, nodes)
       return unless nodes.present?
       i = -1
-
+      data = []
       nodes.collect do |node|
         i += 1
         children = nodes_stack.select { |n| n.parent.to_s == node.abstract_model.model_name }
-        if children.present?
-          dashboard_navigation_data nodes_stack, children
-        else
-          @dashboard_models << node.abstract_model.model_name
-          wrap_model_for_dashboard(node.abstract_model)
-        end
+        node_data =
+          if children.present?
+            dashboard_navigation_data nodes_stack, children
+          elsif (am = node.abstract_model)
+            @dashboard_models << am.model_name
+            wrap_model_for_dashboard(am)
+          else
+            nil
+          end
+        data << node_data if data
       end
+      data
     end
 
     def dashboard_navigation(nodes_stack, nodes)
