@@ -102,7 +102,8 @@ module Cenit
                                               email: {
                                                 email_prefix: "[Cenit Error #{Rails.env}] ",
                                                 sender_address: %{"notifier" <#{notifier_email}>},
-                                                exception_recipients: exception_recipients.split(',')
+                                                exception_recipients: exception_recipients.split(','),
+                                                sections: %w(tenant request session environment backtrace)
                                               }
       Thread.current[:cenit_initializing] = nil
     end
