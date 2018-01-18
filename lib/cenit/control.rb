@@ -88,6 +88,7 @@ module Cenit
         locals = layout
         layout = nil
       end
+      locals = locals.to_h.symbolize_keys
       layout ||= locals.delete(:layout)
 
       locals.merge!(control: self)
