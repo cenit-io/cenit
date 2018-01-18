@@ -70,7 +70,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::Collect,
   RailsAdmin::Config::Actions::MemberTraceIndex,
   RailsAdmin::Config::Actions::CollectionTraceIndex,
-  RailsAdmin::Config::Actions::DataTypeConfig
+  RailsAdmin::Config::Actions::DataTypeConfig,
+  RailsAdmin::Config::Actions::JsonEdit
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -553,6 +554,7 @@ RailsAdmin.config do |config|
     run
     run_script
     edit
+    json_edit
     configure
     play
     copy
