@@ -6,7 +6,7 @@ Capataz.config do
 
   deny_declarations_of :module, :class, :self, :def, :const, :ivar, :cvar, :gvar
 
-  deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
+  deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :constants, :const_get, :const_set, :constantize
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
