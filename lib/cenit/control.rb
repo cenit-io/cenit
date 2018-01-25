@@ -254,6 +254,10 @@ module Cenit
       Rails.logger
     end
 
+    def fail(*several_variants)
+      super
+    end
+
     private
 
     attr_reader :cenit_action
