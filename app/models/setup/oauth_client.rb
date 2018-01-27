@@ -61,9 +61,14 @@ module Setup
           end
         end
       end
+      if (parameters = auth_data[:parameters]).is_a?(Hash)
+        parameters.each do |key, value|
+          auth.parameters.new(key: key, value: value)
+        end
+      end
       auth.save!
       auth
     end
-    
+
   end
 end
