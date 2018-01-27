@@ -14,7 +14,7 @@ module Setup
       }
     )
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow, :edit
 
     attachment_uploader AccountUploader
 
