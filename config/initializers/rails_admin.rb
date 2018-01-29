@@ -228,6 +228,27 @@ module RailsAdmin
               end
             end
           end
+
+          if Cenit.namespace('CenitIO-Subscriptions').application('CenitIO-Subscriptions')
+            @dashboard_groups << {
+              link: { rel: 'app/cenit-io-subscriptions/subscriptions' },
+              label: 'Subscriptions',
+              icon: 'fa fa-asterisk',
+              sublinks: [
+                {
+                  link: { rel: 'app/cenit-io-subscriptions/customers' },
+                  label: 'Customers',
+                  icon: 'fa fa-asterisk',
+                },
+                {
+                  link: { rel: 'app/cenit-io-subscriptions/plans' },
+                  label: 'Plans',
+                  icon: 'fa fa-asterisk',
+                }
+              ]
+            }
+          end
+
         end
         @dashboard_groups
       end

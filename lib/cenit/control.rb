@@ -258,6 +258,13 @@ module Cenit
       super
     end
 
+    def get_resource(type, name, throw=true)
+      name, ns = parse_resource_name(name)
+      item = Cenit.namespace(ns).send(type, name)
+      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
+      item
+    end
+
     private
 
     attr_reader :cenit_action
@@ -271,13 +278,6 @@ module Cenit
       name, ns = name.to_s.split(/::\//).reverse
       ns ||= @app.namespace
       [name, ns]
-    end
-
-    def get_resource(type, name, throw=true)
-      name, ns = parse_resource_name(name)
-      item = Cenit.namespace(ns).send(type, name)
-      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
-      item
     end
   end
 end

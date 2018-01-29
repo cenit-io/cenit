@@ -678,21 +678,11 @@ module RailsAdmin
               <i class="toggle-icon fa fa-angle-left"></i></a>'
         models = g[:sublinks]
         html+='<ul class="sub-menu ">'
-        html+= '<li><a href="/' + g[:param] +'/dashboard"><span class="text">Dashboard</span></a></li>'
+        html+= "<li><a href='#{item_to_url(g)}'><span class='text'>Dashboard</span></a></li>"
         unless models.empty?
           models.each do |m|
             if m.is_a?(Hash)
-              if (link = m[:link])
-                if (rel_link = link[:rel])
-                  model_url = "/#{rel_link}"
-                end
-                if (ext_link = link[:external])
-                  model_url = "#{ext_link}"
-                end
-              else
-                model_url = "/#{m[:param]}/dashboard"
-              end
-              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span class="text">'+m[:label]+'</span></a></li>'
+              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'"><span class="text">'+m[:label]+'</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
               html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span class="text">'+model.label_plural+'</span></a></li>'
@@ -718,23 +708,13 @@ module RailsAdmin
                   <div class="service-container">
                   <div class="service-box" id="'+ "service_#{g[:label].underscore.gsub(' ', '_')}" +'">
                   <h1>
-                  <a class="service-link" target="_blank" href="/' + g[:param] +'/dashboard">'+ g[:label] +'
+                  <a class="service-link" target="_blank" href="' + item_to_url(g) +'">'+ g[:label] +'
                   </a></h1>
-                  <a class="service-link" target="_blank" href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i>
+                  <a class="service-link" target="_blank" href="' + item_to_url(g) +'"><i class="'+ g[:icon] +'"></i>
                   </a><p>'
           models.each do |m|
             if m.is_a?(Hash)
-              if (link = m[:link])
-                if (rel_link = link[:rel])
-                  model_url = "/#{rel_link}"
-                end
-                if (ext_link = link[:external])
-                  model_url = "#{ext_link}"
-                end
-              else
-                model_url = "/#{m[:param]}/dashboard"
-              end
-              html+= '<a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'">'+m[:label]+'</a>'
+              html+= '<a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'">'+m[:label]+'</a>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
               html+= '<a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'">'+model.label_plural+'</a>'
@@ -749,6 +729,10 @@ module RailsAdmin
       html.html_safe
     end
 
+    def item_to_url(item)
+      item[:link] ? "/#{item[:link][:rel] || item[:link][:external]}" : "/#{item[:param]}/dashboard"
+    end
+
     def dashboard_primary()
       groups = RailsAdmin::Config.dashboard_groups
       html = '<div id="primary_dashboard"><div class="row add-clearfix">'
@@ -757,20 +741,10 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= '<li><a id="'+ "g_#{g[:label].underscore.gsub(' ', '_')}" +'" href="/' + g[:param] +'/dashboard"><i class="'+ g[:icon] +'"></i><span>'+ g[:label] +'</span></a></li>'
+          html+= "<li><a id='g_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><i class='#{g[:icon]}'></i><span>#{g[:label]}</span></a></li>"
           models.each do |m|
             if m.is_a?(Hash)
-              if (link = m[:link])
-                if (rel_link = link[:rel])
-                  model_url = "/#{rel_link}"
-                end
-                if (ext_link = link[:external])
-                  model_url = "#{ext_link}"
-                end
-              else
-                model_url = "/#{m[:param]}/dashboard"
-              end
-              html+= '<li><a id="'+ "l_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+              html+= '<li><a id="'+ "l_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
               html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
@@ -793,23 +767,13 @@ module RailsAdmin
         unless models.empty?
           html+= '<li class="dropdown"><a class="dropdown-toggle" id="'+ "xstg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="'+ g[:icon] +'"></i>'+ g[:label] +'<span class="caret"></span></a>'
           html+= '<ul class="dropdown-menu">'
-          html+= '<li><a id="'+ "xsg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="/' + g[:param] +'/dashboard"><span>'+ 'Dashboard' +'</span></a><li>'
+          html+= "<li><a id='xsg_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><span>Dashboard</span></a><li>"
           models.each do |m|
             if m.is_a?(Hash)
-              if (link = m[:link])
-                if (rel_link = link[:rel])
-                  model_url = "/#{rel_link}"
-                end
-                if (ext_link = link[:external])
-                  model_url = "#{ext_link}"
-                end
-              else
-                model_url = "/#{m[:param]}/dashboard"
-              end
-              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ model_url +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+              html+= '<li><a id=" '+ "xsl_#{m[:label].underscore.gsub(' ', ' _ ')}" +' " href=" '+ item_to_url(m) +' " target=" '+ open_in_new_tab(g, m[:param])+' "><span>'+m[:label]+'</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+              html+= '<li><a id=" '+"l_#{model.label_plural.underscore.gsub(' ', ' _ ')}"+' "href=" '+ model_url +' " target=" '+ open_in_new_tab(g, m)+' "><span>'+model.label_plural+'</span></a></li>'
             end
           end
           html += '</ul></li>'
@@ -850,7 +814,7 @@ module RailsAdmin
       node_model_names = @model_configs.values.collect { |config| config.abstract_model.model_name }
 
       html_ = "<table class='table table-condensed table-striped col-sm-6'>" +
-        '<thead><tr><th class="shrink"></th><th></th><th class="shrink"></th></tr></thead>' +
+        '<thead><tr><th class=" shrink "></th><th></th><th class=" shrink "></th></tr></thead>' +
         nodes_stack.group_by(&:navigation_label).collect do |navigation_label, nodes|
           nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) }
           stack = dashboard_navigation nodes_stack, nodes
@@ -869,13 +833,13 @@ module RailsAdmin
           if stack.present?
             %(
               <tbody><tr><td colspan="3"><h3>
-                <span class="nav-icon">#{icon}</span>
-                <span class="nav-caption">#{label}</span>
-              </h3></td></tr>
+                <span class="nav-icon">#{icon}</s pan>
+          <span class="nav-caption"> #{label}</span>
+          </h3></ td></tr>
             #{stack}
-            </tbody>)
-          end
-        end.join + '</tbody></table>'
+            </ tbody>)
+        end
+      end.join + '</tbody></table>'
       html_.html_safe
     end
 
