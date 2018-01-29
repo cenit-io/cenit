@@ -252,18 +252,9 @@ module RailsAdmin
             </a>
           </li>)
         end
-      current_user.all_accounts.each do |a|
-        if a != current_user.account
-          name = format_name(a.name)
-          url = inspect_path(model_name: acc_am.to_param, id: a.id)
-          menu << %(<li title="Inspect #{name}" rel="" class="icon index_collection_link ">
-              <a class="pjax" href="#{url}">
-                <i class="fa fa-home"></i>
-                <span>#{name}</span>
-              </a>
-            </li>)
-        end
-      end
+      tenants = []
+      tenants << %(<div class="tenants-list" data-owner="xxx"></div><div class="actions"></div>)
+      menu = menu.concat(tenants)
       menu.join.html_safe
     end
 

@@ -6,7 +6,8 @@ cenit = function ($) {
         // Set constants
 
         configMap = {
-            sample: 0,
+            host: window.location.origin,
+            api_route: '/api/v2/'
         },
 
         // Vars
@@ -437,6 +438,94 @@ cenit = function ($) {
             for (i = 0; i < tenants.length; i++) {
                 tenants[i] = JSON.parse(tenants[i]);
             }
+        },
+        request_tenants = function (owner_id, $widget) {
+            var ajax_url = configMap.host + configMap.api_route + 'setup/account';
+            var search_indicator = function ($widget) {
+                var $indicator = $('<li><div class="text-center"><i class="fa fa-spinner fa-pulse"></i></div></li>');
+                $widget.children().remove();
+                $widget.append($indicator)
+            };
+            var fail_indicator = function ($widget) {
+                var $indicator = $('<li><div class="text-center">An error happened</div></li>');
+                $widget.children().remove();
+                $widget.append($indicator)
+            };
+            var update_results = function (data, searching, $widget) {
+                var searching = searching || false;
+                var count = data['count'],
+                    accounts = data['accounts'],
+                    max_show = 10,
+                    i = 0,
+                    create_tenant_link = function (account) {
+                        var href = '/account/' + account['id'] + '/inspect',
+                            name = account['name'],
+                            $link = $('<a href="' + href + '" title="' + name + '">' + name + '</a>');
+                        return $('<li></li>').append($link)
+                    },
+                    search_tenants = function (val, $widget) {
+                        $.ajax({
+                            type: "GET",
+                            url: ajax_url + '&$and=[{"name":{"$regex":"' + val + '"}}]',
+                            beforeSend: function () {
+                                search_indicator($widget);
+                            }
+                        }).done(function (data) {
+                            update_results(data, true, $widget);
+                        }).fail(function () {
+                            fail_indicator($widget);
+                        });
+                    };
+                $widget.children().remove();
+                if (count > 0) {
+                    while (i < count && i < max_show) {
+                        $widget.append(create_tenant_link(accounts[i]));
+                        i++;
+                    }
+                    if (!searching) {
+                        if (i < count) {
+                            if ($widget.siblings('.actions').find('#search_tenant').length == 0) {
+                                var $input = $('<input class="form-control input-small" id="search_tenant" type="search" value="" placeholder="search"/>');
+                                $input.on('click', function (e) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                });
+                                $input.on('keyup', function (e) {
+
+                                    var $widget, val, min_length = 1;
+                                    if ((val = $(this).val()).length >= min_length) {
+                                        $widget = $(e.target).parent().siblings('.tenants-list');
+                                        search_tenants(val, $widget);
+                                    }
+                                    else {
+                                        $widget = $(e.target).parent().siblings('.tenants-list');
+                                        var owner_id = $widget.attr('data-owner');
+                                        request_tenants(owner_id, $widget);
+                                    }
+                                });
+                                $widget.siblings('.actions').prepend($input);
+                            }
+                        }
+                    }
+                }
+                else {
+                    $widget.append($('<li>No results</li>'));
+                }
+            };
+            if (owner_id.length > 0) {
+                ajax_url += '?owner_id=' + owner_id;
+            }
+            $.ajax({
+                type: "GET",
+                url: ajax_url,
+                beforeSend: function () {
+                    search_indicator($widget);
+                }
+            }).done(function (data) {
+                update_results(data, false, $widget);
+            }).fail(function () {
+                fail_indicator($widget);
+            });
         },
 
         render_graphic = function ($form, selector) {
@@ -1329,7 +1418,7 @@ cenit = function ($) {
             var dashboard_models = $widget.parent().parent('.tab-content').attr('data-models'),
                 $loading = $('<div id="loading_traces"><i class="fa fa-spinner fa-pulse fa-fw"></i></div>'),
                 model_route = '',
-                host = window.location.origin,
+                host = configMap.host,
                 page = $widget.attr('data-page'),
                 origin = $widget.attr('data-origin'),
                 model_name = 'trace.json',
@@ -1519,25 +1608,6 @@ cenit = function ($) {
                         $('#subdomain-toggle').toggleClass("toggled");
                     }
                 }
-            });
-            $('#search_tenant').off().on('keydown', function (e) {
-                var filtered_tenants,
-                    tenants_to_html = function (tenants_list) {
-                        var i, t, html = '';
-                        for (i = 0; i < tenants_list.length; i++) {
-                            t = tenants_list[i];
-                            html += '<li><a href="' + t['url'] + '">' + t['name'] + '</a></li>'
-                        }
-                        return html;
-                    };
-                var count_letter = $(this).val().length;
-                if (count_letter > 1) {
-                    filtered_tenants = filterTenants($(this).val());
-                }
-                else {
-                    filtered_tenants = tenants
-                }
-                $('.dropdown-menu .tenants').html(tenants_to_html(filtered_tenants));
             });
             $("#view_graphic").off().click(function (e) {
                 e.preventDefault();
@@ -2028,6 +2098,12 @@ cenit = function ($) {
             }
 
             update_active_nav_link();
+
+            var $tenant_list = $('.tenants-list');
+            if ($tenant_list.length > 0) {
+                var owner_id = $tenant_list.attr('data-owner');
+                request_tenants(owner_id, $tenant_list);
+            }
         },
 
         // Module exposed functions
