@@ -1,4 +1,4 @@
-class Class
+class Module
   class << self
 
     def demongoize(object)

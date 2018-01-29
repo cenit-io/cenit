@@ -7,12 +7,14 @@ module Mongoid
       include CrossOrigin::CenitDocument
       include RailsAdmin::Models::Mongoid::Tracer::TraceAdmin
 
-      build_in_data_type
+      Setup::Models.regist(self)
+
+      build_in_data_type.including(:created_at)
 
       deny :all
       allow :index, :show, :member_trace_index, :collection_trace_index
 
-      origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
+      origins -> { Cenit::MultiTenancy.tenant_model.current && [:default, :owner] }, :shared
 
       def target_model
         if (match = target_model_name.match(/\ADt(.+)\Z/))

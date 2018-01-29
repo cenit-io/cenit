@@ -74,5 +74,29 @@ module RailsAdmin
       end
       @object || fail(RailsAdmin::ObjectNotFound)
     end
+
+    rescue_from ::NameError do
+      send_file 'public/404.html', type: 'text/html; charset=utf-8', disposition: :inline, status: :not_found
+    end
+
+    rescue_from RailsAdmin::ObjectNotFound do
+      if _current_user
+        flash[:error] = I18n.t('admin.flash.object_not_found', model: @model_name, id: params[:id])
+        params[:action] = 'index'
+        index
+      else
+        warden.authenticate! scope: :user
+      end
+    end
+
+    rescue_from RailsAdmin::ModelNotFound do
+      if _current_user
+        flash[:error] = I18n.t('admin.flash.model_not_found', model: @model_name)
+        params[:action] = 'dashboard'
+        dashboard
+      else
+        warden.authenticate! scope: :user
+      end
+    end
   end
 end

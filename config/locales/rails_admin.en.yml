@@ -566,6 +566,10 @@ en:
         title: "Configure"
         menu: "Configure"
         breadcrumb: "Configure"
+      json_edit:
+        title: "JSON Edit"
+        menu: "JSON Edit"
+        breadcrumb: "JSON Edit"
     form:
       flow:
         source_data_type: 'Source data type'

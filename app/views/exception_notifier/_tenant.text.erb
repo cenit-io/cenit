@@ -1,0 +1,3 @@
+* Tenant ID: <%= ::Tenant.current ? ::Tenant.current.id : 'nil' %>
+* Tenant Label: <%= ::Tenant.current ? ::Tenant.current.label : 'nil' %>
+* User: <%= ::User.current ? ::User.current.email : 'nil' %>

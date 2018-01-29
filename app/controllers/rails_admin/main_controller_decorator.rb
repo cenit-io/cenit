@@ -18,11 +18,15 @@ module RailsAdmin
         if model.include?(CrossOrigin::CenitDocument)
           if (acc = Account.current)
             CrossOrigin.names.each do |origin|
-              even = params[origin_param = "#{origin}_origin"].to_i.even?
-              acc.meta[origin_param] = (even ? 0 : 1)
+              origin_param = "#{origin}_origin"
+              if params.key?(origin_param)
+                even = params[origin_param].to_i.even?
+                acc.meta[origin_param] = (even ? 0 : 1)
+              end
             end
           end
           origins = model.origins
+          origins.select! { |origin| params["#{origin}_origin"].to_i.even? } unless acc
           origins << nil if origins.include?(:default)
           scope = scope.any_in(origin: origins)
         end
@@ -200,6 +204,7 @@ module RailsAdmin
       options = options.merge(bulk_ids: params[:bulk_ids]) if params[:bulk_ids]
       # Patch
       options = options.merge(filter_query: params[:filter_query]) if params[:filter_query].present?
+      options = options.merge(criteria: params[:c]) if params[:c].present?
       model_config.abstract_model.all(options, scope)
     end
   end

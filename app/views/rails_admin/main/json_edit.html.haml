@@ -1,0 +1,24 @@
+:ruby
+  js_data = {
+    csspath: asset_path('codemirror.css'),
+    jspath: asset_path('codemirror.js'),
+    options: {
+      theme: theme = (User.current.try(:code_theme).presence || Cenit.default_code_theme || 'monokai')
+    },
+    locations: {
+      mode: asset_path('codemirror/modes/javascript.js'),
+      theme: asset_path("codemirror/themes/#{theme}.css")
+    }
+  }.to_json.to_s
+= form_tag(json_edit_path(model_name: @abstract_model.to_param, id: @object.id), method: 'put', class: 'pjax-form json-editor-form') do
+  %textarea{name: 'json_data', 'data-richtext': 'codemirror', 'data-options': js_data}
+    =  @json_data || JSON.pretty_generate(@object.to_hash)
+  .form-group.form-actions
+    .pull-right
+      %button.btn.btn-primary{type: 'submit', name: '_save', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => t('admin.form.save')}
+        %i{class: @action.try(:link_icon)}
+        = t('admin.form.save')
+      %span.extra_buttons
+        %button.btn{type: 'submit', name: '_continue', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => t('admin.form.cancel')}
+          %i.icon-remove
+          = t('admin.form.cancel')

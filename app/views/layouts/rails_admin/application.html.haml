@@ -26,4 +26,5 @@
   -else
     %body.topnav-fixed.rails_admin
       = render partial: 'layouts/rails_admin/default_layout'
+      = yield :html_templates
   = render partial: 'contact_us'

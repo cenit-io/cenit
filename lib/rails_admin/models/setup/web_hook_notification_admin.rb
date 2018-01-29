@@ -11,6 +11,8 @@ module RailsAdmin
             object_label_method { :custom_title }
             label 'Web-Hook'
 
+            configure :namespace, :enum_edit
+
             configure :data_type, :contextual_belongs_to
 
             edit do

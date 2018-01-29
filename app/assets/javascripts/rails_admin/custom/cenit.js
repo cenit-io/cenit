@@ -1,6 +1,8 @@
-var cenit = (function ($) {
+var cenit;
+cenit = function ($) {
     // Module scope variables
     var
+        requesting_traces = false,
         // Set constants
 
         configMap = {
@@ -282,101 +284,101 @@ var cenit = (function ($) {
 
     // Functions
 
-    initHomePage = function () {
+    var initHomePage = function () {
 
-        $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
+            $(".owl-carousel").owlCarousel({items: 3, autoPlay: true, pagination: false});
 
-        var $navDots = $("#hero nav a")
-        var $next = $(".slide-nav.next");
-        var $prev = $(".slide-nav.prev");
-        var $slides = $("#hero .slides .slide");
-        var actualIndex = 0;
-        var swiping = false;
-        var interval;
+            var $navDots = $("#hero nav a")
+            var $next = $(".slide-nav.next");
+            var $prev = $(".slide-nav.prev");
+            var $slides = $("#hero .slides .slide");
+            var actualIndex = 0;
+            var swiping = false;
+            var interval;
 
-        $navDots.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
+            $navDots.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                actualIndex = $navDots.index(this);
+                updateSlides(actualIndex);
+            });
+
+            $next.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                clearInterval(interval);
+                interval = null;
+
+                actualIndex++;
+                if (actualIndex >= $slides.length) {
+                    actualIndex = 0;
+                }
+
+                updateSlides(actualIndex);
+            });
+
+            $prev.click(function (e) {
+                e.preventDefault();
+                if (swiping) {
+                    return;
+                }
+                swiping = true;
+
+                clearInterval(interval);
+                interval = null;
+
+                actualIndex--;
+                if (actualIndex < 0) {
+                    actualIndex = $slides.length - 1;
+                }
+
+                updateSlides(actualIndex);
+            });
+
+            function updateSlides(index) {
+                // update nav dots
+                $navDots.removeClass("active");
+                $navDots.eq(index).addClass("active");
+
+                // update slides
+                var $activeSlide = $("#hero .slide.active");
+                var $nextSlide = $slides.eq(index);
+
+                $activeSlide.fadeOut();
+                $nextSlide.addClass("next").fadeIn();
+
+                setTimeout(function () {
+                    $slides.removeClass("next").removeClass("active");
+                    $nextSlide.addClass("active");
+                    $activeSlide.removeAttr('style');
+                    swiping = false;
+                }, 1000);
             }
-            swiping = true;
 
-            actualIndex = $navDots.index(this);
-            updateSlides(actualIndex);
-        });
+            // Uncomment this for automatic slide changing
+            /*    interval = setInterval(function () {
+             if (swiping) {
+             return;
+             }
+             swiping = true;
 
-        $next.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
-            }
-            swiping = true;
+             actualIndex++;
+             if (actualIndex >= $slides.length) {
+             actualIndex = 0;
+             }
 
-            clearInterval(interval);
-            interval = null;
-
-            actualIndex++;
-            if (actualIndex >= $slides.length) {
-                actualIndex = 0;
-            }
-
-            updateSlides(actualIndex);
-        });
-
-        $prev.click(function (e) {
-            e.preventDefault();
-            if (swiping) {
-                return;
-            }
-            swiping = true;
-
-            clearInterval(interval);
-            interval = null;
-
-            actualIndex--;
-            if (actualIndex < 0) {
-                actualIndex = $slides.length - 1;
-            }
-
-            updateSlides(actualIndex);
-        });
-
-        function updateSlides(index) {
-            // update nav dots
-            $navDots.removeClass("active");
-            $navDots.eq(index).addClass("active");
-
-            // update slides
-            var $activeSlide = $("#hero .slide.active");
-            var $nextSlide = $slides.eq(index);
-
-            $activeSlide.fadeOut();
-            $nextSlide.addClass("next").fadeIn();
-
-            setTimeout(function () {
-                $slides.removeClass("next").removeClass("active");
-                $nextSlide.addClass("active");
-                $activeSlide.removeAttr('style');
-                swiping = false;
-            }, 1000);
-        }
-
-        // Uncomment this for automatic slide changing
-        /*    interval = setInterval(function () {
-         if (swiping) {
-         return;
-         }
-         swiping = true;
-
-         actualIndex++;
-         if (actualIndex >= $slides.length) {
-         actualIndex = 0;
-         }
-
-         updateSlides(actualIndex);
-         }, 5000);
-         */
-    },
+             updateSlides(actualIndex);
+             }, 5000);
+             */
+        },
 
         scroll_to = function (event) {
             event.preventDefault();
@@ -1314,22 +1316,106 @@ var cenit = (function ($) {
         },
         update_active_nav_link = function () {
             var active_model,
-                paths = window.location.pathname.split('/')
+                paths = window.location.pathname.split('/');
             if (paths.length > 1) {
                 active_model = paths[1]
             }
-            $('.subdomain-menu li').removeClass('active')
+            $('.subdomain-menu li').removeClass('active');
             $('.subdomain-menu a[href="/' + active_model + '"]').parent().addClass('active')
 
         },
+        request_traces_for_dashboard = function ($widget) {
+            requesting_traces = true;
+            var dashboard_models = $widget.parent().parent('.tab-content').attr('data-models'),
+                $loading = $('<div id="loading_traces"><i class="fa fa-spinner fa-pulse fa-fw"></i></div>'),
+                model_route = '',
+                host = window.location.origin,
+                page = $widget.attr('data-page'),
+                origin = $widget.attr('data-origin'),
+                model_name = 'trace.json',
+                params = {
+                    page: page,
+                    per: '5',
+                    c: '{"origin":"' + origin + '"}'
+                };
 
+            if (dashboard_models !== 'all') {
+                params.c = '{"target_model_name":{"$in":' + dashboard_models + '},"origin":"' + origin + '"}';
+            }
+            var ajax_url = host + model_route + '/' + model_name + '?' + $.param(params);
+            $.ajax({
+                type: "GET",
+                url: ajax_url,
+                beforeSend: function () {
+                    var l = $widget.parent('.tab-pane').find('#loading_traces');
+                    if (l.length === 0) {
+                        $widget.parent('.tab-pane').prepend($loading);
+                    }
+                    $widget.parent('.tab-pane').find('#loading_traces').addClass('loading');
+                }
+            }).done(function (data) {
+                var traces = data;
+                var add_trace = function (t) {
+                    if (t != null) {
+                        data = {
+                            action: t['action'],
+                            name: t['attributes_trace']['name'],
+                            created_at: t['created_at'],
+                            message: t['message'] || 'No message',
+                            model_label: t['model_label'],
+                            target_show_url: t['target_show_url'],
+                            url: '/trace/' + t['_id']['$oid'],
+                            object_name: t['object_name'],
+                            picture: t['author_data']['picture'],
+                            email: t['author_data']['email']
+                        };
+                        $new = template_engine.render('dashboard_trace', data);
+                        $widget.append($new);
+                    }
+                };
+
+                $widget.attr('data-page', parseInt(params['page']) + 1);
+                if (traces.length > 0) {
+                    $('#no_traces').remove();
+                    jQuery.each(traces, function (i, t) {
+                        add_trace(t);
+                    });
+                    requesting_traces = false;
+                    $widget.parent('.tab-pane').find('#loading_traces').removeClass('loading');
+
+                }
+                else {
+                    if ($widget.children().length == 0) {
+                        var $no_traces = $('<li id="no_traces">No traces registered yet</li>')
+                        $widget.append($no_traces);
+                        requesting_traces = false;
+                        $widget.parent('.tab-pane').find('#loading_traces').removeClass('loading');
+                    } else {
+                        $widget.parent('.tab-pane').find('#loading_traces').children().remove();
+                        var $no_results = $('<span>No new results</span>');
+                        $widget.parent('.tab-pane').find('#loading_traces').append($no_results);
+                        console.log('no new results');
+                        setTimeout(function () {
+                            $widget.parent('.tab-pane').find('#loading_traces').removeClass('loading');
+                            setTimeout(function () {
+                                $widget.parent('.tab-pane').find('#loading_traces').children().remove();
+                                $widget.parent('.tab-pane').find('#loading_traces').append($('<i class="fa fa-spinner fa-pulse fa-fw"></i>'));
+                            }, 1000);
+
+                        }, 1500);
+                    }
+                }
+            }).fail(function () {
+                requesting_traces = false;
+                $widget.find('#loading_traces').removeClass('show');
+            });
+        },
         registerEvents = function () {
-
             $('.dashboard a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 updateDashboardCount(e);
-            })
+            });
 
-            $('#subdomain-related-menu a[data-toggle="collapse"]').off('click').on('click', function (e) {
+            $('#subdomain-related-menu').find('a[data-toggle="collapse"]').off('click').on('click', function (e) {
                 var $aside = $('#content-wrapper aside');
                 if ($aside.hasClass('minified')) {
                     $aside.removeClass('minified');
@@ -1774,11 +1860,11 @@ var cenit = (function ($) {
                 $(this).parents('.alert').fadeOut(300);
             });
 
-            $(document).on('click', ".toggle-origin", function (e) {
+            $(document).off('click', ".toggle-origin").on('click', ".toggle-origin", function (e) {
                 this.nextElementSibling.value++;
             });
 
-            $(document).on('click', ".toggle-boolean", function (e) {
+            $(document).off('click', ".toggle-boolean").on('click', ".toggle-boolean", function (e) {
                 var that = this,
                     $this = $(this),
                     field = $this.data('field'),
@@ -1835,6 +1921,18 @@ var cenit = (function ($) {
                         ev.preventDefault();
                     });
                 });
+            });
+            $('#load_more_traces').off().on('click', function (e) {
+                e.preventDefault();
+                $widget = $('.traces').find('.tab-pane.active').find('ol');
+                request_traces_for_dashboard($widget);
+            });
+            $('.traces a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if (e) {
+                    var tab_id = $(e.target).attr('href');
+                    $widget = $('.traces').find(tab_id).find('ol');
+                    request_traces_for_dashboard($widget);
+                }
             });
         },
 
@@ -1894,8 +1992,13 @@ var cenit = (function ($) {
 
             updateModelCountOneByOneNoChild();
 
-            if ($('.dashboard').length > 0)
+            if ($('.dashboard').length > 0) {
                 updateDashboardCount();
+                $widget = $('.traces').find('.tab-pane.active').find('ol');
+                if ($widget.length > 0) {
+                    request_traces_for_dashboard($widget);
+                }
+            }
 
             slideshow.initialize();
 
@@ -1940,5 +2043,26 @@ var cenit = (function ($) {
         };
 
     return {initModule: initModule};
+
+}(jQuery);
+
+var template_engine = (function ($) {
+    // Module scope variables
+    var
+        // Set constants
+        configMap = {},
+        render = function (template_name, data) {
+            var html = $('#' + template_name).clone().html(),
+                keys = Object.keys(data), reg_exp;
+
+            $.each(keys, function (index, value) {
+                reg_exp = new RegExp("{{" + value + "}}", "g");
+                html = html.replace(reg_exp, data[value]);
+            });
+            return $(html);
+        },
+        initModule = function () {
+        };
+    return {initModule: initModule, render: render};
 
 }(jQuery));

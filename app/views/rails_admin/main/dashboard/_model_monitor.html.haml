@@ -7,8 +7,7 @@
       - link = (l = a[:link]).nil? ? "#{a[:param]}/dashboard": "/#{l[:rel]}"
       - options = {url: link, name: a[:label], icon: a[:icon], subgroup: true}
       = render partial: 'rails_admin/main/dashboard/monitor', locals: {options: options}
-    - else
-      - am = (model = RailsAdmin::Config.model(a)).abstract_model
+    - elsif (am = RailsAdmin::Config.model(a).abstract_model)
       - m = wrap_model_for_dashboard(am)
       = render partial: 'rails_admin/main/dashboard/monitor', locals: {options: model_monitor_data(m)}
 - else

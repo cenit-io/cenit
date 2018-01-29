@@ -84,7 +84,16 @@ module RailsAdmin
                 end
 
                 #Patch
-                if params[:_next].nil? && @object.save
+                if (ok = params[:_next].nil?)
+                  ok =
+                    begin
+                      @object.save
+                    rescue Exception => ex
+                      @object.errors.add(:base, "Error while creating: #{ex.message}")
+                      false
+                    end
+                end
+                if ok
                   if (warnings = @object.try(:warnings)).present?
                     do_flash(:warning, 'Warning', warnings)
                   end

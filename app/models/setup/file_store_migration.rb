@@ -37,9 +37,13 @@ module Setup
         Setup::FileStoreMigration.where(:status.in => Setup::Task::RUNNING_STATUS, data_type: data_type).present?
       end
 
+      def enabled?
+        (user = ::User.current) &&
+          user.roles.any? { |role| ::Cenit.file_stores_roles.include?(role.name.to_s) }
+      end
+
       def unable?
-        (user = ::User.current).nil? ||
-          user.roles.none? { |role| ::Cenit.file_stores_roles.include?(role.name.to_s) }
+        !enabled?
       end
 
       def cannot_migrate?(data_type)

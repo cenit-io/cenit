@@ -4205,3 +4205,15 @@ button#toogle-submenu-header {
 .scrollable-container {
   margin-top: 60px;
 }
+.filtering-select {
+  z-index: 0;
+}
+.json-editor-form{
+  height: calc(100vh - 240px);
+  .CodeMirror {
+    height: initial;
+  }
+  .form-group.form-actions {
+    padding-top: 15px;
+  }
+}
