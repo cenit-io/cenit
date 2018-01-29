@@ -233,17 +233,17 @@ module RailsAdmin
             @dashboard_groups << {
               link: { rel: 'app/cenit-io-subscriptions/subscriptions' },
               label: 'Subscriptions',
-              icon: 'fa fa-asterisk',
+              icon: 'fa fa-usd',
               sublinks: [
                 {
                   link: { rel: 'app/cenit-io-subscriptions/customers' },
                   label: 'Customers',
-                  icon: 'fa fa-asterisk',
+                  icon: 'fa fa-vcard',
                 },
                 {
                   link: { rel: 'app/cenit-io-subscriptions/plans' },
                   label: 'Plans',
-                  icon: 'fa fa-asterisk',
+                  icon: 'fa fa-tasks',
                 }
               ]
             }
