@@ -230,19 +230,19 @@ module RailsAdmin
             end
           end
 
-          if Cenit.namespace('CenitIO-Subscriptions').application('CenitIO-Subscriptions')
+          if ENV['SUBSCRIPTIONS_APP'].present?
             @dashboard_groups << {
-              link: { rel: 'app/cenit-io-subscriptions/subscriptions' },
+              link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/subscriptions" },
               label: 'Subscriptions',
               icon: 'fa fa-usd',
               sublinks: [
                 {
-                  link: { rel: 'app/cenit-io-subscriptions/customers' },
+                  link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/customers" },
                   label: 'Customers',
                   icon: 'fa fa-vcard',
                 },
                 {
-                  link: { rel: 'app/cenit-io-subscriptions/plans' },
+                  link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/plans" },
                   label: 'Plans',
                   icon: 'fa fa-tasks',
                 }
