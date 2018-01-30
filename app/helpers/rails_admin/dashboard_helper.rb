@@ -253,7 +253,7 @@ module RailsAdmin
           </li>)
         end
       tenants = []
-      tenants << %(<div class="tenants-list" data-owner="xxx"></div><div class="actions"></div>)
+      tenants << %(<div class="tenants-list" data-owner="#{_current_user.id}" data-current="#{_current_user.account.name}"></div><div class="actions"></div>)
       menu = menu.concat(tenants)
       menu.join.html_safe
     end

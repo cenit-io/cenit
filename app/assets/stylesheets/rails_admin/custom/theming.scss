@@ -4235,23 +4235,28 @@ button#toogle-submenu-header {
   }
 }
 
-.dashboard .tenants-list {
-  li > a {
-    display: block;
-    padding: 3px 20px;
-    clear: both;
-    font-weight: normal;
-    line-height: 1.42857143;
-    color: #333333;
-    white-space: nowrap;
-    max-width: 160px;;
-    &:hover, &:focus {
-      text-decoration: none;
-      color: #262626;
-      background-color: #f5f5f5;
+.dashboard {
+  .monitor .options-menu.open .dropdown-menu {
+    .actions {
+      padding: 15px 15px 0;
     }
   }
-  .actions {
-    padding: 15px 15px 0;
+  .tenants-list {
+    li > a {
+      display: block;
+      padding: 3px 20px;
+      clear: both;
+      font-weight: normal;
+      line-height: 1.42857143;
+      color: #333333;
+      white-space: nowrap;
+      max-width: 160px;;
+      &:hover, &:focus {
+        text-decoration: none;
+        color: #262626;
+        background-color: #f5f5f5;
+      }
+    }
+
   }
 }
