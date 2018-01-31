@@ -440,7 +440,7 @@ cenit = function ($) {
             }
         },
         request_tenants = function (owner_id, $widget) {
-            var ajax_url = configMap.host + configMap.api_route + 'setup/account',
+            var ajax_url = configMap.host + '/account.json?',
                 show_indicator = function ($widget, $indicator) {
                     $widget.children().remove();
                     $widget.append($indicator)
@@ -458,21 +458,25 @@ cenit = function ($) {
                     show_indicator($widget, $indicator);
                 },
                 update_results = function (data, searching, $widget) {
-                    var count = data['count'],
-                        accounts = data['accounts'],
+                    var count = data.length,
+                        accounts = data,
                         max_show = 10,
                         i = 0,
                         $input,
                         create_tenant_link = function (account) {
-                            var href = '/account/' + account['id'] + '/inspect',
+                            var href = '/account/' + account['_id']['$oid'] + '/inspect',
                                 name = account['name'],
                                 $link = $('<a href="' + href + '" title="' + name + '">' + name + '</a>');
                             return $('<li></li>').append($link)
                         },
                         search_tenants = function (val, $widget) {
+                            var params = {
+                                c: '{"owner_id":"' + owner_id + '"}',
+                                query: val
+                            }, ajax_url = configMap.host + '/account.json?' + $.param(params);
                             $.ajax({
                                 type: "GET",
-                                url: ajax_url + '&$and=[{"name":{"$regex":"' + val + '"}}]',
+                                url: ajax_url,
                                 beforeSend: function () {
                                     search_indicator($widget);
                                 }
@@ -519,7 +523,10 @@ cenit = function ($) {
                     }
                 };
             if (owner_id.length > 0) {
-                ajax_url += '?owner_id=' + owner_id;
+                params = {
+                    c: '{"owner_id":"' + owner_id + '"}'
+                }
+                ajax_url += $.param(params);
             }
             $.ajax({
                 type: "GET",
