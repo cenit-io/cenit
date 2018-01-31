@@ -1,4 +1,3 @@
-
 %ul.nav.navbar-nav.navbar-right
   %button#nav-drawer-toggle.btn.a.navbar-brand.toggle-btn
     %i.fa.fa-fw.fa-navicon
@@ -44,21 +43,12 @@
             = format_name(_current_user.account.name)
           %span.caret
         %ul#tenant-menu.dropdown-menu
-          - count_tenants = _current_user.all_accounts.count
-          .tenants
-            - tenant_list = []
-            - _current_user.all_accounts.each do |a|
-              - name =  format_name(a.name)
-              - if a != _current_user.account
-                - tenant_list.push({'name'=> name,'url'=> inspect_path(model_name: acc_am.to_param, id: a.id)}.to_json)
-                %li= link_to name, inspect_path(model_name: acc_am.to_param, id: a.id)
-          %script
-            load_tenant_list(#{raw tenant_list});
+          .tenants-list{data:{owner: _current_user.id}}
+            %li
+              .text-center
+                %i.fa.fa-spinner.fa-pulse
           - if (new_action = action(:new, acc_am))
-            - if count_tenants > 1 
-              %li.divider{role:'separator'}
-            - if count_tenants > 30
-              %input.form-control.input-small{id: "search_tenant", type: "search", value: '', placeholder: 'search'}
+            %li.divider{role:'separator'}
             .actions.clearfix
               %li= link_to(t('admin.misc.current_tenant'), show_path(model_name: acc_am.to_param, id: Account.current_tenant.id))
               %li= link_to(t('admin.misc.add_tenant'), url_for(action: new_action.action_name, model_name: acc_am.to_param))
