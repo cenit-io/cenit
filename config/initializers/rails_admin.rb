@@ -201,7 +201,7 @@ module RailsAdmin
               label: 'Security',
               icon: 'fa fa-shield',
               externals: [],
-              sublinks: %w(Setup::RemoteOauthClient Setup::OauthProvider Setup::Oauth2Provider)
+              sublinks: %w(Setup::RemoteOauthClient Setup::BaseOauthProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
             }
           ]
           ecommerce_models = []
