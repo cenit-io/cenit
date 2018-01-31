@@ -4205,15 +4205,58 @@ button#toogle-submenu-header {
 .scrollable-container {
   margin-top: 60px;
 }
+
 .filtering-select {
   z-index: 0;
 }
-.json-editor-form{
+
+.json-editor-form {
   height: calc(100vh - 240px);
   .CodeMirror {
     height: initial;
   }
   .form-group.form-actions {
     padding-top: 15px;
+  }
+}
+
+.btn-info.disabled, .btn-info.disabled:hover, .btn-info.disabled:focus, .btn-info.disabled:active, .btn-info.disabled.active, .btn-info[disabled], .btn-info[disabled]:hover, .btn-info[disabled]:focus, .btn-info[disabled]:active, .btn-info[disabled].active, fieldset[disabled] .btn-info, fieldset[disabled] .btn-info:hover, fieldset[disabled] .btn-info:focus, fieldset[disabled] .btn-info:active, fieldset[disabled] .btn-info.active {
+  background-color: #c1d6dc;
+  border-color: #d7e4e8;
+  color: white;
+}
+
+.tenants-list {
+  a {
+    max-width: 125px;
+    overflow: hidden;
+    display: block;
+    text-overflow: ellipsis;
+  }
+}
+
+.dashboard {
+  .monitor .options-menu.open .dropdown-menu {
+    .actions {
+      padding: 15px 15px 0;
+    }
+  }
+  .tenants-list {
+    li > a {
+      display: block;
+      padding: 3px 20px;
+      clear: both;
+      font-weight: normal;
+      line-height: 1.42857143;
+      color: #333333;
+      white-space: nowrap;
+      max-width: 160px;;
+      &:hover, &:focus {
+        text-decoration: none;
+        color: #262626;
+        background-color: #f5f5f5;
+      }
+    }
+
   }
 }
