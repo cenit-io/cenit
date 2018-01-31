@@ -60,6 +60,9 @@ class User
   #UI options
   field :code_theme, type: String
 
+  #Plan
+  field :plan, type: String
+
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do

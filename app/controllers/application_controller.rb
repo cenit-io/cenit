@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
 
   protect_from_forgery with: :null_session,
-                       if: Proc.new { |c| c.request.format =~ %r{application/json} }
+    if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     if _current_user
@@ -64,7 +64,15 @@ class ApplicationController < ActionController::Base
     clean_thread_cache
   end
 
+  def after_sign_in_path_for(resource_or_scope)
+    if params[:return_to]
+      store_location_for(resource_or_scope, params[:return_to])
+    else
+      stored_location_for(resource_or_scope) || signed_in_root_path(resource_or_scope)
+    end
+  end
+
   def after_sign_out_path_for(resource_or_scope)
-    ENV['SING_OUT_URL'] || root_path
+    params[:return_to] || ENV['SING_OUT_URL'] || root_path
   end
 end
