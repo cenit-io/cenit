@@ -31,7 +31,7 @@ module Cenit
         name: nil
       }
 
-      Struct.new('Action', *action_hash.keys)
+      Struct.new('Action', *action_hash.keys) unless defined? Struct::Action
       @action = Struct::Action.new(*action_hash.values)
 
       setup_abilities
