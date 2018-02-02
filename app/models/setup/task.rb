@@ -264,7 +264,11 @@ module Setup
     end
 
     def agent_id
-      (agent = send(self.class.agent_field || :itself)) && agent.id
+      (agent = self.agent) && agent.id
+    end
+
+    def agent
+      send(self.class.agent_field || :itself)
     end
 
     def agent_model
