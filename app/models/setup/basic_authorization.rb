@@ -21,7 +21,7 @@ module Setup
     end
 
     def basic_auth
-      'basic ' + ::Base64.encode64("#{username}:#{password}").delete("\n")
+      'Basic ' + ::Base64.encode64("#{username}:#{password}").delete("\n")
     end
 
     def authorized?
