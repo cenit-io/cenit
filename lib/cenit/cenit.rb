@@ -9,6 +9,10 @@ module Cenit
 
   class << self
 
+    def initializing?
+      Thread.current[:cenit_initializing]
+    end
+
     def http_proxy
       if (address = http_proxy_address) && (port = http_proxy_port)
         "http://#{address}:#{port}"
