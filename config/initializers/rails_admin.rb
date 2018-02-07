@@ -229,6 +229,27 @@ module RailsAdmin
               end
             end
           end
+
+          if ENV['SUBSCRIPTIONS_APP'].present?
+            @dashboard_groups << {
+              link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/subscriptions" },
+              label: 'Subscriptions',
+              icon: 'fa fa-usd',
+              sublinks: [
+                {
+                  link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/customers" },
+                  label: 'Customers',
+                  icon: 'fa fa-vcard',
+                },
+                {
+                  link: { rel: "app/#{ENV['SUBSCRIPTIONS_APP']}/plans" },
+                  label: 'Plans',
+                  icon: 'fa fa-tasks',
+                }
+              ]
+            }
+          end
+
         end
         @dashboard_groups
       end
