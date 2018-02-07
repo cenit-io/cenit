@@ -1,43 +1,51 @@
 module Cenit
   class Control
+    attr_reader :app, :action, :controller
 
     def initialize(app, controller, action)
       @app = app
       @controller = controller
-      @cenit_action = action
-      params = controller.request.params.merge(action.path_params).with_indifferent_access
+      params = @controller.request.params.merge(action.path_params).with_indifferent_access
+
       {
-         controller: ['app'],
-         action: ['index'],
-         id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
-         app_slug: [app.slug]
+        controller: ['app'],
+        action: ['index'],
+        id_or_ns: [app.slug_id, app.get_identifier, app.ns_slug],
+        app_slug: [app.slug]
       }.each do |key, value|
         params.delete(key) if value.include?(params[key])
       end
-      @action = Struct.new(http_method: action.method,
-                           path: action.request_path,
-                           params: params,
-                           query_parameters: controller.request.query_parameters,
-                           body: controller.request.body,
-                           content_type: controller.request.content_type,
-                           content_length: controller.request.content_length)
+
+      action_hash = {
+        http_method: action.method,
+        path: action.request_path,
+        params: params,
+        query_parameters: @controller.request.query_parameters,
+        body: @controller.request.body,
+        content_type: @controller.request.content_type,
+        content_length: @controller.request.content_length,
+        name: nil
+      }
+
+      Struct.new('AppControlAction', *action_hash.keys) unless defined? Struct::AppControlAction
+      @action = Struct::AppControlAction.new(*action_hash.values)
     end
 
     def identifier
-      app.slug_id
+      @app.slug_id
     end
 
     def secret_token
-      app.secret_token
+      @app.secret_token
     end
 
     def send_data(*args)
       fail 'Double-rendering' if done?
       @render_called = true
       if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::HttpResponse)
-        controller.send_data res.body, content_type: res.content_type, status: res.code
+        @controller.send_data res.body, content_type: res.content_type, status: res.code
       else
-        controller.send_data(*args)
+        @controller.send_data(*args)
       end
     end
 
@@ -46,12 +54,12 @@ module Cenit
       @render_called = true
       if args.length == 1 && (res = args[0]).is_a?(Setup::Webhook::HttpResponse)
         if res.headers['content-transfer-encoding']
-          controller.send_data res.body, content_type: res.content_type, status: res.code
+          @controller.send_data res.body, content_type: res.content_type, status: res.code
         else
-          controller.render text: res.body, content_type: res.content_type, status: res.code
+          @controller.render text: res.body, content_type: res.content_type, status: res.code
         end
       else
-        controller.render(*args)
+        @controller.render(*args)
       end
     end
 
@@ -79,11 +87,12 @@ module Cenit
       fail 'Re-calling redirect_to' if redirect_to_called?
       fail 'Double-rendering' if done?
       @redirect_to_called = true
-      if URI.parse(path = args.first).relative?
+      path = args.first
+      if URI.parse(path).relative?
         path = "#{base_path}/#{path}".gsub(/\/+/, '/')
         args[0] = "#{Cenit.homepage}#{path}"
       end
-      controller.redirect_to(*args)
+      @controller.redirect_to(*args)
     end
 
     def redirect_to_called?
@@ -100,7 +109,7 @@ module Cenit
         cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
         redirect_to auth.authorize_url(cenit_token: cenit_token)
       else
-        redirect_to controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
+        redirect_to @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
       end
     end
 
@@ -129,28 +138,5 @@ module Cenit
       end
     end
 
-    attr_reader :action
-
-    private
-
-    attr_reader :app, :controller, :cenit_action
-
-    class Struct
-      def initialize(hash)
-        @hash = hash.symbolize_keys
-      end
-
-      def respond_to?(*args)
-        @hash.has_key?(args[0])
-      end
-
-      def method_missing(symbol, *args)
-        if args.length == 0 && @hash.has_key?(symbol)
-          @hash[symbol]
-        else
-          super
-        end
-      end
-    end
   end
 end
