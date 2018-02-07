@@ -1,5 +1,7 @@
 module Cenit
   class Control
+    include CanCan::Ability
+
     attr_reader :app, :action, :controller
     attr_accessor :view
 
@@ -30,6 +32,8 @@ module Cenit
 
       Struct.new('AppControlAction', *action_hash.keys) unless defined? Struct::AppControlAction
       @action = Struct::AppControlAction.new(*action_hash.values)
+
+      setup_abilities
     end
 
     def identifier
@@ -259,11 +263,15 @@ module Cenit
       "@_instance_var_#{name.to_s.gsub(/^@/, '')}".to_sym
     end
 
+    def setup_abilities
+      alg = algorithm(:setup_abilities, false)
+      alg.run([self, current_user]) if alg.present?
+    end
+
     def parse_resource_name(name)
       name, ns = name.to_s.split(/::\//).reverse
       ns ||= @app.namespace
       [name, ns]
     end
-
   end
 end
