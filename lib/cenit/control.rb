@@ -139,11 +139,30 @@ module Cenit
       end
     end
 
-    def get_resource(type, name, throw=true)
-      name, ns = parse_resource_name(name)
-      item = Cenit.namespace(ns).send(type, name)
-      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
-      item
+    def xhr?
+      @controller.request.xhr?
+    end
+
+    def flash
+      @controller.flash
+    end
+
+    def cache
+      @cache_store ||= ActiveSupport::Cache.lookup_store(:file_store, "#{Rails.root}/tmp/cache/#{@app.slug_id}")
+    end
+
+    def logger
+      Rails.logger
+    end
+
+    def fail(*several_variants)
+      super
+    end
+
+    def application_title
+      alg = algorithm(:application_title, false)
+      result = alg ? alg.run(self) : false
+      result === false ? @app.name : result
     end
 
     def render_template(name, layout=nil, locals={})
@@ -159,7 +178,86 @@ module Cenit
       layout ? get_resource(:translator, layout).run(locals) : content
     end
 
+    def data_type(name=nil, throw=true)
+      get_resource(:data_type, name, throw)
+    end
+
+    def resource(name=nil, throw=true)
+      get_resource(:resource, name, throw)
+    end
+
+    def algorithm(name=nil, throw=true)
+      get_resource(:algorithm, name, throw)
+    end
+
+    def connection(name=nil, throw=true)
+      get_resource(:connection, name, throw)
+    end
+
+    def data_file(name, throw=true)
+      data_type('Files', throw).where(filename: name).first
+    end
+
+    def current_user
+      alg = algorithm(:current_user, false)
+      result = alg ? alg.run(self) : false
+      result === false ? @controller.current_user : result
+    end
+
+    def app_url(path=nil, params=nil)
+      query = params.is_a?(Hash) ? params.to_query() : params.to_s
+      url = "/app/#{@controller.request.params[:id_or_ns]}"
+      url << "/#{path.gsub(/^\/+|\/+$/, '')}" unless path.blank?
+      url << "?#{query}" unless query.blank?
+      url
+    end
+
+    def sign_in_url(return_to = nil)
+      return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
+      return_to ||= app_url(@action.path) if @action.http_method == :get
+      alg = algorithm(:sign_in_url, false)
+      result = alg ? alg.run(self) : false
+      result === false ? @controller.new_user_session_url(return_to: return_to) : result
+    end
+
+    def sign_out_url(return_to = nil)
+      return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
+      return_to ||= app_url(@action.path) if @action.http_method == :get
+      alg = algorithm(:sign_out_url, false)
+      result = alg ? alg.run(self) : false
+      result === false ? @controller.destroy_user_session_url(return_to: return_to) : result
+    end
+
+    def get_resource(type, name, throw=true)
+      name, ns = parse_resource_name(name)
+      item = Cenit.namespace(ns).send(type, name)
+      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
+      item
+    end
+
+    def define_helper(name, &block)
+      define_singleton_method(name, &block) unless respond_to?(name)
+    end
+
+    def instance_var_defined?(name)
+      instance_variable_defined?(instance_var_name(name))
+    end
+
+    def get_instance_var(name, &block)
+      name = instance_var_name(name)
+      instance_variable_set(name, yield) if block_given?
+      instance_variable_get(name)
+    end
+
+    def set_instance_var(name, value)
+      instance_variable_set(instance_var_name(name))
+    end
+
     private
+
+    def instance_var_name(name)
+      "@_instance_var_#{name.to_s.gsub(/^@/, '')}".to_sym
+    end
 
     def parse_resource_name(name)
       name, ns = name.to_s.split(/::\//).reverse
