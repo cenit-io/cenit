@@ -44,6 +44,10 @@ class SessionsController < Devise::SessionsController
         super
       end
     else
+      if params[:return_to]
+        resource = resource_class.new(sign_in_params)
+        store_location_for(resource, params[:return_to])
+      end
       super
     end
   end
