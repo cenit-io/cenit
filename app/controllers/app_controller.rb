@@ -1,29 +1,31 @@
 class AppController < ApplicationController
 
-  before_action :authorize_account, :find_app
+  before_action :authorize_account, :find_app, :find_app_control_action
+
+  attr_reader :app_control
 
   def index
-    if (path = request.path.split('/').from(@id_routing ? 3 : 4).join('/')).empty?
-      path = '/'
-    end
-    method = request.method.to_s.downcase.to_sym
-    if (action = @app.actions.detect { |a| a.method == method && a.match?(path) })
-      control = Cenit::Control.new(@app, self, action)
-      begin
-        result = action.run(control)
-        unless control.done?
-          render plain: result
-        end
-      rescue Exception => ex
-        Setup::SystemReport.create_from(ex, "Handling action #{@app.custom_title} -> #{action}")
-        render plain: ex.message, status: :internal_server_error
-      end
-    else
-      render plain: "Bad path: #{path}", status: :bad_request
-    end
+    content = @app_action.run(@app_control)
+    render plain: content if @app_control && !@app_control.done?
+  rescue Exception => ex
+    Setup::SystemReport.create_from(ex, "Handling action #{@app.custom_title} -> #{@app_action}")
+    render plain: ex.message, status: :internal_server_error
   end
 
   protected
+
+  def find_app_control_action
+    path = request.path.split('/').from(@id_routing ? 3 : 4).join('/')
+    path ||= '/' if path.blank?
+    method = request.request_method.to_s.downcase.to_sym
+    @app_action = @app.actions.detect { |a| a.method == method && a.match?(path) }
+    @app_control = Cenit::Control.new(@app, self, @app_action) if @app_action
+
+    unless @app_control
+      render(plain: "Bad path: #{path}", status: :bad_request)
+      false
+    end
+  end
 
   def find_app
     found = false

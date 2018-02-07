@@ -1,6 +1,7 @@
 module Cenit
   class Control
     attr_reader :app, :action, :controller
+    attr_accessor :view
 
     def initialize(app, controller, action)
       @app = app
@@ -136,6 +137,34 @@ module Cenit
       else
         fail 'Invalid authorization scope'
       end
+    end
+
+    def get_resource(type, name, throw=true)
+      name, ns = parse_resource_name(name)
+      item = Cenit.namespace(ns).send(type, name)
+      raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
+      item
+    end
+
+    def render_template(name, layout=nil, locals={})
+      if layout.is_a?(Hash)
+        locals = layout
+        layout = nil
+      end
+      locals = locals.to_h.symbolize_keys
+      layout ||= locals.delete(:layout)
+
+      locals.merge!(control: self)
+      content = get_resource(:translator, name).run(locals)
+      layout ? get_resource(:translator, layout).run(locals) : content
+    end
+
+    private
+
+    def parse_resource_name(name)
+      name, ns = name.to_s.split(/::\//).reverse
+      ns ||= @app.namespace
+      [name, ns]
     end
 
   end
