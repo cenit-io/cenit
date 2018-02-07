@@ -227,6 +227,9 @@ RABBIT_MQ_PASSWORD: "{RABBIT_MQ_PASSWORD}"
 # AMAZON SIMPLE STORAGE SERVICE.
 AWS_ACCESS_KEY_ID: "{AWSS3 Access ID}"
 AWS_SECRET_ACCESS_KEY: "{AWSS3 Access Key}"
+
+# CenitIO slug of application to manager plans, customers and subscriptions.
+SUBSCRIPTIONS_APP: "cenit-io-subscriptions"
 ```
 
 ## Dependencies
