@@ -23,7 +23,8 @@ module Setup
     end
 
     def params_stack
-      stack = [self]
+      stack = [using_authorization, self]
+      stack.compact!
       stack.unshift(@connections) if @connections.is_a?(Setup::Connection)
       stack
     end
