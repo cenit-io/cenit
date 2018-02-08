@@ -182,19 +182,19 @@ module Cenit
       layout ? get_resource(:translator, layout).run(locals) : content
     end
 
-    def data_type(name=nil, throw=true)
+    def data_type(name, throw=true)
       get_resource(:data_type, name, throw)
     end
 
-    def resource(name=nil, throw=true)
+    def resource(name, throw=true)
       get_resource(:resource, name, throw)
     end
 
-    def algorithm(name=nil, throw=true)
+    def algorithm(name, throw=true)
       get_resource(:algorithm, name, throw)
     end
 
-    def connection(name=nil, throw=true)
+    def connection(name, throw=true)
       get_resource(:connection, name, throw)
     end
 
