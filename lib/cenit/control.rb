@@ -269,7 +269,7 @@ module Cenit
     end
 
     def parse_resource_name(name)
-      name, ns = name.to_s.split(/::\//).reverse
+      name, ns = name.to_s.split(/::|\//).reverse
       ns ||= @app.namespace
       [name, ns]
     end
