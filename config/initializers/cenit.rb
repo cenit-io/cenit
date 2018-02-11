@@ -123,8 +123,6 @@ Cenit.config do
 
   request_timeout ENV['REQUEST_TIMEOUT'] || 300
 
-  email_data_type MIME: 'Message'
-
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 
   #Max count of tab actions to show before the More Actions tab, if there are more actions to show

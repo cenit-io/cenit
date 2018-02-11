@@ -15,7 +15,7 @@ module RailsAdmin
               label 'eCommerce Data Types'
             end
 
-            fields :ecommerce_data_types
+            fields :ecommerce_data_types, :email_data_type
           end
         end
 

@@ -45,21 +45,11 @@ module Setup
     class << self
 
       def email_data_type
-        @email_data_type ||=
-          begin
-            if (ref = Cenit.email_data_type).is_a?(Hash)
-              if ref.size == 1
-                ref = { 'namespace' => ref.keys.first.to_s, 'name' => ref.values.first.to_s }
-              end
-            else
-              ref = nil
-            end
-            ref && Setup::DataType.find_data_type(ref)
-          end
+        Setup::Configuration.email_data_type
       end
 
       def email_data_type_id
-        (dt = email_data_type) && dt.id
+        Setup::Configuration.email_data_type_id
       end
     end
   end
