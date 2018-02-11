@@ -1282,7 +1282,7 @@ module RailsAdmin
         { title: 'Gateway', url: '/gateway/dashboard', icon: 'fa fa-hdd-o', description: 'API Specs - OpenAPI Directory - Connectors - Security' },
         { title: 'Integrations', url: '/integrations/dashboard', icon: 'fa fa-puzzle-piece', description: 'Collections - Shared Collections' },
         { title: 'Compute', url: '/compute/dashboard', icon: 'fa fa-cog', description: 'Algorithms - Applications - Snippets - Filters- Notebooks' },
-        { title: 'Ecommerce', url: '/ecommerce/dashboard', icon: 'fa fa-shopping-cart', description: 'Products - Inventories - Carts - Orders - Shipments' },
+        { title: 'eCcommerce', url: '/ecommerce/dashboard', icon: 'fa fa-shopping-cart', description: 'Products - Inventories - Carts - Orders - Shipments' },
         { title: 'Security', url: '/security/dashboard', icon: 'fa fa-shield', description: 'Remote Clients - Providers - OAuth 2.0 - Authorizations' }
       ]
     end
