@@ -10,6 +10,7 @@ module RailsAdmin
             navigation_label 'Administration'
             visible { User.current_super_admin? }
             label_plural 'Configuration'
+            object_label_method :id
 
             group :data_types do
               label 'Data Types'

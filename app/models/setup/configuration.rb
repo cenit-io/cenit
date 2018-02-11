@@ -8,6 +8,8 @@ module Setup
 
     deny :all
 
+    field :_id, type: String, default: 'this'
+
     # Data Types
     has_and_belongs_to_many :ecommerce_data_types, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :email_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
