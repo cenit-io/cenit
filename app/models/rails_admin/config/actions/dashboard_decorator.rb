@@ -14,7 +14,7 @@ module RailsAdmin
                 if current_user
                   (RailsAdmin::Config.visible_models(controller: self) +
                     (show_mongoff_navigation? ? Setup::DataType.where(navigation_link: true) : []).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }.select(&:visible) +
-                    (show_ecommerce_navigation? ? ecommerce_data_types : []).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }).collect(&:abstract_model).select do |absm|
+                    (show_ecommerce_navigation? ? Setup::Configuration.ecommerce_data_types : []).collect { |data_type| RailsAdmin.config(data_type.records_model).with(controller: self) }).collect(&:abstract_model).select do |absm|
                     ((model = absm.model) rescue nil) &&
                       (model.is_a?(Mongoff::Model) || model.include?(AccountScoped) || [Account].include?(model)) &&
                       (@model_configs[absm.model_name] = absm.config)

@@ -5,7 +5,7 @@ module RailsAdmin
 
       included do
         rails_admin do
-          weight 800
+          weight 805
           navigation_label 'Administration'
           visible { User.current_super_admin? }
           object_label_method { :label }

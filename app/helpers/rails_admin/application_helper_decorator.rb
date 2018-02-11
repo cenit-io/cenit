@@ -291,21 +291,8 @@ module RailsAdmin
     end
 
     def ecommerce_model?
-      ((dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
-        (names = Cenit.ecommerce_data_types[dt.namespace.to_sym]) &&
-        names.include?(dt.name))
-    end
-
-    def ecommerce_data_types
-      data_types = []
-      Cenit.ecommerce_data_types.each do |ns, names|
-        names.each do |name|
-          if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-            data_types << data_type
-          end
-        end
-      end
-      data_types
+      (dt = @abstract_model && @abstract_model.model.try(:data_type)) &&
+        Setup::Configuration.ecommerce_data_types.include?(dt)
     end
 
     def main_navigation
@@ -334,7 +321,7 @@ module RailsAdmin
       }
       if show_ecommerce_navigation?
         non_setup_data_type_models << Setup::CrossSharedCollection
-        ecommerce_models = ecommerce_data_types.collect(&:records_model).collect { |model| RailsAdmin.config(model) }
+        ecommerce_models = Setup::Configuration.ecommerce_data_types.collect(&:records_model).collect { |model| RailsAdmin.config(model) }
         nav_groups['eCommerce'] = ecommerce_models
       end
       if show_files_navigation?
@@ -467,7 +454,12 @@ module RailsAdmin
             li + navigation(nodes_stack, children, stack_id) + '</li>'
           else
             model_param = node.abstract_model.to_param
-            url = url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+            url =
+              if model.is_a?(Class) && model < Setup::Singleton
+                url_for(action: :show, controller: 'rails_admin/main', model_name: model_param, id: model.singleton_record.id.to_s)
+              else
+                url_for(action: :index, controller: 'rails_admin/main', model_name: model_param)
+              end
             data = {}
             if (model_path = node.abstract_model.api_path)
               data[:model] = model_path

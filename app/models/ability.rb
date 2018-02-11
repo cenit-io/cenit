@@ -31,6 +31,7 @@ class Ability
               Setup::Category,
               TourTrack
             ]
+        can [:index, :show, :edit], Setup::Configuration
         can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
         can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit
         can :destroy, Setup::CenitDataType, origin: :tmp

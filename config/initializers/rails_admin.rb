@@ -204,22 +204,6 @@ module RailsAdmin
               sublinks: %w(Setup::RemoteOauthClient Setup::BaseOauthProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
             }
           ]
-          ecommerce_models = []
-          Cenit.ecommerce_data_types.each do |ns, names|
-            names.each do |name|
-              if (data_type = Setup::DataType.where(namespace: ns, name: name).first)
-                ecommerce_models << data_type.data_type_name
-              end
-            end
-          end
-          if ecommerce_models.present?
-            @dashboard_groups << {
-              param: 'ecommerce',
-              label: 'Ecommerce',
-              icon: 'fa fa-shopping-cart',
-              sublinks: ecommerce_models
-            }
-          end
           @dashboard_groups.select { |g| g[:param] == 'compute' }.each do |g|
             nb= 'Setup::Notebook'
             sublinks = g[:sublinks]
@@ -230,7 +214,20 @@ module RailsAdmin
             end
           end
         end
-        @dashboard_groups
+        ecommerce_models = []
+        Setup::Configuration.ecommerce_data_types.each do |data_type|
+          ecommerce_models << data_type.data_type_name
+        end
+        if ecommerce_models.present?
+          @dashboard_groups + [{
+            param: 'ecommerce',
+            label: 'eCommerce',
+            icon: 'fa fa-shopping-cart',
+            sublinks: ecommerce_models
+          }]
+        else
+          @dashboard_groups
+        end
       end
     end
   end
@@ -496,6 +493,8 @@ RailsAdmin.config do |config|
   #Administration
 
   config.navigation 'Administration', icon: 'fa fa-user-secret'
+
+  Setup::Configuration
 
   User
 
