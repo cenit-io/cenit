@@ -23,7 +23,7 @@ module RailsAdmin
 
             configure :email_data_type do
               group :data_types
-              label 'Email Data Types'
+              label 'Email Data Type'
             end
 
             group :home_sections do

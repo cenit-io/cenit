@@ -9,12 +9,12 @@
       .row.add-clearfix.features
         -home_features.each do |f|
           .col-sms-6.col-sm-6
-            %div{class: "col-xs-12 feature #{ f[:color]} "}
+            %div{class: "col-xs-12 feature #{ f['color']} "}
               .image.hidden-xs
-                %i{class: "fa fa-5x #{f[:icon]}" ,'aria-hidden'=> 'true'}
+                %i{class: "fa fa-5x #{f['icon']}" ,'aria-hidden'=> 'true'}
               .desc
                 %h1
-                  %i{class: "fa #{f[:icon]}" ,'aria-hidden'=> 'true'}
-                  = f[:name]
+                  %i{class: "fa #{f['icon']}" ,'aria-hidden'=> 'true'}
+                  = f['name']
                 %p
-                  = f[:desc]
+                  = f['desc']
