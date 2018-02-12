@@ -123,10 +123,6 @@ Cenit.config do
 
   request_timeout ENV['REQUEST_TIMEOUT'] || 300
 
-  ecommerce_data_types Ecommerce: %w(customer.json product.json inventory.json cart.json order.json shipment.json)
-
-  email_data_type MIME: 'Message'
-
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 
   #Max count of tab actions to show before the More Actions tab, if there are more actions to show

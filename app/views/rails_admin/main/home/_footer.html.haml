@@ -50,9 +50,9 @@
         %ul
           - social_networks.each do |sn|
             %li
-              =link_to sn[:url], target: '_blank' do
-                %i{class: "fa #{sn[:icon]}"}
-                = sn[:name]
+              =link_to sn['url'], target: '_blank' do
+                %i{class: "fa #{sn['icon']}"}
+                = sn['name']
       .col-sm-3.col-sms-6.menu
         %h3
           ='Support'
