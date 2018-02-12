@@ -11,9 +11,9 @@
       - home_services.each do |s|
         %div
           .service
-            %i{class: s[:icon] }
+            %i{class: s['icon'] }
             %span
               %h1
-                = s[:name]
+                = s['name']
               %p>
-                = s[:desc]
+                = s['desc']
