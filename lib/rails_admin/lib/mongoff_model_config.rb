@@ -26,7 +26,8 @@ module RailsAdmin
             bindings[:object].new_record? ? false : property.read_only?
           end
           if titles.include?(title = property.title)
-            title = property.name.to_s.to_title
+            origin_title = property.name.to_s.to_title
+            title = title ? "#{title} (#{origin_title})" : origin_title
           end
           titles.add(title)
           label { title }
