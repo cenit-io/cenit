@@ -22,6 +22,9 @@ module Cenit
             end
           else
             task = task_class.create(message: message, scheduler: scheduler, auto_retry: auto_retry)
+            unless task.persisted?
+              return Setup::SystemNotification.create(message: "Task instance for #{task_class} could not be persisted: #{task.errors.full_messages.to_sentence}")
+            end
           end
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
