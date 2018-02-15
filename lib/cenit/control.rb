@@ -210,7 +210,8 @@ module Cenit
 
     def app_url(path=nil, params=nil)
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
-      url = "/app/#{@controller.request.params[:id_or_ns]}"
+      url = Cenit.homepage
+      url << "/app/#{@controller.request.params[:id_or_ns]}"
       url << "/#{path.gsub(/^\/+|\/+$/, '')}" unless path.blank?
       url << "?#{query}" unless query.blank?
       url
