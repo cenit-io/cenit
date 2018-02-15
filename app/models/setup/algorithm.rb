@@ -167,10 +167,25 @@ module Setup
       rc
     end
 
-    def run_asynchronous(input = [])
+    def run_asynchronous(*args)
+      options =
+        if args.last.is_a?(Hash)
+          args.pop
+        else
+          {}
+        end
+      input =
+        case args.length
+        when 0
+          options[:input] || []
+        when 1
+          args[0]
+        else
+          args
+        end
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
-      Setup::AlgorithmExecution.process(algorithm_id: id.to_s, input: input)
+      Setup::AlgorithmExecution.process(options.merge(algorithm_id: id.to_s, input: input))
     end
 
     def run(input = [], task = nil)
