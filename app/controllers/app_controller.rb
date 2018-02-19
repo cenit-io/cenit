@@ -1,6 +1,7 @@
 class AppController < ApplicationController
 
   before_action :authorize_account, :find_app, :find_app_control_action
+  before_action :allow_x_frame
 
   attr_reader :app_control
 
@@ -13,6 +14,10 @@ class AppController < ApplicationController
   end
 
   protected
+
+  def allow_x_frame
+    response.headers['X-FRAME-OPTIONS'] = 'ALLOWALL'
+  end
 
   def find_app_control_action
     path = request.path.split('/').from(@id_routing ? 3 : 4).join('/')
