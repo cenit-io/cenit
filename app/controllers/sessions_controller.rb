@@ -1,4 +1,5 @@
 class SessionsController < Devise::SessionsController
+  before_action :allow_x_frame
 
   def new
     if (provider = params[:with])
@@ -50,5 +51,11 @@ class SessionsController < Devise::SessionsController
       end
       super
     end
+  end
+
+  protected
+
+  def allow_x_frame
+    response.headers['X-FRAME-OPTIONS'] = 'ALLOWALL'
   end
 end
