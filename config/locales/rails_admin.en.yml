@@ -717,6 +717,17 @@ en:
           end:
             label: 'Add the triggers and save'
             description: 'Please add the triggers and save when done'
+      tempalte:
+        wizard:
+          start:
+            label: "Select a template content type"
+      template:
+        wizard:
+          start:
+            description: "The template content type is optional"
+          end:
+            label: "Save when done"
+            description: "Save when filled all required fields"
     contact_us:
       tittle: 'Contact us'
       notices:
