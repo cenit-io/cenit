@@ -1,5 +1,7 @@
 module Setup
   module SnippetCodeTransformation
+    extend ActiveSupport::Concern
+
     include SnippetCode
 
     def link?(call_symbol)

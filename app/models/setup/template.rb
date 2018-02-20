@@ -1,16 +1,18 @@
 module Setup
   class Template < Translator
     include WithSourceOptions
-    # include RailsAdmin::Models::Setup::LegacyTranslatorAdmin
+    include RailsAdmin::Models::Setup::TemplateAdmin
 
     abstract_class true
+
+    transformation_type :Export
 
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     field :mime_type, type: String
     field :file_extension, type: String
 
-    before_save :validates_configuration, :validates_code
+    before_save :validates_configuration
 
     def validates_configuration
       if mime_type.present?
@@ -42,7 +44,7 @@ module Setup
     end
 
     def ready_to_save?
-      changed_attributes.key?('mime_type')
+      persisted? || changed_attributes.key?('mime_type')
     end
 
     def can_be_restarted?
