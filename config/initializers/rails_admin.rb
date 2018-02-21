@@ -161,7 +161,7 @@ module RailsAdmin
               param: 'transforms',
               label: 'Transforms',
               icon: 'fa fa-random',
-              sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
+              sublinks: %w(Setup::Template Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
             },
             {
               param: 'gateway',
@@ -375,6 +375,12 @@ RailsAdmin.config do |config|
   config.navigation 'Transforms', icon: 'fa fa-random'
 
   Setup::Translator
+
+  Setup::Template
+
+  Setup::LiquidTemplate
+
+  Setup::LegacyTranslator
 
   Setup::Renderer
 

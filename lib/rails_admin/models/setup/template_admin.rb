@@ -1,19 +1,20 @@
 module RailsAdmin
   module Models
     module Setup
-      module TranslatorAdmin
+      module TemplateAdmin
         extend ActiveSupport::Concern
 
         included do
           rails_admin do
             navigation_label 'Transforms'
-            label 'Transformation'
-            visible false
+            label 'Template'
+            navigation_icon 'fa fa-file-code-o'
+            visible { User.current_super_admin? }
             weight 410
             object_label_method { :custom_title }
 
 
-            fields :namespace, :name, :type, :updated_at
+            fields :namespace, :name, :source_data_type, :mime_type, :file_extension, :updated_at
           end
         end
 

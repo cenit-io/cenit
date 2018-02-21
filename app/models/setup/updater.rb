@@ -1,5 +1,5 @@
 module Setup
-  class Updater < Translator
+  class Updater < LegacyTranslator
     include RailsAdmin::Models::Setup::UpdaterAdmin
     # = Updater
     #

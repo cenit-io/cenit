@@ -1,5 +1,5 @@
 module Setup
-  class Renderer < Translator
+  class Renderer < LegacyTranslator
     include RailsAdmin::Models::Setup::RendererAdmin
 
     transformation_type :Export
