@@ -378,6 +378,8 @@ RailsAdmin.config do |config|
 
   Setup::Template
 
+  Setup::ErbTemplate
+
   Setup::LiquidTemplate
 
   Setup::LegacyTranslator
