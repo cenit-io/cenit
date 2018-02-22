@@ -382,6 +382,8 @@ RailsAdmin.config do |config|
 
   Setup::LiquidTemplate
 
+  Setup::PrawnTemplate
+
   Setup::RubyTemplate
 
   Setup::LegacyTranslator
