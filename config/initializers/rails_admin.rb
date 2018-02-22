@@ -380,6 +380,8 @@ RailsAdmin.config do |config|
 
   Setup::ErbTemplate
 
+  Setup::HandlebarsTemplate
+
   Setup::LiquidTemplate
 
   Setup::PrawnTemplate
