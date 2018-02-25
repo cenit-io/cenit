@@ -80,6 +80,10 @@ module Setup
       errors.blank?
     end
 
+    def type_enum
+      self.class.type_enum
+    end
+
     def validates_code
       if style == 'ruby'
         Capataz.validate(code).each { |error| errors.add(:code, error) }
