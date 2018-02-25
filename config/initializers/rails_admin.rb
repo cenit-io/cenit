@@ -388,6 +388,8 @@ RailsAdmin.config do |config|
 
   Setup::RubyTemplate
 
+  Setup::XsltTemplate
+
   Setup::LegacyTranslator
 
   Setup::Renderer
