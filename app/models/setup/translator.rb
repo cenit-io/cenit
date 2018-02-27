@@ -70,7 +70,7 @@ module Setup
     end
 
     def before_create(record)
-      #Handle in subclasses
+      true #Handle in subclasses
     end
 
     class << self

@@ -4,6 +4,12 @@ module Setup
 
     include SnippetCode
 
+    def build_execution_options(options)
+      options = super
+      options[:code] = code
+      options
+    end
+
     def link?(call_symbol)
       link(call_symbol).present?
     end

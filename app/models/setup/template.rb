@@ -12,8 +12,6 @@ module Setup
     field :mime_type, type: String
     field :file_extension, type: String
 
-    before_save :validates_configuration
-
     def validates_configuration
       if mime_type.present?
         if (extensions = file_extension_enum).empty?
