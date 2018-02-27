@@ -248,14 +248,18 @@ module Cenit
       instance_variable_defined?(instance_var_name(name))
     end
 
-    def get_instance_var(name, &block)
-      name = instance_var_name(name)
-      instance_variable_set(name, yield) if block_given?
-      instance_variable_get(name)
+    def get_instance_var(name)
+      instance_variable_get(instance_var_name(name))
     end
 
     def set_instance_var(name, value)
       instance_variable_set(instance_var_name(name))
+    end
+
+    def instance_var(name, &block)
+      name = instance_var_name(name)
+      instance_variable_set(name, yield) if block_given? && !instance_variable_defined?(name)
+      instance_variable_get(name)
     end
 
     private
