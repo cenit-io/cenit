@@ -5,7 +5,7 @@ module Forms
     include AccountScoped
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    belongs_to :translator, class_name: Setup::Parser.to_s, inverse_of: nil
+    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
     validates_presence_of :translator
 
@@ -14,6 +14,9 @@ module Forms
       register_instance_option(:discard_submit_buttons) { true }
       edit do
         field :translator do
+          contextual_association_scope do
+            proc { |scope| scope.and(:_type.in => [Setup::Parser, Setup::ParserTransformation.concrete_class_hierarchy].flatten.collect(&:to_s)) }
+          end
           contextual_params do
             if (dt = bindings[:object].data_type)
               { target_data_type_id: [nil, dt.id] }
