@@ -390,6 +390,8 @@ RailsAdmin.config do |config|
 
   Setup::XsltTemplate
 
+  Setup::ConverterTransformation
+
   Setup::LegacyTranslator
 
   Setup::Renderer
