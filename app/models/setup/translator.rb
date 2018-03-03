@@ -34,9 +34,9 @@ module Setup
 
     def run(options = {})
       execution_options = build_execution_options(options)
-      before_execute(options)
+      before_execute(execution_options)
       execution_options[:result] = execute(execution_options)
-      after_execute(options)
+      after_execute(execution_options)
       execution_options[:result]
     end
 

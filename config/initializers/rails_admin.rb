@@ -392,6 +392,8 @@ RailsAdmin.config do |config|
 
   Setup::ConverterTransformation
 
+  Setup::LiquidConverter
+
   Setup::LegacyTranslator
 
   Setup::Renderer
