@@ -194,4 +194,6 @@ Capataz.config do
   allow_on CombinePDF, [:new_pdf]
 
   deny_for Cenit::Control, [:model_adapter, :controller, :view]
+
+  allow_for User, [:id, :name, :number, :email, :sign_in_count, :created_at, :updated_at, :current_sign_in_ip, :last_sign_in_ip]
 end
