@@ -126,8 +126,15 @@ module Cenit
       @app_params
     end
 
-    def [](param)
-      @app.configuration[param]
+    def [](key)
+      v = @app.configuration[key]
+      v = headers[key.to_s] if v.nil?
+      v = get_instance_var(key) if v.nil?
+      v
+    end
+
+    def []=(key, value)
+      set_instance_var(key, value)
     end
 
     def access_token_for(auth)
@@ -253,13 +260,17 @@ module Cenit
     end
 
     def set_instance_var(name, value)
-      instance_variable_set(instance_var_name(name))
+      instance_variable_set(instance_var_name(name), value)
     end
 
     def instance_var(name, &block)
       name = instance_var_name(name)
       instance_variable_set(name, yield) if block_given? && !instance_variable_defined?(name)
       instance_variable_get(name)
+    end
+
+    def headers
+      @controller.request.headers
     end
 
     private
