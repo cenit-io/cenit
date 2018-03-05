@@ -97,7 +97,7 @@ Capataz.config do
     :xhr?,
 
     # Other helpers
-    :escape_javascript, :j, :main_app, :content_for, :content_for?, :flash
+    :escape_javascript, :j, :content_for, :content_for?, :flash
   ]
 
   allow_on Setup::Task, [:current, :where, :all]
