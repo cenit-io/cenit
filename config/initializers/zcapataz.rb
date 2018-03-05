@@ -192,4 +192,6 @@ Capataz.config do
   allow_on PdfForms, [:new_pdfform, :to_pdf_data, :save_to, :get_field_names, :fill_form]
   allow_on PdfForms::Fdf, [:new_pdf]
   allow_on CombinePDF, [:new_pdf]
+
+  deny_for Cenit::Control, [:model_adapter, :controller, :view]
 end
