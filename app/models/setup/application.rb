@@ -12,7 +12,7 @@ module Setup
     build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
     build_in_data_type.referenced_by(:namespace, :name, :_type).and(properties: { configuration: {} })
 
-    embeds_many :actions, class_name: Setup::Action.to_s, inverse_of: :application
+    embeds_many :actions, class_name: Setup::Action.to_s, order: { path: :asc, method: :asc }, inverse_of: :application
 
     accepts_nested_attributes_for :actions, :application_parameters, allow_destroy: true
 
@@ -52,9 +52,9 @@ module Setup
 
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
-                                            schema: configuration_schema,
-                                            name: self.class.configuration_model_name,
-                                            cache: false)
+        schema: configuration_schema,
+        name: self.class.configuration_model_name,
+        cache: false)
     end
 
     def oauth_name
