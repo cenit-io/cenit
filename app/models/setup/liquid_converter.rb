@@ -1,19 +1,7 @@
 module Setup
   class LiquidConverter < ConverterTransformation
-    include WithSourceOptions
-    include SnippetCodeTransformation
+    include TemplateConverter
     include RailsAdmin::Models::Setup::LiquidConverterAdmin
-
-    def code_extension
-      JSON.parse(code)
-      '.json'
-    rescue
-      if Nokogiri::XML(code).errors.blank?
-        '.xml'
-      else
-        '.txt'
-      end
-    end
 
     def execute(options)
       template = Liquid::Template.parse(options[:code])
