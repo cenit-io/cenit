@@ -10,7 +10,7 @@
       theme: asset_path("codemirror/themes/#{theme}.css")
     }
   }.to_json.to_s
-= form_tag(json_edit_path(model_name: @abstract_model.to_param, id: @object.id), method: 'put', class: 'pjax-form json-editor-form') do
+= form_tag(json_edit_path(model_name: @abstract_model.to_param, id: @object.id), method: 'put', class: 'form-horizontal denser json-editor-form', enctype: 'multipart/form-data') do
   %textarea{name: 'json_data', 'data-richtext': 'codemirror', 'data-options': js_data}
     =  @json_data || JSON.pretty_generate(@object.to_hash)
   .form-group.form-actions
