@@ -45,10 +45,15 @@ module RailsAdmin
                 inline_add false
               end
 
+              field :discard_events do
+                shared_read_only
+                help "Events won't be fired for created or updated records if checked"
+              end
+
               field :code
             end
 
-            fields :namespace, :name, :source_data_type, :target_data_type, :code, :updated_at
+            fields :namespace, :name, :source_data_type, :target_data_type, :discard_events, :code, :updated_at
           end
         end
 
