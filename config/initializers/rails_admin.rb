@@ -396,6 +396,8 @@ RailsAdmin.config do |config|
 
   Setup::HandlebarsConverter
 
+  Setup::RubyConverter
+
   Setup::LegacyTranslator
 
   Setup::Renderer
