@@ -398,6 +398,8 @@ RailsAdmin.config do |config|
 
   Setup::RubyConverter
 
+  Setup::MappingConverter
+
   Setup::LegacyTranslator
 
   Setup::Renderer

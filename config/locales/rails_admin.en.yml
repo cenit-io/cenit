@@ -728,6 +728,11 @@ en:
           end:
             label: "Save when done"
             description: "Save when filled all required fields"
+      mapping_converter:
+        wizard:
+          start:
+            description: "Select source and target data type to build a map"
+            label: "Select source and target data type"
     contact_us:
       tittle: 'Contact us'
       notices:
