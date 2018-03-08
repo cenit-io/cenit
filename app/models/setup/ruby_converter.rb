@@ -4,11 +4,13 @@ module Setup
     include RubyCodeTransformation
     include RailsAdmin::Models::Setup::RubyConverterAdmin
 
-    #TODO Target data type not required for source handled converters
     field :source_handler, type: Boolean
 
     def validates_configuration
-      remove_attribute(:source_handler) unless source_handler
+      unless source_handler
+        remove_attribute(:source_handler)
+        errors.add(:target_data_type, "can't be blank (source handler is not checked)") unless target_data_type
+      end
       super
     end
 

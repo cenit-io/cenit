@@ -5,7 +5,7 @@ module Setup
 
     field :map_attributes, type: Hash, default: {}
 
-    validates_presence_of :map_attributes
+    validates_presence_of :target_data_type, :map_attributes
 
     def execute(options)
       options[:target] = do_map(options[:source])

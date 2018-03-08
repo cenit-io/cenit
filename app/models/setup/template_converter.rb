@@ -5,6 +5,12 @@ module Setup
     include WithSourceOptions
     include SnippetCodeTransformation
 
+    included do
+
+      validates_presence_of :target_data_type
+
+    end
+
     def code_extension
       JSON.parse(code)
       '.json'

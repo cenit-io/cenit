@@ -11,7 +11,7 @@ module Setup
 
     field :discard_events, type: Boolean
 
-    validates_presence_of :source_data_type, :target_data_type
+    validates_presence_of :source_data_type
 
     def data_type
       source_data_type

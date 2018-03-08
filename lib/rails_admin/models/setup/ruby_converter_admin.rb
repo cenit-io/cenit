@@ -36,6 +36,7 @@ module RailsAdmin
                 shared_read_only
                 inline_edit false
                 inline_add false
+                help { 'Optional if source handler checked' }
               end
 
               field :discard_events do
