@@ -7,7 +7,12 @@ module Setup
     def execute(options)
       code = preprocess_erb(options[:code], options)
 
-      ActionView::Base.new.render inline: code, handlers: 'erb', locals: options
+      if options[:control]
+        options[:control].view ||= ActionView::Base.new(nil, {}, options[:control].try(:controller))
+      end
+      av = options[:control].try(:view) || ActionView::Base.new
+
+      av.render inline: code, handlers: 'erb', locals: options
     end
 
     def preprocess_erb(code, options)
