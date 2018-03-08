@@ -3,6 +3,8 @@ module Setup
     include WithSourceOptions
     include RailsAdmin::Models::Setup::MappingConverterAdmin
 
+    build_in_data_type.and(properties: { mapping: { type: {} } })
+
     field :map_attributes, type: Hash, default: {}
 
     validates_presence_of :target_data_type, :map_attributes
@@ -268,12 +270,7 @@ module Setup
       end
 
       def stored_properties_on(record)
-        non_mapping = super
-        if record.style == 'mapping'
-          non_mapping + ['mapping']
-        else
-          non_mapping
-        end
+        super + ['mapping']
       end
 
       def for_each_association(&block)
