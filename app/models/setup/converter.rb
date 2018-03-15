@@ -276,7 +276,7 @@ module Setup
 
     def share_hash(options = {})
       hash = super
-      if (mapping_id = self.mapping.id).present? && (mapping = hash['mapping'])
+      if style == 'mapping' && (mapping_id = self.mapping.id).present? && (mapping = hash['mapping'])
         hash['mapping'] = { 'id' => mapping_id }.merge(mapping)
       end
       hash
