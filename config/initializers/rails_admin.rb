@@ -400,6 +400,8 @@ RailsAdmin.config do |config|
 
   Setup::MappingConverter
 
+  Setup::UpdaterTransformation
+
   Setup::LegacyTranslator
 
   Setup::Renderer
