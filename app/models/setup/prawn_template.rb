@@ -10,6 +10,10 @@ module Setup
       super
     end
 
+    def mime_type_enum
+      'application/pdf'
+    end
+
     def ensure_pdf_content_type
       self.mime_type = 'application/pdf'
       self.file_extension = 'pdf'

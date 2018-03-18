@@ -29,6 +29,10 @@ module Setup
       super
     end
 
+    def mime_type_enum
+      %w(application/xml text/html text/plain)
+    end
+
     def execute(options)
       code = options[:code] || self.code
       xsl_doc = Nokogiri::XSLT(code)
@@ -47,7 +51,7 @@ module Setup
       if (e = xml_doc.xpath("//#{xsl_prefix}:output").first) && (e = e.attribute('method'))
         e.value
       else
-        'xml'
+        'xml' #TODO Infers html method from structure
       end
     end
 
