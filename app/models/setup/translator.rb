@@ -48,10 +48,10 @@ module Setup
     end
 
     def build_execution_options(options)
+      options[:data_type] ||= data_type
       execution_options = base_execution_options(options)
       self.class.fields.keys.each { |key| execution_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| execution_options[key.to_sym] = send(key) }
-      execution_options[:data_type] = data_type
       execution_options.merge!(options) { |_, context_val, options_val| !context_val ? options_val : context_val }
       execution_options[:options] ||= {}
       execution_options

@@ -36,6 +36,7 @@ module Setup
     def simple_translate(message)
       if translator.try(:source_handler)
         translator.run(object_ids: object_ids_from(message),
+                       data_type: data_type_from(message),
                        task: self,
                        options: message[:options].deep_dup.with_indifferent_access)
       else
