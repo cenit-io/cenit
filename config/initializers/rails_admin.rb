@@ -402,6 +402,8 @@ RailsAdmin.config do |config|
 
   Setup::UpdaterTransformation
 
+  Setup::RubyUpdater
+
   Setup::LegacyTranslator
 
   Setup::Renderer
