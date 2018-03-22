@@ -570,6 +570,10 @@ en:
         title: "JSON Edit"
         menu: "JSON Edit"
         breadcrumb: "JSON Edit"
+      json_new:
+        title: "JSON New"
+        menu: "JSON New"
+        breadcrumb: "JSON New"
     form:
       flow:
         source_data_type: 'Source data type'

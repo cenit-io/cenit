@@ -71,7 +71,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::MemberTraceIndex,
   RailsAdmin::Config::Actions::CollectionTraceIndex,
   RailsAdmin::Config::Actions::DataTypeConfig,
-  RailsAdmin::Config::Actions::JsonEdit
+  RailsAdmin::Config::Actions::JsonEdit,
+  RailsAdmin::Config::Actions::JsonNew,
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -556,6 +557,7 @@ RailsAdmin.config do |config|
     index # mandatory
     swagger { only [Setup::ApiSpec] }
     new
+    json_new
     filters
     data_events
     notifications
