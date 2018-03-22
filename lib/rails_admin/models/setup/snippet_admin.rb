@@ -43,6 +43,13 @@ module RailsAdmin
               field :code
             end
 
+            list do
+              field :namespace
+              field :name
+              field :type
+              field :description
+            end
+
             fields :namespace, :name, :type, :description, :code
           end
         end
