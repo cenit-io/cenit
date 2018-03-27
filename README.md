@@ -227,6 +227,9 @@ RABBIT_MQ_PASSWORD: "{RABBIT_MQ_PASSWORD}"
 # AMAZON SIMPLE STORAGE SERVICE.
 AWS_ACCESS_KEY_ID: "{AWSS3 Access ID}"
 AWS_SECRET_ACCESS_KEY: "{AWSS3 Access Key}"
+
+# CenitIO slug of application to manager plans, customers and subscriptions.
+SUBSCRIPTIONS_APP: "cenit-io-subscriptions"
 ```
 
 ## Dependencies
@@ -453,4 +456,4 @@ Thank you for your contributions:
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzAxMDY0MzE0OTM0LWQzNjMzY2M0NmVkMDY0ZmM4M2RiYmM0ZDM5ZDIzYTM0NTkwNWUzMDkxZjMwN2M1MjliNmQ3NWVjOWFlMjcyNzU
+[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzMzNzY2MzA5NjUzLTMyZmU0MDYxMTM0ZmI5ZWI1ZTBhM2RmYzZkYTljMjI3NWRmYjkyNzUxMmQzYzBjMWYxYzQ1ZTY5NTQ1NTBlNWY
