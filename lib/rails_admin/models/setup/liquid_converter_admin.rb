@@ -11,7 +11,7 @@ module RailsAdmin
             weight 410
             object_label_method { :custom_title }
 
-            visible { User.current_super_admin? && group_visible }
+            hide_on_navigation
 
             configure :code, :code do
               code_config do

@@ -12,7 +12,7 @@ module RailsAdmin
             label 'Mapping Converter'
             weight 410
 
-            visible { User.current_super_admin? && group_visible }
+            hide_on_navigation
 
             wizard_steps do
               {
