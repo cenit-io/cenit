@@ -10,7 +10,7 @@ module RailsAdmin
             label 'Parser'
             navigation_icon 'fa fa-sign-in'
             visible { User.current_super_admin? && group_visible }
-            weight 410
+            weight 411
             object_label_method { :custom_title }
 
 

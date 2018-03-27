@@ -6,9 +6,12 @@ module RailsAdmin
 
         included do
           rails_admin do
+            navigation_label 'Transforms'
             label 'Legacy Translator'
-            visible false
-            weight 410
+            visible do
+              ::Setup::LegacyTranslator.count > 0
+            end
+            weight 414
             object_label_method { :custom_title }
             register_instance_option(:form_synchronized) do
               if bindings[:object].not_shared?

@@ -161,7 +161,7 @@ module RailsAdmin
               param: 'transforms',
               label: 'Transforms',
               icon: 'fa fa-random',
-              sublinks: %w(Setup::Template Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
+              sublinks: %w(Setup::Template Setup::ParserTransformation Setup::ConverterTransformation Setup::UpdaterTransformation Setup::LegacyTranslator)
             },
             {
               param: 'gateway',
@@ -564,7 +564,7 @@ RailsAdmin.config do |config|
     link_data_type
     index # mandatory
     swagger { only [Setup::ApiSpec] }
-    new
+    new { except Setup::LegacyTranslator.class_hierarchy }
     filters
     data_events
     notifications

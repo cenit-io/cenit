@@ -11,6 +11,8 @@ module RailsAdmin
             weight 411
             configure :code, :code
 
+            visible false
+
             wizard_steps do
               steps =
                 {

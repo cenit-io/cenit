@@ -10,7 +10,7 @@ module RailsAdmin
             navigation_icon 'fa fa-files-o'
             label 'Converter'
             visible false
-            weight 410
+            weight 412
             object_label_method { :custom_title }
 
             visible { User.current_super_admin? && group_visible }

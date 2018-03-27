@@ -9,7 +9,7 @@ module RailsAdmin
             navigation_label 'Transforms'
             navigation_icon 'fa fa-refresh'
             label 'Updater'
-            weight 410
+            weight 413
             object_label_method { :custom_title }
 
             visible { User.current_super_admin? && group_visible }
