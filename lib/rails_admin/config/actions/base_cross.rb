@@ -15,7 +15,7 @@ module RailsAdmin
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
               do_flash_process_result Setup::Crossing.process(origin: @form_object.origin,
-                                                              object_ids: @bulk_ids.collect(&:to_s),
+                                                              object_ids: @bulk_ids && @bulk_ids.collect(&:to_s),
                                                               data_type_id: model.data_type.id)
               render_form = false
             end
