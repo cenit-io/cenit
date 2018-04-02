@@ -4,7 +4,12 @@ module RailsAdmin
       class Push < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible do
-          authorized? && (obj = bindings[:object]) && Setup::CrossSharedCollection.where(name: obj.name).exists?
+          authorized? && (obj = bindings[:object]) &&
+            begin
+              criteria = { name: obj.name }
+              criteria[:origin] = :owner unless Tenant.current_super_admin?
+              Setup::CrossSharedCollection.where(criteria).exists?
+            end
         end
         register_instance_option :only do
           Setup::Collection
@@ -27,7 +32,7 @@ module RailsAdmin
               (@form_object = Forms::SharedCollectionSelector.new(data)).valid?
               begin
                 do_flash_process_result Setup::Push.process(source_collection_id: @object.id,
-                                                            shared_collection_id: @form_object.shared_collection_id)
+                  shared_collection_id: @form_object.shared_collection_id)
                 done =true
               rescue Exception => ex
                 flash[:error] = ex.message
@@ -38,6 +43,7 @@ module RailsAdmin
             else
               @form_object ||= Forms::SharedCollectionSelector.new
               @form_object.criteria = { name: @object.name }
+              @form_object.criteria[:origin] = :owner unless Tenant.current_super_admin?
               @model_config = form_config
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the push target specification', @form_object.errors.full_messages)
