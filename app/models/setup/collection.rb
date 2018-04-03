@@ -5,8 +5,6 @@ module Setup
     include Taggable
     include RailsAdmin::Models::Setup::CollectionAdmin
 
-    deny :push
-
     image_with AccountImageUploader
 
     unique_name

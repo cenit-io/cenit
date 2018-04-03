@@ -13,6 +13,18 @@ module Setup
     before_save do
       self.source_collection = Setup::Collection.where(id: message[:source_collection_id]).first if source_collection.blank?
       self.shared_collection = Setup::CrossSharedCollection.where(id: message[:shared_collection_id]).first if shared_collection.blank?
+
+      errors.add(:source_collection, "can't be blank") unless source_collection
+
+      if shared_collection
+        unless Tenant.current_super_admin?
+          errors.add(:shared_collection, "origin is not valid (#{shared_collection.origin})") unless shared_collection.origin == :owner
+        end
+      else
+        errors.add(:shared_collection, "can't be blank")
+      end
+
+      errors.blank?
     end
 
     def run(message)
