@@ -152,7 +152,12 @@ module Setup
       end
       if source_data_type && target_data_type
         @mapping = map_model.new_from_json(data)
-        self.map_attributes = @mapping.attributes
+        if @mapping.is_a?(Hash)
+          self.map_attributes = @mapping
+          @mapping = nil
+        else
+          self.map_attributes = @mapping.attributes
+        end
         @lazy_mapping = nil
       else
         @lazy_mapping = data
