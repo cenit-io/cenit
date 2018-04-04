@@ -342,11 +342,17 @@ module Setup
           enum_names << source_data_type.custom_title
           enum_options << { data: { 'template-value': source_data_type.id.to_s } }
           source_model = source_data_type.records_model
+          titles = Set.new
           source_model.properties.each do |property|
             property_dt = source_model.property_model(property).data_type
             unless property_dt == source_data_type
               enum << property
-              enum_names << "#{source_data_type.custom_title} | #{(property_dt.schema['title'] || property.to_title)}"
+              title = property_dt.schema['title'] || property.to_title
+              if titles.include?(title)
+                title = "#{title} (#{property.to_title})"
+              end
+              titles << title
+              enum_names << "#{source_data_type.custom_title} | #{title}"
               enum_options << { data: { 'template-value': property_dt.id.to_s } }
             end
           end
