@@ -483,7 +483,12 @@ module Mongoff
     protected
 
     def initialize(data_type, options = {})
-      @data_type_id = (data_type.is_a?(Setup::BuildInDataType) || options[:cache]) ? data_type : data_type.id.to_s
+      @data_type_id =
+        if data_type.is_a?(Setup::BuildInDataType) || options[:cache] || !data_type.persisted?
+          data_type
+        else
+          data_type.id.to_s
+        end
       @name = options[:name] || data_type.data_type_name
       @parent = options[:parent]
       unless (@persistable = (@schema = options[:schema]).nil?)
