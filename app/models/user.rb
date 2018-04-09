@@ -1,5 +1,6 @@
 require 'net/http'
 require 'identicon'
+require 'mongoid_userstamp'
 
 class User
   include Mongoid::Document
