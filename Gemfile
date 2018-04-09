@@ -60,7 +60,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.0.0'
+gem 'rails_admin', '~> 1.3.0'
 
 # charts
 gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
