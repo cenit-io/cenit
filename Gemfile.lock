@@ -237,7 +237,6 @@ GEM
     docile (1.1.5)
     domain_name (0.5.25)
       unf (>= 0.0.5, < 1.0.0)
-    easy_diff (0.0.6)
     erubis (2.7.0)
     eventmachine (1.0.8)
     exception_notification (4.1.4)
@@ -359,19 +358,9 @@ GEM
       mongo (~> 2.1)
       origin (~> 2.1)
       tzinfo (>= 0.3.37)
-    mongoid-audit (1.1.0)
-      activesupport
-      glebtv_mongoid_userstamp
-      kaminari
-      mongoid (>= 4.0.0, < 6.0)
-      mongoid-history (~> 0.4.5)
     mongoid-grid_fs (2.2.1)
       mime-types (>= 1.0, < 3.0)
       mongoid (>= 3.0, < 6.0)
-    mongoid-history (0.4.7)
-      activesupport
-      easy_diff
-      mongoid (>= 3.0)
     mongoid-rspec (3.0.0)
       mongoid (~> 5.0)
       rake
@@ -674,8 +663,6 @@ DEPENDENCIES
   mime
   mini_magick
   mongoid
-  mongoid-audit
-  mongoid-history
   mongoid-rspec
   mongoid-tracer!
   net-scp
