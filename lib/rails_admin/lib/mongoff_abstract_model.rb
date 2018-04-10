@@ -184,7 +184,7 @@ module Mongoff
   class Criteria
 
     include Kaminari::ConfigurationMethods::ClassMethods
-    include Kaminari::MongoidCriteriaMethods
+    include Kaminari::Mongoid::MongoidCriteriaMethods
     include Kaminari::PageScopeMethods
 
     define_method(Kaminari.config.page_method_name) do |num|

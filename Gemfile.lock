@@ -341,6 +341,9 @@ GEM
       activerecord
       kaminari-core (= 1.1.1)
     kaminari-core (1.1.1)
+    kaminari-mongoid (1.0.1)
+      kaminari-core (~> 1.0)
+      mongoid
     kgio (2.10.0)
     language_sniffer (1.0.2)
     libv8 (3.16.14.13)
@@ -672,6 +675,7 @@ DEPENDENCIES
   jeweler
   jquery-rails
   json-schema
+  kaminari-mongoid
   language_sniffer
   liquid
   lodash-rails
