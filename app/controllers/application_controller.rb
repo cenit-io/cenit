@@ -13,21 +13,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def doorkeeper_oauth_client
-    @client ||= OAuth2::Client.new(DOORKEEPER_APP_ID, DOORKEEPER_APP_SECRET, :site => DOORKEEPER_APP_URL)
-  end
-
-  # expired?
-  # refresh!
-  def doorkeeper_access_token
-    opts = {}
-    if current_user
-      opts[:refresh_token] = current_user.doorkeeper_refresh_token
-      opts[:expires_at] = current_user.doorkeeper_expires_at
-    end
-    @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
-  end
-
   around_filter :scope_current_account
 
   protected
