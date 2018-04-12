@@ -34,7 +34,3 @@ Cenit::Application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 end
-
-DOORKEEPER_APP_ID = ENV['DOORKEEPER_APP_ID']
-DOORKEEPER_APP_SECRET = ENV['DOORKEEPER_APP_SECRET']
-DOORKEEPER_APP_URL = ENV['DOORKEEPER_APP_URL']

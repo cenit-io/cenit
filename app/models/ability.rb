@@ -42,7 +42,6 @@ class Ability
           app_id.app.nil?
         end
         can :inspect, Account
-        can :push, Setup::Collection
 
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS

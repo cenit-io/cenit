@@ -11,8 +11,6 @@ gem 'bootstrap-sass'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise'
-gem 'omniauth'
-gem 'omniauth-oauth2', '~> 1.3.1'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -61,8 +59,6 @@ end
 gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin', '~> 1.0.0'
-gem 'mongoid-history'
-gem 'mongoid-audit'
 
 # charts
 gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
