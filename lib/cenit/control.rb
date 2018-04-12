@@ -269,8 +269,12 @@ module Cenit
       instance_variable_get(name)
     end
 
-    def headers
+    def request_headers
       @controller.request.headers
+    end
+
+    def response_headers
+      @controller.response.headers
     end
 
     private
