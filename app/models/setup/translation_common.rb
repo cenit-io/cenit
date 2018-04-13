@@ -24,6 +24,7 @@ module Setup
         begin
           send('translate_' + translator.type.to_s.downcase, message)
         rescue ::Exception => ex
+          Setup::SystemNotification.create_from(ex, "Error executing translator '#{translator.custom_title}'")
           fail "Error executing translator '#{translator.custom_title}' (#{ex.message})"
         end
       else
