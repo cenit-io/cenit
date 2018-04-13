@@ -29,7 +29,7 @@ module Cenit
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
           asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
-          task_execution = task.new_execution
+          task_execution = task.queue_execution
           message[:execution_id] = task_execution.id.to_s
           if scheduler || publish_at || asynchronous_message
             tokens = TaskToken.where(task_id: task.id)
