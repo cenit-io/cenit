@@ -3,7 +3,7 @@ module Setup
     include WithSourceOptions
     include RailsAdmin::Models::Setup::MappingConverterAdmin
 
-    build_in_data_type.and(properties: { mapping: { type: {} } })
+    build_in_data_type.and(properties: { mapping: { type: {} } }).excluding(:map_attributes)
 
     field :map_attributes, type: Hash, default: {}
 
