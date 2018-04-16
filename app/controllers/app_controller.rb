@@ -16,7 +16,7 @@ class AppController < ApplicationController
   protected
 
   def allow_x_frame
-    response.headers['X-FRAME-OPTIONS'] = 'ALLOWALL'
+    response.headers.delete('X-Frame-Options')
   end
 
   def find_app_control_action
