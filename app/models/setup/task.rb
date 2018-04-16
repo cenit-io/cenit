@@ -112,6 +112,14 @@ module Setup
       current_execution
     end
 
+    def queue_execution
+      if current_execution && current_execution.status == :pending
+        current_execution
+      else
+        new_execution
+      end
+    end
+
     def execute(options = {})
       if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
