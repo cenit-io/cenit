@@ -4,6 +4,6 @@ class Users::SessionsController < Devise::SessionsController
   protected
 
   def allow_x_frame
-    response.headers['X-FRAME-OPTIONS'] = 'ALLOWALL'
+    response.headers.delete('X-Frame-Options')
   end
 end
