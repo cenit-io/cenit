@@ -116,7 +116,7 @@ module Setup
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => { Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion] },
       'pdf.prawn' => { Setup::Transformation::PrawnTransform => [:Export] },
-      'chain' => { Setup::Transformation::ChainTransform => [:Conversion] },
+      #'chain' => { Setup::Transformation::ChainTransform => [:Conversion] },
       'mapping' => { Setup::Transformation::MappingTransform => [:Conversion] }
     }
 
