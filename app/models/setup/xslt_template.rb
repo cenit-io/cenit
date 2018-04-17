@@ -1,6 +1,7 @@
 module Setup
   class XsltTemplate < Template
     include SnippetCodeTemplate
+    include XsltTemplateCommon
     include RailsAdmin::Models::Setup::XsltTemplateAdmin
 
     def validates_configuration
@@ -35,24 +36,7 @@ module Setup
 
     def execute(options)
       code = options[:code] || self.code
-      xsl_doc = Nokogiri::XSLT(code)
-      xml_document = xsl_doc.transform(Nokogiri::XML(options[:source].to_xml))
-      if output_method(code) == 'text'
-        xml_document.content
-      else
-        xml_document.to_xml
-      end
-    end
-
-    def output_method(xml_doc = code)
-      xml_doc ||= code
-      xml_doc = Nokogiri::XML(xml_doc) unless xml_doc.is_a?(Nokogiri::XML::Document)
-      xsl_prefix = xml_doc.root.namespace.prefix
-      if (e = xml_doc.xpath("//#{xsl_prefix}:output").first) && (e = e.attribute('method'))
-        e.value
-      else
-        'xml' #TODO Infers html method from structure
-      end
+      render(code, options[:source].to_xml)
     end
 
     def ready_to_save?

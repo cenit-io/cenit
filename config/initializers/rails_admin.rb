@@ -417,6 +417,8 @@ RailsAdmin.config do |config|
 
   Setup::HandlebarsConverter
 
+  Setup::XsltConverter
+
   Setup::RubyConverter
 
   Setup::MappingConverter
