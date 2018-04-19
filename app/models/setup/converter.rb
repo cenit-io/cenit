@@ -87,6 +87,7 @@ module Setup
           else
             source.send(sub_map.source)
           end
+        next unless sub_map_source
         transformation = sub_map.transformation
         options = parse_options(sub_map.options)
         target_association = target_data_type.records_model.associations[name]
