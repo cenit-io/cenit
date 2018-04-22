@@ -107,7 +107,7 @@ Cenit.config do
 
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
-  multiple_unicorn_consumers true
+  maximum_unicorn_consumers ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3
 
   min_scheduler_interval 60
 
