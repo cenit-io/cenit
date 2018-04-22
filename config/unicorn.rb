@@ -44,15 +44,14 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  if Cenit.multiple_unicorn_consumers || worker.nr == 0
-    if worker.nr == 0
-      Cenit::Rabbit.start_scheduler
-      Account.all.each do |account|
-        Account.current = account
+  if worker.nr == 0
+    Cenit::Rabbit.start_scheduler
+    Tenant.all.each do |tenant|
+      tenant.switch do
         Setup::Scheduler.activated.each(&:start)
       end
-      Account.current = nil
     end
+  elsif worker.nr <= Cenit.maximum_unicorn_consumers
     Cenit::Rabbit.start_consumer
   end
 end
