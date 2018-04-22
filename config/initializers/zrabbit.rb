@@ -2,11 +2,11 @@ require 'rabbit_consumer'
 
 unless ENV['UNICORN_CENIT_SERVER'].to_b
   Cenit::Application.config.after_initialize do
-    Account.all.each do |account|
-      Account.current = account
-      Setup::Scheduler.activated.each(&:start)
+    Tenant.all.each do |tenant|
+      tenant.switch do
+        Setup::Scheduler.activated.each(&:start)
+      end
     end
-    Account.current = nil
     Cenit::Rabbit.start_consumer
     Cenit::Rabbit.start_scheduler
   end
