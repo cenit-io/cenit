@@ -395,7 +395,7 @@ module Setup
     end
 
     def translate_export(message, &block)
-      limit = translator.bulk_source ? lot_size || 1000 : 1
+      limit = translator.try(:bulk_source) ? lot_size || 1000 : 1
       max =
         if (object_ids = source_ids_from(message))
           object_ids.size
