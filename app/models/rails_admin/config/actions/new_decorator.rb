@@ -24,6 +24,14 @@ module RailsAdmin
                       child_types = child_types.to_s.split(',')
                     end
                     @form_object = Forms::ChildModelSelector.new(parent_model_name: model.name, child_types: child_types)
+                    if (children = @form_object.children_models_names(current_ability)).size == 1
+                      @model_config = RailsAdmin::Config.model(children.values.first)
+                      @abstract_model = @model_config.abstract_model
+                      @form_object = nil
+                      @abstract_model.new
+                    else
+                      @form_object
+                    end
                   end
                   @abstract_model.new
                 end

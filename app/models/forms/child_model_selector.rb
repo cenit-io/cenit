@@ -28,7 +28,7 @@ module Forms
         next unless child_model < parent_model
         next if child_model < Setup::ClassHierarchyAware && child_model.abstract_class
         model_config = RailsAdmin::Config.model(child_model)
-        next unless model_config.visible? && ability.can?(:new, child_model)
+        next unless model_config.child_visible? && ability.can?(:new, child_model)
         enum[model_config.label] = child_model.name
       end
       enum

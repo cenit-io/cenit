@@ -10,7 +10,8 @@ module RailsAdmin
             navigation_icon 'fa fa-file-code-o'
             weight 411
             configure :code, :code
-            label 'Template'
+
+            visible false
 
             wizard_steps do
               steps =

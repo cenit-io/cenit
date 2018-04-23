@@ -11,6 +11,8 @@ module RailsAdmin
             navigation_label 'Transforms'
             navigation_icon 'fa fa-refresh'
 
+            visible false
+
             wizard_steps do
               steps =
                 {

@@ -31,7 +31,7 @@ module Forms
           types do
             [
               {
-                Export: Setup::Renderer,
+                Export: [Setup::Renderer, Setup::Template.concrete_class_hierarchy].flatten,
                 Conversion: Setup::Converter,
                 Update: Setup::Updater
               }[bindings[:object].translator_type].to_s
