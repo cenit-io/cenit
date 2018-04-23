@@ -45,13 +45,16 @@ module Cenit
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
               unless task.joining?
-                channel_mutex.lock
-                if channel.closed?
-                  Setup::DelayedMessage.create(message: message)
-                else
-                  channel.default_exchange.publish(message, routing_key: queue.name)
+                begin
+                  channel_mutex.lock
+                  if channel.nil? || channel.closed?
+                    Setup::DelayedMessage.create(message: message)
+                  else
+                    channel.default_exchange.publish(message, routing_key: queue.name)
+                  end
+                ensure
+                  channel_mutex.unlock
                 end
-                channel_mutex.unlock
               end
             end
           else
@@ -190,9 +193,12 @@ module Cenit
             end
             channel.reject(delivery_info.delivery_tag, true) unless rabbit_consumer && !rabbit_consumer.cancelled?
             channel.ack(delivery_info.delivery_tag)
-            channel_mutex.lock #channel might be closed
-            consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
-            channel_mutex.unlock
+            begin
+              channel_mutex.lock #channel might be closed
+              consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
+            ensure
+              channel_mutex.unlock
+            end
           end
           puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
         end
@@ -203,22 +209,25 @@ module Cenit
       def start_scheduler
         if init
           @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
-            channel_mutex.lock
-            unless channel.closed?
-              messages_present = false
-              (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
-                publish_options = { routing_key: queue.name }
-                publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-                channel.default_exchange.publish(delayed_message.message, publish_options)
-                messages_present = true
+            begin
+              channel_mutex.lock
+              unless channel.closed?
+                messages_present = false
+                (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
+                  publish_options = { routing_key: queue.name }
+                  publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+                  channel.default_exchange.publish(delayed_message.message, publish_options)
+                  messages_present = true
+                end
+                begin
+                  delayed_messages.destroy_all
+                rescue Exception => ex
+                  Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
+                end if messages_present
               end
-              begin
-                delayed_messages.destroy_all
-              rescue Exception => ex
-                Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
-              end if messages_present
+            ensure
+              channel_mutex.unlock
             end
-            channel_mutex.unlock
           end
           puts 'RABBIT SCHEDULER STARTED'
         end
