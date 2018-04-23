@@ -4,6 +4,8 @@ module Setup
     include RubyCodeTransformation
     include RailsAdmin::Models::Setup::RubyUpdaterAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     field :source_handler, type: Boolean
 
     def validates_configuration

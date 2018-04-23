@@ -4,6 +4,8 @@ module Setup
     include XsltTemplateCommon
     include RailsAdmin::Models::Setup::XsltTemplateAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     def validates_configuration
       method = output_method
       if %w(xml html text).include?(method)

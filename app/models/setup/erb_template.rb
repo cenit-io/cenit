@@ -4,6 +4,8 @@ module Setup
     include SnippetCodeTemplate
     include RailsAdmin::Models::Setup::ErbTemplateAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     def execute(options)
       code = preprocess_erb(options[:code], options)
 

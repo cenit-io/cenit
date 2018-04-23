@@ -3,6 +3,8 @@ module Setup
     include RubyCodeTemplate
     include RailsAdmin::Models::Setup::PrawnTemplateAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     before_validation :ensure_pdf_content_type
 
     def save(options = {})
