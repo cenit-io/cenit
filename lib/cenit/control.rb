@@ -128,7 +128,7 @@ module Cenit
 
     def [](key)
       v = @app.configuration[key]
-      v = headers[key.to_s] if v.nil?
+      v = request_headers[key.to_s] if v.nil?
       v = get_instance_var(key) if v.nil?
       v
     end
