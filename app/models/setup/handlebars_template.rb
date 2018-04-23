@@ -4,6 +4,8 @@ module Setup
     include SnippetCodeTemplate
     include RailsAdmin::Models::Setup::HandlebarsTemplateAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     def execute(options)
       handlebars = Handlebars::Context.new
       locals =
