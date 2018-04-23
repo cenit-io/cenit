@@ -3,5 +3,7 @@ module Setup
     include RubyCodeTransformation
     include RailsAdmin::Models::Setup::RubyParserAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
   end
 end

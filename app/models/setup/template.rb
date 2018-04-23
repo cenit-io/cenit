@@ -3,6 +3,8 @@ module Setup
     include WithSourceOptions
     include RailsAdmin::Models::Setup::TemplateAdmin
 
+    build_in_data_type.referenced_by(:namespace, :name)
+
     abstract_class true
 
     transformation_type :Export
