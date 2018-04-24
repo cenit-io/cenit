@@ -63,11 +63,11 @@ module Setup
     class << self
 
       def mime_type_filter_enum
-        Setup::Renderer.where(:mime_type.ne => nil).distinct(:mime_type).flatten.uniq
+        Setup::Template.where(:mime_type.ne => nil).distinct(:mime_type).flatten.uniq
       end
 
       def file_extension_filter_enum
-        Setup::Renderer.where(:file_extension.ne => nil).distinct(:file_extension).flatten.uniq
+        Setup::Template.where(:file_extension.ne => nil).distinct(:file_extension).flatten.uniq
       end
     end
   end
