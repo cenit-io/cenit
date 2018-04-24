@@ -556,8 +556,8 @@ module RailsAdmin
           open_api_directory_link = open_api_directory_nav(options).html_safe
           html = html + open_api_directory_link
         end
-        if node.abstract_model.model == Setup::Renderer &&
-          (extensions_list = Setup::Renderer.file_extension_filter_enum).present?
+        if node.abstract_model.model == Setup::Template &&
+          (extensions_list = Setup::Template.file_extension_filter_enum).present?
           ext_count = 0
           sub_links = ''
           extensions_list.each do |ext|
@@ -579,7 +579,7 @@ module RailsAdmin
           show_all_link =
             if ext_count
               content_tag :li do
-                link_to index_path(model_name: node.abstract_model.to_param) do
+                link_to index_path(model_name: node.abstract_model.to_param), class: 'pjax' do
                   "<span class='nav-amount'></span><span class='text'>Show All</span>".html_safe
                 end
               end

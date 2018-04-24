@@ -1093,7 +1093,7 @@ cenit = function ($) {
                         },
                         $amount = $element.find('.nav-amount');
                     var ajx_url = host + model_route + '/' + model_name + '?limit=1&only=id'
-                    if (model_name === 'renderer') {
+                    if (model_name === 'template') {
                         model_route = model_route + '/setup';
                         ajx_url = host + model_route + '/' + model_name + '?file_extension=' + ext;
                         origin = null;
