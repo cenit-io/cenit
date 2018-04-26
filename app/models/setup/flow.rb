@@ -404,6 +404,7 @@ module Setup
         else
           0
         end - 1
+      return if max == 0
       translation_options = nil
       connections_present = true
       0.step(max, limit) do |offset|
