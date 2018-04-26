@@ -30,7 +30,7 @@ module RailsAdmin
               end
             end
 
-            fields :provider, :name, :identifier, :secret, :tenant, :request_token_parameters, :request_token_headers, :updated_at
+            fields :provider, :name, :identifier, :secret, :tenant, :request_token_parameters, :request_token_headers, :template_parameters, :updated_at
           end
         end
 
