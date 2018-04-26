@@ -1,5 +1,5 @@
 module Liquid
-  class OauthAthorization < CenitBasicTag
+  class OauthAuthorization < CenitBasicTag
 
     tag :oauth_authorization
 
