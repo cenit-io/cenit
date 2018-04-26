@@ -51,7 +51,7 @@ module RailsAdmin
                 help ''
               end
               field :key
-              field :value
+              field :value, :text
               field :description
               field :metadata
             end

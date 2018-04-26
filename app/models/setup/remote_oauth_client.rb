@@ -10,7 +10,7 @@ module Setup
     field :identifier, type: String
     field :secret, type: String
 
-    parameters :request_token_parameters, :request_token_headers
+    parameters :request_token_parameters, :request_token_headers, :template_parameters
 
     # trace_references :request_token_parameters, :request_token_headers
 
@@ -21,8 +21,10 @@ module Setup
       super
     end
 
-    def template_parameters
-      @template_parameters ||= %w(identifier secret).collect { |key| Setup::Parameter.new(key: key, value: attributes[key]) }
+    def inject_template_parameters(hash)
+      hash['identifier'] = get_identifier
+      hash['secret'] = get_secret
+      hash['timestamp'] = Time.now.to_i
     end
 
     def get_identifier
