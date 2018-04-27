@@ -336,7 +336,8 @@ module Setup
           rescue Exception => ex
             msg = "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
             if task
-              task.notify message: msg
+              task.notify(message: msg)
+              task.notify(ex)
             else
               fail msg
             end
