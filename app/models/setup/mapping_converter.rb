@@ -103,8 +103,8 @@ module Setup
 
     def run_transformation(transformation, source_data_type, source, options)
       source = [source] unless source.is_a?(Enumerable)
-      if (transformation.type == :Export && transformation.bulk_source) ||
-        (transformation.type == :Conversion && transformation.source_handler)
+      if (transformation.type == :Export && transformation.try(:bulk_source)) ||
+        (transformation.type == :Conversion && transformation.try(:source_handler)) #TODO After remove legacy translators check try(:bulk_source) and try(:source_handler)
         r = transformation.run(source_data_type: source_data_type, objects: source, save_result: false, options: options)
         yield r, options if block_given?
       else
@@ -206,7 +206,7 @@ module Setup
             target_association = target_data_type.records_model.associations[name]
             if source_association && source_association.many? &&
               (target_association.nil? || !target_association.many?) && # target_association is nil for file mappings
-              !transformation.bulk_source
+              !transformation.try(:bulk_source)
               sub_map.errors.add(:source, "is a many association and can not be mapped to #{target_data_type.custom_title} | #{schema['title'] || name.to_title} (which is not many) with the non bulk transformation #{transformation.custom_title}")
             end
             if (t_data_type = transformation.data_type).nil? || t_data_type == source_dt
