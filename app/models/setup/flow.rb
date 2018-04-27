@@ -314,7 +314,7 @@ module Setup
     def simple_translate(message, &block)
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       task = message[:task]
-      if translator.source_handler
+      if translator.try(:source_handler)
         begin
           translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type)
         rescue Exception => ex
