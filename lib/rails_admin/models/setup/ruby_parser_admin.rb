@@ -40,7 +40,7 @@ module RailsAdmin
               end
             end
 
-            fields :namespace, :name, :target_data_type, :updated_at
+            fields :namespace, :name, :target_data_type, :code, :updated_at
           end
         end
 
