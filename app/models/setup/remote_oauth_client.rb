@@ -27,6 +27,7 @@ module Setup
       hash['secret'] = get_secret
       hash['timestamp'] = now.to_i
       hash['utc_timestamp'] = now.utc.to_i
+      hash['iso8601_timestamp'] = now.utc.iso8601
     end
 
     def get_identifier
