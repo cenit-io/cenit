@@ -1,8 +1,15 @@
-= cache 'home', expires_in: 1.day do
-  <!-- HEADER -->
-  = render partial: 'rails_admin/main/home/header'
-  <!-- CONTENT -->
-  %main#home_content
+<!-- HEADER -->
+= render partial: 'rails_admin/main/home/header'
+<!-- CONTENT -->
+%main#home_content
+  .row
+    .container-fluid
+      - page_slug = @page_name.parameterize
+      - flash && flash.each do |key, value|
+        .alert{class: flash_alert_class(key), style: "margin-bottom: #{page_slug=='dashboard' ? '0' : '20px'}"}
+          %a.close{href: '#', :'data-dismiss' => "alert"} &times;
+          = value
+  = cache 'home', expires_in: 1.day do
     = render partial: 'rails_admin/main/home/sliders'
     <!-- INTRO -->
     = render partial: 'rails_admin/main/home/intro'
