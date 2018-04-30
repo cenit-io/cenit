@@ -22,12 +22,18 @@ module Setup
     end
 
     def inject_template_parameters(hash)
-      now = Time.now
       hash['identifier'] = get_identifier
       hash['secret'] = get_secret
-      hash['timestamp'] = now.to_i
-      hash['utc_timestamp'] = now.utc.to_i
-      hash['iso8601_timestamp'] = now.utc.iso8601
+      hash['timestamp'] = (timestamp.to_f * 1000).to_i
+      hash['utc_timestamp'] = (timestamp.utc.to_f * 1000).to_i
+    end
+
+    def timestamp
+      @timestamp ||= Time.now
+    end
+
+    def reset_timestamp
+      @timestamp = nil
     end
 
     def get_identifier
