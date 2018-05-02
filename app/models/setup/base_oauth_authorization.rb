@@ -76,14 +76,14 @@ module Setup
       params
     end
 
-    def token_params(params = {})
+    def token_params(params = {}, template_parameters = {})
       params[:token_method] ||= provider.token_method
-      client.conformed_request_token_parameters(params).each do |key, value|
+      client.conformed_request_token_parameters(template_parameters).each do |key, value|
         key = key.to_sym
         params[key] ||= value
       end
       params[:headers] ||= {}
-      client.conformed_request_token_headers(params).each do |key, value|
+      client.conformed_request_token_headers(template_parameters).each do |key, value|
         key = key.to_sym
         params[:headers][key] ||= value
       end
