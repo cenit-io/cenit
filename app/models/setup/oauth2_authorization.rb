@@ -54,7 +54,7 @@ module Setup
 
     def request_token(params)
       http_client = create_http_client(token_url: token_endpoint)
-      token = http_client.auth_code.get_token(params[:code], token_params)
+      token = http_client.auth_code.get_token(params[:code], token_params({}, params))
       self.token_type = token.params['token_type']
       self.authorized_at =
         if (time = token.params['created_at'])
