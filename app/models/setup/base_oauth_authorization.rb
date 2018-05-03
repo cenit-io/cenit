@@ -50,6 +50,10 @@ module Setup
       provider && template_value_of(provider.token_endpoint)
     end
 
+    def token_method
+      provider && provider.token_method
+    end
+
     def fresh_access_token
       (p = provider) && p.refresh_token(self)
     end
@@ -77,7 +81,6 @@ module Setup
     end
 
     def token_params(params = {}, template_parameters = {})
-      params[:token_method] ||= provider.token_method
       client.conformed_request_token_parameters(template_parameters).each do |key, value|
         key = key.to_sym
         params[key] ||= value
