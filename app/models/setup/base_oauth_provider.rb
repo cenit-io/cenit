@@ -157,5 +157,8 @@ module Setup
       raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
 
+    def client(name)
+      Setup::OauthClient.where(provider_id: id, name: name).first
+    end
   end
 end
