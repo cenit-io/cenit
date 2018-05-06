@@ -45,6 +45,12 @@ GIT
       rails (>= 4.2.5)
 
 GIT
+  remote: https://github.com/cenit-io/cenit_home.git
+  revision: f2da92440ae17923822ff39237111227e0a013d7
+  specs:
+    cenit_home (0.0.1.alpha)
+
+GIT
   remote: https://github.com/macarci/capataz.git
   revision: b7464ea4c3448980daebb19a1ee0ca88da59743f
   specs:
@@ -625,6 +631,7 @@ DEPENDENCIES
   cenit-service!
   cenit-token!
   cenit_cmd!
+  cenit_home!
   chartkick
   codemirror-rails
   coffee-rails
