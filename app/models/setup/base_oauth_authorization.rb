@@ -34,7 +34,7 @@ module Setup
 
     def expires_in
       if (expires_at = self.expires_at)
-        expires_at - Time.now
+        expires_at.to_i - Time.now.to_i
       end
     end
 
