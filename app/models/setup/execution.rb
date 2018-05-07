@@ -51,7 +51,7 @@ module Setup
 
     def time_span
       if (start = started_at)
-        (completed_at || Time.now) - start
+        (((completed_at || Time.now).to_f) * 1000).to_i - (start.to_f * 1000).to_i
       else
         0
       end
