@@ -138,7 +138,7 @@ $home_blue: #5bc0de;
     }
   }
   #subdomains {
-    background-image: image_url('home/connected_circles_up.png');
+    background-image: image_url('cenit/home/connected_circles_up.png');
     .service-container {
       .service-link {
         text-decoration: none;
@@ -852,7 +852,7 @@ $home_blue: #5bc0de;
           height: 100%;
           background-position: center center;
           background-size: cover;
-          background-image: image_url('home/bg3.png');
+          background-image: image_url('cenit/home/bg3.png');
 
           @media(max-width: 767px) {
             left: 0px;
@@ -2017,10 +2017,10 @@ $home_blue: #5bc0de;
       }
     }
   }
-  // Apps icon sprite (home/spritesheet.png)
+  // Apps icon sprite (cenit/home/spritesheet.png)
   // Grid: W-118px H-86px
   .app-icon {
-    background-image: image_url('home/spritesheet.png');
+    background-image: image_url('cenit/home/spritesheet.png');
     background-repeat: no-repeat;
     display: block;
     width: 112px;
@@ -2111,7 +2111,7 @@ $home_blue: #5bc0de;
   .app-icon-xs {
     width: 30px;
     height: 30px;
-    background-image: image_url('home/spritesheet.png');
+    background-image: image_url('cenit/home/spritesheet.png');
     background-repeat: no-repeat;
     display: block;
     background-position: -2px -342px;
