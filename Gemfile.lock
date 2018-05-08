@@ -46,7 +46,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit_home.git
-  revision: f2da92440ae17923822ff39237111227e0a013d7
+  revision: 8e7886d57647b744a1614bf6f8aa6752be30c714
   specs:
     cenit_home (0.0.1.alpha)
 
