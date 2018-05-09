@@ -1192,7 +1192,7 @@ module RailsAdmin
       nil
     end
 
-    alias_method :rails_admin_breadcrumb, :breadcrumb
+    alias_method(:rails_admin_breadcrumb, :breadcrumb) unless method_defined?(:rails_admin_breadcrumb)
 
     def breadcrumb(action = @action, _acc = [])
       value = rails_admin_breadcrumb(action, _acc)

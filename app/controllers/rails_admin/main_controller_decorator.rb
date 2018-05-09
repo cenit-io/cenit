@@ -10,7 +10,7 @@ module RailsAdmin
 
     before_action :process_context
 
-    alias_method :rails_admin_list_entries, :list_entries
+    alias_method(:rails_admin_list_entries, :list_entries) unless method_defined?(:rails_admin_list_entries)
 
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all] || params[:bulk_ids]))
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
