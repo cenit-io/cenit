@@ -8,29 +8,37 @@ module RailsAdmin
             '-'
           end
 
+          register_instance_option :metric do
+            :s
+          end
+
           register_instance_option :pretty_value do
-            if value < 0
+            if (v = value) < 0
               negative_pretty_value
             else
-              v = (value * 1000000).to_i
-              metric = :ns
-              done = false
-              {
+              str = ''
+              h = {
                 ms: 1000,
                 s: 1000,
                 m: 60,
                 h: 60,
                 d: 24
-              }.each do |non, scale|
-                next if done
+              }
+              current_metric = metric
+              h.keys.each do|m|
+                h.delete(m)
+                break if m == current_metric
+              end
+              h.each do |m, scale|
                 if (scaled_v = v / scale) > 0
+                  str = "#{v % scale}#{current_metric} #{str}"
                   v = scaled_v
-                  metric = non
+                  current_metric = m
                 else
-                  done = true
+                  break
                 end
               end
-              "#{v}#{metric}"
+              str
             end
           end
 

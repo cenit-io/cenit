@@ -2,6 +2,15 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      def hide_on_navigation
+        visible false
+        child_visible true
+      end
+
+      register_instance_option :child_visible? do
+        visible
+      end
+
       register_instance_option :json_formatter do
         proc do |entries, options|
           entries.to_json(options)

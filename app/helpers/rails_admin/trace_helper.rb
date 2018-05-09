@@ -94,7 +94,7 @@ module RailsAdmin
       changes_set.each do |attr, values|
         field_name = attr
         metadata = nil
-        if (field = model.fields[attr]) && field.foreign_key?
+        if model.is_a?(Class) && (field = model.fields[attr]) && field.foreign_key? #TODO Remove is_a?(Class) for Mongoff compatibility
           metadata = field.metadata
           field_name = metadata.name.to_s
         end

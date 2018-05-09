@@ -155,13 +155,13 @@ module RailsAdmin
               param: 'workflows',
               label: 'Workflows',
               icon: 'fa fa-cogs',
-              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer)
+              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer Setup::Scheduler)
             },
             {
               param: 'transforms',
               label: 'Transforms',
               icon: 'fa fa-random',
-              sublinks: %w(Setup::Renderer Setup::Parser Setup::Converter Setup::Updater)
+              sublinks: %w(Setup::Template Setup::ParserTransformation Setup::ConverterTransformation Setup::UpdaterTransformation Setup::LegacyTranslator)
             },
             {
               param: 'gateway',
@@ -397,6 +397,38 @@ RailsAdmin.config do |config|
 
   Setup::Translator
 
+  Setup::Template
+
+  Setup::ErbTemplate
+
+  Setup::HandlebarsTemplate
+
+  Setup::LiquidTemplate
+
+  Setup::PrawnTemplate
+
+  Setup::RubyTemplate
+
+  Setup::XsltTemplate
+
+  Setup::ConverterTransformation
+
+  Setup::LiquidConverter
+
+  Setup::HandlebarsConverter
+
+  Setup::XsltConverter
+
+  Setup::RubyConverter
+
+  Setup::MappingConverter
+
+  Setup::UpdaterTransformation
+
+  Setup::RubyUpdater
+
+  Setup::LegacyTranslator
+
   Setup::Renderer
 
   Setup::Parser
@@ -555,7 +587,7 @@ RailsAdmin.config do |config|
     link_data_type
     index # mandatory
     swagger { only [Setup::ApiSpec] }
-    new
+    new { except Setup::LegacyTranslator.class_hierarchy }
     filters
     data_events
     notifications

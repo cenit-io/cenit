@@ -11,8 +11,6 @@ gem 'bootstrap-sass'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise'
-gem 'omniauth'
-gem 'omniauth-oauth2', '~> 1.3.1'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -113,6 +111,7 @@ gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
 gem 'cenit-oauth', git: 'https://github.com/cenit-io/cenit-oauth.git'
+gem 'cenit_home', git: 'https://github.com/cenit-io/cenit_home.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 

@@ -15,7 +15,9 @@ module RailsAdmin
 
             c.configure :attachment, :storage_file
 
-            c.configure :time_span, :time_span
+            c.configure :time_span, :time_span do
+              metric :ms
+            end
 
             c.configure :status, :enum do
               register_instance_option :enum do

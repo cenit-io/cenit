@@ -13,21 +13,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def doorkeeper_oauth_client
-    @client ||= OAuth2::Client.new(DOORKEEPER_APP_ID, DOORKEEPER_APP_SECRET, :site => DOORKEEPER_APP_URL)
-  end
-
-  # expired?
-  # refresh!
-  def doorkeeper_access_token
-    opts = {}
-    if current_user
-      opts[:refresh_token] = current_user.doorkeeper_refresh_token
-      opts[:expires_at] = current_user.doorkeeper_expires_at
-    end
-    @token ||= OAuth2::AccessToken.new(doorkeeper_oauth_client, current_user.doorkeeper_access_token, opts) if current_user
-  end
-
   around_filter :scope_current_account
 
   protected
@@ -51,7 +36,7 @@ class ApplicationController < ActionController::Base
     clean_thread_cache
     if current_user && current_user.account.nil?
       current_user.add_role(:admin) unless current_user.has_role?(:admin)
-      current_user.account = Account.create_with_owner(owner: current_user)
+      current_user.account = current_user.accounts.first || Account.create_with_owner(owner: current_user)
       current_user.save(validate: false)
     end
     Account.current = current_user.account.target if signed_in?

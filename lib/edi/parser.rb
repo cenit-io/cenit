@@ -3,12 +3,12 @@ module Edi
 
     class << self
 
-      def parse_edi(data_type, content, options={}, record=nil)
+      def parse_edi(data_type, content, options = {}, record = nil)
         start = options[:start] || 0
         content = content.gsub("\r", '')
         segment_sep = "\n" if (segment_sep = options[:segment_separator]) == :new_line
         raise Exception.new("Record model #{record.orm_model} does not match data type model#{data_type.orm_model}") unless record.nil? || record.orm_model == data_type.records_model
-        json, start, record = do_parse_edi(data_type, model = data_type.records_model, content, model.schema, start, options[:field_separator], segment_sep, report={ segments: [] }, new_record: record)
+        json, start, record = do_parse_edi(data_type, model = data_type.records_model, content, model.schema, start, options[:field_separator], segment_sep, report = { segments: [] }, new_record: record)
         raise Exception.new("Unexpected input at position #{start}: #{content[start, content.length - start <= 10 ? content.length - 1 : 10]}") if start < content.length
         report[:json] = json
         report[:scan_size] = start
@@ -16,15 +16,24 @@ module Edi
         record
       end
 
-      def parse_json(data_type, content, options={}, record=nil, model=nil)
+      def parse_json(data_type, content, options = {}, record = nil, model = nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
         process_options(options)
         do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
-      def parse_xml(data_type, content, options={}, record=nil)
+      def parse_xml(data_type, content, options = {}, record = nil)
         process_options(options)
-        do_parse_xml(data_type, data_type.records_model, content.is_a?(Nokogiri::XML::Element) ? content : Nokogiri::XML(content).root, options, data_type.merged_schema, nil, record)
+        root_element =
+          case content
+          when Nokogiri::XML::Element
+            content
+          when Nokogiri::XML::Document
+            content.root
+          else
+            Nokogiri::XML(content.to_s).root
+          end
+        do_parse_xml(data_type, data_type.records_model, root_element, options, data_type.merged_schema, nil, record)
       end
 
       private

@@ -1,9 +1,0 @@
-%section#subdomains
-  .container
-    .header
-      %h3='Services'
-      %p
-        - try_link = link_to 'try it now!', '#',class: 'go-sign-in'
-        ="Explore our services#{current_user ? '': ". It's Free, #{try_link}"}".html_safe
-    .row
-      = subdomains_at_home

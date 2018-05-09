@@ -314,7 +314,7 @@ module Setup
     def simple_translate(message, &block)
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       task = message[:task]
-      if translator.source_handler
+      if translator.try(:source_handler)
         begin
           translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type)
         rescue Exception => ex
@@ -336,7 +336,8 @@ module Setup
           rescue Exception => ex
             msg = "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
             if task
-              task.notify message: msg
+              task.notify(message: msg)
+              task.notify(ex)
             else
               fail msg
             end
@@ -395,7 +396,7 @@ module Setup
     end
 
     def translate_export(message, &block)
-      limit = translator.bulk_source ? lot_size || 1000 : 1
+      limit = translator.try(:bulk_source) ? lot_size || 1000 : 1
       max =
         if (object_ids = source_ids_from(message))
           object_ids.size

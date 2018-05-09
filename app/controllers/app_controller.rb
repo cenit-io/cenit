@@ -9,14 +9,14 @@ class AppController < ApplicationController
     content = @app_action.run(@app_control)
     render plain: content if @app_control && !@app_control.done?
   rescue Exception => ex
-    Setup::SystemReport.create_from(ex, "Handling action #{@app.custom_title} -> #{@app_action}")
-    render plain: ex.message, status: :internal_server_error
+    Setup::SystemNotification.create_from(ex, "Handling action #{@app.custom_title} -> #{@app_action}")
+    render plain: ex.message, status: :internal_server_error if @app_control && !@app_control.done?
   end
 
   protected
 
   def allow_x_frame
-    response.headers['X-FRAME-OPTIONS'] = 'ALLOWALL'
+    response.headers.delete('X-Frame-Options')
   end
 
   def find_app_control_action
