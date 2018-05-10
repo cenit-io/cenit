@@ -85,7 +85,6 @@ module Setup
         indexed_properties = []
         begin
           records_model.collection.indexes.each do |index|
-            next if (indexed_property = index['key'].keys.first) == '_id'
             if unique_properties.detect { |p| p == indexed_property }
               indexed_properties << indexed_property
             else
@@ -96,7 +95,6 @@ module Setup
           # Mongo driver raises an exception if the collection does not exists, nothing to worry about
         end
         unique_properties.reject { |p| indexed_properties.include?(p) }.each do |p|
-          next if p.to_s == '_id'
           begin
             records_model.collection.indexes.create_one({ p => 1 }, unique: true)
           rescue Exception => ex

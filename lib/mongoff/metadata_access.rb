@@ -45,7 +45,21 @@ module Mongoff
     end
 
     def unique_properties
-      (@unique_properties ||= properties.select { |property| property_schema(property)['unique'] }).dup
+      unless @unique_properties
+        @unique_properties = []
+        properties.each do |property|
+          next if property == '_id'
+          sch = property_schema(property)
+          @unique_properties << property if sch['unique']
+          if sch['type'] == 'object' && (embedded_properties = sch['properties']).is_a?(Hash)
+            embedded_properties.each do |embedded_property, embedded_schema|
+              next if embedded_property == '_id'
+              @unique_properties << "#{property}.#{embedded_property}" if embedded_schema.is_a?(Hash) && embedded_schema['unique']
+            end
+          end
+        end
+      end
+      @unique_properties.dup
     end
 
     def property_schema(property)
