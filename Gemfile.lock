@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-home.git
-  revision: c21c89905fddbba6d5cbd42e0bb18a3973ed6c89
+  revision: 07422c08fd00bf534cd9ca8e4c844d13c413aca8
   specs:
     cenit-home (0.0.1.alpha)
       bootstrap-sass
@@ -136,9 +136,8 @@ GEM
     amq-protocol (2.0.0)
     arel (6.0.4)
     ast (2.3.0)
-    autoprefixer-rails (6.1.0.1)
+    autoprefixer-rails (8.4.1)
       execjs
-      json
     aws-sdk (2.10.13)
       aws-sdk-resources (= 2.10.13)
     aws-sdk-core (2.10.13)
@@ -148,9 +147,9 @@ GEM
       aws-sdk-core (= 2.10.13)
     aws-sigv4 (1.0.1)
     bcrypt (3.1.10)
-    bootstrap-sass (3.3.5.1)
-      autoprefixer-rails (>= 5.0.0.1)
-      sass (>= 3.3.0)
+    bootstrap-sass (3.3.7)
+      autoprefixer-rails (>= 5.2.1)
+      sass (>= 3.3.4)
     bootstrap-wysihtml5-rails (0.3.3.7)
       railties (>= 3.0)
     bson (3.2.6)
@@ -478,6 +477,9 @@ GEM
       thor (>= 0.18.1, < 2.0)
     raindrops (0.15.0)
     rake (12.3.0)
+    rb-fsevent (0.10.3)
+    rb-inotify (0.9.10)
+      ffi (>= 0.5.0, < 2)
     rdoc (4.2.0)
     recaptcha (4.3.1)
       json
@@ -523,7 +525,11 @@ GEM
     rubyzip (1.2.1)
     rufus-scheduler (3.1.9)
     safe_shell (1.1.0)
-    sass (3.4.23)
+    sass (3.5.6)
+      sass-listen (~> 4.0.0)
+    sass-listen (4.0.0)
+      rb-fsevent (~> 0.9, >= 0.9.4)
+      rb-inotify (~> 0.9, >= 0.9.7)
     sass-rails (5.0.4)
       railties (>= 4.0.0, < 5.0)
       sass (~> 3.1)
