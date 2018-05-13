@@ -1,6 +1,6 @@
 //= require 'rails_admin/clipboard.min'
 //= require 'horsey'
-//= require 'rails_admin/owl.carousel'
+//= require 'cenit/home/owl.carousel'
 //= require rails_admin/utils
 //= require rails_admin/triggers-box
 //= require rails_admin/highlight_js/highlight.pack.js
@@ -9,11 +9,9 @@
 //= require lodash.min
 //= require rails_admin/select2.full.min
 //=  require 'rails_admin/custom/cenit'
+//=  require 'cenit/home/home'
 
 $(document).on('rails_admin.dom_ready', function () {
     template_engine.initModule();
     cenit.initModule();
 });
-
-
-
