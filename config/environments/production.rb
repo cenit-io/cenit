@@ -92,5 +92,5 @@ Cenit::Application.configure do
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
 
-  config.assets.precompile += %w(codemirror* codemirror/**/* rails_admin/sync.js)
+  config.assets.precompile += %w(codemirror* codemirror/**/* rails_admin/sync.js rails_admin/custom/admin.js)
 end

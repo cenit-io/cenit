@@ -13,6 +13,7 @@
       = render "layouts/rails_admin/async_javascript", path: "rails_admin/rails_admin.js"
     - else
       = javascript_include_tag 'rails_admin/rails_admin.js'
+      = javascript_include_tag 'rails_admin/custom/admin.js'
     = yield :script
     -# Initialize JS simple i18n
     - if ENV['GOOGLE_ANALYTIC_ID'].present?
