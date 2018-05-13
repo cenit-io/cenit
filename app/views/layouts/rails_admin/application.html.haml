@@ -8,6 +8,7 @@
     %title= 'Cenit IO | Open Platform for Data and Business Integration (iPaaS)'
     = csrf_meta_tag
     = stylesheet_link_tag 'rails_admin/rails_admin.css', media: :all
+    = javascript_include_tag 'rails_admin/sync.js'
     - if dashboard_root
       = render "layouts/rails_admin/async_javascript", path: "rails_admin/rails_admin.js"
     - else
