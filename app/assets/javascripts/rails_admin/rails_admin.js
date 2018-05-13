@@ -1,5 +1,3 @@
-//rails_admin-1.0 ready
-//=  require 'jquery'
 //=  require 'jquery_ujs'
 //=  require 'jquery.remotipart'
 //=  require 'jquery-ui/effect'
@@ -16,9 +14,4 @@
 //=  require 'jquery_nested_form'
 //=  require 'rails_admin/ra.nested-form-hooks'
 //=  require 'rails_admin/ra.i18n'
-//=  require 'rails_admin/bootstrap/bootstrap'
-//=  require 'rails_admin/bootstrap-tour.min'
 //=  require 'rails_admin/ra.widgets'
-//=  require 'rails_admin/ui'
-//=  require 'rails_admin/custom/ui'
-

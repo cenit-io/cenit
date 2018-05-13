@@ -1,0 +1,5 @@
+//=  require 'jquery'
+//=  require 'rails_admin/bootstrap-tour.min'
+//=  require 'rails_admin/bootstrap/bootstrap'
+//=  require 'rails_admin/ui'
+//=  require 'rails_admin/custom/ui'
