@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-home.git
-  revision: 30992ea9348923506da8c26d3927d066b8bffad9
+  revision: c422b4dba9e40ec0086aea4959d2dddb5b5dfdd2
   specs:
     cenit-home (0.0.1.alpha)
       bootstrap-sass
@@ -136,7 +136,7 @@ GEM
     amq-protocol (2.0.0)
     arel (6.0.4)
     ast (2.3.0)
-    autoprefixer-rails (8.4.1)
+    autoprefixer-rails (8.5.0)
       execjs
     aws-sdk (2.10.13)
       aws-sdk-resources (= 2.10.13)
