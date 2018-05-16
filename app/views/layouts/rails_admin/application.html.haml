@@ -14,6 +14,8 @@
     - else
       = javascript_include_tag 'rails_admin/rails_admin.js'
       = javascript_include_tag 'rails_admin/custom/admin.js'
+      :javascript
+        RailsAdmin.I18n.init('#{I18n.locale}', JSON.parse("#{j I18n.t('admin.js').to_json}"));
     = yield :script
     -# Initialize JS simple i18n
     - if ENV['GOOGLE_ANALYTIC_ID'].present?
