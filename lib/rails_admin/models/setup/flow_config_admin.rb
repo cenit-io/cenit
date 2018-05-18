@@ -18,6 +18,15 @@ module RailsAdmin
                 proc { |scope| scope.and(:id.nin => taken_ids) }
               end
             end
+
+            configure :active, :toggle_boolean
+
+            configure :notify_request, :toggle_boolean
+
+            configure :notify_response, :toggle_boolean
+
+            configure :discard_events, :toggle_boolean
+
             configure :auto_retry do
               help ''
             end

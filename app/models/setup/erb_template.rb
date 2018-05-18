@@ -6,6 +6,14 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
+    def code_extension
+      if (ext = super).present?
+        "#{ext}.erb"
+      else
+        'erb'
+      end
+    end
+
     def execute(options)
       code = preprocess_erb(options[:code], options)
 
