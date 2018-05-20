@@ -1,7 +1,6 @@
 module Setup
   class PlainWebhook < Webhook
     include NamespaceNamed
-    include CustomTitle
     include RailsAdmin::Models::Setup::PlainWebhookAdmin
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
