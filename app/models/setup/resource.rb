@@ -41,7 +41,7 @@ module Setup
           submit_method = "#{submit_method}!"
         end
         operation.resource = self
-        operation.send(submit_method, *args, &block)
+        operation.upon(@connections, @connection_role_options).send(submit_method, *args, &block)
       else
         super
       end
@@ -66,25 +66,13 @@ module Setup
     end
 
     def connections
-      if @connections_cache
-        @connections_cache
+      case @connections
+      when Setup::Connection
+        [@connections]
+      when Setup::ConnectionRole
+        @connections.connections
       else
-        connections =
-          case @connections
-          when Setup::Connection
-            [@connections]
-          when Setup::ConnectionRole
-            @connections.connections
-          else
-            []
-          end
-        if connections.empty? && (connection = Setup::Connection.where(namespace: namespace).first)
-          connections << connection
-        end
-        @connections_cache = connections unless @connection_role_options &&
-          @connection_role_options.key?(:cache) &&
-          !@connection_role_options[:cache]
-        connections
+        []
       end
     end
   end
