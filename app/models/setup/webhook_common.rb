@@ -54,7 +54,7 @@ module Setup
           else
             connections = []
             Setup::ConnectionRole.all.each do |connection_role|
-              if connection_role.webhooks.include?(self)
+              if connection_role.webhook_ids.include?(self.id)
                 connections = (connections + connection_role.connections.to_a).uniq
               end
             end
