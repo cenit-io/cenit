@@ -12,8 +12,8 @@ module RailsAdmin
             label 'Web-Hook'
 
             configure :namespace, :enum_edit
-
             configure :data_type, :contextual_belongs_to
+            configure :active, :toggle_boolean
 
             edit do
               field :namespace

@@ -3,7 +3,7 @@ module Setup
     include RailsAdmin::Models::Setup::WebHookNotificationAdmin
     include Setup::TranslationCommon::ClassMethods
 
-    transformation_types Setup::Renderer
+    transformation_types Setup::Template.concrete_class_hierarchy
 
     field :url, type: String
     field :http_method, type: Symbol, default: :GET

@@ -13,6 +13,7 @@ module RailsAdmin
             weight 500
 
             configure :data_type, :contextual_belongs_to
+            configure :active, :toggle_boolean
 
             edit do
               field :namespace
