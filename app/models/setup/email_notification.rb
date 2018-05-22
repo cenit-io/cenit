@@ -2,7 +2,7 @@ module Setup
   class EmailNotification < Setup::Notification
     include RailsAdmin::Models::Setup::EmailNotificationAdmin
 
-    transformation_types Setup::Renderer, Setup::Converter
+    transformation_types Setup::Template.concrete_class_hierarchy, Setup::ConverterTransformation.concrete_class_hierarchy
 
     belongs_to :email_channel, class_name: Setup::EmailChannel.to_s, inverse_of: nil
 

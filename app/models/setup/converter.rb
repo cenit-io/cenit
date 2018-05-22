@@ -356,7 +356,7 @@ module Setup
                 source_data_type_id: '__source_data_type_id__',
                 target_data_type_id: target_data_type_id
               },
-              types: types = [Setup::Renderer.to_s],
+              types: types = Setup::Template.concrete_class_hierarchy.collect(:to_s),
               data: { 'template-name': '__source_data_type_id__' }
             },
             options: { type: 'string', default: '' }

@@ -11,6 +11,8 @@ module RailsAdmin
 
             configure :metadata, :json_value
 
+            child_visible false
+
             configure :status do
               pretty_value do
                 "<span class=\"label label-#{bindings[:object].status_class}\">#{value.to_s.capitalize}</span>".html_safe

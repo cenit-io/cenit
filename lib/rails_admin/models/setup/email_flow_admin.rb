@@ -10,6 +10,8 @@ module RailsAdmin
             navigation_icon 'fa fa-share'
             object_label_method { :custom_title }
 
+            configure :namespace, :enum_edit
+
             fields :namespace, :name, :send_flow, :updated_at
           end
         end
