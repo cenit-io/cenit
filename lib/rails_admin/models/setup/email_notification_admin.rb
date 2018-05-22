@@ -12,7 +12,9 @@ module RailsAdmin
             label 'Email'
             weight 500
 
+            configure :namespace, :enum_edit
             configure :data_type, :contextual_belongs_to
+            configure :active, :toggle_boolean
 
             edit do
               field :namespace
@@ -40,7 +42,7 @@ module RailsAdmin
                 label 'Template'
                 visible { !bindings[:object].data_type.nil? }
                 contextual_association_scope do
-                  types = bindings[:object].class.transformation_types.collect(&:to_s)
+                  types = bindings[:object].class.transformation_types.collect(&:concrete_class_hierarchy).flatten.uniq
                   proc do |scope|
                     scope.where(:_type.in => types)
                   end
@@ -53,7 +55,7 @@ module RailsAdmin
                   h
                 end
                 types do
-                  bindings[:object].class.transformation_types
+                  bindings[:object].class.transformation_types.collect(&:concrete_class_hierarchy).flatten.uniq
                 end
               end
 
