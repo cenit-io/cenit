@@ -10,7 +10,9 @@ module RailsAdmin
 
           visible { User.current_super_admin? }
 
-          configure :metadata, :json_value
+          configure :metadata, :json_value do
+            visible { User.current_super_admin? }
+          end
 
           configure :users do
             visible { Account.current_super_admin? }
