@@ -83,6 +83,7 @@ module RailsAdmin
             field :email do
               visible { Account.current_super_admin? }
             end
+            field :time_zone
             field :roles do
               visible { Account.current_super_admin? }
             end
@@ -130,6 +131,7 @@ module RailsAdmin
             field :picture
             field :name
             field :email
+            field :time_zone
             field :code_theme do
               label 'Code Theme'
             end
@@ -153,10 +155,8 @@ module RailsAdmin
             end
             field :name
             field :email
+            field :time_zone
             field :account
-            field :api_account
-            field :accounts
-            field :member_accounts
             field :roles
             field :sign_in_count
             field :created_at

@@ -9,9 +9,10 @@ class User
   extend DeviseOverrides
   include CredentialsGenerator
   include FieldsInspection
+  include TimeZoneAware
   include RailsAdmin::Models::UserAdmin
 
-  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme
+  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
 
   rolify
 
@@ -79,7 +80,7 @@ class User
     errors.blank?
   end
 
-  before_save :ensure_token
+  before_save :ensure_token, :validates_time_zone!
 
   def all_accounts
     (accounts + member_accounts).uniq
