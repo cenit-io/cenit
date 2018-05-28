@@ -34,7 +34,7 @@ module Setup
       options[:request_token_url] ||= request_token_endpoint
       options[:authorize_url] ||= authorization_endpoint
       options[:access_token_url] ||= token_endpoint
-      options[:http_method] ||= token_method
+      options[:http_method] ||= token_method.to_s.downcase
       OAuth::Consumer.new(client.get_identifier, client.get_secret, options)
     end
 
