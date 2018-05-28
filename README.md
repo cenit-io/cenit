@@ -1,4 +1,4 @@
-![homepage](https://user-images.githubusercontent.com/4213488/33235908-f9a066d2-d1f8-11e7-9e30-8e64ac04f310.png)
+![cenit_io](https://user-images.githubusercontent.com/4213488/40578188-bcbf8a58-60c4-11e8-96d7-19842c348c5e.png)
 
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
@@ -15,10 +15,7 @@
 * [Join our Slack][join-slack-link]
 [(cenitio.slack.com)][join-slack-link]
 * [Shared Collections](https://cenit.io/setup~shared_collection)
-* [Cenit IO - Strategy](https://docs.google.com/presentation/d/144-9bKGudcm_OrE-8jb3DY_62X-fpFeG4J4_dBbzAGA/edit?usp=sharing)
-* [Cenit IO - Look What You Can Do](https://docs.google.com/presentation/d/1i2VGMaSlazoNHRn30c7UzRdrnxjLOE53fqHBLdw4WAY/edit?usp=sharing)
-* [Cenit IO - 101 Intro](https://cenit-io.github.io/cenit-slides/#cover)
-* [Documentation](https://cenit-io.github.io/docs/)
+* [Wiki](https://github.com/cenit-io/cenit/wiki)
 * support@cenit.io
 
 [Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
@@ -196,41 +193,7 @@ If RabbitMQ is correctly installed when you run the rails server you should see:
 
 It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of them to run in production environment
 
-Then add to `config/application.yml` app configuration:  
-
-```
-# config/application.yml
-
-SHOW_SLACK_BADGE: "true"
-JUPYTER_NOTEBOOKS: "true"
-JUPYTER_NOTEBOOKS_URL: "//{your-cenit-jupyter-notebooks}.herokuapp.com"
-GITHUB_OAUTH_TOKEN: "{GITHUB_OAUTH_TOKEN}"
-DB_PROD: "{DB_PROD}"
-OAUTH_TOKEN_END_POINT: "embedded"
-RELIC_LICENSE_KEY: "{RELIC_LICENSE_KEY}"
-GOOGLE_ANALYTIC_ID: "{GOOGLE_ANALYTIC_ID}"
-PORTAL_URL: 'https://cenit-portal.herokuapp.com'
-DOCS_URL: 'https://cenit-io.github.io'
-API_DOC_URL: 'https://cenit-io.github.io'
-OPEN_ID_CLIENT_ID: "{OPEN_ID_CLIENT_ID}"
-OPEN_ID_CLIENT_SECRET: "{OPEN_ID_CLIENT_SECRET}"
-OPEN_ID_AUTH_URL: "https://cenit.io/app/open_id/sign_in"
-OPEN_ID_REDIRECT_URI: "https://cenit.io/users/sign_in"
-OPEN_ID_TOKEN_URL: "https://cenit.io/app/open_id/sign_in/token"
-EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share build_gem bulk_pull
-RABBITMQ_BIGWIG_TX_URL: "{RABBITMQ_BIGWIG_TX_URL}"
-NOTIFIER_EMAIL: "{NOTIFIER_EMAIL}"
-EXCEPTION_RECIPIENTS: "{List of emails}"
-RABBIT_MQ_USER: "{RABBIT_MQ_USER}"
-RABBIT_MQ_PASSWORD: "{RABBIT_MQ_PASSWORD}"
-
-# AMAZON SIMPLE STORAGE SERVICE.
-AWS_ACCESS_KEY_ID: "{AWSS3 Access ID}"
-AWS_SECRET_ACCESS_KEY: "{AWSS3 Access Key}"
-
-# CenitIO slug of application to manager plans, customers and subscriptions.
-SUBSCRIPTIONS_APP: "cenit-io-subscriptions"
-```
+Then add to `config/application.yml` app configuration as reference review `config/application.example.yml`  
 
 ## Dependencies
 
@@ -439,16 +402,13 @@ Thank you for your contributions:
 
 ### Screenshots
 
-![cenit1](https://user-images.githubusercontent.com/4213488/33232176-469cdfbc-d1b6-11e7-953c-243005d574b1.png)
+![dashboard](https://user-images.githubusercontent.com/4213488/40578423-8b132dc6-60c8-11e8-8754-e3d4f3fa95df.png)
 
-![swagger](https://user-images.githubusercontent.com/4213488/33235685-8808ac9c-d1f2-11e7-824f-80604e785197.png)
+![flows](https://user-images.githubusercontent.com/4213488/40578271-dad7e700-60c5-11e8-9eb3-0d1b75c69461.png)
 
-![notebooks](https://user-images.githubusercontent.com/4213488/33235699-e1386b86-d1f2-11e7-9ae7-37fcda4fdbfd.png)
+![swagger](https://user-images.githubusercontent.com/4213488/40578290-4ca8697c-60c6-11e8-979f-b953d5dfb30c.png)
 
-![traking](https://user-images.githubusercontent.com/4213488/33235720-79f220b0-d1f3-11e7-919a-332a0e750c41.png)
-
-
-![open_api_directory](https://user-images.githubusercontent.com/4213488/33235844-2107c42e-d1f7-11e7-81e8-9869324648f8.png)
+![open_api_directory](https://user-images.githubusercontent.com/4213488/40578339-41b5f844-60c7-11e8-8676-26a4ee494582.png)
 
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
@@ -456,4 +416,4 @@ Thank you for your contributions:
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzUwMzk0NjkwNjU3LTI4NGY2NmNiNDU1OGNmNzFkMWNjY2FhNzkzYTg4ZDA4ZmE5ZGM1Y2FhYWEzOTc5ZWI4MDIxNDJkNGNmN2NkYmI
+[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzY3OTI4MzcyNDA2LTkyMWYyNDc2MjNiYjdlYjliYTcwMzNiZmU2MThlNjM2ZDE1NGU3MjU2NDNiYmIzMmRiMDk3ZGE5YjIwOGUwMmY
