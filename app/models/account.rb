@@ -5,6 +5,7 @@ class Account
   include Cenit::MultiTenancy
   include CredentialsGenerator
   include FieldsInspection
+  include TimeZoneAware
   include RailsAdmin::Models::AccountAdmin
 
   DEFAULT_INDEX_MAX_ENTRIES = 100
@@ -41,8 +42,6 @@ class Account
   field :notification_level, type: Symbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
-  field :time_zone, type: String, default: "#{Time.zone.name} | #{Time.zone.formatted_offset}"
-
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
 
   default_scope -> {
@@ -53,7 +52,6 @@ class Account
     end
   }
 
-  validates_presence_of :name, :notification_level, :time_zone
   validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
@@ -118,16 +116,18 @@ class Account
     true
   end
 
-  TIME_ZONE_REGEX = /((\+|-)((1[0-3])|(0\d)):\d\d)/
-
   def validates_configuration
     remove_attribute(:index_max_entries) if index_max_entries < DEFAULT_INDEX_MAX_ENTRIES
-    errors.add(:time_zone, 'is not valid') unless TIME_ZONE_REGEX.match(time_zone)
+    validates_time_zone
     errors.blank?
   end
 
+  def default_time_zone
+    nil
+  end
+
   def time_zone_offset
-    TIME_ZONE_REGEX.match(time_zone).to_s
+    super || (owner && owner.time_zone_offset)
   end
 
   def notification_level_enum
@@ -157,10 +157,6 @@ class Account
 
   def sealed?
     owner && owner.sealed?
-  end
-
-  def time_zone_enum
-    ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
   end
 
   def clean_up
@@ -197,7 +193,7 @@ class Account
       current && current.super_admin?
     end
 
-    def create_with_owner(params={})
+    def create_with_owner(params = {})
       account = new(params)
       if (owner = account.owner)
         owner.roles << ::Role.find_or_create_by(name: :admin) unless owner.roles.any? { |role| role.name.to_s == :admin.to_s }
