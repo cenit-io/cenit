@@ -34,9 +34,9 @@
           break;
         case 'date':
           additional_control =
-            '<input size="20" class="date additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
-            '<input size="20" placeholder="-∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
-            '<input size="20" placeholder="∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
+          '<input size="20" class="date additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
+          '<input size="20" placeholder="-∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
+          '<input size="20" placeholder="∞" class="date additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
         case 'datetime':
         case 'timestamp':
           control = control || '<select class="switch-additionnal-fieldsets input-sm form-control" name="' + operator_name + '">' +
@@ -49,26 +49,26 @@
             '<option disabled="disabled">---------</option>' +
             '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
             '<option ' + (field_operator == "_null"     ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-            '</select>'
+          '</select>'
           additional_control = additional_control ||
-            '<input size="25" class="datetime additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
-            '<input size="25" placeholder="-∞" class="datetime additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
-            '<input size="25" placeholder="∞" class="datetime additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
+          '<input size="25" class="datetime additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
+          '<input size="25" placeholder="-∞" class="datetime additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
+          '<input size="25" placeholder="∞" class="datetime additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="text" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
           break;
         case 'enum':
           var multiple_values = ((field_value instanceof Array) ? true : false)
           control = '<select style="display:' + (multiple_values ? 'none' : 'inline-block') + '" ' + (multiple_values ? '' : 'name="' + value_name + '"') + ' data-name="' + value_name + '" class="select-single input-sm form-control">' +
-            '<option value="_discard">...</option>' +
-            '<option ' + (field_value == "_present" ? 'selected="selected"' : '') + ' value="_present">' + RailsAdmin.I18n.t("is_present") + '</option>' +
-            '<option ' + (field_value == "_blank"   ? 'selected="selected"' : '') + ' value="_blank">' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-            '<option disabled="disabled">---------</option>' +
-            select_options +
+              '<option value="_discard">...</option>' +
+              '<option ' + (field_value == "_present" ? 'selected="selected"' : '') + ' value="_present">' + RailsAdmin.I18n.t("is_present") + '</option>' +
+              '<option ' + (field_value == "_blank"   ? 'selected="selected"' : '') + ' value="_blank">' + RailsAdmin.I18n.t("is_blank") + '</option>' +
+              '<option disabled="disabled">---------</option>' +
+              select_options +
             '</select>' +
             '<select multiple="multiple" style="display:' + (multiple_values ? 'inline-block' : 'none') + '" ' + (multiple_values ? 'name="' + value_name + '[]"' : '') + ' data-name="' + value_name + '[]" class="select-multiple input-sm form-control">' +
-            select_options +
+              select_options +
             '</select> ' +
             '<a href="#" class="switch-select"><i class="icon-' + (multiple_values ? 'minus' : 'plus') + '"></i></a>';
-          break;
+        break;
         case 'string':
         case 'text':
         case 'belongs_to_association':
@@ -80,7 +80,7 @@
             '<option disabled="disabled">---------</option>' +
             '<option ' + (field_operator == "_not_null"    ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") + '</option>' +
             '<option ' + (field_operator == "_null"      ? 'selected="selected"' : '') + ' value="_null">' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-            '</select>'
+          '</select>'
           additional_control = '<input class="additional-fieldset input-sm form-control" style="display:' + (field_operator == "_blank" || field_operator == "_present" ? 'none' : 'inline-block') + ';" type="text" name="' + value_name + '" value="' + field_value + '" /> ';
           break;
         case 'integer':
@@ -92,11 +92,11 @@
             '<option disabled="disabled">---------</option>' +
             '<option ' + (field_operator == "_not_null" ? 'selected="selected"' : '') + ' value="_not_null">' + RailsAdmin.I18n.t("is_present") +'</option>' +
             '<option ' + (field_operator == "_null"     ? 'selected="selected"' : '') + ' value="_null" >' + RailsAdmin.I18n.t("is_blank") + '</option>' +
-            '</select>'
+          '</select>'
           additional_control =
-            '<input class="additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
-            '<input placeholder="-∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
-            '<input placeholder="∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
+          '<input class="additional-fieldset default input-sm form-control" style="display:' + ((!field_operator || field_operator == "default") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[0] || '') + '" /> ' +
+          '<input placeholder="-∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[1] || '') + '" /> ' +
+          '<input placeholder="∞" class="additional-fieldset between input-sm form-control" style="display:' + ((field_operator == "between") ? 'inline-block' : 'none') + ';" type="' + field_type + '" name="' + value_name + '[]" value="' + (field_value[2] || '') + '" />';
           break;
         default:
           control = '<input type="text" class="input-sm form-control" name="' + value_name + '" value="' + field_value + '"/> ';
