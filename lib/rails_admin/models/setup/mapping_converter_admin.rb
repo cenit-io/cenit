@@ -14,6 +14,10 @@ module RailsAdmin
 
             hide_on_navigation
 
+            configure :namespace, :enum_edit
+
+            configure :discard_events, :toggle_boolean
+
             wizard_steps do
               {
                 start:
@@ -36,8 +40,6 @@ module RailsAdmin
                 :start
               end
             end
-
-            configure :namespace, :enum_edit
 
             extra_associations do
               association = Mongoff::Association.new(abstract_model.model, :mapping, :embeds_one)
@@ -97,6 +99,7 @@ module RailsAdmin
               field :name
               field :source_data_type
               field :target_data_type
+              field :discard_events
               field :updated_at
             end
 
