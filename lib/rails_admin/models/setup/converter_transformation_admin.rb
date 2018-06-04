@@ -17,6 +17,8 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            configure :discard_events, :toggle_boolean
+
             fields :namespace, :name, :source_data_type, :target_data_type, :discard_events, :updated_at
           end
         end

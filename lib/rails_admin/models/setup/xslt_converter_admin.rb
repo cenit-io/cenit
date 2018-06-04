@@ -13,6 +13,10 @@ module RailsAdmin
 
             hide_on_navigation
 
+            configure :namespace, :enum_edit
+
+            configure :discard_events, :toggle_boolean
+
             configure :code, :code do
               code_config do
                 {
