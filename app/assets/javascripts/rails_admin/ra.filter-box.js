@@ -1,8 +1,12 @@
+//rails_admin-1.0 ready
 (function($) {
 
   var filters;
 
   $.filters = filters = {
+    options: {
+      save_button_label: 'Save Filter'
+    },
     append: function(options) {
       options = options || {};
       var field_label = options['label'];
