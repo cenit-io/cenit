@@ -118,12 +118,13 @@ module RailsAdmin
     def swagger_set_spec
       spec = request.body.read
 
-      if (@object.specification != spec)
-        @object.specification =  spec
-        @object.save!
-      end
+      @object.update(specification: spec) unless @object.specification == spec
 
-      render text: 'success!'
+      if @object.errors.present?
+        render text: @object.errors.full_messages.to_sentence, status: :bad_request
+      else
+        render text: 'Success!'
+      end
     end
 
   end
