@@ -91,7 +91,7 @@
         return false;
       }).html(cancelButtonText);
 
-      dialog.find('.save-action').unbind().click(function(){
+      dialog.find('.save-action').unbind().click(function(e){
         // Patch
         if ($(this).parents().find('.codemirrored').length > 0) {
             e.preventDefault();
