@@ -10,7 +10,7 @@ module RailsAdmin
             visible false
             object_label_method { :custom_title }
 
-            configure :namespace
+            configure :namespace, :enum_edit
             configure :path
             # configure :method
             configure :description
