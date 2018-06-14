@@ -133,7 +133,22 @@ module Setup
 
     def validates_pull_parameters
       with_errors = false
-      data = send(installed ? :pull_data : :data)
+      data =
+        if installed
+          if new_record?
+            attributes[:pull_data] || attributes['pull_data']
+          else
+            self.pull_data
+          end
+        else
+          self.data
+        end
+      data =
+        begin
+          JSON.parse(data.to_s)
+        rescue
+          {}
+        end unless data.is_a?(Hash)
       pull_parameters.each do |pull_parameter|
         pull_parameter.process_on(data)
         with_errors ||= pull_parameter.errors.present?
