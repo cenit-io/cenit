@@ -43,6 +43,10 @@ module Setup
       (resource && resource.template_parameters) || []
     end
 
+    def namespace_enum
+      (resource && resource.namespace_enum) || []
+    end
+
     def name
       "#{method.to_s.upcase} #{resource && resource.custom_title}"
     end
