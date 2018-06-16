@@ -23,7 +23,7 @@ module RailsAdmin
     end
 
     def index_setup_notebook
-      render :layout => 'rails_admin/application', :template => 'rails_admin/main/notebooks'
+      render layout: 'rails_admin/application', template: 'rails_admin/main/notebooks'
     end
 
     def show_setup_notebook

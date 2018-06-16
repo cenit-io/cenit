@@ -5,7 +5,7 @@ module ContactUs
       @contact = ContactUs::Contact.new(permitted_attributes)
       begin
         if verify_recaptcha(model: @contact) && @contact.save
-          redirect_to('/', :notice => t('admin.contact_us.notices.success'))
+          redirect_to('/', notice: t('admin.contact_us.notices.success'))
         else
           flash[:error] = t('admin.contact_us.notices.error')
           redirect_to root_path

@@ -7,7 +7,7 @@ class ApplicationController < ActionController::Base
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     if _current_user
-      redirect_to main_app.root_path, :alert => exception.message
+      redirect_to main_app.root_path, alert: exception.message
     else
       redirect_to new_session_path(User)
     end

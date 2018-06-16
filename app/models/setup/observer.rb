@@ -8,8 +8,8 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:origin)
 
-    belongs_to :data_type, :class_name => Setup::DataType.name, inverse_of: nil
-    belongs_to :trigger_evaluator, :class_name => Setup::Algorithm.name, inverse_of: nil
+    belongs_to :data_type, class_name: Setup::DataType.name, inverse_of: nil
+    belongs_to :trigger_evaluator, class_name: Setup::Algorithm.name, inverse_of: nil
 
     field :triggers, type: String
 

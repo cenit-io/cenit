@@ -3,12 +3,12 @@ module Api::V1
     before_action :authorize_account, :save_request_data, except: [:new_user, :cors_check, :auth]
     before_action :find_item, only: [:show, :destroy, :pull, :run]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    rescue_from Exception, :with => :exception_handler
+    rescue_from Exception, with: :exception_handler
     respond_to :json
 
     def cors_check
       self.cors_header
-      render :text => '', :content_type => 'text/plain'
+      render text: '', content_type: 'text/plain'
     end
 
     def index

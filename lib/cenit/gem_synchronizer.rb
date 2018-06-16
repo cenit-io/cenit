@@ -128,7 +128,7 @@ module Cenit
           type: 'blob', sha: blob_sha1
         }
       end
-      sha_new_tree = @github.create_tree(repo, tree, {:base_tree => sha_base_tree}).sha
+      sha_new_tree = @github.create_tree(repo, tree, {base_tree: sha_base_tree}).sha
       sha_new_commit = @github.create_commit(repo, data.version, sha_new_tree, sha_latest_commit).sha
       @github.update_ref(repo, @ref, sha_new_commit)
       @github.create_ref(repo, 'tags/v' + data.version, sha_new_commit)
@@ -171,7 +171,7 @@ module Cenit
 
       else # Create repo and push
         if remaining_rest_ops > actual.files.size + 6
-          @github.create_repository(actual.name, {:auto_init => true})
+          @github.create_repository(actual.name, {auto_init: true})
           push_contents(actual)
         else
           fail 'Github current rate limit exceded.'

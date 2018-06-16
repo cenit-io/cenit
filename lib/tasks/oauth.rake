@@ -3,7 +3,7 @@ require 'highline/import'
 
 namespace :admin do
   desc "Create admin username and password"
-  task :create => :environment do
+  task create: :environment do
     # see last line where we create an admin if there is none, asking for email and password
     
     def prompt_for_admin_password
@@ -49,9 +49,9 @@ namespace :admin do
         password = prompt_for_admin_password
       end
       attributes = {
-        :password => password,
-        :password_confirmation => password,
-        :email => email
+        password: password,
+        password_confirmation: password,
+        email: email
       }
 
       load 'user.rb'
@@ -61,7 +61,7 @@ namespace :admin do
       else
         admin = User.new(attributes)
         if admin.save
-          role = Role.where(:name => "super_admin").first_or_create
+          role = Role.where(name: "super_admin").first_or_create
           admin.roles << role
           admin.save!
           say "Done!"

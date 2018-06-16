@@ -28,7 +28,7 @@ module NestedForm
 
       @fields ||= {}
       @template.after_nested_form(fields_blueprint_id) do
-        blueprint = { :id => fields_blueprint_id, :style => 'display: none' }
+        blueprint = { id: fields_blueprint_id, style: 'display: none' }
         block, options = @fields[fields_blueprint_id].values_at(:block, :options)
         options[:child_index] = "new_#{association}"
         blueprint[:"data-blueprint"] = fields_for(association, model_object, options, &block).to_str

@@ -1,5 +1,8 @@
-Metrics/LineLength:
-  Max: 150
+AllCops:
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  TargetRubyVersion: 2.2
+  DisabledByDefault: true
 
-Style/EmptyLinesAroundClassBody:
-  EnforcedStyle: false
+Style/HashSyntax:
+  Enabled: true

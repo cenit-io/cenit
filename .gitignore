@@ -36,4 +36,5 @@ config/deploy.rb
 .ruby-version
 .idea
 .rbenv*
+.rubocop_todo.yml
 

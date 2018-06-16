@@ -90,7 +90,7 @@ module Mongoff
         default: String,
         format: {
           date: Date,
-          :'date-time' => DateTime,
+          'date-time': DateTime,
           time: Time
         }
       },

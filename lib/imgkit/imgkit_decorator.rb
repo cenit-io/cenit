@@ -19,7 +19,7 @@ IMGKit.class_eval do
     if options[:logo]
       content_img = Magick::Image.from_blob(image_converted).first
 
-      logo = Cenit.namespace(options[:namespace]).data_type('images').where(:filename => options[:logo]).first.data
+      logo = Cenit.namespace(options[:namespace]).data_type('images').where(filename: options[:logo]).first.data
       logo = Magick::Image.from_blob(logo) do
         self.format = 'PNG'
         self.background_color = 'White'

@@ -18,8 +18,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.renderer.wizard.start.label'),
-                      :description => I18n.t('admin.config.renderer.wizard.start.description')
+                      label: I18n.t('admin.config.renderer.wizard.start.label'),
+                      description: I18n.t('admin.config.renderer.wizard.start.description')
                     },
                   end:
                     {

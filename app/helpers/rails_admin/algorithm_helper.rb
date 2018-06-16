@@ -27,10 +27,10 @@ module RailsAdmin
       user, repo, path = git_params(lang)
       file = contents.find(user, repo, path)
       contents.update(user, repo, path, {
-        :path => path,
-        :message => 'Dependencies updated from Cenit-IO.',
-        :content => content.strip,
-        :sha => file.sha
+        path: path,
+        message: 'Dependencies updated from Cenit-IO.',
+        content: content.strip,
+        sha: file.sha
       })
     end
 
