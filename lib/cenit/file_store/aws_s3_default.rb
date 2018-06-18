@@ -67,7 +67,7 @@ module Cenit
       end
 
       ###
-      # Returns bucket reference for current tenant.
+      # Returns bucket reference for a given file
       def bucket(file)
         @resource ||= Aws::S3::Resource.new(client: client)
         _bucket = @resource.bucket(bucket_name(file))
@@ -75,19 +75,22 @@ module Cenit
         _bucket
       end
 
-      def bucket_name(file)
-        "#{Cenit.aws_s3_bucket_prefix}"
-      end
-
       ###
-      # Returns file object reference for current tenant.
+      # Returns file object reference
       def object(file, &block)
         block.call(bucket(file).object(file_id(file)))
       end
 
+      def tenant_id
+        Account.current ? Account.current.id.to_s : :default
+      end
+
+      def bucket_name(file)
+        "#{Cenit.aws_s3_bucket_prefix}"
+      end
+
       def file_id(file)
-        tenant_id = Account.current ? Account.current.id.to_s : :default
-        Digest::MD5.hexdigest("#{tenant_id}-#{file.orm_model.data_type.id}-#{file.id}")
+        "#{tenant_id}/#{file.orm_model.data_type.id}/#{Digest::MD5.hexdigest(file.id.to_s)}"
       end
     end
   end
