@@ -38,6 +38,14 @@ module Mongoff
         filename
       end
 
+      def public_url
+        if orm_model.data_type.public_read
+          file_store.public_url(self)
+        else
+          nil
+        end
+      end
+
       def save(options = {})
         if stash_data.nil?
           errors.add(:data, "can't be nil") if new_record?
@@ -108,6 +116,8 @@ module Mongoff
           data
         when :encoding
           encoding
+        when :public_url
+          public_url
         else
           super
         end
