@@ -142,7 +142,7 @@ Cenit.config do
 
   chart_data_request_interval 3000
 
-  file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3
+  file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3Default, Cenit::FileStore::AwsS3
 
   default_file_store ENV['DEFAULT_FILE_STORE']
 

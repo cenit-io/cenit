@@ -33,7 +33,22 @@ module RailsAdmin
               end
             end
 
-            fields :data_type, :file_store, :updated_at
+            configure :public_read do
+              read_only do
+                ::Setup::FileStoreMigration.cannot_migrate?(bindings[:object].data_type)
+              end
+              help do
+                if ::Setup::FileStoreMigration.unable?
+                  'Your user is unable to change this attribute'
+                elsif ::Setup::FileStoreMigration.migrating?(dt = bindings[:object].data_type)
+                  "Data type #{dt.custom_title} is currently on a migration"
+                else
+                  'Required'
+                end
+              end
+            end
+
+            fields :data_type, :file_store, :public_read, :updated_at
 
             show_in_dashboard false
           end
