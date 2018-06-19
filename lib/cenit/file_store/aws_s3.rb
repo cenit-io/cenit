@@ -17,7 +17,7 @@ module Cenit
         "#{Cenit.aws_s3_bucket_prefix}-tenant-#{tenant_id}"
       end
 
-      def file_id(file)
+      def object_key(file)
         file.id.to_s
       end
     end

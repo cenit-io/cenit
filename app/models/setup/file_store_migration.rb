@@ -15,13 +15,24 @@ module Setup
     def run(message)
       if (data_type = Setup::FileDataType.where(id: (data_type_id = message[:data_type_id])).first)
         begin
-          file_store = message[:file_store].to_s.constantize
-          data_type.all.each do |file|
-            file_store.save(file, file.data, {})
-            data_type.file_store.destroy(file)
-          end
           config = data_type.file_store_config
-          config.file_store = file_store
+          if (file_store = message[:file_store])
+            file_store = file_store.to_s.constantize
+            data_type.all.each do |file|
+              file_store.save(file, file.data, public_read: false)
+              data_type.file_store.destroy(file)
+            end
+            config.file_store = file_store
+          end
+          if message.key?('public_read')
+            if (status = message[:public_read].to_s.to_b) || file_store.nil?
+              file_store ||= data_type.file_store
+              data_type.all.each do |file|
+                file_store.set_public_read(file, status)
+              end
+            end
+            config.public_read = status
+          end
           config.save(skip_migration: true)
         rescue ::Exception => ex
           fail "Error migrating data type #{data_type.custom_title} to file store #{message[:file_store]}: #{ex.message}"

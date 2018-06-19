@@ -10,6 +10,7 @@ module Setup
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
     field :file_store, type: Module, default: -> { Cenit.default_file_store }
+    field :public_read, type: Boolean, default: false
 
     attr_readonly :data_type
 
@@ -20,13 +21,20 @@ module Setup
     end
 
     def start_migration
-      if persisted? && changed_attributes.key?('file_store')
+      if persisted? && (changed_attributes.key?('file_store') || changed_attributes.key?('public_read'))
         if Setup::FileStoreMigration.cannot_migrate?(data_type)
           errors.add(:file_store, 'can not be updated')
         else
-          target_file_store = file_store.to_s
-          reset_attribute!('file_store')
-          Setup::FileStoreMigration.process(data_type_id: data_type_id, file_store: target_file_store)
+          msg = { data_type_id: data_type_id }
+          if changed_attributes.key?('file_store')
+            msg[:file_store] = file_store.to_s
+            reset_attribute!('file_store')
+          end
+          if msg.key?(:file_store) || changed_attributes.key?('public_read')
+            msg[:public_read] = public_read.to_s
+            reset_attribute!('public_read')
+          end
+          Setup::FileStoreMigration.process(msg)
         end
       end
       errors.blank?

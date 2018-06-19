@@ -40,6 +40,10 @@ module Cenit
       def destroy(file)
         fail NotImplementedError
       end
+
+      def set_public_read(file, status)
+
+      end
     end
   end
 end

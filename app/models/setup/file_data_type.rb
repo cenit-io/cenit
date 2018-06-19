@@ -202,7 +202,7 @@ module Setup
         end
     end
 
-    delegate :file_store, to: :file_store_config
+    delegate :file_store, :public_read, to: :file_store_config
 
     class << self
 

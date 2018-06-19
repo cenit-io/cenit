@@ -30,6 +30,16 @@ module Cenit
             obj.upload_file(data.path, opts)
           end
         end
+
+        unless options[:skip_public_read_status]
+          status =
+            if options.key?(:public_read)
+              options[:public_read]
+            else
+              file.orm_model.data_type.public_read
+            end
+          set_public_read(file, status) if status
+        end
       end
 
       ###
@@ -69,16 +79,23 @@ module Cenit
       ###
       # Returns bucket reference for a given file
       def bucket(file)
-        @resource ||= Aws::S3::Resource.new(client: client)
-        _bucket = @resource.bucket(bucket_name(file))
-        _bucket.create unless _bucket.exists?
+        unless (_bucket = file.instance_variable_get(:@_aws_s3_bucket))
+          @resource ||= Aws::S3::Resource.new(client: client)
+          _bucket = @resource.bucket(bucket_name(file))
+          _bucket.create unless _bucket.exists?
+        end
         _bucket
       end
 
       ###
       # Returns file object reference
       def object(file, &block)
-        block.call(bucket(file).object(file_id(file)))
+        block.call(bucket(file).object(object_key(file)))
+      end
+
+      def set_public_read(file, status)
+        acl = status ? 'public-read' : 'private'
+        client.put_object_acl(acl: acl, bucket: bucket_name(file), key: object_key(file))
       end
 
       def tenant_id
@@ -89,7 +106,7 @@ module Cenit
         "#{Cenit.aws_s3_bucket_prefix}"
       end
 
-      def file_id(file)
+      def object_key(file)
         "#{tenant_id}/#{file.orm_model.data_type.id}/#{Digest::MD5.hexdigest(file.id.to_s)}"
       end
     end
