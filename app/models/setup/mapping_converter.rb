@@ -28,7 +28,14 @@ module Setup
                 value.delete(k)
               end
             else
-              value.delete(k) unless v.is_a?(String)
+              case map_model.property_schema(k)['type']
+              when 'object'
+                value.delete(k) unless v.is_a?(Hash)
+              when 'array'
+                value.delete(k) unless v.is_a?(Array)
+              else
+                value.delete(k) unless v.is_a?(String)
+              end
             end
           else
             value.delete(k)
@@ -239,14 +246,14 @@ module Setup
           @mongoff_model = nil
         end
         @mongoff_model ||= MappingModel.for(data_type: target_data_type,
-          cache: false,
-          source_data_type: source_data_type)
+                                            cache: false,
+                                            source_data_type: source_data_type)
       else
         @mongoff_model = nil
         Mongoff::Model.for(data_type: self.class.data_type,
-          schema: {},
-          name: "#{self.class.map_model_name}Default",
-          cache: false)
+                           schema: {},
+                           name: "#{self.class.map_model_name}Default",
+                           cache: false)
       end
     end
 
@@ -419,13 +426,19 @@ module Setup
               property_schema = mapping_schema(property_dt.id.to_s).merge!('description' => description)
             else
               property_schema = data_type.merge_schema(property_schema)
-              id_optional = property_schema['type'].blank? if property == '_id'
-              property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
-              property_schema['type'] = 'string'
-              if (source = auto_complete_source).present?
-                property_schema['format'] = 'auto-complete'
-                property_schema['source'] = source
-                property_schema['anchor'] = '{{'
+              if property_schema['type'] == 'object' || property_schema['type'] == 'array'
+                type = property_schema['type']
+                property_schema.clear
+                property_schema['type'] = type
+              else
+                id_optional = property_schema['type'].blank? if property == '_id'
+                property_schema.reject! { |key, _| %w(title description edi).exclude?(key) }
+                property_schema['type'] = 'string'
+                if (source = auto_complete_source).present?
+                  property_schema['format'] = 'auto-complete'
+                  property_schema['source'] = source
+                  property_schema['anchor'] = '{{'
+                end
               end
               if property == '_id'
                 property_schema['description'] = 'Match an existing ID to update an existing record'

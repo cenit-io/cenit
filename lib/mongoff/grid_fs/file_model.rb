@@ -52,6 +52,9 @@ module Mongoff
                                              encoding: {
                                                type: :string,
                                                enum: %w(encode64 strict_encode64 urlsafe_encode64)
+                                             },
+                                             public_url: {
+                                               type: :string
                                              }
                                            },
                                          required: %w(filename contentType length)
@@ -61,6 +64,14 @@ module Mongoff
 
       def record_class
         Mongoff::GridFs::File
+      end
+
+      def stored_properties_on(record)
+        p = super
+        if data_type.public_read
+          p << 'public_url'
+        end
+        p
       end
 
       protected
