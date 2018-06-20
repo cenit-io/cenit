@@ -44,6 +44,10 @@ module Cenit
       def set_public_read(file, status)
 
       end
+
+      def public_url(file)
+
+      end
     end
   end
 end

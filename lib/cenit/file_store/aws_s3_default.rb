@@ -109,6 +109,10 @@ module Cenit
       def object_key(file)
         "#{tenant_id}/#{file.orm_model.data_type.id}/#{Digest::MD5.hexdigest(file.id.to_s)}"
       end
+
+      def public_url(file)
+        "https://s3-#{Cenit.aws_s3_region}.amazonaws.com/#{bucket_name(file)}/#{object_key(file)}"
+      end
     end
   end
 end
