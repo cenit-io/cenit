@@ -16,25 +16,38 @@ module Setup
       if (data_type = Setup::FileDataType.where(id: (data_type_id = message[:data_type_id])).first)
         begin
           config = data_type.file_store_config
+          total = data_type.all.count.to_f
+          processed = 0
           if (file_store = message[:file_store])
             file_store = file_store.to_s.constantize
-            data_type.all.each do |file|
-              file_store.save(file, file.data, public_read: false)
-              data_type.file_store.destroy(file)
+            unless file_store == data_type.file_store
+              data_type.all.each do |file|
+                if data_type.file_store.stored?(file)
+                  file_store.save(file, file.data, public_read: false)
+                  data_type.file_store.destroy(file)
+                end
+                processed += 1
+                update(progress: 89 * processed / total)
+              end
+              config.file_store = file_store
             end
-            config.file_store = file_store
           end
+          update(progress: 90)
+          processed = 0
           if message.key?('public_read')
             if (status = message[:public_read].to_s.to_b) || file_store.nil?
               file_store ||= data_type.file_store
               data_type.all.each do |file|
                 file_store.set_public_read(file, status)
+                processed += 1
+                update(progress: 90 + 10 * processed / total)
               end
             end
             config.public_read = status
           end
           config.save(skip_migration: true)
         rescue ::Exception => ex
+          Setup::SystemNotification.create_from(ex)
           fail "Error migrating data type #{data_type.custom_title} to file store #{message[:file_store]}: #{ex.message}"
         end
       else

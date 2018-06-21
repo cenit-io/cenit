@@ -90,7 +90,12 @@ module Cenit
       ###
       # Returns file object reference
       def object(file, &block)
-        block.call(bucket(file).object(object_key(file)))
+        obj = bucket(file).object(object_key(file))
+        if block
+          block.call(obj)
+        else
+          obj
+        end
       end
 
       def set_public_read(file, status)
@@ -112,6 +117,10 @@ module Cenit
 
       def public_url(file)
         "https://s3-#{Cenit.aws_s3_region}.amazonaws.com/#{bucket_name(file)}/#{object_key(file)}"
+      end
+
+      def stored?(file)
+        object(file).exists?
       end
     end
   end

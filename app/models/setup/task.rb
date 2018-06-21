@@ -59,6 +59,7 @@ module Setup
       if scheduler && scheduler.origin != origin
         errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
       end
+      self.progress = progress.round(1)
       errors.blank?
     end
 
