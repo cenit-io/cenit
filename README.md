@@ -416,4 +416,4 @@ Thank you for your contributions:
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzY3OTI4MzcyNDA2LTkyMWYyNDc2MjNiYjdlYjliYTcwMzNiZmU2MThlNjM2ZDE1NGU3MjU2NDNiYmIzMmRiMDk3ZGE5YjIwOGUwMmY
+[join-slack-link]: https://join.slack.com/t/cenitio/shared_invite/enQtMzg1NTQ5ODUwNzg5LWVjNjVmOWU2ZjEzMTc2NmM4MWFhZTdkODQ4Mzc1OTUxYmI0Mzc1OGQyOTI4ODFiNTE0ZDYzN2YwY2U3ZThlOGI
