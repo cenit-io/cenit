@@ -71,6 +71,10 @@ module Cenit
         file.orm_model.chunk_model
       end
 
+      def stored?(file)
+        chunks(file).count > 0
+      end
+
       private
 
       def create_temporary_chunks(file, readable)

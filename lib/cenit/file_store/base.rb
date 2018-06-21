@@ -48,6 +48,10 @@ module Cenit
       def public_url(file)
 
       end
+
+      def stored?(file)
+        fail NotImplementedError
+      end
     end
   end
 end
