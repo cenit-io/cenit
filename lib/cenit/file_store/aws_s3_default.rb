@@ -25,7 +25,7 @@ module Cenit
 
         object(file) do |obj|
           if data.is_a?(String)
-            obj.put(opts.merge(body: data))
+            obj.put(opts.merge(body: file.decode(data)))
           else
             obj.upload_file(data.path, opts)
           end
