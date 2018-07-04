@@ -278,7 +278,7 @@ module Edi
           key_properties.delete(property_name)
           next
         end
-        property_schema = model.property_schema(property_name)
+        property_schema = model.property_schema(property_name) || {}
         property_model = model.property_model(property_name)
         name = property_schema['edi']['segment'] if property_schema['edi']
         name ||= property_name
