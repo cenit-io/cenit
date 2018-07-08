@@ -6,7 +6,7 @@ module ContactUs
       begin
         verify_recaptcha = (ENV['ENABLE_RERECAPTCHA'] || false).to_b && ENV['RECAPTCHA_SITE_KEY'].present? ? verify_recaptcha(model: @contact) : true
         if verify_recaptcha && @contact.save
-          redirect_to('/', :notice => t('admin.contact_us.notices.success'))
+          redirect_to '/thanks'
         else
           flash[:error] = t('admin.contact_us.notices.error')
           redirect_to root_path
