@@ -5,7 +5,7 @@ module ContactUs
 
       mail :from => (ContactUs.config.mailer_from || @contact.email),
            :reply_to => @contact.email,
-           :subject => (ContactUs.require_subject ? @contact.subject : t('contact_us.contact_mailer.contact_email.subject', :email => @contact.email)),
+           :subject => t('contact_us.contact_mailer.contact_email.subject', :email => @contact.email) + " #{@contact.subject}",
            :to => ContactUs.config.mailer_to
     end
   end
