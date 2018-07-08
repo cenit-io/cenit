@@ -1,4 +1,8 @@
 en:
+  contact_us:
+    contact_mailer:
+      contact_email:
+        subject: "Contact us <%{email}>."
   cenit:
     api_spec:
       specification:
