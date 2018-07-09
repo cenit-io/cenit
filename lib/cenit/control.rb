@@ -108,11 +108,11 @@ module Cenit
       redirect_to_called? || render_called?
     end
 
-    def authorize(auth)
+    def authorize(auth, parameters={})
       case auth
       when Setup::Oauth2Authorization
-        cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
-        redirect_to auth.authorize_url(cenit_token: cenit_token)
+        parameters[:cenit_token] = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
+        redirect_to auth.authorize_url(parameters)
       else
         redirect_to @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
       end
