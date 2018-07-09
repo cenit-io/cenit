@@ -14,6 +14,7 @@ module Setup
         parameters: params,
         template_parameters: { url: client.provider.token_endpoint }
       )
+      params
     end
 
     def sign(msg)
