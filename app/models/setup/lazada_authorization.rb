@@ -26,7 +26,7 @@ module Setup
       template_parameters = msg[:template_parameters] || {}
       path = URI.parse(
         template_parameters[:url].to_s.gsub(%r{\/+\Z}, '') +
-          ('/' + template_parameters[:path]).gsub(%r{\/+}, '/')
+          ('/' + template_parameters[:path].to_s).gsub(%r{\/+}, '/')
       ).path.to_s
       path.gsub!(/\Arest\//, '')
       sign = (path + parameters.sort.flatten.join).hmac_hex_sha256(client.get_secret).upcase
