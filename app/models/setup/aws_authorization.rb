@@ -21,7 +21,7 @@ module Setup
     validates_inclusion_of :signature_method, in: ->(a) { a.signature_method_enum }
     validates_inclusion_of :signature_version, in: ->(a) { a.signature_version_enum }
 
-    auth_headers :'Content-MD5' => ->(auth, template_parameters) { auth.body_sign(template_parameters[:body]) }
+    auth_headers :'Content-MD5' => ->(auth, template_parameters) { auth.body_do_sign(template_parameters[:body]) }
 
     auth_parameters Timestamp: ->(auth, template_parameters) { auth.timestamp },
                     SignatureMethod: :signature_method,
@@ -31,7 +31,7 @@ module Setup
                     Marketplace: :markets,
                     Version: :version,
                     MWSAuthToken: :mws_auth_token,
-                    Signature: ->(auth, template_parameters) { auth.sign(template_parameters) }
+                    Signature: ->(auth, template_parameters) { auth.do_sign(template_parameters) }
 
     auth_template_parameters aws_secret_key: :aws_secret_key
 
@@ -55,7 +55,7 @@ module Setup
       @timestamp ||= Time.now.iso8601
     end
 
-    def sign(template_parameters)
+    def do_sign(template_parameters)
       qp = template_parameters[:query_parameters].symbolize_keys.merge(Timestamp: timestamp,
                                                                        SignatureMethod: signature_method,
                                                                        SignatureVersion: signature_version,
@@ -66,15 +66,15 @@ module Setup
                                                                        MWSAuthToken: mws_auth_token)
 
       template_parameters = template_parameters.merge(query_parameters: qp)
-      self.class.sign(template_parameters)
+      self.class.do_sign(template_parameters)
     end
 
-    def body_sign(body)
+    def body_do_sign(body)
       Digest::MD5.base64digest(body).strip if body
     end
 
     class << self
-      def sign(template_parameters)
+      def do_sign(template_parameters)
         template_parameters = template_parameters.with_indifferent_access
         digest = OpenSSL::Digest::SHA256.new
         message = [

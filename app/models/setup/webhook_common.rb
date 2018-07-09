@@ -182,7 +182,7 @@ module Setup
       begin
         conformed_path += '?' + query if query.present?
         url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
-
+        template_parameters[:uri] ||= url
         if body
           if (attachment_body = body).is_a?(Hash)
             attachment_body = attachment_body.collect do |key, value|
@@ -217,6 +217,9 @@ module Setup
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
+        if (auth = using_authorization || connection.using_using_authorization)
+          auth.sign(msg)
+        end
         msg[:timeout] = remaining_request_time
         msg[:verify] = false # TODO: Https verify option by Connection
         if (http_proxy = options[:http_proxy_address])
