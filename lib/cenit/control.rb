@@ -290,6 +290,10 @@ module Cenit
       @controller.response.headers
     end
 
+    def session
+      @controller.session
+    end
+
     private
 
     def instance_var_name(name)
