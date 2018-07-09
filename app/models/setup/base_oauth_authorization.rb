@@ -80,15 +80,18 @@ module Setup
       params
     end
 
+    def token_headers(headers = {}, template_parameters = {})
+      client.conformed_request_token_headers(template_parameters).each do |key, value|
+        key = key.to_sym
+        headers[key] ||= value
+      end
+      headers
+    end
+
     def token_params(params = {}, template_parameters = {})
       client.conformed_request_token_parameters(template_parameters).each do |key, value|
         key = key.to_sym
         params[key] ||= value
-      end
-      params[:headers] ||= {}
-      client.conformed_request_token_headers(template_parameters).each do |key, value|
-        key = key.to_sym
-        params[:headers][key] ||= value
       end
       base_params.merge(params)
     end

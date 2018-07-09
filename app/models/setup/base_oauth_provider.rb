@@ -140,7 +140,7 @@ module Setup
                                                                        http_proxy_port: Cenit.http_proxy_port)
       xml_doc = Nokogiri::XML(response)
       if (oauth_token = xml_doc.root.element_children.detect { |e| e.name == 'OAuthToken' }) &&
-         (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
+        (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
         authorization.access_token = oauth_token.content
         authorization.access_token_secret = oauth_token_secret.content
         authorization.save
@@ -164,25 +164,15 @@ module Setup
         fail 'Missing client configuration' unless client
         fail 'Missing OAuth provider configuration' unless authorization.provider
         token_endpoint_uri = URI.parse(authorization.token_endpoint)
-        refresh_endpoint_uri = URI.parse('rest/auth/token/refresh')
+        refresh_endpoint_uri = URI.parse('/rest/auth/token/refresh')
         refresh_endpoint_uri.scheme = token_endpoint_uri.scheme
         refresh_endpoint_uri.host = token_endpoint_uri.host
         get = Setup::Connection.get(refresh_endpoint_uri.to_s)
-        params = {
-          app_key: client.get_identifier,
-          sign_method: 'sha256',
-          timestamp: (Time.now.utc.to_f * 1000).to_i,
-          refresh_token: authorization.refresh_token
-        }
-        sign = ("/auth/token/refresh" + params.sort.flatten.join).hmac_hex_sha256(client.get_secret).upcase
-        params[:sign] = sign
-        http_response = get.submit(
-          headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
-          body: params.to_param,
-          verbose_response: true
-        )[:response]
+        params = { 'refresh_token' => authorization.refresh_token.to_s }
+        Setup::LazadaAuthorization.sign_params(client, '/auth/token/refresh', params)
+        http_response = get.submit(parameters: params, verbose_response: true)[:response]
         body = JSON.parse(http_response.body)
-        if http_response.code == 200
+        if http_response.code == 200 && body['access_token']
           authorization.authorized_at = Time.now
           if (token_type = body['token_type'])
             authorization.token_type = token_type
@@ -194,7 +184,7 @@ module Setup
           end
           authorization.save
         else
-          fail "(response code #{http_response.code} - #{body['error']}) #{body['error_description']}"
+          fail body['message']
         end
       end
     rescue Exception => ex
