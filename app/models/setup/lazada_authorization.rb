@@ -15,17 +15,23 @@ module Setup
     end
 
     def sign_params(params, template_parameters = {})
-      params['app_key'] = client.get_identifier
       params['access_token'] = access_token unless template_parameters[:skip_access_token]
-      params['sign_method'] = 'sha256'
-      params['timestamp'] = (Time.now.utc.to_f * 1000).to_i
       path = URI.parse(
         template_parameters[:url].to_s.gsub(%r{\/+\Z}, '').strip +
           ('/' + template_parameters[:path].to_s).gsub(%r{\/+}, '/').strip
       ).path.to_s
       path.gsub!(/\A\/rest/, '')
-      sign = (path + params.sort.flatten.join).hmac_hex_sha256(client.get_secret).upcase
-      params['sign'] = sign
+      self.class.sign_params(client, path, params)
+    end
+
+    class << self
+      def sign_params(client, path, params)
+        params['app_key'] = client.get_identifier
+        params['sign_method'] = 'sha256'
+        params['timestamp'] = (Time.now.utc.to_f * 1000).to_i
+        sign = (path + params.sort.flatten.join).hmac_hex_sha256(client.get_secret).upcase
+        params['sign'] = sign
+      end
     end
   end
 end
