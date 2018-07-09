@@ -217,7 +217,7 @@ module Setup
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
-        if (auth = using_authorization || connection.using_using_authorization)
+        if (auth = using_authorization || connection.using_authorization)
           auth.sign(msg)
         end
         msg[:timeout] = remaining_request_time
