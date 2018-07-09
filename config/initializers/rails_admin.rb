@@ -362,6 +362,8 @@ RailsAdmin.config do |config|
 
   Setup::Oauth2Authorization
 
+  Setup::LazadaAuthorization
+
   Setup::AwsAuthorization
 
   Cenit::OauthAccessGrant

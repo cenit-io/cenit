@@ -2,6 +2,10 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      register_instance_option :hierarchy_selectable do
+        false
+      end
+
       def hide_on_navigation
         visible false
         child_visible true

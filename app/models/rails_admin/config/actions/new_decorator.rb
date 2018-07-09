@@ -18,7 +18,9 @@ module RailsAdmin
                   hash = JSON.parse(token.data) rescue {}
                   @abstract_model.model.data_type.new_from_json(hash)
                 else
-                  if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
+                  if (model = @abstract_model.model).is_a?(Class) &&
+                    model < Setup::ClassHierarchyAware &&
+                    (model.abstract_class || @model_config.hierarchy_selectable)
                     @model_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
                     if (child_types = params[:types])
                       child_types = child_types.to_s.split(',')

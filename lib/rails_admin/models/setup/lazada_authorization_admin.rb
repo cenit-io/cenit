@@ -1,20 +1,21 @@
 module RailsAdmin
   module Models
     module Setup
-      module Oauth2AuthorizationAdmin
+      module LazadaAuthorizationAdmin
         extend ActiveSupport::Concern
 
         included do
           rails_admin do
             navigation_label 'Security'
             weight 333
-            label 'OAuth 2.0 Authorization'
+            label 'Lazada Authorization'
             register_instance_option :label_navigation do
               'OAuth 2.0'
             end
             object_label_method { :custom_title }
-            parent ::Setup::Authorization
-            hierarchy_selectable true
+            parent ::Setup::Oauth2Authorization
+            visible false
+            child_visible true
 
             configure :namespace, :enum_edit
 
