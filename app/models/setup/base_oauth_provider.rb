@@ -169,7 +169,7 @@ module Setup
         refresh_endpoint_uri.host = token_endpoint_uri.host
         get = Setup::Connection.get(refresh_endpoint_uri.to_s)
         params = {
-          api_key: client.get_identifier,
+          app_key: client.get_identifier,
           sign_method: 'sha256',
           timestamp: (Time.now.utc.to_f * 1000).to_i,
           refresh_token: authorization.refresh_token
