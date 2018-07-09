@@ -26,6 +26,10 @@ module Setup
       authorized? ? :success : :danger
     end
 
+    def sign(msg)
+
+    end
+
     def method_missing(symbol, *args)
       hashes = []
       if symbol.to_s.start_with?('all_')

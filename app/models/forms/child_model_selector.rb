@@ -16,16 +16,24 @@ module Forms
       @parent_model ||= parent_model_name.constantize
     end
 
+    def default_children_types
+      a = parent_model.descendants.to_a
+      unless parent_model.abstract_class
+        a.unshift(parent_model)
+      end
+      a
+    end
+
     def children_models_names(ability)
       enum = {}
-      (child_types || parent_model.descendants).collect do |child_model|
+      (child_types || default_children_types).collect do |child_model|
         child_model =
           begin
             child_model.constantize
           rescue
             Object
           end if child_model.is_a?(String)
-        next unless child_model < parent_model
+        next unless child_model <= parent_model
         next if child_model < Setup::ClassHierarchyAware && child_model.abstract_class
         model_config = RailsAdmin::Config.model(child_model)
         next unless model_config.child_visible? && ability.can?(:new, child_model)
