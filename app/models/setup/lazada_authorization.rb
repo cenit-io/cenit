@@ -10,13 +10,10 @@ module Setup
 
     def token_params(params = {}, template_parameters = {})
       super
-      sign(
-        parameters: params,
-        template_parameters: {
-          url: client.provider.token_endpoint,
-          skip_access_token: true
-        }
-      )
+      sign_params(params, template_parameters: {
+        url: client.provider.token_endpoint,
+        skip_access_token: true
+      })
       params
     end
 
