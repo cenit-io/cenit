@@ -26,7 +26,7 @@ module Setup
       authorized? ? :success : :danger
     end
 
-    def sign(msg)
+    def sign_params(params, template_parameters = {})
 
     end
 

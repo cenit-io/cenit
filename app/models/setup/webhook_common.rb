@@ -169,6 +169,10 @@ module Setup
       connection.inject_other_parameters(parameters, template_parameters)
       inject_other_parameters(parameters, template_parameters)
 
+      if (auth = using_authorization || connection.using_authorization)
+        auth.sign_params(parameters, template_parameters)
+      end
+
       query = parameters.plain_query
       template_parameters[:query] = query
 
@@ -217,9 +221,6 @@ module Setup
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
-        if (auth = using_authorization || connection.using_authorization)
-          auth.sign(msg)
-        end
         msg[:timeout] = remaining_request_time
         msg[:verify] = false # TODO: Https verify option by Connection
         if (http_proxy = options[:http_proxy_address])
