@@ -89,6 +89,9 @@ module Setup
     end
 
     def token_params(params = {}, template_parameters = {})
+      if (code = template_parameters[:code])
+        params['code'] = code
+      end
       client.conformed_request_token_parameters(template_parameters).each do |key, value|
         key = key.to_sym
         params[key] ||= value
