@@ -21,6 +21,7 @@ module Setup
           ('/' + template_parameters[:path].to_s).gsub(%r{\/+}, '/').strip
       ).path.to_s
       path.gsub!(/\A\/rest/, '')
+      path.gsub!(/\/\Z/, '')
       self.class.sign_params(client, path, params)
     end
 
