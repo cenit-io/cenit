@@ -32,7 +32,6 @@ module Setup
         params['timestamp'] = (Time.now.utc.to_f * 1000).to_i
         sign = (path + params.sort.flatten.join).hmac_hex_sha256(client.get_secret).upcase
         params['sign'] = sign
-        Tenant.notify(type: :notice, message: "params: #{params.to_json}")
       end
     end
   end
