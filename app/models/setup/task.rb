@@ -179,6 +179,10 @@ module Setup
       fail NotImplementedError
     end
 
+    def brake(message = nil)
+      raise Broken.new(message)
+    end
+
     def unschedule
       finish(:unscheduled, "Task ##{id} unscheduled at #{time = Time.now}", :warning, time)
     end
