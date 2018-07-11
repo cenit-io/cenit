@@ -179,7 +179,7 @@ module Setup
       fail NotImplementedError
     end
 
-    def brake(message = nil)
+    def break(message = nil)
       raise Broken.new(message)
     end
 
@@ -293,6 +293,14 @@ module Setup
       def current
         (thread_token = ThreadToken.where(token: Thread.current[:task_token]).first) &&
           Setup::Task.where(thread_token: thread_token).first
+      end
+
+      def break(message)
+        if current
+          raise Broken.new(message)
+        else
+          Tenant.notify(message: "Calling break outside task execution context (msg: #{message})", type: :warning)
+        end
       end
 
       def auto_retry_enum
