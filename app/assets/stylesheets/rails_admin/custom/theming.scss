@@ -762,7 +762,14 @@ ul#main-accordion .panel-heading .nav-icon {
 .user-auth .local-forms {
   position: relative;
   overflow: hidden;
-  height: 220px;
+  height: 250px;
+}
+
+.g-recaptcha {
+  transform: scale(0.77);
+  -webkit-transform: scale(0.77);
+  transform-origin: 0 0;
+  -webkit-transform-origin: 0 0
 }
 
 .user-auth form.local {

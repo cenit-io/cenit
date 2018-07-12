@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-home.git
-  revision: 4a16b0e859707d7a77248837179005a3803270a9
+  revision: 1704c1ed3a1d54cd1f5f7e0a9a014b2f0070545f
   specs:
     cenit-home (0.0.1.alpha)
       bootstrap-sass
