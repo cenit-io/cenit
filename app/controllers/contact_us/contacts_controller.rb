@@ -4,8 +4,8 @@ module ContactUs
     def create
       @contact = ContactUs::Contact.new(permitted_attributes)
       begin
-        verify_recaptcha = (ENV['ENABLE_RERECAPTCHA'] || false).to_b && ENV['RECAPTCHA_SITE_KEY'].present? ? verify_recaptcha(model: @contact) : true
-        if verify_recaptcha && @contact.save
+        verified = ENV['ENABLE_RERECAPTCHA'].to_b.blank? || ENV['RECAPTCHA_SITE_KEY'].blank? || verify_recaptcha(model: @contact)
+        if verified && @contact.save
           redirect_to '/thanks'
         else
           flash[:error] = t('admin.contact_us.notices.error')

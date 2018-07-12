@@ -37,6 +37,9 @@
         .field.text-justify
           = f.label :password_confirmation
           = f.password_field :password_confirmation, autocomplete: "off", class: "form-control"
+        .pull-right{style: 'padding-bottom:10px'}
+          = recaptcha_tags if ENV['ENABLE_RERECAPTCHA'].to_b && ENV['RECAPTCHA_SITE_KEY'].present?
+        .clearfix
         .actions
           %button.btn.btn-primary.pull-right{type:'submit'}
             =t('admin.registration.submit')
