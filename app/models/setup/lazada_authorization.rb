@@ -23,7 +23,9 @@ module Setup
       path.gsub!(/\A\/rest/, '')
       path.gsub!(/\/\Z/, '')
       self.class.sign_params(client, path, params)
-      Tenant.notify(message: params.to_json, type: :notice) if template_parameters['notify_parameters'].to_b
+      if (template_parameters['notify_parameters'] || template_parameters_hash['notify_parameters']).to_b
+        Tenant.notify(message: params.to_json, type: :notice)
+      end
     end
 
     class << self
