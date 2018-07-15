@@ -1,0 +1,15 @@
+.page202
+  #page-wrapper{:style => "vertical-align: top;"}
+    .container
+      %h1.logo
+        =link_to root_path do
+          %span.cenit-logo
+            =image_tag 'cenit-logo.png'
+      .error
+        %span Thanks
+      .page_not Your message have been send to us successfully
+      %span.button.go_back
+        %a{:href => "javascript:window.history.back()"} Go back
+      %span.button.go_home
+        =link_to root_path do
+          Go Home
