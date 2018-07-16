@@ -12,9 +12,9 @@ module Setup
           fail 'Option class_name not supplied' unless (klass = options[:class])
           belongs_to field, class_name: klass.to_s, inverse_of: nil
           klass = klass.constantize if klass.is_a?(String)
-          klass.class_eval "def pull(message = {})
+          klass.class_eval "def pull(message = {}, &block)
             message[:#{field}] = self
-            #{to_s}.process(message)
+            #{to_s}.process(message, &block)
           end"
           @pulling_field = field
         end
