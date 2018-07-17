@@ -43,6 +43,9 @@
     if cenit_oauth_scope.offline_access?
       basic[Cenit::OauthScope::OFFLINE_ACCESS_TOKEN]= true
     end
+    if cenit_oauth_scope.multi_tenant?
+      basic[Cenit::OauthScope::MULTI_TENANT_TOKEN]= true
+    end
     basic = basic.merge(methods)
     html = '<ul class="scope-description">'
     basic.each do |key, value|
@@ -62,6 +65,9 @@
           when Cenit::OauthScope::OFFLINE_ACCESS_TOKEN
            offline_access_description = t('admin.oauth.offline_access_desc')
             key = I18n.t('admin.oauth.offline_access')+'<a href="#" data-toggle="tooltip" title="'+ offline_access_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
+          when Cenit::OauthScope::MULTI_TENANT_TOKEN
+           multi_tenant_description = t('admin.oauth.multi_tenant_desc')
+            key = I18n.t('admin.oauth.multi_tenant')+'<a href="#" data-toggle="tooltip" title="'+ multi_tenant_description +'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
           else
             key
           end
