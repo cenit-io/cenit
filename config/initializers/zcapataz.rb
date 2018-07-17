@@ -100,7 +100,7 @@ Capataz.config do
     :escape_javascript, :j, :content_for, :content_for?, :flash
   ]
 
-  allow_on Setup::Task, [:current, :break, :where, :all]
+  allow_on Setup::Task, [:current, :break, :where, :all, :join]
 
   allow_on Setup::Task::RUNNING_STATUS, [:include?]
 
