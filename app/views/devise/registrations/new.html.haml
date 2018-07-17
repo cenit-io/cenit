@@ -41,6 +41,11 @@
           = recaptcha_tags if ENV['ENABLE_RERECAPTCHA'].to_b && ENV['RECAPTCHA_SITE_KEY'].present?
         .clearfix
         .actions
+          .terms.text-right{style: 'padding-bottom:5px'}
+            %small.text-muted
+              =t('admin.registration.terms_preface')
+              =link_to "#{ENV['PORTAL_URL'] || 'https://cenit.io'}/terms_of_service", target: '_blank' do
+                %span=t('admin.misc.terms')
           %button.btn.btn-primary.pull-right{type:'submit'}
             =t('admin.registration.submit')
   .panel-footer.clearfix

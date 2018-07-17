@@ -5,6 +5,8 @@
 - basic_scopes = cenit_oauth_scope.super_methods_set + cenit_oauth_scope.openid_set
 - if cenit_oauth_scope.offline_access?
   - basic_scopes.add(Cenit::OauthScope::OFFLINE_ACCESS_TOKEN)
+- if cenit_oauth_scope.multi_tenant?
+  - basic_scopes.add(Cenit::OauthScope::MULTI_TENANT_TOKEN)
 - if cenit_oauth_scope.auth?
   - basic_scopes.add(Cenit::OauthScope::AUTH_TOKEN)
 %table.cenit-oauth-basic-scope
