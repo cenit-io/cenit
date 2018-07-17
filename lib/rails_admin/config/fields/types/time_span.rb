@@ -35,6 +35,7 @@ module RailsAdmin
                   v = scaled_v
                   current_metric = m
                 else
+                  str = "#{v}#{current_metric} #{str}"
                   break
                 end
               end
