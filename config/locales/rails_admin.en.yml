@@ -773,3 +773,5 @@ en:
       auth_desc: 'The application will be able to authorize other applications with its same grants'
       offline_access: 'Acts <strong>in your behalf</strong>'
       offline_access_desc: 'The application will no longer requires your presence to enjoy its grants'
+      multi_tenant: '<strong>Switch</strong> across your tenants'
+      multi_tenant_desc: 'The application will be able to access all your tenants with its grants'

@@ -77,11 +77,11 @@ module Setup
       Cenit::MultiTenancy.tenant_model.current
     end
 
-    def conformed_request_token_parameters
+    def conformed_request_token_parameters(template_parameters = {})
       {}
     end
 
-    def conformed_request_token_headers
+    def conformed_request_token_headers(template_parameters = {})
       {}
     end
 
