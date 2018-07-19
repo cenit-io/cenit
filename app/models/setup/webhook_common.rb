@@ -200,23 +200,21 @@ module Setup
             end.to_h
             attachment_body = JSON.pretty_generate(attachment_body)
           end
-          attachment = {
-            filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
-            contentType: options[:contentType] || 'application/octet-stream',
-            body: attachment_body
-          }
+          attachment = build_attachment(contentType: headers['Content-Type'], body: attachment_body)
           if (request_attachment = options[:request_attachment]).respond_to?(:call)
             attachment = request_attachment.call(attachment)
           end
         else
           attachment = nil
         end
-        notification_model.create_with(message: JSON.pretty_generate(method: method,
+        notification_model.create_with(
+          message: JSON.pretty_generate(method: method,
           url: url,
           headers: headers),
           type: :notice,
           attachment: attachment,
-          skip_notification_level: options[:skip_notification_level] || options[:notify_request])
+          skip_notification_level: options[:skip_notification_level] || options[:notify_request]
+        )
 
         headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
@@ -293,11 +291,7 @@ module Setup
         url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
         if body
           fail "Invalid operation '#{method}', non HTTP[S] body submission only supported for PUT operations" unless method == 'put'
-          attachment = {
-            filename: DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S'),
-            contentType: options[:contentType] || 'application/octet-stream',
-            body: body
-          }
+          attachment = build_attachment(contentType: options[:contentType], body: body)
           if (request_attachment = options[:request_attachment]).respond_to?(:call)
             attachment = request_attachment.call(attachment)
           end
@@ -437,16 +431,27 @@ module Setup
 
     def attachment_from(response)
       if response && (body = response.body)
-        file_extension = ((types = MIME::Types[response.content_type]).present? &&
-          (ext = types.first.extensions.first).present? && '.' + ext) || ''
-        {
-          filename: response.object_id.to_s + file_extension,
-          contentType: response.content_type || 'application/octet-stream',
-          body: body
-        }
+        build_attachment(base_name: response.object_id.to_s, contentType: response.content_type, body: body)
       else
         nil
       end
+    end
+
+    def build_attachment(hash)
+      unless hash.key?(:filename)
+        filename = hash[:base_name] || DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')
+        if (content_type = hash[:contentType]) && (types = MIME::Types[content_type])
+          types.each do |type|
+            if (ext = type.extensions.first)
+              filename = "#{filename}.#{ext}"
+              break
+            end
+          end
+        end
+        hash[:filename] = filename
+      end
+      hash[:contentType] ||= 'application/octet-stream'
+      hash
     end
 
     REQUEST_TIME_KEY = '[cenit]remaining_request_time'
