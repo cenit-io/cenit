@@ -57,6 +57,17 @@ class User
   #UI options
   field :code_theme, type: String
 
+  field :super_admin_enabled, type: Boolean, default: -> { has_role?(:super_admin) }
+
+  def inspecting_fields
+    super + (has_role?(:super_admin) ? [:super_admin_enabled] : [])
+  end
+
+  def check_attributes
+    remove_attribute(:super_admin_enabled) unless has_role?(:super_admin)
+    true
+  end
+
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do
@@ -80,13 +91,13 @@ class User
     errors.blank?
   end
 
-  before_save :ensure_token, :validates_time_zone!
+  before_save :check_attributes, :ensure_token, :validates_time_zone!
 
   def all_accounts
     (accounts + member_accounts).uniq
   end
 
-  def picture_url(size=50)
+  def picture_url(size = 50)
     custom_picture_url(size) || gravatar_or_identicon_url(size)
   end
 
@@ -133,6 +144,10 @@ class User
 
   def admin?
     has_role?(:admin) || has_role?(:super_admin)
+  end
+
+  def super_admin?
+    has_role?(:super_admin) && super_admin_enabled
   end
 
   def notification_span_for(type)

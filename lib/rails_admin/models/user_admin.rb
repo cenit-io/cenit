@@ -84,6 +84,9 @@ module RailsAdmin
               visible { ::User.current_super_admin? }
             end
             field :time_zone
+            field :super_admin_enabled do
+              visible { (user = ::User.current) && user.has_role?(:super_admin) }
+            end
             field :roles do
               visible { ::User.current_super_admin? }
             end
@@ -139,6 +142,9 @@ module RailsAdmin
             field :api_account
             field :accounts
             field :member_accounts
+            field :super_admin_enabled do
+              visible { (user = ::User.current) && user.has_role?(:super_admin) }
+            end
             field :roles
             field :key
             field :authentication_token
