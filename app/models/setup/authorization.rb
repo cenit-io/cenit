@@ -12,7 +12,16 @@ module Setup
 
     field :authorized, type: Boolean
 
-    before_save { self.authorized = authorized?; errors.blank? }
+    before_save :check
+
+    def check
+      errors.blank?
+    end
+
+    def save(options = {})
+      self.authorized = authorized?
+      super
+    end
 
     def authorized?
       fail NotImplementedError

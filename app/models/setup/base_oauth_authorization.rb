@@ -20,6 +20,11 @@ module Setup
 
     validates_presence_of :client
 
+    def check
+      errors.add(:client, "can't be blank") unless client
+      super
+    end
+
     def each_template_parameter(&block)
       return unless block
       template_parameters.each do |parameter|
