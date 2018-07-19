@@ -12,7 +12,7 @@ class Ability
 
     if (@user = user)
 
-      can [:show, :edit], User, id: user.id
+      can [:show, :edit, :sudo], User, id: user.id
 
       root_actions = RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
