@@ -6,7 +6,7 @@ module Setup
     include FieldsInspection
     include RailsAdmin::Models::Setup::TaskAdmin
 
-    origins :default, -> { User.current_super_admin? ? :admin : nil }
+    origins :default, -> { ::User.current_super_admin? ? :admin : nil }
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     ACTIVE_STATUS = [:running, :retrying]

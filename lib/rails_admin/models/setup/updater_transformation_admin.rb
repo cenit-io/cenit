@@ -12,7 +12,7 @@ module RailsAdmin
             weight 413
             object_label_method { :custom_title }
 
-            visible { User.current_super_admin? && group_visible }
+            visible { ::User.current_super_admin? && group_visible }
 
             configure :namespace, :enum_edit
 

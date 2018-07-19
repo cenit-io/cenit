@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 800
             navigation_label 'Administration'
-            visible { User.current_super_admin? }
+            visible { ::User.current_super_admin? }
             label_plural 'Configuration'
             object_label_method :id
 

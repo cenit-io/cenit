@@ -14,7 +14,7 @@ module RailsAdmin
           visible { User.current.present? }
 
           configure :_id do
-            visible { Account.current_super_admin? }
+            visible { ::User.current_super_admin? }
           end
           configure :key do
             pretty_value do
@@ -40,7 +40,7 @@ module RailsAdmin
             field :owner
             field :users
             field :meta do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :notification_level
             field :time_zone
@@ -49,21 +49,21 @@ module RailsAdmin
           edit do
             field :name
             field :owner do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :users do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :key do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :token do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :notification_level
             field :time_zone
             field :index_max_entries do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
           end
 

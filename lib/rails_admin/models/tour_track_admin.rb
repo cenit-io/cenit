@@ -8,7 +8,7 @@ module RailsAdmin
           weight 841
           navigation_label 'Administration'
           object_label_method { :to_s }
-          visible { User.current_super_admin? }
+          visible { ::User.current_super_admin? }
 
           fields :ip, :user_email, :updated_at
         end
