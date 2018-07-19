@@ -14,6 +14,13 @@ module Setup
 
     auth_template_parameters access_token: ->(oauth2_auth) { oauth2_auth.fresh_access_token }
 
+    def check
+      if super
+        errors.add(:client, 'provider is not OAuth 2.0 compatible') unless provider.is_a?(Setup::Oauth2Provider)
+      end
+      errors.blank?
+    end
+
     def cancel
       self.id_token = nil
       super

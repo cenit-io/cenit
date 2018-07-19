@@ -12,6 +12,13 @@ module Setup
     auth_template_parameters oauth_token: ->(oauth_auth) { oauth_auth.fresh_access_token },
                              oauth_token_secret: :access_token_secret
 
+    def check
+      if super
+        errors.add(:client, 'provider is not OAuth 1.0 compatible') unless provider.is_a?(Setup::OauthProvider)
+      end
+      errors.blank?
+    end
+
     def request_token_endpoint
       provider && template_value_of(provider.request_token_endpoint)
     end
@@ -98,6 +105,6 @@ module Setup
       end
 
     end
-    
+
   end
 end

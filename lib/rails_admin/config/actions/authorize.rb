@@ -20,16 +20,21 @@ module RailsAdmin
         register_instance_option :controller do
           proc do
 
-            case @object
-            when Setup::BaseOauthAuthorization
-              cenit_token = OauthAuthorizationToken.create(authorization: @object, data: {})
-              url = @object.authorize_url(cenit_token: cenit_token)
-              cenit_token.save
-              session[:oauth_state] = cenit_token.token
+            if @object.check
+              case @object
+              when Setup::BaseOauthAuthorization
+                cenit_token = OauthAuthorizationToken.create(authorization: @object, data: {})
+                url = @object.authorize_url(cenit_token: cenit_token)
+                cenit_token.save
+                session[:oauth_state] = cenit_token.token
 
-              redirect_to url
+                redirect_to url
+              else
+                redirect_to rails_admin.edit_path(model_name: @object.class.to_s.underscore.gsub('/', '~'), id: @object.id.to_s)
+              end
             else
-              redirect_to rails_admin.edit_path(model_name: @object.class.to_s.underscore.gsub('/', '~'), id: @object.id.to_s)
+              do_flash(:error, 'Unable to authorize', @object.errors.full_messages)
+              redirect_to back_or_index
             end
 
 

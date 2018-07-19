@@ -111,8 +111,12 @@ module Cenit
     def authorize(auth)
       case auth
       when Setup::Oauth2Authorization
-        cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
-        redirect_to auth.authorize_url(cenit_token: cenit_token)
+        if auth.check
+          cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
+          redirect_to auth.authorize_url(cenit_token: cenit_token)
+        else
+          fail "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}"
+        end
       else
         redirect_to @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
       end
@@ -176,7 +180,7 @@ module Cenit
       result === false ? @app.name : result
     end
 
-    def render_template(name, layout=nil, locals={})
+    def render_template(name, layout = nil, locals = {})
       if layout.is_a?(Hash)
         locals = layout
         layout = nil
@@ -189,23 +193,23 @@ module Cenit
       layout ? get_resource(:translator, layout).run(locals) : content
     end
 
-    def data_type(name, throw=true)
+    def data_type(name, throw = true)
       get_resource(:data_type, name, throw)
     end
 
-    def resource(name, throw=true)
+    def resource(name, throw = true)
       get_resource(:resource, name, throw)
     end
 
-    def algorithm(name, throw=true)
+    def algorithm(name, throw = true)
       get_resource(:algorithm, name, throw)
     end
 
-    def connection(name, throw=true)
+    def connection(name, throw = true)
       get_resource(:connection, name, throw)
     end
 
-    def data_file(name, throw=true)
+    def data_file(name, throw = true)
       data_type('Files', throw).where(filename: name).first
     end
 
@@ -215,7 +219,7 @@ module Cenit
       result === false ? @controller.current_user : result
     end
 
-    def app_url(path=nil, params=nil)
+    def app_url(path = nil, params = nil)
       query = params.is_a?(Hash) ? params.to_query() : params.to_s
       url = "#{Cenit.homepage}"
       url << "/app/#{@controller.request.params[:id_or_ns]}"
@@ -240,7 +244,7 @@ module Cenit
       result === false ? @controller.destroy_user_session_url(return_to: return_to) : result
     end
 
-    def get_resource(type, name, throw=true)
+    def get_resource(type, name, throw = true)
       name, ns = parse_resource_name(name)
       item = Cenit.namespace(ns).send(type, name)
       raise "The (#{ns}::#{name}) #{type.to_s.humanize.downcase} was not found." if throw && item.nil?
