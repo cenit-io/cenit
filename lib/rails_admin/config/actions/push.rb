@@ -7,7 +7,7 @@ module RailsAdmin
           authorized? && (obj = bindings[:object]) &&
             begin
               criteria = { name: obj.name }
-              criteria[:origin] = :owner unless Tenant.current_super_admin?
+              criteria[:origin] = :owner unless ::User.current_super_admin?
               Setup::CrossSharedCollection.where(criteria).exists?
             end
         end
@@ -43,7 +43,7 @@ module RailsAdmin
             else
               @form_object ||= Forms::SharedCollectionSelector.new
               @form_object.criteria = { name: @object.name }
-              @form_object.criteria[:origin] = :owner unless Tenant.current_super_admin?
+              @form_object.criteria[:origin] = :owner unless ::User.current_super_admin?
               @model_config = form_config
               if @form_object.errors.present?
                 do_flash(:error, 'There are errors in the push target specification', @form_object.errors.full_messages)

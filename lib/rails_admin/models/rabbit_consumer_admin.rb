@@ -7,7 +7,7 @@ module RailsAdmin
         rails_admin do
           weight 850
           navigation_label 'Administration'
-          visible { User.current_super_admin? }
+          visible { ::User.current_super_admin? }
           object_label_method { :to_s }
 
           configure :task_id do

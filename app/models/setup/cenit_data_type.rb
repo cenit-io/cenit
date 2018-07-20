@@ -2,7 +2,7 @@ module Setup
   class CenitDataType < DataType
     include RailsAdmin::Models::Setup::CenitDataTypeAdmin
 
-    origins :cenit, -> { (Cenit.initializing? || Cenit::MultiTenancy.tenant_model.current_super_admin?) ? :tmp : nil }
+    origins :cenit, -> { (Cenit.initializing? || ::User.current_super_admin?) ? :tmp : nil }
 
     default_origin :tmp
 
@@ -16,7 +16,7 @@ module Setup
     )
 
     def validates_for_destroy
-      if Cenit::MultiTenancy.tenant_model.current_super_admin?
+      if ::User.current_super_admin?
         unless origin == :tmp || (build_in_dt = build_in).nil?
           errors.add(:base, "#{custom_title} can not be destroyed because model #{build_in_dt.model} is present.")
         end
@@ -27,11 +27,11 @@ module Setup
     end
 
     def do_configure_when_save?
-      !new_record? && !Cenit::MultiTenancy.tenant_model.current_super_admin?
+      !new_record? && !::User.current_super_admin?
     end
 
     def attribute_writable?(name)
-      ((name == 'name') && Cenit::MultiTenancy.tenant_model.current_super_admin?) || super
+      ((name == 'name') && ::User.current_super_admin?) || super
     end
 
     def data_type_name

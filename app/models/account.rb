@@ -45,8 +45,11 @@ class Account
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
 
   default_scope -> {
-    if User.current && !User.current_super_admin?
-      where(owner: User.current)
+    if User.current && !::User.current_super_admin?
+      where('$or' => [
+        { owner_id: User.current.id },
+        { :id.in => User.current.member_account_ids || [] }
+      ])
     else
       all
     end
@@ -187,10 +190,6 @@ class Account
 
     def current_token
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
-    end
-
-    def current_super_admin?
-      current && current.super_admin?
     end
 
     def create_with_owner(params = {})

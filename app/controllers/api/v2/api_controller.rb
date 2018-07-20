@@ -98,7 +98,7 @@ module Api::V2
             options = @parser_options.merge(create_collector: Set.new).symbolize_keys
             model = data_type.records_model
             if model.is_a?(Class) && model < FieldsInspection
-              options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+              options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
             end
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type, options),
@@ -128,7 +128,7 @@ module Api::V2
               options = @parser_options.merge(create_collector: Set.new).symbolize_keys
               model = data_type.records_model
               if model.is_a?(Class) && model < FieldsInspection
-                options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+                options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
               end
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type, options),
@@ -165,7 +165,7 @@ module Api::V2
         @item.send(@payload.update_method, message, @parser_options)
         save_options = {}
         if @item.class.is_a?(Class) && @item.class < FieldsInspection
-          save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+          save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
         end
         if Cenit::Utility.save(@item, save_options)
           if (warnings = @item.try(:warnings))

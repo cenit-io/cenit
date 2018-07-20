@@ -6,7 +6,7 @@ module RailsAdmin
 
         included do
           rails_admin do
-            visible { Account.current_super_admin? }
+            visible { ::User.current_super_admin? }
             navigation_label 'Connectors'
             weight 210
             label 'Section'

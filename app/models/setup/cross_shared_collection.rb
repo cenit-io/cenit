@@ -269,7 +269,7 @@ module Setup
 
     def pulled(options = {})
       self.class.collection.find(_id: id).update_one('$inc' => { pull_count: 1 })
-      install(options) if !installed && options[:install] && User.current_installer?
+      install(options) if !installed && options[:install] && ::User.current_installer?
     end
 
     def reinstall(options = {})

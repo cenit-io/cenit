@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 830
             navigation_label 'Administration'
-            visible { User.current_super_admin? }
+            visible { ::User.current_super_admin? }
             label 'Application ID'
 
             register_instance_option(:discard_submit_buttons) { bindings[:object].instance_variable_get(:@registering) }

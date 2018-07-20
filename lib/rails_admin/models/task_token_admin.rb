@@ -8,7 +8,7 @@ module RailsAdmin
           weight 890
           navigation_label 'Administration'
           parent ::Cenit::BasicToken
-          visible { User.current_super_admin? }
+          visible { ::User.current_super_admin? }
         end
       end
 

@@ -46,7 +46,7 @@ module RailsAdmin
               #Patch
               save_options = {}
               if (model = @abstract_model.model).is_a?(Class) && model < FieldsInspection
-                save_options[:inspect_fields] = Account.current.nil? || !Account.current_super_admin?
+                save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
               end
               ok =
                 begin

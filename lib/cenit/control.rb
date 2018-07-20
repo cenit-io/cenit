@@ -110,15 +110,19 @@ module Cenit
 
     def authorize(auth)
       case auth
-      when Setup::Oauth2Authorization
+      when Setup::BaseOauthAuthorization
         if auth.check
           cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
-          redirect_to auth.authorize_url(cenit_token: cenit_token)
+          auth_url = auth.authorize_url(cenit_token: cenit_token)
+          cenit_token.save
+          controller.session[:oauth_state] = cenit_token.token
+          redirect_to auth_url
         else
           fail "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}"
         end
       else
-        redirect_to @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
+        authorize_path = @controller.rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
+        redirect_to "#{Cenit.homepage}#{authorize_path}"
       end
     end
 

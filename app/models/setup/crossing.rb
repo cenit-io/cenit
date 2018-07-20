@@ -43,7 +43,7 @@ module Setup
     class << self
 
       def authorized_crossing_origins
-        if User.current.super_admin?
+        if ::User.current_super_admin?
           CrossOrigin.names
         else
           [:default, :owner]

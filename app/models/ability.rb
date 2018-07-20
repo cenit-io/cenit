@@ -12,7 +12,7 @@ class Ability
 
     if (@user = user)
 
-      can [:show, :edit], User, id: user.id
+      can [:show, :edit, :sudo], User, id: user.id
 
       root_actions = RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
@@ -55,9 +55,8 @@ class Ability
         can :pull, Setup::CrossSharedCollection, installed: true
         can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
         can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
-        can :edit, Account, :id.in => user.account_ids
-        can [:index, :show, :edit, :inspect, :clean_up], Account, :id.in => user.account_ids + user.member_accounts.map(&:id)
-        can :destroy, Account, :id.in => user.account_ids - [user.account_id]
+        can [:index, :show, :edit, :inspect], Account, :id.in => (user.account_ids || []) + (user.member_account_ids || [])
+        can [:destroy, :clean_up], Account, :id.in => user.account_ids - [user.account_id]
         can :new, Account
 
         can :simple_cross, CROSSING_MODELS_NO_ORIGIN
