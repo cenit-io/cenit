@@ -55,7 +55,7 @@ module RailsAdmin
             )
           more_actions_links.unshift(content)
           more_actions_links << '</ul> </li>'
-          actions_links+= more_actions_links
+          actions_links += more_actions_links
         end
       end
 
@@ -91,7 +91,7 @@ module RailsAdmin
         model_label: model_config && model_config.contextualized_label(label),
         model_label_plural: model_config && model_config.contextualized_label_plural(label),
         object_label: model_config && object.try(model_config.object_label_method),
-      )
+        )
     end
 
     def linking(model)
@@ -126,13 +126,13 @@ module RailsAdmin
     def authorizations_link
       _, abstract_model, index_action = linking(Setup::Authorization)
       return nil unless index_action
-      all_links =[]
+      all_links = []
       auth_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
         "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
       end.html_safe
       all_links << auth_link
       if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
-        a=index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'authorized' => { '60852' => { 'v' => 'false' } } })
+        a = index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'authorized' => { '60852' => { 'v' => 'false' } } })
         counter_link = link_to a, class: 'pjax', title: "#{unauthorized_count} #{'unauthorized'.pluralize(unauthorized_count)}" do
           ('<b class="label rounded label-xs up counter red">' + unauthorized_count.to_s + '</b>').html_safe
         end
@@ -145,7 +145,7 @@ module RailsAdmin
     def notifications_links
       account, abstract_model, index_action = linking(Setup::SystemNotification)
       return nil unless index_action
-      all_links =[]
+      all_links = []
       bell_link = link_to url_for(action: index_action.action_name, model_name: abstract_model.to_param, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
         "<i class='icon-bell' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
       end
@@ -166,9 +166,9 @@ module RailsAdmin
       end
       counters.each do |type, count|
         color = Setup::SystemNotification.type_color(type)
-        a=index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'type' => { '60852' => { 'v' => type } } })
+        a = index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'type' => { '60852' => { 'v' => type } } })
         counter_links = link_to a, class: 'pjax', title: "#{count} #{type.to_s.pluralize(count)}" do
-          link = '<b class="label rounded label-xs up counter '+ color + '">' + count.to_s + '</b>'
+          link = '<b class="label rounded label-xs up counter ' + color + '">' + count.to_s + '</b>'
           link.html_safe
         end
         all_links << %(<div class="counters-links">#{counter_links}</div>).html_safe
@@ -179,41 +179,39 @@ module RailsAdmin
     def edit_user_link
       # Patch
       inspecting = false
-      account_config = nil
-      account_abstract_model = nil
-      inspect_action = nil
-      if (current_user = _current_user)
-        unless (current_account = Account.current_tenant).nil? || current_user.owns?(current_account)
-          account_abstract_model = (account_config = RailsAdmin.config(Account)).abstract_model
-          inspect_action = RailsAdmin::Config::Actions.find(:inspect, controller: controller, abstract_model: account_abstract_model, object: current_account)
-          inspecting = inspect_action.try(:authorized?)
-          current_user = current_account.owner
+      if (link_user = (tenant_or_user = (current_user = _current_user)))
+        inspecting = (current_account = Account.current_tenant) && !current_user.owns?(current_account)
+        if inspecting
+          tenant_or_user = current_account
+          link_user = current_account.owner
         end
       end
-      abstract_model = (user_config = RailsAdmin.config(current_user.class)).abstract_model if current_user
-      edit_action = RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: current_user) if abstract_model
-      unless current_user && abstract_model && edit_action
-        user_config = account_config
-        abstract_model = account_abstract_model
-        edit_action = inspect_action
-        # current_user = current_account #TODO: review danger assignation
-      end
-      return nil unless current_user && abstract_model && edit_action
-      link = link_to url_for(action: edit_action.action_name, model_name: abstract_model.to_param, id: current_user.id, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
+      abstract_model = tenant_or_user && RailsAdmin.config(tenant_or_user.class).abstract_model
+      link_action = abstract_model && RailsAdmin::Config::Actions.find(:show, controller: controller, abstract_model: abstract_model, object: tenant_or_user)
+      return nil unless tenant_or_user && abstract_model && link_action
+      link = link_to url_for(action: link_action.action_name, model_name: abstract_model.to_param, id: tenant_or_user.id, controller: 'rails_admin/main'), class: home_page? ? '' : 'pjax' do
         html = []
-        text = current_user.email
+        text = link_user.email
         html << content_tag(:span, text, style: 'padding-right:5px')
-        unless inspecting
-          if current_user && abstract_model && edit_action
-            html << image_tag(current_user.picture_url, alt: '', width: '30px')
-          end
-        end
+        html << image_tag(link_user.picture_url, alt: '', width: '30px')
         html.join.html_safe
       end
       if inspecting
         link = [link]
-        link << link_to(url_for(action: inspect_action.action_name, model_name: account_abstract_model.to_param, id: current_account.id, controller: 'rails_admin/main')) do
-          '<i class="icon-eye-close" style="color: red"></i>'.html_safe
+        link << link_to(url_for(action: :inspect, model_name: :account, id: current_account.id)) do
+          "<i class=\"icon-eye-close\" style=\"color: red;padding-right:10px\"></i><span>#{t('admin.actions.inspect.out.menu')}</span>".html_safe
+        end
+      end
+      if current_user.has_role?(:super_admin)
+        link = [link] unless link.is_a?(Array)
+        link << link_to(url_for(action: :sudo, model_name: :user, id: current_user.id)) do
+          label_key =
+            if current_user.super_admin_enabled
+              'admin.actions.sudo.disable.menu'
+            else
+              'admin.actions.sudo.menu'
+            end
+          "<i class=\"fa fa-user-secret\" style=\"color: #{current_user.super_admin_enabled ? 'green' : 'red'};padding-right:10px\"></i><span>#{t(label_key)}</span>".html_safe
         end
       end
       link
@@ -399,8 +397,8 @@ module RailsAdmin
         name = data_type_model.to_s.split('::').last.underscore
         action = name == 'cross_shared_collection' ? :ecommerce_index : :link_data_type
         link_link = link_to url_for(action: action,
-          controller: 'rails_admin/main',
-          data_type_model: data_type_model.to_s) do
+                                    controller: 'rails_admin/main',
+                                    data_type_model: data_type_model.to_s) do
           %{
                 <i class="fa fa-plus" title="Add #{t("admin.misc.link_#{name}")}"></i>
 
@@ -436,7 +434,7 @@ module RailsAdmin
         i += 1
         stack_id = "#{html_id}-sub#{i}"
         origins =
-          if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
+          if (model = node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
             model.origins.join(',')
           else
             ''
@@ -465,7 +463,7 @@ module RailsAdmin
               data[:model] = model_path
               data[:origins] = origins
             end
-            active = params['model_name']== model_param ? 'active' : ''
+            active = params['model_name'] == model_param ? 'active' : ''
             content_tag :li, data: data, class: active do
               link_to url, class: 'pjax' do
                 rc = ''
@@ -637,7 +635,7 @@ module RailsAdmin
               <a data-parent='#none' class='js-sub-menu-toggle'>
                 #{
       options[:just_li] ?
-        '<i class="fa fa-list fa-fw" title="'+ t('admin.actions.open_api_directory.menu') +'"></i>' :
+        '<i class="fa fa-list fa-fw" title="' + t('admin.actions.open_api_directory.menu') + '"></i>' :
         ''
       }
                 <span class='text'>#{t('admin.actions.open_api_directory.menu')}</span>
@@ -662,29 +660,29 @@ module RailsAdmin
 
     def subdomains_left_side_menu()
       home_groups = RailsAdmin::Config.dashboard_groups
-      html = '<ul class="main-menu"><li><a href="'+dashboard_path+'"><i class="fa fa-tachometer fa-fw"></i><span class="text"> '+ 'Dashboard' +'</span></a>'
+      html = '<ul class="main-menu"><li><a href="' + dashboard_path + '"><i class="fa fa-tachometer fa-fw"></i><span class="text"> ' + 'Dashboard' + '</span></a>'
       group = dashboard_root_group
       home_groups.each_with_index do |g, index|
-        html += '<li class="'+ (@dashboard_group && @dashboard_group[:param] == g[:param] ? 'active' : '') +'">
-            <a href="" class="js-sub-menu-toggle"><i class="fa '+ g[:icon] +' fa-fw"></i><span class="text"> '+ g[:label] +'</span>
+        html += '<li class="' + (@dashboard_group && @dashboard_group[:param] == g[:param] ? 'active' : '') + '">
+            <a href="" class="js-sub-menu-toggle"><i class="fa ' + g[:icon] + ' fa-fw"></i><span class="text"> ' + g[:label] + '</span>
               <i class="toggle-icon fa fa-angle-left"></i></a>'
         models = g[:sublinks]
-        html+='<ul class="sub-menu ">'
-        html+= "<li><a href='#{item_to_url(g)}'><span class='text'>Dashboard</span></a></li>"
+        html += '<ul class="sub-menu ">'
+        html += "<li><a href='#{item_to_url(g)}'><span class='text'>Dashboard</span></a></li>"
         unless models.empty?
           models.each do |m|
             if m.is_a?(Hash)
-              html+= '<li><a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'"><span class="text">'+m[:label]+'</span></a></li>'
+              html += '<li><a id="' + "xsl_#{m[:label].underscore.gsub(' ', '_')}" + '" href="' + item_to_url(m) + '" target="' + open_in_new_tab(g, m[:param]) + '"><span class="text">' + m[:label] + '</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span class="text">'+model.label_plural+'</span></a></li>'
+              html += '<li><a id="' + "l_#{model.label_plural.underscore.gsub(' ', '_')}" + '"href="' + model_url + '" target="' + open_in_new_tab(g, m) + '"><span class="text">' + model.label_plural + '</span></a></li>'
             end
           end
           html += '</ul>'
         end
-        html+= '</li>'
+        html += '</li>'
       end
-      html+= '</ul>'
+      html += '</ul>'
       html.html_safe
     end
 
@@ -696,20 +694,20 @@ module RailsAdmin
         html += ''
         models = g[:sublinks]
         unless models.empty?
-          html+='<div class="col-xs-12 col-sm-4 col-md-3">
+          html += '<div class="col-xs-12 col-sm-4 col-md-3">
                   <div class="service-container">
-                  <div class="service-box" id="'+ "service_#{g[:label].underscore.gsub(' ', '_')}" +'">
+                  <div class="service-box" id="' + "service_#{g[:label].underscore.gsub(' ', '_')}" + '">
                   <h1>
-                  <a class="service-link" target="_blank" href="' + item_to_url(g) +'">'+ g[:label] +'
+                  <a class="service-link" target="_blank" href="' + item_to_url(g) + '">' + g[:label] + '
                   </a></h1>
-                  <a class="service-link" target="_blank" href="' + item_to_url(g) +'"><i class="'+ g[:icon] +'"></i>
+                  <a class="service-link" target="_blank" href="' + item_to_url(g) + '"><i class="' + g[:icon] + '"></i>
                   </a><p>'
           models.each do |m|
             if m.is_a?(Hash)
-              html+= '<a id="'+ "xsl_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'">'+m[:label]+'</a>'
+              html += '<a id="' + "xsl_#{m[:label].underscore.gsub(' ', '_')}" + '" href="' + item_to_url(m) + '" target="' + open_in_new_tab(g, m[:param]) + '">' + m[:label] + '</a>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'">'+model.label_plural+'</a>'
+              html += '<a id="' + "l_#{model.label_plural.underscore.gsub(' ', '_')}" + '"href="' + model_url + '" target="' + open_in_new_tab(g, m) + '">' + model.label_plural + '</a>'
             end
           end
           html += '</p></div>
@@ -733,13 +731,13 @@ module RailsAdmin
         models = g[:sublinks]
         unless models.empty?
           html += '<ul>'
-          html+= "<li><a id='g_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><i class='#{g[:icon]}'></i><span>#{g[:label]}</span></a></li>"
+          html += "<li><a id='g_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><i class='#{g[:icon]}'></i><span>#{g[:label]}</span></a></li>"
           models.each do |m|
             if m.is_a?(Hash)
-              html+= '<li><a id="'+ "l_#{m[:label].underscore.gsub(' ', '_')}" +'" href="'+ item_to_url(m) +'" target="'+ open_in_new_tab(g, m[:param])+'"><span>'+m[:label]+'</span></a></li>'
+              html += '<li><a id="' + "l_#{m[:label].underscore.gsub(' ', '_')}" + '" href="' + item_to_url(m) + '" target="' + open_in_new_tab(g, m[:param]) + '"><span>' + m[:label] + '</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a id="'+"l_#{model.label_plural.underscore.gsub(' ', '_')}"+'"href="'+ model_url +'" target="'+ open_in_new_tab(g, m)+'"><span>'+model.label_plural+'</span></a></li>'
+              html += '<li><a id="' + "l_#{model.label_plural.underscore.gsub(' ', '_')}" + '"href="' + model_url + '" target="' + open_in_new_tab(g, m) + '"><span>' + model.label_plural + '</span></a></li>'
             end
           end
           html += '</ul>'
@@ -757,15 +755,15 @@ module RailsAdmin
         html += ''
         models = g[:sublinks]
         unless models.empty?
-          html+= '<li class="dropdown"><a class="dropdown-toggle" id="'+ "xstg_#{g[:label].underscore.gsub(' ', '_')}" +'" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="'+ g[:icon] +'"></i>'+ g[:label] +'<span class="caret"></span></a>'
-          html+= '<ul class="dropdown-menu">'
-          html+= "<li><a id='xsg_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><span>Dashboard</span></a><li>"
+          html += '<li class="dropdown"><a class="dropdown-toggle" id="' + "xstg_#{g[:label].underscore.gsub(' ', '_')}" + '" href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="' + g[:icon] + '"></i>' + g[:label] + '<span class="caret"></span></a>'
+          html += '<ul class="dropdown-menu">'
+          html += "<li><a id='xsg_#{g[:label].underscore.gsub(' ', '_')}' href='#{item_to_url(g)}'><span>Dashboard</span></a><li>"
           models.each do |m|
             if m.is_a?(Hash)
-              html+= '<li><a id=" '+ "xsl_#{m[:label].underscore.gsub(' ', ' _ ')}" +' " href=" '+ item_to_url(m) +' " target=" '+ open_in_new_tab(g, m[:param])+' "><span>'+m[:label]+'</span></a></li>'
+              html += '<li><a id=" ' + "xsl_#{m[:label].underscore.gsub(' ', ' _ ')}" + ' " href=" ' + item_to_url(m) + ' " target=" ' + open_in_new_tab(g, m[:param]) + ' "><span>' + m[:label] + '</span></a></li>'
             elsif (abstract_model = (model = RailsAdmin::Config.model(m)).abstract_model)
               model_url = url_for(action: :index, controller: 'rails_admin/main', model_name: abstract_model.to_param)
-              html+= '<li><a id=" '+"l_#{model.label_plural.underscore.gsub(' ', ' _ ')}"+' "href=" '+ model_url +' " target=" '+ open_in_new_tab(g, m)+' "><span>'+model.label_plural+'</span></a></li>'
+              html += '<li><a id=" ' + "l_#{model.label_plural.underscore.gsub(' ', ' _ ')}" + ' "href=" ' + model_url + ' " target=" ' + open_in_new_tab(g, m) + ' "><span>' + model.label_plural + '</span></a></li>'
             end
           end
           html += '</ul></li>'
@@ -830,8 +828,8 @@ module RailsAdmin
           </h3></ td></tr>
             #{stack}
             </ tbody>)
-        end
-      end.join + '</tbody></table>'
+          end
+        end.join + '</tbody></table>'
       html_.html_safe
     end
 
@@ -849,13 +847,13 @@ module RailsAdmin
 
     def public_apis_collection_view(c)
       has_image = c.image.present?
-      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      css_class = 'img-responsive ' + (has_image ? '' : 'no-image')
       image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, style: 'width: 80%'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-md-2 col-sm-3">
-        <a href="'+url_show+'" title="'+ c.name+'">
+        <a href="' + url_show + '" title="' + c.name + '">
           <div class="section">
-            <div class="pic integration_image">'+image+'
+            <div class="pic integration_image">' + image + '
             </div>
           </div>
         </a>
@@ -867,10 +865,10 @@ module RailsAdmin
       limit = 11
       new_url = rails_admin.new_path(model_name: Setup::Collection.to_s.underscore.gsub('/', '~'))
       new_collection = '<div class="col-xs-6 col-sm-4 col-md-2">
-                          <a href="'+new_url+'">
+                          <a href="' + new_url + '">
                             <div class="collection">
                               <div class="pic text-center">
-                              <h5>'+ t('admin.actions.dashboard.collections.add') +'</h5>
+                              <h5>' + t('admin.actions.dashboard.collections.add') + '</h5>
                               <i class="fa fa-plus"></i>
                               </div>
                             </div>
@@ -879,7 +877,7 @@ module RailsAdmin
       if current_user
         # Show user collections
         Setup::Collection.limit(limit).asc(:created_at).each do |c|
-          html+= dashboard_collection_view(c)
+          html += dashboard_collection_view(c)
         end
       else
         rand_ids = Setup::CrossSharedCollection.where(:image.exists => true, installed: true).pluck(:_id).shuffle[0...limit]
@@ -888,21 +886,21 @@ module RailsAdmin
         end
       end
 
-      html+= new_collection
+      html += new_collection
 
-      html+=''
+      html += ''
       html.html_safe
     end
 
     def dashboard_collection_view(c)
       has_image = c.image.present?
-      css_class = 'img-responsive '+(has_image ? '' : 'no-image')
+      css_class = 'img-responsive ' + (has_image ? '' : 'no-image')
       image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-xs-6 col-sm-4 col-md-2">
-        <a href="'+url_show+'" title="'+ c.name+'">
+        <a href="' + url_show + '" title="' + c.name + '">
           <div class="collection">
-            <div class="pic text-center">'+image+'
+            <div class="pic text-center">' + image + '
             </div>
           </div>
         </a>
@@ -918,7 +916,7 @@ module RailsAdmin
       rc[:label] = "#{capitalize_first_letter abstract_model.config.label_plural}"
       rc[:icon] = (icon = capitalize_first_letter abstract_model.config.navigation_icon).nil? ? 'fa fa-cube' : icon
       origins =
-        if (model=abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
+        if (model = abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
           model.origins.join(',')
         else
           ''
@@ -928,7 +926,7 @@ module RailsAdmin
         data[:model] = model_path
         data[:origins] = origins
       end
-      rc[:data] =data
+      rc[:data] = data
       menu = menu_for(:collection, abstract_model, nil)
       rc[:menu] = menu
 
@@ -985,7 +983,7 @@ module RailsAdmin
               end
               rc += '</td>'
               origins =
-                if (model=node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
+                if (model = node.abstract_model.model).is_a?(Class) && model < CrossOrigin::CenitDocument
                   model.origins.join(',')
                 else
                   ''
@@ -1206,20 +1204,20 @@ module RailsAdmin
           value = value.to(value.index('<li') - 1) +
             "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
             value.from(value.index('</li>') + 5)
-          value = value.to(value.index('</ol>')-1) + '</ol>'
+          value = value.to(value.index('</ol>') - 1) + '</ol>'
         else
           if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && @dashboard_group_ref
             value = value.to(value.index('<li') - 1) +
               "<li class=\"active\">#{@dashboard_group_ref.titleize }</li>" +
               "<li class=\"active\">Dashboard</li>" +
               value.from(value.index('</li>') + 5)
-            value = value.to(value.index('</ol>')-1) + '</ol>'
+            value = value.to(value.index('</ol>') - 1) + '</ol>'
           end
         end
       end
       m = /(.*)(class="pjax")(.*)(Dashboard)(.*)/.match(value)
       if m
-        value = m[1]+m[3]+m[4]+m[5]
+        value = m[1] + m[3] + m[4] + m[5]
       end
       value.html_safe
     end

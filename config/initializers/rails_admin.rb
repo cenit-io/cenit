@@ -71,7 +71,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::MemberTraceIndex,
   RailsAdmin::Config::Actions::CollectionTraceIndex,
   RailsAdmin::Config::Actions::DataTypeConfig,
-  RailsAdmin::Config::Actions::JsonEdit
+  RailsAdmin::Config::Actions::JsonEdit,
+  RailsAdmin::Config::Actions::Sudo
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -637,6 +638,7 @@ RailsAdmin.config do |config|
     retry_task
     submit
     inspect
+    sudo
     cancel
     regist
     reinstall

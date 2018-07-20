@@ -9,7 +9,7 @@ module RailsAdmin
             navigation_label 'Transforms'
             label 'Parser'
             navigation_icon 'fa fa-sign-in'
-            visible { User.current_super_admin? && group_visible }
+            visible { ::User.current_super_admin? && group_visible }
             weight 411
             object_label_method { :custom_title }
 

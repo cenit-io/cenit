@@ -9,7 +9,7 @@ module RailsAdmin
             weight 890
             navigation_label 'Administration'
             label 'Tenant token'
-            visible { User.current_super_admin? }
+            visible { ::User.current_super_admin? }
           end
         end
 

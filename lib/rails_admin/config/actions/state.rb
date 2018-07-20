@@ -59,7 +59,7 @@ module RailsAdmin
             locals = { pull_request: task.pull_request_hash }
             if task.ask_for_install?
               locals[:before_form_partials] = :install_option
-              locals[:pull_anyway] = User.current_installer?
+              locals[:pull_anyway] = ::User.current_installer?
             end
             locals[:shared_collection] = task.source_shared_collection
             controller.render :pull, locals: locals

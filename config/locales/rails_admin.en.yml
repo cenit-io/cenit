@@ -443,6 +443,14 @@ en:
           title: "Leave"
           menu: "Leave"
           breadcrumb: "Leave"
+      sudo:
+        title: "Enable Super User"
+        menu: "Enable Super User"
+        breadcrumb: "Enable Super User"
+        disable:
+          title: "Disable Super User"
+          menu: "Disable Super User"
+          breadcrumb: "Disable Super User"
       copy:
         title: "Copy"
         menu: "Copy"

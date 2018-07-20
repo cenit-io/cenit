@@ -5,7 +5,7 @@ module CrossOrigin
     include CrossOrigin::Document
 
     def can_cross?(origin)
-      (self.origin != :shared || User.current_cross_shared? || Cenit.initializing?) && super
+      (self.origin != :shared || ::User.current_cross_shared? || Cenit.initializing?) && super
     end
 
     module ClassMethods

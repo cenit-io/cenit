@@ -5,6 +5,6 @@ Mongoid::Tracer.configure do |config|
   # config.trace_ignore :created_at, :updated_at
 
   config.author_id do
-    User.current_id
+    ::User.current_id
   end
 end

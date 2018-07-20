@@ -7,7 +7,7 @@ module RailsAdmin
         rails_admin do
           weight 805
           navigation_label 'Administration'
-          visible { User.current_super_admin? }
+          visible { ::User.current_super_admin? }
           object_label_method { :label }
 
           group :accounts do
@@ -39,11 +39,11 @@ module RailsAdmin
           end
           configure :accounts do
             group :accounts
-            read_only { !Account.current_super_admin? }
+            read_only { !::User.current_super_admin? }
           end
           configure :member_accounts do
             group :member_accounts
-            read_only { !Account.current_super_admin? }
+            read_only { !::User.current_super_admin? }
           end
           configure :password do
             group :credentials
@@ -81,49 +81,52 @@ module RailsAdmin
             field :name
             field :code_theme
             field :email do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :time_zone
+            field :super_admin_enabled do
+              visible { (user = ::User.current) && user.has_role?(:super_admin) }
+            end
             field :roles do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :account
             field :api_account
             field :accounts do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :member_accounts do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :password do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :password_confirmation do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
             end
             field :key do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :authentication_token do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :confirmed_at do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :sign_in_count do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :current_sign_in_at do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :last_sign_in_at do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :current_sign_in_ip do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
             field :last_sign_in_ip do
-              visible { !bindings[:object].new_record? && Account.current_super_admin? }
+              visible { !bindings[:object].new_record? && ::User.current_super_admin? }
             end
           end
 
@@ -139,6 +142,9 @@ module RailsAdmin
             field :api_account
             field :accounts
             field :member_accounts
+            field :super_admin_enabled do
+              visible { (user = ::User.current) && user.has_role?(:super_admin) }
+            end
             field :roles
             field :key
             field :authentication_token

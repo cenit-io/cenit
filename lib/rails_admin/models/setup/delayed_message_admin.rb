@@ -8,7 +8,7 @@ module RailsAdmin
           rails_admin do
             weight 880
             navigation_label 'Administration'
-            visible { User.current_super_admin? }
+            visible { ::User.current_super_admin? }
           end
         end
 

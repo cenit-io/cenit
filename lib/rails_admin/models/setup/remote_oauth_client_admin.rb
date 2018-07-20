@@ -13,7 +13,7 @@ module RailsAdmin
             object_label_method { :custom_title }
 
             configure :tenant do
-              visible { Account.current_super_admin? }
+              visible { ::User.current_super_admin? }
               read_only { true }
               help ''
             end

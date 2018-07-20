@@ -21,7 +21,7 @@ module Setup
     protected
 
     def ask_for_install?
-      User.current_super_admin? && !shared_collection.installed?
+      ::User.current_super_admin? && !shared_collection.installed?
     end
     
   end
