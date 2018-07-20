@@ -47,8 +47,8 @@ class Account
   default_scope -> {
     if User.current && !::User.current_super_admin?
       where('$or' => [
-        { owner_id: User.current.id },
-        { :id.in => User.current.member_account_ids || [] }
+        { 'owner_id' => User.current.id },
+        { '_id' => { '$in' => User.current.member_account_ids || [] } }
       ])
     else
       all
