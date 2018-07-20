@@ -44,17 +44,6 @@ class Account
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
 
-  default_scope -> {
-    if User.current && !::User.current_super_admin?
-      where('$or' => [
-        { 'owner_id' => User.current.id },
-        { '_id' => { '$in' => User.current.member_account_ids || [] } }
-      ])
-    else
-      all
-    end
-  }
-
   validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
