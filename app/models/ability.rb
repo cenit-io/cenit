@@ -55,7 +55,10 @@ class Ability
         can :pull, Setup::CrossSharedCollection, installed: true
         can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
         can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
-        can [:index, :show, :edit, :inspect], Account, :id.in => (user.account_ids || []) + (user.member_account_ids || [])
+        can [:index, :show, :edit, :inspect, :clean_up], Account, { '$or' => [
+          { 'owner_id' => user.id },
+          { '_id' => { '$in' => user.member_account_ids || [] } }
+        ] }
         can [:destroy, :clean_up], Account, :id.in => user.account_ids - [user.account_id]
         can :new, Account
 
