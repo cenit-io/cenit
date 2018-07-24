@@ -16,7 +16,7 @@ Capataz.config do
     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
     Tenant, Setup::SystemNotification, WickedPdf, Magick::Image, PDFKit, Tempfile, IMGKit, Origami, MWS, MWS::Orders::Client, PdfForms, CombinePDF, MWS::Feeds::Client,
-    Setup::Oauth2Authorization
+    Setup::Oauth2Authorization, OauthAuthorizationToken
 
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
@@ -30,6 +30,8 @@ Capataz.config do
   allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
 
   allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current]
+
+  allow_on [OauthAuthorizationToken], [:where]
 
   allow_on Cenit, [:homepage, :namespace]
 
