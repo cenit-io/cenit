@@ -1,7 +1,7 @@
 class AppController < ApplicationController
 
   before_action :authorize_account, :find_app, :find_app_control_action
-  before_action :allow_x_frame
+  before_action :process_headers
 
   attr_reader :app_control
 
@@ -15,8 +15,9 @@ class AppController < ApplicationController
 
   protected
 
-  def allow_x_frame
+  def process_headers
     response.headers.delete('X-Frame-Options')
+    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
   end
 
   def find_app_control_action
