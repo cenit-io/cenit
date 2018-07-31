@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 922b4870665d1fbd1903317c19abcad779c280c1
+  revision: a369195e85e68bda2f3f664c9a6d1403df194b95
   specs:
     cenit-oauth (0.0.1)
       cenit-token
