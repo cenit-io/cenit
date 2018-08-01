@@ -95,7 +95,14 @@ class User
     errors.blank?
   end
 
-  before_save :check_attributes, :ensure_token, :validates_time_zone!
+  before_save :check_attributes, :ensure_token, :validates_time_zone!, :check_account
+
+  def check_account
+    unless accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
+      errors.add(:account, 'is not valid')
+    end
+    errors.blank?
+  end
 
   def all_accounts
     (accounts + member_accounts).uniq
