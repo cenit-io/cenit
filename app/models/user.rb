@@ -3,23 +3,27 @@ require 'identicon'
 require 'mongoid_userstamp'
 
 class User
-  include Mongoid::Document
+  include Setup::CenitUnscoped
   include Cenit::Oauth::User
-  include Mongoid::Timestamps
   extend DeviseOverrides
   include CredentialsGenerator
   include FieldsInspection
   include TimeZoneAware
   include RailsAdmin::Models::UserAdmin
 
+
   inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
 
   rolify
 
+  build_in_data_type.with(:email, :name, :account)
+
+  deny :all
+
   has_many :accounts, class_name: Account.to_s, inverse_of: :owner
   has_and_belongs_to_many :member_accounts, class_name: Account.to_s, inverse_of: :users
-  belongs_to :account, class_name: Account.to_s, inverse_of: :nil
-  belongs_to :api_account, class_name: Account.to_s, inverse_of: :nil
+  belongs_to :account, class_name: Account.to_s, inverse_of: nil
+  belongs_to :api_account, class_name: Account.to_s, inverse_of: nil
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable

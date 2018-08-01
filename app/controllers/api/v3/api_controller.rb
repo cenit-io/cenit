@@ -436,7 +436,10 @@ module Api::V3
     end
 
     def find_item
-      if (@item = accessible_records.where(id: params[:id]).first)
+      if (id = params[:id]) == 'me' && klass == User
+        id = User.current_id
+      end
+      if (@item = accessible_records.where(id: id).first)
         true
       else
         render json: { status: 'item not found' }, status: :not_found

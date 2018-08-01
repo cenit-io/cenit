@@ -12,8 +12,6 @@ class Ability
 
     if (@user = user)
 
-      can [:show, :edit, :sudo], User, id: user.id
-
       root_actions = RailsAdmin::Config::Actions.all(:root).collect(&:authorization_key)
 
       if user.super_admin?
@@ -46,6 +44,8 @@ class Ability
         can [:simple_cross, :reinstall], Setup::CrossSharedCollection, installed: true
         can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
       else
+        can [:index, :show, :edit], User, id: user.id
+
         root_actions.delete(:remote_shared_collection)
 
         cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemReport]
@@ -201,6 +201,7 @@ class Ability
       can [:index, :show, :pull, :simple_export], Setup::CrossSharedCollection
       can [:index, :show], Setup::Models.all.to_a -
         [
+          User,
           Account,
           Setup::Namespace,
           Setup::DataTypeConfig,
