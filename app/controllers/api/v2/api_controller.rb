@@ -430,7 +430,11 @@ module Api::V2
           Account.set_current_with_connection(key, token) if key || token
         end
       end
-      User.current = user || (Account.current ? Account.current.owner : nil)
+      if user
+        User.current = user
+      else
+        User.current ||= (Account.current ? Account.current.owner : nil)
+      end
       @ability = Ability.new(User.current)
       true
     end

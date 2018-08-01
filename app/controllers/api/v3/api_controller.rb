@@ -68,7 +68,7 @@ module Api::V3
           count = items.count
           {
             json: {
-              total_pages: (count*1.0 / get_limit).ceil,
+              total_pages: (count * 1.0 / get_limit).ceil,
               current_page: page,
               count: count,
               @model.pluralize => items_data
@@ -270,7 +270,7 @@ module Api::V3
       ensure
         Account.current = current_account
       end
-      response=
+      response =
         if user.errors.blank?
           status = :ok
           { id: user.id.to_s, number: user.number, token: user.authentication_token }
@@ -385,7 +385,11 @@ module Api::V3
           Account.set_current_with_connection(key, token) if key || token
         end
       end
-      User.current = user || (Account.current ? Account.current.owner : nil)
+      if user
+        User.current = user
+      else
+        User.current ||= (Account.current ? Account.current.owner : nil)
+      end
       @ability = Ability.new(User.current)
       true
     end
