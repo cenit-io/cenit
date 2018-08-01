@@ -65,9 +65,7 @@ Cenit::Application.routes.draw do
       match '/auth', to: 'api#auth', via: [:head]
       match '/*path', to: 'api#cors_check', via: [:options]
     end
-  end
 
-  namespace :api do
     namespace :v2 do
       post '/auth/ping', to: 'api#auth'
       get '/public/:model', to: 'api#index', ns: 'setup'
@@ -84,6 +82,17 @@ Cenit::Application.routes.draw do
       get '/:ns/:model/:id/retry', to: 'api#retry'
       get '/:ns/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
       match '/auth', to: 'api#auth', via: [:head]
+      match '/*path', to: 'api#cors_check', via: [:options]
+    end
+
+    namespace :v3 do
+      post '/setup/user', to: 'api#new_user'
+      post '/:ns/push', to: 'api#push'
+      post '/:ns/:model', to: 'api#new'
+      get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
+      get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
+      post '/:ns/:model/:id', to: 'api#update'
+      delete '/:ns/:model/:id', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
     end
   end
