@@ -4,7 +4,7 @@ module Api::V3
     before_action :authorize_account, except: [:new_user, :cors_check]
     before_action :save_request_data, :allow_origin_header
     before_action :authorize_action, except: [:new_user, :push, :cors_check] #TODO Review push action
-    before_action :find_item, only: [:update, :show, :destroy]
+    before_action :find_item, only: [:update, :show, :destroy, :digest]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -253,6 +253,16 @@ module Api::V3
       render json: response, status: status
     end
 
+    def digest
+      if @item.respond_to?(:digest)
+        render @item.digest(@webhook_body)
+      else
+        render json: {
+          error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
+        }, status: :not_acceptable
+      end
+    end
+
     protected
 
     def create_user_with(data)
@@ -408,6 +418,8 @@ module Api::V3
             :edit
           when 'retry'
             :retry_task
+          when 'digest'
+            :show
           else
             @_action_name.to_sym
           end
