@@ -31,10 +31,10 @@ module Api::V3
       page = get_page
       res =
         if klass
-          @render_options.delete(:inspecting)
+          @template_options.delete(:inspecting)
           if (model_ignore = klass.index_ignore_properties).present?
-            @render_options[:ignore] =
-              if (ignore_option = @render_options[:ignore])
+            @template_options[:ignore] =
+              if (ignore_option = @template_options[:ignore])
                 unless ignore_option.is_a?(Array)
                   ignore_option = ignore_option.to_s.split(',').collect(&:strip)
                 end
@@ -49,8 +49,8 @@ module Api::V3
             else
               Account::DEFAULT_INDEX_MAX_ENTRIES
             end
-          @render_options[:max_entries] =
-            if (max_entries = @render_options[:max_entries])
+          @template_options[:max_entries] =
+            if (max_entries = @template_options[:max_entries])
               max_entries = max_entries.to_i
               if max_entries == 0 || max_entries > maximum_entries
                 maximum_entries
@@ -62,8 +62,7 @@ module Api::V3
             end
           items = select_items
           items_data = items.map do |item|
-            hash = item.default_hash(@render_options)
-            @view.nil? ? hash : hash[@view]
+            item.default_hash(@template_options)
           end
           count = items.count
           {
@@ -87,7 +86,7 @@ module Api::V3
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
-        render json: @view.nil? ? @item.to_hash(@render_options) : @item.to_hash(@render_options)[@view]
+        render json: @item.to_hash(@template_options)
       end
     end
 
@@ -506,7 +505,6 @@ module Api::V3
       @ns_slug = params[:ns]
       @ns_name = nil
       @model = params[:model]
-      @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
@@ -561,21 +559,21 @@ module Api::V3
         @criteria_options = @criteria_options.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
         @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
-        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
-          @render_options = {}
+        unless (@template_options = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
+          @template_options = {}
         end
-        @render_options = @render_options.with_indifferent_access
+        @template_options = @template_options.with_indifferent_access
         if @criteria && klass
           %w(only ignore embedding).each do |option|
             if @criteria.key?(option) && !klass.property?(option)
               unless (value = @criteria.delete(option)).is_a?(Array)
                 value = value.to_s.split(',').collect(&:strip)
               end
-              @render_options[option] = value
+              @template_options[option] = value
             end
           end
         end
-        if (fields_option = @criteria_options.delete(:fields)) || !@render_options.key?(:only)
+        if (fields_option = @criteria_options.delete(:fields)) || !@template_options.key?(:only)
           fields_option =
             case fields_option
             when Array
@@ -585,10 +583,13 @@ module Api::V3
             else
               fields_option.to_s.split(',').collect(&:strip)
             end
-          @render_options[:only] = fields_option
+          @template_options[:only] = fields_option
         end
-        unless @render_options.key?(:include_id)
-          @render_options[:include_id] = true
+        unless @template_options.key?(:viewport) || @webhook_body.blank?
+          @template_options[:viewport] = @webhook_body
+        end
+        unless @template_options[:viewport] || @template_options.key?(:include_id)
+          @template_options[:include_id] = true
         end
       end
     end
