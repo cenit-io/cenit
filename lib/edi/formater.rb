@@ -332,7 +332,7 @@ module Edi
         include_id = include_id.call(record)
       end
       if include_id
-        entries = do_store(json, 'id', record.id, options)
+        entries = do_store(json, options[:raw_properties] ? '_id' : 'id', record.id, options)
         max_entries -= entries if max_entries
       end
       content_property = nil
@@ -344,8 +344,10 @@ module Edi
         end
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
-        name = property_schema['edi']['segment'] if property_schema['edi']
-        name ||= property_name
+        name = property_name
+        if !options[:raw_properties] && property_schema['edi']
+          name = property_schema['edi']['segment'] || name
+        end
         if property_schema['type'] != 'object' && (schema['properties'].size == 1 || (property_schema['xml'] && property_schema['xml']['content']))
           content_property = name
         end
@@ -442,10 +444,11 @@ module Edi
       if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
         json[content_property]
       else
-        if json.key?('id')
+        if json.key?('id') || json.key?('_id')
           json.delete('_primary')
-        elsif key_properties.include?('id')
+        elsif key_properties.include?('id') || key_properties.include?('_id')
           key_properties.delete('id')
+          key_properties.delete('_id')
           json.delete('_primary') if key_properties.empty?
         end
         json
