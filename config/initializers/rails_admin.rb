@@ -325,15 +325,11 @@ RailsAdmin.config do |config|
 
   Setup::ConnectionRole
 
-  Setup::Section
-
   Setup::Resource
 
   Setup::Webhook
 
   Setup::Operation
-
-  Setup::Representation
 
   Setup::PlainWebhook
 
