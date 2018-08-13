@@ -1,11 +1,11 @@
 module Edi
   module Formatter
 
-    def to_params(options={})
+    def to_params(options = {})
       to_hash(options).to_params(options)
     end
 
-    def to_edi(options={})
+    def to_edi(options = {})
       options.reverse_merge!(field_separator: '*',
                              segment_separator: :new_line,
                              seg_sep_suppress: '<<seg. sep.>>',
@@ -15,21 +15,21 @@ module Edi
       output.join(seg_sep)
     end
 
-    def default_hash(options={})
+    def default_hash(options = {})
       prepare_options(options)
       max_entries = options[:max_entries].to_i
       max_entries = nil if max_entries == 0
-      hash = record_to_hash(self, options, options.delete(:reference), nil, max_entries)
+      hash = record_to_hash(self, options, options.delete(:reference), nil, max_entries, options[:viewport].presence)
       options.delete(:stack)
       hash = { self.orm_model.data_type.slug => hash } if options[:include_root]
       hash
     end
 
-    def to_hash(options={})
+    def to_hash(options = {})
       default_hash(options)
     end
 
-    def to_json(options={})
+    def to_json(options = {})
       hash = to_hash(options)
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
@@ -53,7 +53,7 @@ module Edi
       to_hash(options)
     end
 
-    def share_json(options={})
+    def share_json(options = {})
       hash = share_hash(options)
       options[:pretty] ? JSON.pretty_generate(hash) : hash.to_json
     end
@@ -97,6 +97,70 @@ module Edi
       options[:inspected_records] = Set.new
       options[:stack] = []
       options[:include_id] = include_id.respond_to?(:call) ? include_id : include_id.to_b
+      if (viewport = options[:viewport])
+        if viewport.is_a?(Hash)
+          viewport.stringify_keys!
+        else
+          viewport =
+            begin
+              JSON.parse(viewport.to_s)
+            rescue
+              parse_viewport(viewport.to_s)
+            end
+        end
+        options[:viewport] = viewport
+      end
+    end
+
+    def parse_viewport(value)
+      value = value.to_s.split(' ').map do |seq|
+        seq.chars.inject([]) do |a, char|
+          case char
+          when '{', '}'
+            a << char
+          else
+            case (last = a.pop)
+            when '{', '}'
+              a << last
+              a << char
+            else
+              a << (last || '') + char
+            end
+          end
+          a
+        end
+      end.flatten
+      first = value.shift
+      if first == '{'
+        hash = {}
+        parse_viewport_seq(value, hash)
+        unless value.empty?
+          raise "Unexpected token '#{value.shift}'"
+        end
+        hash
+      else
+        raise "Unexpected token '#{first}'"
+      end
+    end
+
+    def parse_viewport_seq(seq, hash)
+      previous_token = nil
+      until seq.empty?
+        case (token = seq.shift)
+        when '{'
+          if previous_token
+            hash[previous_token] = token_hash = {}
+            parse_viewport_seq(seq, token_hash)
+          else
+            raise "Unexpected token '{'"
+          end
+        when '}'
+          break
+        else
+          hash[token] = true
+          previous_token = token
+        end
+      end
     end
 
     def split_name(name)
@@ -232,7 +296,7 @@ module Edi
       element
     end
 
-    def record_to_hash(record, options = {}, referenced = false, enclosed_model = nil, max_entries = nil)
+    def record_to_hash(record, options, referenced, enclosed_model, max_entries, viewport)
       return record if Cenit::Utility.json_object?(record)
       model =
         begin
@@ -249,7 +313,7 @@ module Edi
           []
         end
       json =
-        if key_properties.present?
+        if viewport.nil? && key_properties.present?
           if referenced
             { '_reference' => true }
           else
@@ -268,7 +332,7 @@ module Edi
         include_id = include_id.call(record)
       end
       if include_id
-        entries = do_store(json, 'id', record.id, options)
+        entries = do_store(json, options[:raw_properties] ? '_id' : 'id', record.id, options)
         max_entries -= entries if max_entries
       end
       content_property = nil
@@ -280,13 +344,17 @@ module Edi
         end
         property_schema = model.property_schema(property_name)
         property_model = model.property_model(property_name)
-        name = property_schema['edi']['segment'] if property_schema['edi']
-        name ||= property_name
+        name = property_name
+        if !options[:raw_properties] && property_schema['edi']
+          name = property_schema['edi']['segment'] || name
+        end
         if property_schema['type'] != 'object' && (schema['properties'].size == 1 || (property_schema['xml'] && property_schema['xml']['content']))
           content_property = name
         end
         can_be_referenced = !(options[:embedding_all] || options[:embedding].include?(name.to_sym))
-        if (inspecting = options[:inspecting].present?)
+        if viewport.is_a?(Hash)
+          next unless viewport[name]
+        elsif (inspecting = options[:inspecting].present?)
           unless (property_model || options[:inspecting].include?(name.to_sym)) && (!referenced || key_properties.include?(property_name))
             key_properties.delete(property_name)
             next
@@ -300,6 +368,10 @@ module Edi
             key_properties.delete(property_name)
             next
           end
+        end
+        property_viewport = viewport.is_a?(Hash) && viewport[name]
+        unless property_viewport.nil?
+          property_viewport = nil unless property_viewport.is_a?(Hash)
         end
         if name != property_name
           key_properties.each_with_index do |p, i|
@@ -319,7 +391,14 @@ module Edi
             new_value = []
             value.each do |sub_record|
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-              new_value << record_to_hash(sub_record, options, referenced_items, property_model, sub_max_entries)
+              new_value << record_to_hash(
+                sub_record,
+                options,
+                referenced_items,
+                property_model,
+                sub_max_entries,
+                property_viewport
+              )
             end
           else
             new_value = nil
@@ -330,7 +409,14 @@ module Edi
         when 'object'
           sub_record = record.send(property_name)
           next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          value = record_to_hash(sub_record, options, can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'], property_model, max_entries && max_entries - 1)
+          value = record_to_hash(
+            sub_record,
+            options,
+            can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'],
+            property_model,
+            max_entries && max_entries - 1,
+            property_viewport
+          )
           entries = do_store(json, name, value, options, key_properties.include?(property_name))
           max_entries -= entries if max_entries
         else
@@ -358,10 +444,11 @@ module Edi
       if content_property && json.size == 1 && options[:inline_content] && json.has_key?(content_property) && !json[content_property].is_a?(Hash)
         json[content_property]
       else
-        if json.key?('id')
+        if json.key?('id') || json.key?('_id')
           json.delete('_primary')
-        elsif key_properties.include?('id')
+        elsif key_properties.include?('id') || key_properties.include?('_id')
           key_properties.delete('id')
+          key_properties.delete('_id')
           json.delete('_primary') if key_properties.empty?
         end
         json
@@ -423,7 +510,7 @@ module Edi
       end
     end
 
-    def record_to_edi(data_type, options, schema, record, enclosed_property_name=nil)
+    def record_to_edi(data_type, options, schema, record, enclosed_property_name = nil)
       output = []
       return output unless record
       field_sep = options[:field_separator]
@@ -514,7 +601,7 @@ end
 
 class Hash
 
-  def to_params(options={})
+  def to_params(options = {})
     unsafe = options[:unsafe]
     sort.map do |k, values|
       if values.is_a?(Array)

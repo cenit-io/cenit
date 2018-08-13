@@ -1,28 +1,40 @@
-module Api::V2
+module Api::V3
   class ApiController < ApplicationController
 
-    before_action :authorize_account, except: [:new_user, :cors_check, :auth]
-    before_action :save_request_data, except: [:cors_check, :auth]
-    before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry]
+    before_action :authorize_account, except: [:new_user, :cors_check]
+    before_action :save_request_data, :allow_origin_header
+    before_action :authorize_action, except: [:new_user, :push, :cors_check] #TODO Review push action
+    before_action :find_item, only: [:update, :show, :destroy, :digest]
 
     rescue_from Exception, :with => :exception_handler
 
     respond_to :json
 
     def cors_check
-      self.cors_header
-      render text: '', content_type: 'text/plain'
+      cors_headers
+      render nothing: true
+    end
+
+    def allow_origin_header
+      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
+    end
+
+    def cors_headers
+      allow_origin_header
+      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector'
+      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
+      headers['Access-Control-Max-Age'] = '1728000'
     end
 
     def index
       page = get_page
       res =
         if klass
-          @render_options.delete(:inspecting)
+          @template_options.delete(:inspecting)
           if (model_ignore = klass.index_ignore_properties).present?
-            @render_options[:ignore] =
-              if (ignore_option = @render_options[:ignore])
+            @template_options[:ignore] =
+              if (ignore_option = @template_options[:ignore])
                 unless ignore_option.is_a?(Array)
                   ignore_option = ignore_option.to_s.split(',').collect(&:strip)
                 end
@@ -37,8 +49,8 @@ module Api::V2
             else
               Account::DEFAULT_INDEX_MAX_ENTRIES
             end
-          @render_options[:max_entries] =
-            if (max_entries = @render_options[:max_entries])
+          @template_options[:max_entries] =
+            if (max_entries = @template_options[:max_entries])
               max_entries = max_entries.to_i
               if max_entries == 0 || max_entries > maximum_entries
                 maximum_entries
@@ -50,16 +62,18 @@ module Api::V2
             end
           items = select_items
           items_data = items.map do |item|
-            hash = item.default_hash(@render_options)
-            @view.nil? ? hash : hash[@view]
+            item.default_hash(@template_options)
           end
           count = items.count
           {
             json: {
-              total_pages: (count*1.0 / get_limit).ceil,
+              total_pages: (count * 1.0 / get_limit).ceil,
               current_page: page,
               count: count,
-              @model.pluralize => items_data
+              items: items_data,
+              data_type: {
+                (@template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
+              }
             }
           }
         else
@@ -75,12 +89,8 @@ module Api::V2
       if @item.orm_model.data_type.is_a?(Setup::FileDataType)
         send_data @item.data, filename: @item[:filename], type: @item[:contentType]
       else
-        render json: @view.nil? ? @item.to_hash(@render_options) : @item.to_hash(@render_options)[@view]
+        render json: @item.to_hash(@template_options)
       end
-    end
-
-    def content
-      render json: @view.nil? ? @item.to_hash : { @view => @item.to_hash[@view] }
     end
 
     def push
@@ -194,59 +204,6 @@ module Api::V2
       end
     end
 
-    def run
-      if @item.is_a?(Setup::Algorithm)
-        begin
-          execution = Setup::AlgorithmExecution.process(algorithm_id: @item.id,
-                                                        input: @webhook_body,
-                                                        skip_notification_level: true)
-          execution.reload
-          render json: execution.to_hash(include_blanks: false)
-        rescue Exception => ex
-          render json: { error: ex.message }, status: 406
-        end
-      else
-        render json: { status: :not_allowed }, status: 405
-      end
-    end
-
-    def pull
-      if @item.is_a?(Setup::CrossSharedCollection)
-        begin
-          pull_request = @webhook_body.present? ? JSON.parse(@webhook_body) : {}
-          render json: @item.pull(pull_request).to_json
-        rescue Exception => ex
-          render json: { error: ex.message, status: :bad_request }
-        end
-      else
-        render json: { status: :not_allowed }
-      end
-    end
-
-    def retry
-      if @item.is_a?(Setup::Task)
-        if @item.can_retry?
-          @item.retry
-          render json: { status: :ok }
-        else
-          render json: { status: "Task #{@item.id} is #{task.sattus}" }, status: :not_acceptable
-        end
-      else
-        render json: { status: :not_allowed }, status: :bad_request
-      end
-    end
-
-    def auth
-      authorize_account
-      if Account.current
-        self.cors_header
-        render json: { status: 'Sucess Auth' }, status: 200
-      else
-        self.cors_header
-        render json: { status: 'Error Auth' }, status: 401
-      end
-    end
-
     USER_MODEL_FIELDS = %w(name email password password_confirmation)
     USER_API_FIELDS = USER_MODEL_FIELDS + %w(token code)
 
@@ -299,6 +256,16 @@ module Api::V2
       render json: response, status: status
     end
 
+    def digest
+      if @item.respond_to?(:digest)
+        render @item.digest(@webhook_body)
+      else
+        render json: {
+          error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
+        }, status: :not_acceptable
+      end
+    end
+
     protected
 
     def create_user_with(data)
@@ -315,7 +282,7 @@ module Api::V2
       ensure
         Account.current = current_account
       end
-      response=
+      response =
         if user.errors.blank?
           status = :ok
           { id: user.id.to_s, number: user.number, token: user.authentication_token }
@@ -454,6 +421,8 @@ module Api::V2
             :edit
           when 'retry'
             :retry_task
+          when 'digest'
+            :show
           else
             @_action_name.to_sym
           end
@@ -475,16 +444,7 @@ module Api::V2
           end
         end
       end
-      cors_header
       success
-    end
-
-    def cors_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
-      headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-Tenant-Access-Key, X-Tenant-Access-Token, X-User-Access-Key, X-User-Access-Token, Authorization'
-      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-      headers['Access-Control-Max-Age'] = '1728000'
     end
 
     def exception_handler(exception)
@@ -494,7 +454,10 @@ module Api::V2
     end
 
     def find_item
-      if (@item = accessible_records.where(id: params[:id]).first)
+      if (id = params[:id]) == 'me' && klass == User
+        id = User.current_id
+      end
+      if (@item = accessible_records.where(id: id).first)
         true
       else
         render json: { status: 'item not found' }, status: :not_found
@@ -557,7 +520,6 @@ module Api::V2
       @ns_slug = params[:ns]
       @ns_name = nil
       @model = params[:model]
-      @view = params[:view]
       @format = params[:format]
       @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case @_action_name
@@ -612,21 +574,21 @@ module Api::V2
         @criteria_options = @criteria_options.with_indifferent_access
         @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
         @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
-        unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
-          @render_options = {}
+        unless (@template_options = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
+          @template_options = {}
         end
-        @render_options = @render_options.with_indifferent_access
+        @template_options = @template_options.with_indifferent_access
         if @criteria && klass
           %w(only ignore embedding).each do |option|
             if @criteria.key?(option) && !klass.property?(option)
               unless (value = @criteria.delete(option)).is_a?(Array)
                 value = value.to_s.split(',').collect(&:strip)
               end
-              @render_options[option] = value
+              @template_options[option] = value
             end
           end
         end
-        if (fields_option = @criteria_options.delete(:fields)) || !@render_options.key?(:only)
+        if (fields_option = @criteria_options.delete(:fields)) || !@template_options.key?(:only)
           fields_option =
             case fields_option
             when Array
@@ -636,10 +598,13 @@ module Api::V2
             else
               fields_option.to_s.split(',').collect(&:strip)
             end
-          @render_options[:only] = fields_option
+          @template_options[:only] = fields_option
         end
-        unless @render_options.key?(:include_id)
-          @render_options[:include_id] = true
+        unless @template_options.key?(:viewport) || @webhook_body.blank?
+          @template_options[:viewport] = @webhook_body
+        end
+        unless @template_options[:viewport] || @template_options.key?(:include_id)
+          @template_options[:include_id] = true
         end
       end
     end

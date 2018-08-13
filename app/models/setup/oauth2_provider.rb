@@ -24,6 +24,7 @@ module Setup
               end
             oauth_provider.response_type = :code
             oauth_provider.token_method = :POST
+            oauth_provider.refresh_token_strategy = :default
             if oauth_provider.changed?
               Setup::SystemReport.create_with(
                 message: 'Cenit OAuth 2.0 provider configuration changed',
