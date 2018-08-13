@@ -22,7 +22,7 @@ module Api::V3
     def cors_headers
       allow_origin_header
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
@@ -70,7 +70,10 @@ module Api::V3
               total_pages: (count * 1.0 / get_limit).ceil,
               current_page: page,
               count: count,
-              @model.pluralize => items_data
+              items: items_data,
+              data_type: {
+                (@template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
+              }
             }
           }
         else
