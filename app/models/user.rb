@@ -98,7 +98,7 @@ class User
   before_save :check_attributes, :ensure_token, :validates_time_zone!, :check_account
 
   def check_account
-    unless accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
+    unless super_admin? || accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
       errors.add(:account, 'is not valid')
     end
     errors.blank?
