@@ -79,28 +79,33 @@ module Setup
     end
 
     def default_refresh_token(authorization)
-      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+      if (refresh_token = authorization.refresh_token) &&
+        (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) < Time.now - 60))
         fail 'Missing client configuration' unless authorization.client
-        http_response = HTTMultiParty.post(authorization.token_endpoint,
-                                           headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
-                                           body: {
-                                             grant_type: :refresh_token,
-                                             refresh_token: authorization.refresh_token,
-                                             client_id: authorization.client.get_identifier,
-                                             client_secret: authorization.client.get_secret
-                                           }.to_param)
+        http_response = HTTMultiParty.post(
+          authorization.token_endpoint,
+          headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
+          body: {
+            grant_type: :refresh_token,
+            refresh_token: refresh_token,
+            client_id: authorization.client.get_identifier,
+            client_secret: authorization.client.get_secret
+          }.to_param
+        )
         body = JSON.parse(http_response.body)
         if http_response.code == 200
-          authorization.authorized_at = Time.now
-          authorization.token_type = body['token_type']
-          authorization.access_token = body['access_token']
-          authorization.token_span = body['expires_in']
-          authorization.save
+          authorization.update!(
+            authorized_at: Time.now,
+            token_type: body['token_type'],
+            access_token: body['access_token'],
+            token_span: body['expires_in']
+          )
         else
           fail "(response code #{http_response.code} - #{body['error']}) #{body['error_description']}"
         end
       end
     rescue Exception => ex
+      Setup::SystemNotification.create_from(ex, "refreshing token for #{authorization.custom_title}")
       raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
     end
 

@@ -143,6 +143,22 @@ module Setup
       end
     end
 
+    def digest(data, options = {})
+      unless data.is_a?(Hash)
+        data = data.to_s
+        data = data.blank? ? nil : JSON.parse(data.to_s)
+      end
+      data = data ? merge_schema(data, options) : merged_schema(options)
+      {
+        json: data
+      }
+    rescue Exception => ex
+      {
+        json: { error: ex.message },
+        status: :bad_request
+      }
+    end
+
     class << self
       def inherited(subclass)
         super

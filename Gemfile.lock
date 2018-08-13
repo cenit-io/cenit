@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 922b4870665d1fbd1903317c19abcad779c280c1
+  revision: 7d13b95aaa9c18be0bc5e50a58c2c7ca73dac85e
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -45,7 +45,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: a5a50d152b76f55c0abc7022262cee65ac8cf8c9
+  revision: c25d088a1be11c14ad26afca3518c2442aecac1c
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
