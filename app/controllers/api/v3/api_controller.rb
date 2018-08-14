@@ -65,16 +65,19 @@ module Api::V3
             item.default_hash(@template_options)
           end
           count = items.count
-          {
-            json: {
-              total_pages: (count * 1.0 / get_limit).ceil,
-              current_page: page,
-              count: count,
-              items: items_data,
-              data_type: {
-                (@template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
-              }
+          json = {
+            current_page: page,
+            count: count,
+            items: items_data,
+            data_type: {
+              (@template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
             }
+          }
+          if get_limit > 0
+            json[:total_pages] = (count * 1.0 / get_limit).ceil
+          end
+          {
+            json: json
           }
         else
           {
@@ -295,9 +298,9 @@ module Api::V3
     def get_limit
       unless @limit
         limit_option = @criteria_options.delete(:limit)
-        limit = (@criteria.delete(:limit) || limit_option).to_i
+        limit = (@criteria.delete(:limit) || limit_option || Kaminari.config.default_per_page).to_i
         @limit =
-          if limit < 1
+          if limit < 0
             Kaminari.config.default_per_page
           else
             [Kaminari.config.default_per_page, limit].min
