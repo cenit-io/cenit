@@ -62,7 +62,9 @@ module Api::V3
             end
           items = select_items
           items_data = items.map do |item|
-            item.default_hash(@template_options)
+            Template.with(item) do |template|
+              template.default_hash(@template_options)
+            end
           end
           count = items.count
           json = {
@@ -89,11 +91,7 @@ module Api::V3
     end
 
     def show
-      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
-        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
-      else
-        render json: @item.to_hash(@template_options)
-      end
+      render json: Template.with(@item) { |template| template.to_hash(@template_options) }
     end
 
     def push
@@ -106,6 +104,7 @@ module Api::V3
       @payload.each do |root, message|
         @model = root
         if authorized_action? && (data_type = @payload.data_type_for(root))
+          parser = Parser.new(data_type)
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             options = @parser_options.merge(create_collector: Set.new).symbolize_keys
@@ -113,9 +112,9 @@ module Api::V3
             if model.is_a?(Class) && model < FieldsInspection
               options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
             end
-            if (record = data_type.send(@payload.create_method,
-                                        @payload.process_item(item, data_type, options),
-                                        options)).errors.blank?
+            if (record = parser.send(@payload.create_method,
+                                     @payload.process_item(item, data_type, options),
+                                     options)).errors.blank?
               success_report[root.pluralize] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
             else
               broken_report[root] << { errors: record.errors.full_messages, item: item }
@@ -135,6 +134,7 @@ module Api::V3
       %w(success warnings errors).each { |key| response[key.to_sym] = Hash.new { |h, k| h[k] = [] } }
       @payload.each do |root, message|
         if (data_type = @payload.data_type_for(root))
+          parser = Parser.new(data_type)
           message = [message] unless message.is_a?(Array)
           message.each do |item|
             begin
@@ -143,9 +143,9 @@ module Api::V3
               if model.is_a?(Class) && model < FieldsInspection
                 options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
               end
-              if (record = data_type.send(@payload.create_method,
-                                          @payload.process_item(item, data_type, options),
-                                          options)).errors.blank?
+              if (record = parser.send(@payload.create_method,
+                                       @payload.process_item(item, data_type, options),
+                                       options)).errors.blank?
                 response[:success][root] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
                 if (warnings = record.try(:warnings))
                   warnings =
@@ -693,14 +693,6 @@ module Api::V3
           fail "JSON object payload expected but #{message.class} found"
         end
       end
-
-      def process_item(item, data_type, options)
-        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
-          item.to_json
-        else
-          item
-        end
-      end
     end
 
     class XMLPayload < BasicPayload
@@ -714,14 +706,42 @@ module Api::V3
           end
         end if block
       end
+    end
 
-      def process_item(item, data_type, options)
-        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
-          item.to_xml
-        else
-          item
-        end
+    class Parser
+      include Setup::DataTypeParser
+
+      def initialize(data_type)
+        @data_type = data_type
       end
+
+      def parser_data_type
+        @data_type
+      end
+
+      def method_missing(symbol, *args, &block)
+        parser_data_type.send(symbol, *args, &block)
+      end
+    end
+
+    class Template
+      class << self
+        include Edi::Formatter
+
+        def with(record)
+          Thread.current[SELF_RECORD_KEY] = record
+          yield self
+        ensure
+          Thread.current[SELF_RECORD_KEY] = nil
+        end
+
+        def self_record
+          Thread.current[SELF_RECORD_KEY]
+        end
+
+      end
+
+      SELF_RECORD_KEY = "[cenit]#{self}.self_record"
     end
   end
 end

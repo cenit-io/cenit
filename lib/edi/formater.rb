@@ -1,6 +1,10 @@
 module Edi
   module Formatter
 
+    def self_record
+      self
+    end
+
     def to_params(options = {})
       to_hash(options).to_params(options)
     end
@@ -10,7 +14,7 @@ module Edi
                              segment_separator: :new_line,
                              seg_sep_suppress: '<<seg. sep.>>',
                              inline_field_separator: ':')
-      output = record_to_edi(data_type = (model = self.orm_model).data_type, options, model.schema, self)
+      output = record_to_edi(data_type = (model = self_record.orm_model).data_type, options, model.schema, self_record)
       seg_sep = options[:segment_separator] == :new_line ? "\r\n" : options[:segment_separator].to_s
       output.join(seg_sep)
     end
@@ -19,9 +23,9 @@ module Edi
       prepare_options(options)
       max_entries = options[:max_entries].to_i
       max_entries = nil if max_entries == 0
-      hash = record_to_hash(self, options, options.delete(:reference), nil, max_entries, options[:viewport].presence)
+      hash = record_to_hash(self_record, options, options.delete(:reference), nil, max_entries, options[:viewport].presence)
       options.delete(:stack)
-      hash = { self.orm_model.data_type.slug => hash } if options[:include_root]
+      hash = { self_record.orm_model.data_type.slug => hash } if options[:include_root]
       hash
     end
 
@@ -35,10 +39,10 @@ module Edi
     end
 
     def share_hash(options = {})
-      if self.class.respond_to?(:share_options)
+      if self_record.class.respond_to?(:share_options)
         options =
           begin
-            options.reverse_merge(self.class.share_options)
+            options.reverse_merge(self_record.class.share_options)
           rescue Exception
             options
           end
@@ -63,7 +67,7 @@ module Edi
       unless (xml_doc = options[:xml_doc])
         options[:xml_doc] = xml_doc = Nokogiri::XML::Document.new
       end
-      element = record_to_xml_element(data_type = self.orm_model.data_type, self.orm_model.schema, self, xml_doc, nil, options, namespaces = {})
+      element = record_to_xml_element(data_type = self_record.orm_model.data_type, self_record.orm_model.schema, self_record, xml_doc, nil, options, namespaces = {})
       namespaces.each do |ns, xmlns|
         if xmlns.empty?
           element['xmlns'] = ns unless ns.blank?
