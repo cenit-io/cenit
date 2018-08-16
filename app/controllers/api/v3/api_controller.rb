@@ -22,7 +22,7 @@ module Api::V3
     def cors_headers
       allow_origin_header
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector X-Digest-Options'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
@@ -754,6 +754,7 @@ module Api::V3
 end
 
 module Setup
+
   class JsonDataType
     def digest(request, options = {})
       data =
@@ -765,6 +766,22 @@ module Setup
         end
       {
         json: data
+      }
+    rescue Exception => ex
+      {
+        json: { error: ex.message },
+        status: :bad_request
+      }
+    end
+  end
+
+  class FileDataType
+
+    def post_digest(request, options = {})
+      request.body.rewind
+      file = create_from(request.body, options)
+      {
+        json: Api::V3::ApiController::Template.with(file) { |template| template.to_hash }
       }
     rescue Exception => ex
       {
