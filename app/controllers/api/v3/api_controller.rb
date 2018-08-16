@@ -260,8 +260,15 @@ module Api::V3
     end
 
     def digest
-      if @item.respond_to?(:digest)
-        render @item.digest(@webhook_body)
+      if @item.respond_to?(method = "#{request.method.to_s.downcase}_digest") || @item.respond_to?(method = :digest)
+        options =
+          begin
+            JSON.parse(request.headers['X-Digest-Options'])
+          rescue
+            nil
+          end
+        options = {} unless options.is_a?(Hash)
+        render @item.send(method, request, options)
       else
         render json: {
           error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
@@ -742,6 +749,28 @@ module Api::V3
       end
 
       SELF_RECORD_KEY = "[cenit]#{self}.self_record"
+    end
+  end
+end
+
+module Setup
+  class JsonDataType
+    def digest(request, options = {})
+      data =
+        if request.get?
+          merged_schema(options)
+        else
+          request.body.rewind #TODO Do not run save_request_data for digest
+          merge_schema(JSON.parse(request.body.read), options)
+        end
+      {
+        json: data
+      }
+    rescue Exception => ex
+      {
+        json: { error: ex.message },
+        status: :bad_request
+      }
     end
   end
 end
