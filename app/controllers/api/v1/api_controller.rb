@@ -276,7 +276,11 @@ module Api::V1
         token = request.headers['X-Hub-Access-Token']
         Account.set_current_with_connection(key, token) if key || token
       end
-      User.current = user || (Account.current ? Account.current.owner : nil)
+      if user
+        User.current = user
+      else
+        User.current ||= (Account.current ? Account.current.owner : nil)
+      end
       @ability = Ability.new(User.current)
       true
     end

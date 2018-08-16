@@ -7,7 +7,7 @@ module Cenit
         case action
         when :new, :upload_file
           Cenit::OauthScope::CREATE_TOKEN
-        when :update
+        when :edit, :update
           Cenit::OauthScope::UPDATE_TOKEN
         when :index, :show
           Cenit::OauthScope::READ_TOKEN
