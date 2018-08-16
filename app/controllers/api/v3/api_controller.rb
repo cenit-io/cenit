@@ -269,6 +269,8 @@ module Api::V3
           end
         options = {} unless options.is_a?(Hash)
         render @item.send(method, request, options)
+      elsif @item.respond_to?(method = "handle_#{request.method.to_s.downcase}_digest")
+        @item.send(method, self)
       else
         render json: {
           error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
@@ -788,6 +790,34 @@ module Setup
         json: { error: ex.message },
         status: :bad_request
       }
+    end
+  end
+end
+
+require 'mongoff/grid_fs/file'
+
+module Mongoff
+  module GridFs
+    class File
+
+      def post_digest(request, options = {})
+        request.body.rewind
+        fill_from(options)
+        self.data = request.body
+        save
+        {
+          json: Api::V3::ApiController::Template.with(self) { |template| template.to_hash }
+        }
+      rescue Exception => ex
+        {
+          json: { error: ex.message },
+          status: :bad_request
+        }
+      end
+
+      def handle_get_digest(controller)
+        controller.send_data(data, filename: filename, type: contentType)
+      end
     end
   end
 end
