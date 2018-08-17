@@ -104,17 +104,17 @@ Cenit::Application.routes.draw do
 
   get 'remote_shared_collection/:id', to: 'rails_admin/main#remote_shared_collection'
   get 'remote_shared_collection/:id/pull', to: 'rails_admin/main#remote_shared_collection'
+
+  namespace :contact_us do
+    controller :contacts do
+      post '/contacts' => :create
+      get :thanks
+    end
+  end
+
   mount RailsAdmin::Engine => '/', as: 'rails_admin'
 
   match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
 
   get '/:model_name/*id', to: 'rails_admin/main#show'
-
-  namespace :contact_us do
-    controller :contacts do
-      post '/contacts' => :create
-    end
-  end
-
-
 end

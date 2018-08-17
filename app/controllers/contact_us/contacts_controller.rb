@@ -6,7 +6,7 @@ module ContactUs
       begin
         verified = ENV['ENABLE_RERECAPTCHA'].to_b.blank? || ENV['RECAPTCHA_SITE_KEY'].blank? || verify_recaptcha(model: @contact)
         if verified && @contact.save
-          redirect_to '/thanks'
+          redirect_to contact_us_thanks_path
         else
           flash[:error] = t('admin.contact_us.notices.error')
           redirect_to root_path
@@ -20,6 +20,9 @@ module ContactUs
 
     def new
       @contact = ContactUs::Contact.new
+    end
+
+    def thanks
     end
 
     private
