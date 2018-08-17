@@ -92,7 +92,7 @@ Cenit::Application.routes.draw do
       get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
       get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
       post '/:ns/:model/:id', to: 'api#update'
-      post '/:ns/:model/:id/digest', to: 'api#digest'
+      match '/:ns/:model/:id/digest', to: 'api#digest', via: [:get, :post]
       delete '/:ns/:model/:id', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
     end
