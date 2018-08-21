@@ -3,6 +3,7 @@ require 'json-schema/attributes/mongoff_required_attribute'
 require 'json-schema/attributes/mongoff_type_attribute'
 require 'json-schema/attributes/mongoff_ref_attribute'
 require 'json-schema/attributes/formats/uint_format'
+require 'json-schema/schema/reader'
 
 module JSON
 
@@ -21,20 +22,25 @@ module JSON
     end
 
     def load_ref_schema(parent_schema, ref)
+      build = true
       ref = [ref] unless ref.is_a?(Array)
       ref.each do |r|
-        schema_uri =
-          if r.is_a?(String)
-            absolutize_ref_uri(r, parent_schema.uri)
-          else
-            r
-          end
-        return true if self.class.schema_loaded?(schema_uri)
-
-        schema = @options[:schema_reader].read(schema_uri)
+        schema_uri = schema = @options[:schema_reader].absolute_ref_uri(r, parent_schema.uri)
+        if schema.is_a?(Hash)
+          schema_uri = Addressable::URI.parse(schema.delete('id')) || absolutize_ref_uri(r, parent_schema.uri)
+        else
+          schema = nil
+        end
+        next if self.class.schema_loaded?(schema_uri)
+        if schema
+          schema = JSON::Schema.new(JSON::Validator.parse(schema.to_json), schema_uri)
+        else
+          schema = @options[:schema_reader].read(schema_uri)
+        end
         self.class.add_schema(schema)
-        build_schemas(schema)
+        build &&= build_schemas(schema)
       end
+      build
     end
   end
 
@@ -42,7 +48,7 @@ module JSON
 
     alias_method :json_schema_init, :initialize
 
-    def initialize(schema, uri, parent_validator=nil)
+    def initialize(schema, uri, parent_validator = nil)
       if uri.is_a?(Hash)
         uri.define_singleton_method(:fragment) { @_fragment }
         uri.define_singleton_method(:fragment=) { |f| @_fragment = f }
@@ -74,6 +80,12 @@ module JSON
       end
 
       JSON::Validator.register_validator(self.new)
+    end
+
+    class Reader
+      def absolute_ref_uri(ref, parent_uri)
+        JSON::Validator.absolutize_ref_uri(ref, parent_uri)
+      end
     end
   end
 end

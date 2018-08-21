@@ -103,12 +103,17 @@ module Setup
     end
 
     def find_ref_schema(ref, root_schema = schema)
-      if ref.is_a?(String) && ref.start_with?('#')
-        get_embedded_schema(ref, root_schema)[1] rescue nil
-      else
-        (data_type = find_data_type(ref)) &&
-          data_type.schema
-      end
+      fragment = ''
+      data_type = self
+      sch =
+        if ref.is_a?(String) && ref.start_with?('#')
+          fragment = "#{ref}"
+          get_embedded_schema(ref, root_schema)[1] rescue nil
+        else
+          (data_type = find_data_type(ref)) &&
+            data_type.schema
+        end
+      sch && sch.merge('id' => "#{Cenit.host}/data_type/#{data_type.id}#{fragment}")
     end
 
     def get_embedded_schema(ref, root_schema, root_name = '')
