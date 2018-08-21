@@ -260,7 +260,9 @@ module Api::V3
     end
 
     def digest
-      if @item.respond_to?(method = "#{request.method.to_s.downcase}_digest") || @item.respond_to?(method = :digest)
+      path = (params[:path] || '').split('/').map(&:presence).compact.join('_').presence
+      path = path ? "digest_#{path}" : :digest
+      if @item.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || @item.respond_to?(method = path)
         options =
           begin
             JSON.parse(request.headers['X-Digest-Options'])
@@ -269,12 +271,107 @@ module Api::V3
           end
         options = {} unless options.is_a?(Hash)
         render @item.send(method, request, options)
-      elsif @item.respond_to?(method = "handle_#{request.method.to_s.downcase}_digest")
+      elsif @item.respond_to?(method = "handle_#{request.method.to_s.downcase}_#{path}")
         @item.send(method, self)
       else
         render json: {
           error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
         }, status: :not_acceptable
+      end
+    end
+
+    attr_reader :model
+
+    def prepare_for(action, options = {})
+      @klass = @ns_name = nil
+      @ns_slug = options[:namespace] || params[:__ns_]
+      @model = options[:model] || params[:__model_]
+      @format = options[:format] || params[:format]
+      @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
+      case action
+      when 'new', 'push', 'update'
+        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
+          @parser_options = {}
+        end
+        params.each do |key, value|
+          next if %w(controller action __ns_ __model_ __id_ format api).include?(key)
+          @parser_options[key] = Cenit::Utility.json_value_of(value)
+        end
+        %w(primary_field primary_fields ignore reset).each do |option|
+          unless (value = @parser_options.delete(option)).is_a?(Array)
+            value = value.to_s.split(',').collect(&:strip)
+          end
+          @parser_options[option] = value
+        end
+        content_type = request.content_type
+        if action == 'push' && %w(application/json application/xml).exclude?(content_type)
+          content_type =
+            begin
+              JSON.parse(@webhook_body)
+              'application/json'
+            rescue Exception
+              begin
+                Nokogiri::XML(@webhook_body)
+                'application/xml'
+              rescue Exception
+                nil
+              end
+            end
+        end
+        @payload =
+          case content_type
+          when 'application/json'
+            JSONPayload
+          when 'application/xml'
+            XMLPayload
+          else
+            BasicPayload
+          end.new(controller: self,
+                  message: @webhook_body,
+                  content_type: content_type)
+      when 'index', 'show'
+        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
+          @criteria = {}
+        end
+        unless (@criteria_options = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
+          @criteria_options = {}
+        end
+        @criteria = @criteria.with_indifferent_access
+        @criteria_options = @criteria_options.with_indifferent_access
+        @criteria.merge!(params.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
+        @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
+        unless (@template_options = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
+          @template_options = {}
+        end
+        @template_options = @template_options.with_indifferent_access
+        if @criteria && klass
+          %w(only ignore embedding).each do |option|
+            if @criteria.key?(option) && !klass.property?(option)
+              unless (value = @criteria.delete(option)).is_a?(Array)
+                value = value.to_s.split(',').collect(&:strip)
+              end
+              @template_options[option] = value
+            end
+          end
+        end
+        if (fields_option = @criteria_options.delete(:fields)) || !@template_options.key?(:only)
+          fields_option =
+            case fields_option
+            when Array
+              fields_option
+            when Hash
+              fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
+            else
+              fields_option.to_s.split(',').collect(&:strip)
+            end
+          @template_options[:only] = fields_option
+        end
+        unless @template_options.key?(:viewport) || @webhook_body.blank?
+          @template_options[:viewport] = @webhook_body
+        end
+        unless @template_options[:viewport] || @template_options.key?(:include_id)
+          @template_options[:include_id] = true
+        end
       end
     end
 
@@ -428,7 +525,7 @@ module Api::V3
         action_symbol =
           case @_action_name
           when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
+            get_data_type(model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'update'
             :edit
           when 'retry'
@@ -466,7 +563,7 @@ module Api::V3
     end
 
     def find_item
-      if (id = params[:id]) == 'me' && klass == User
+      if (id = params[:__id_]) == 'me' && klass == User
         id = User.current_id
       end
       if (@item = accessible_records.where(id: id).first)
@@ -518,7 +615,7 @@ module Api::V3
     end
 
     def klass
-      @klass ||= get_model(@model)
+      @klass ||= get_model(model)
     end
 
     def accessible_records
@@ -529,96 +626,7 @@ module Api::V3
       @data_types ||= {}
       @request_id = request.uuid
       @webhook_body = request.body.read
-      @ns_slug = params[:ns]
-      @ns_name = nil
-      @model = params[:model]
-      @format = params[:format]
-      @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      case @_action_name
-      when 'new', 'push', 'update'
-        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
-          @parser_options = {}
-        end
-        params.each do |key, value|
-          next if %w(controller action ns model format api).include?(key)
-          @parser_options[key] = Cenit::Utility.json_value_of(value)
-        end
-        %w(primary_field primary_fields ignore reset).each do |option|
-          unless (value = @parser_options.delete(option)).is_a?(Array)
-            value = value.to_s.split(',').collect(&:strip)
-          end
-          @parser_options[option] = value
-        end
-        content_type = request.content_type
-        if @_action_name == 'push' && %w(application/json application/xml).exclude?(content_type)
-          content_type =
-            begin
-              JSON.parse(@webhook_body)
-              'application/json'
-            rescue Exception
-              begin
-                Nokogiri::XML(@webhook_body)
-                'application/xml'
-              rescue Exception
-                nil
-              end
-            end
-        end
-        @payload =
-          case content_type
-          when 'application/json'
-            JSONPayload
-          when 'application/xml'
-            XMLPayload
-          else
-            BasicPayload
-          end.new(controller: self,
-                  message: @webhook_body,
-                  content_type: content_type)
-      when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
-          @criteria = {}
-        end
-        unless (@criteria_options = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
-          @criteria_options = {}
-        end
-        @criteria = @criteria.with_indifferent_access
-        @criteria_options = @criteria_options.with_indifferent_access
-        @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
-        @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
-        unless (@template_options = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
-          @template_options = {}
-        end
-        @template_options = @template_options.with_indifferent_access
-        if @criteria && klass
-          %w(only ignore embedding).each do |option|
-            if @criteria.key?(option) && !klass.property?(option)
-              unless (value = @criteria.delete(option)).is_a?(Array)
-                value = value.to_s.split(',').collect(&:strip)
-              end
-              @template_options[option] = value
-            end
-          end
-        end
-        if (fields_option = @criteria_options.delete(:fields)) || !@template_options.key?(:only)
-          fields_option =
-            case fields_option
-            when Array
-              fields_option
-            when Hash
-              fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
-            else
-              fields_option.to_s.split(',').collect(&:strip)
-            end
-          @template_options[:only] = fields_option
-        end
-        unless @template_options.key?(:viewport) || @webhook_body.blank?
-          @template_options[:viewport] = @webhook_body
-        end
-        unless @template_options[:viewport] || @template_options.key?(:include_id)
-          @template_options[:include_id] = true
-        end
-      end
+      prepare_for(@_action_name)
     end
 
     private
@@ -645,7 +653,7 @@ module Api::V3
         controller = config[:controller]
         @data_type =
           begin
-            controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type']))
+            controller.send(:get_data_type, (@root = controller.model || controller.request.headers['data-type']))
           rescue Exception
             nil
           end
@@ -757,8 +765,19 @@ end
 
 module Setup
 
-  class JsonDataType
-    def digest(request, options = {})
+  class DataType
+
+    def handle_get_digest(controller)
+      controller.prepare_for('index', namespace: ns_slug, model: slug)
+      controller.index
+    end
+
+    def handle_post_digest(controller)
+      controller.prepare_for('new', namespace: ns_slug, model: slug)
+      controller.new
+    end
+
+    def digest_schema(request, options = {})
       data =
         if request.get?
           merged_schema(options)
@@ -779,7 +798,7 @@ module Setup
 
   class FileDataType
 
-    def post_digest(request, options = {})
+    def post_digest_upload(request, options = {})
       request.body.rewind
       file = create_from(request.body, options)
       {
