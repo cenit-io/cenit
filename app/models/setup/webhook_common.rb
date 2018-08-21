@@ -184,7 +184,7 @@ module Setup
         .reject! { |_, value| value.nil? }
       halt_anyway = false
       begin
-        if body.nil? && headers['Content-Type'] == 'application/x-www-form-urlencoded'
+        if body.to_s.empty? && headers['Content-Type'] == 'application/x-www-form-urlencoded'
           body = parameters.www_form_encode
           query = nil
         end
