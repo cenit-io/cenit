@@ -24,7 +24,7 @@ module JSON
         end
       end
 
-      def absolute_ref_uri(ref, parent_uri)
+      def absolute_ref_uri(ref, parent_uri, validator)
         if (schema = schema_finder.find_ref_schema(ref))
           if schema.is_a?(Hash)
             schema
