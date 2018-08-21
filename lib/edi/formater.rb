@@ -335,7 +335,7 @@ module Edi
       if (include_id = options[:include_id]).respond_to?(:call)
         include_id = include_id.call(record)
       end
-      if include_id || viewport['id'] || viewport['_id']
+      if include_id || (viewport && (viewport['id'] || viewport['_id']))
         entries = do_store(json, options[:raw_properties] ? '_id' : 'id', record.id, options)
         max_entries -= entries if max_entries
       end
