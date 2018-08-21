@@ -76,7 +76,11 @@ module Setup
     end
 
     def slug
-      build_in.model.to_s.split('::').last.underscore
+      if (model = build_in.model)
+        model.to_s.split('::').last.underscore
+      else
+        super
+      end
     end
 
     class << self
