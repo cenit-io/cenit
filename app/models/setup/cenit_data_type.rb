@@ -75,6 +75,10 @@ module Setup
       self
     end
 
+    def slug
+      build_in.model.to_s.split('::').last.underscore
+    end
+
     class << self
 
       def init!

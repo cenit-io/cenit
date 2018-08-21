@@ -87,13 +87,14 @@ Cenit::Application.routes.draw do
 
     namespace :v3 do
       post '/setup/user', to: 'api#new_user'
-      post '/:ns/push', to: 'api#push'
-      post '/:ns/:model', to: 'api#new'
-      get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
-      get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
-      post '/:ns/:model/:id', to: 'api#update'
-      match '/:ns/:model/:id/digest', to: 'api#digest', via: [:get, :post]
-      delete '/:ns/:model/:id', to: 'api#destroy'
+      post '/:__ns_/push', to: 'api#push'
+      post '/:__ns_/:__model_', to: 'api#new'
+      get '/:__ns_/:__model_', to: 'api#index', defaults: { format: 'json' }
+      get '/:__ns_/:__model_/:__id_', to: 'api#show', defaults: { format: 'json' }
+      post '/:__ns_/:__model_/:__id_', to: 'api#update'
+      match '/:__ns_/:__model_/:__id_/digest', to: 'api#digest', via: [:get, :post]
+      match '/:__ns_/:__model_/:__id_/digest/*path', to: 'api#digest', via: [:get, :post]
+      delete '/:__ns_/:__model_/:__id_', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
     end
   end

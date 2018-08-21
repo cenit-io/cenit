@@ -248,7 +248,7 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { '_id' => { 'type' => 'string', 'edi' => { 'segment' => 'id' } } } }
+      schema = { 'type' => 'object', 'properties' => properties = { } }
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
         next unless !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
