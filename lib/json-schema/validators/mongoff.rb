@@ -25,7 +25,7 @@ module JSON
       build = true
       ref = [ref] unless ref.is_a?(Array)
       ref.each do |r|
-        schema_uri = schema = @options[:schema_reader].absolute_ref_uri(r, parent_schema.uri)
+        schema_uri = schema = @options[:schema_reader].absolute_ref_uri(r, parent_schema.uri, self)
         if schema.is_a?(Hash)
           schema_uri = Addressable::URI.parse(schema.delete('id')) || absolutize_ref_uri(r, parent_schema.uri)
         else
@@ -83,8 +83,8 @@ module JSON
     end
 
     class Reader
-      def absolute_ref_uri(ref, parent_uri)
-        JSON::Validator.absolutize_ref_uri(ref, parent_uri)
+      def absolute_ref_uri(ref, parent_uri, validator)
+        validator.absolutize_ref_uri(ref, parent_uri)
       end
     end
   end
