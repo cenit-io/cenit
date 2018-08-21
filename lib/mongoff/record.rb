@@ -15,9 +15,6 @@ module Mongoff
     def initialize(model, attributes = nil, new_record = true)
       @orm_model = model
       @document = BSON::Document.new
-      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
-        @document[:_id] ||= BSON::ObjectId.new
-      end
       @fields = {}
       @new_record = new_record || false
       model.properties_schemas.each do |property, schema|
@@ -27,6 +24,9 @@ module Mongoff
       end
       assign_attributes(attributes)
       Cenit::Utility.for_each_node_starting_at(self) { |record| record.instance_variable_set(:@new_record, false) } unless @new_record
+      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
+        @document[:_id] ||= BSON::ObjectId.new
+      end
       @changed = false
     end
 
