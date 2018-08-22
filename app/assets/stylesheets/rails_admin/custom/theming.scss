@@ -1633,7 +1633,15 @@ label {
       color: #fff;
     }
   }
-
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="digest"] {
+    color: white;
+    background: rebeccapurple;
+    border-color: rebeccapurple;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
 }
 
 .scope_at_index {

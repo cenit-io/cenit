@@ -13,6 +13,8 @@ module Cenit
           Cenit::OauthScope::READ_TOKEN
         when :destroy
           Cenit::OauthScope::DELETE_TOKEN
+        when :digest
+          Cenit::OauthScope::DIGEST_TOKEN
         else
           nil
         end

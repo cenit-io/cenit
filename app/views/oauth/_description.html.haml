@@ -32,6 +32,8 @@
           I18n.t('admin.oauth.super_methods.update')
         when Cenit::OauthScope::DELETE_TOKEN
           I18n.t('admin.oauth.super_methods.delete')
+        when Cenit::OauthScope::DIGEST_TOKEN
+          I18n.t('admin.oauth.super_methods.digest')
         else
           d
         end
@@ -112,6 +114,8 @@
             key = I18n.t('admin.oauth.access.update')
           when Cenit::OauthScope::DELETE_TOKEN
             key = I18n.t('admin.oauth.access.delete')
+          when Cenit::OauthScope::DIGEST_TOKEN
+            key = I18n.t('admin.oauth.access.digest')
           else
             key
           end
