@@ -530,8 +530,6 @@ module Api::V3
             :edit
           when 'retry'
             :retry_task
-          when 'digest'
-            :show
           else
             @_action_name.to_sym
           end

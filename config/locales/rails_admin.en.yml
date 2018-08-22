@@ -772,11 +772,13 @@ en:
         read: '<strong>Read</strong> records from any data type'
         update: '<strong>Update</strong> records of any data type'
         delete: '<strong>Delete</strong> records from any data type'
+        digest: '<strong>Digest</strong> with records from any data type'
       access:
         create: '<strong>Create</strong> records of the following data types'
         read: '<strong>Read</strong> records from the following data types'
         update: '<strong>Update</strong> records of the following data types'
         delete: '<strong>Delete</strong> records of the following data types'
+        digest: '<strong>Digest</strong> with records of the following data types'
       auth: '<strong>Authorize</strong> other applications'
       auth_desc: 'The application will be able to authorize other applications with its same grants'
       offline_access: 'Acts <strong>in your behalf</strong>'
