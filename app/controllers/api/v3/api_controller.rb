@@ -3,8 +3,9 @@ module Api::V3
 
     before_action :authorize_account, except: [:new_user, :cors_check]
     before_action :save_request_data, :allow_origin_header
-    before_action :authorize_action, except: [:new_user, :push, :cors_check] #TODO Review push action
+    before_action :find_model, except: [:new_user, :cors_check]
     before_action :find_item, only: [:update, :show, :destroy, :digest]
+    before_action :authorize_action, except: [:new_user, :cors_check]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -94,108 +95,41 @@ module Api::V3
       render json: Template.with(@item) { |template| template.to_hash(@template_options) }
     end
 
-    def push
-      response =
-        {
-          success: success_report = Hash.new { |h, k| h[k] = [] },
-          errors: broken_report = Hash.new { |h, k| h[k] = [] }
-        }
-      @parser_options[:add_only] = true unless @parser_options.key?('add_only')
-      @payload.each do |root, message|
-        @model = root
-        if authorized_action? && (data_type = @payload.data_type_for(root))
-          parser = Parser.new(data_type)
-          message = [message] unless message.is_a?(Array)
-          message.each do |item|
-            options = @parser_options.merge(create_collector: Set.new).symbolize_keys
-            model = data_type.records_model
-            if model.is_a?(Class) && model < FieldsInspection
-              options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-            end
-            if (record = parser.send(@payload.create_method,
-                                     @payload.process_item(item, data_type, options),
-                                     options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
-            else
-              broken_report[root] << { errors: record.errors.full_messages, item: item }
-            end
-          end
-        else
-          broken_report[root] = 'no model found'
-        end
-      end
-      response.delete(:success) if success_report.blank?
-      response.delete(:errors) if broken_report.blank?
-      render json: response, status: 202
-    end
-
     def new
-      response = {}
-      %w(success warnings errors).each { |key| response[key.to_sym] = Hash.new { |h, k| h[k] = [] } }
-      @payload.each do |root, message|
-        if (data_type = @payload.data_type_for(root))
-          parser = Parser.new(data_type)
-          message = [message] unless message.is_a?(Array)
-          message.each do |item|
-            begin
-              options = @parser_options.merge(create_collector: Set.new).symbolize_keys
-              model = data_type.records_model
-              if model.is_a?(Class) && model < FieldsInspection
-                options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-              end
-              if (record = parser.send(@payload.create_method,
-                                       @payload.process_item(item, data_type, options),
-                                       options)).errors.blank?
-                response[:success][root] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
-                if (warnings = record.try(:warnings))
-                  warnings =
-                    begin
-                      warnings.to_json
-                    rescue
-                      nil
-                    end
-                  response[:warnings][root] << { record.id.to_s => JSON.parse(warnings) } if warnings
-                end
-              else
-                response[:errors][root] << { errors: record.errors.full_messages, item: item }
-              end
-            rescue Exception => ex
-              response[:errors][root] = { errors: ex.message, item: item }
-            end
-          end
-        else
-          response[:errors][root] = 'no model found'
-        end
+      @parser_options.merge(create_collector: Set.new).symbolize_keys
+      if klass.is_a?(Class) && klass < FieldsInspection
+        options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
       end
-      response.reject! { |_, v| v.blank? }
-      render json: response
+      parser = Parser.new(klass.data_type)
+      record = parser.create_from(@webhook_body, @parser_options)
+      if record.errors.blank?
+        render json: Template.with(record) { |template| template.to_hash(include_id: true) }
+      else
+        render json: { errors: record.errors.full_messages }, status: :unprocessable_entity
+      end
     end
 
     def update
-      @payload.each do |_, message|
-        message = message.first if message.is_a?(Array)
-        @parser_options[:add_only] = true
-        @item.send(@payload.update_method, message, @parser_options)
-        save_options = {}
-        if @item.class.is_a?(Class) && @item.class < FieldsInspection
-          save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+      @parser_options[:add_only] = true
+      @item.fill_from(@webhook_body, @parser_options)
+      save_options = {}
+      if @item.class.is_a?(Class) && @item.class < FieldsInspection
+        save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+      end
+      if Cenit::Utility.save(@item, save_options)
+        if (warnings = @item.try(:warnings))
+          warnings =
+            begin
+              warnings.to_json
+            rescue
+              nil
+            end
+          response.headers['X-Warnings'] = warnings if warnings
         end
-        if Cenit::Utility.save(@item, save_options)
-          if (warnings = @item.try(:warnings))
-            warnings =
-              begin
-                warnings.to_json
-              rescue
-                nil
-              end
-            response.headers['X-Warnings'] = warnings if warnings
-          end
-          find_item
-          render json: @item.to_hash, status: :ok
-        else
-          render json: { errors: @item.errors.full_messages }, status: :not_acceptable
-        end
-        break
+        find_item
+        render json: @item.to_hash
+      else
+        render json: { errors: @item.errors.full_messages }, status: :unprocessable_entity
       end
     end
 
@@ -289,7 +223,7 @@ module Api::V3
       @format = options[:format] || params[:format]
       @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       case action
-      when 'new', 'push', 'update'
+      when 'new', 'update'
         unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
           @parser_options = {}
         end
@@ -303,32 +237,6 @@ module Api::V3
           end
           @parser_options[option] = value
         end
-        content_type = request.content_type
-        if action == 'push' && %w(application/json application/xml).exclude?(content_type)
-          content_type =
-            begin
-              JSON.parse(@webhook_body)
-              'application/json'
-            rescue Exception
-              begin
-                Nokogiri::XML(@webhook_body)
-                'application/xml'
-              rescue Exception
-                nil
-              end
-            end
-        end
-        @payload =
-          case content_type
-          when 'application/json'
-            JSONPayload
-          when 'application/xml'
-            XMLPayload
-          else
-            BasicPayload
-          end.new(controller: self,
-                  message: @webhook_body,
-                  content_type: content_type)
       when 'index', 'show'
         unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
           @criteria = {}
@@ -524,12 +432,8 @@ module Api::V3
       if klass
         action_symbol =
           case @_action_name
-          when 'push'
-            get_data_type(model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'update'
             :edit
-          when 'retry'
-            :retry_task
           else
             @_action_name.to_sym
           end
@@ -558,6 +462,15 @@ module Api::V3
       responder = Cenit::Responder.new(@request_id, exception)
       render json: responder, root: false, status: responder.code
       false
+    end
+
+    def find_model
+      if klass
+        true
+      else
+        render json: { status: 'model not found' }, status: :not_found
+        false
+      end
     end
 
     def find_item
@@ -630,98 +543,6 @@ module Api::V3
     private
 
     attr_reader :webhook_body
-
-    class BasicPayload
-
-      attr_reader :config
-
-      def initialize(config)
-        @config =
-          {
-            method_suffix: case config[:content_type]
-                           when 'application/json'
-                             :from_json
-                           when 'application/xml'
-                             :from_xml
-                           else
-                             :from
-                           end,
-            message: ''
-          }.merge(config || {})
-        controller = config[:controller]
-        @data_type =
-          begin
-            controller.send(:get_data_type, (@root = controller.model || controller.request.headers['data-type']))
-          rescue Exception
-            nil
-          end
-      end
-
-      def create_method
-        "create_#{config[:method_suffix]}"
-      end
-
-      def update_method
-        suffix = config[:method_suffix]
-        if suffix == :from
-          'fill_from'
-        else
-          suffix
-        end
-      end
-
-      def message
-        config[:message]
-      end
-
-      def each_root(&block)
-        block.call(@root, message) if block
-      end
-
-      def each(&block)
-        if @data_type
-          block.call(@data_type.slug, message)
-        else
-          each_root(&block)
-        end
-      end
-
-      def process_item(item, data_type, options)
-        item
-      end
-
-      def data_type_for(root)
-        @data_type && @data_type.slug == root ? @data_type : config[:controller].send(:get_data_type, root)
-      end
-    end
-
-    class JSONPayload < BasicPayload
-
-      def message
-        @message ||= JSON.parse(msg = super)
-      end
-
-      def each_root(&block)
-        if message.is_a?(Hash)
-          message.each { |root, message| block.call(root, message) }
-        else
-          fail "JSON object payload expected but #{message.class} found"
-        end
-      end
-    end
-
-    class XMLPayload < BasicPayload
-
-      def each_root(&block)
-        if (roots = Nokogiri::XML::DocumentFragment.parse(message).element_children)
-          roots.each do |root|
-            if (elements = root.element_children)
-              elements.each { |e| block.call(root.name, e) }
-            end
-          end
-        end if block
-      end
-    end
 
     class Parser
       include Setup::DataTypeParser

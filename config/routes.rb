@@ -87,7 +87,6 @@ Cenit::Application.routes.draw do
 
     namespace :v3 do
       post '/setup/user', to: 'api#new_user'
-      post '/:__ns_/push', to: 'api#push'
       post '/:__ns_/:__model_', to: 'api#new'
       get '/:__ns_/:__model_', to: 'api#index', defaults: { format: 'json' }
       get '/:__ns_/:__model_/:__id_', to: 'api#show', defaults: { format: 'json' }
