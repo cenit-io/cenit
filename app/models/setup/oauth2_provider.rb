@@ -9,6 +9,12 @@ module Setup
 
     validates_length_of :scope_separator, maximum: 1
 
+    after_save :default_scope
+
+    def default_scope
+      Setup::Oauth2Scope.find_or_create_by(origin: origin, provider_id: id, name: '{{scope}}')
+    end
+
     class << self
 
       def build_in_provider_id

@@ -42,7 +42,7 @@ module Setup
       fail NotImplementedError
     end
 
-    def create_authorization!(auth_data={})
+    def create_authorization!(auth_data = {})
       auth_class =
         if provider.class == Setup::OauthProvider
           Setup::OauthAuthorization
@@ -53,8 +53,16 @@ module Setup
       auth.name = auth_data[:name] || "#{provider.name.to_title} #{auth_class.to_s.split('::').last.to_title} #{auth.id}"
       if auth_class == Setup::Oauth2Authorization
         scope_names = auth_data[:scopes] || []
-        scope_names = [scope_names] unless scope_names.is_a?(Array)
-        scopes = Setup::Oauth2Scope.where(provider: provider).any_in(name: scope_names)
+        if scope_names.is_a?(Array)
+          scopes = Setup::Oauth2Scope.where(provider: provider).any_in(name: scopes)
+        else
+          unless (templates = auth_data[:template_parameters])
+            templates = auth_data[:template_parameters] = {}
+          end
+          templates['scope'] = scope_names
+          scopes = [provider.default_scope]
+          scope_names = [scopes.first.name]
+        end
         scope_names.each do |scope_name|
           if (scope = scopes.detect { |scp| scp.name == scope_name })
             auth.scopes << scope
