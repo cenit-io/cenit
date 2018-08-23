@@ -54,7 +54,7 @@ module Setup
       if auth_class == Setup::Oauth2Authorization
         scope_names = auth_data[:scopes] || []
         if scope_names.is_a?(Array)
-          scopes = Setup::Oauth2Scope.where(provider: provider).any_in(name: scopes)
+          scopes = Setup::Oauth2Scope.where(provider: provider).any_in(name: scope_names)
         else
           unless (templates = auth_data[:template_parameters])
             templates = auth_data[:template_parameters] = {}
