@@ -8,14 +8,14 @@ module Mongoff
         errors[:'$'] = errors.delete(:base)
       end
       properties.each do |name|
-        next unless (model = property_model(name))
+        next unless (model = property_model(name)) && model.modelable?
         errors[name] =
           if (base_errors = errors[name])
             { '$': base_errors }
           else
             {}
           end
-        if associations[name].many?
+        if (associations[name.to_s] || associations[name.to_sym]).many?
           association_errors = record.send(name).map do |associated|
             model.pretty_errors(associated)
           end
@@ -23,7 +23,7 @@ module Mongoff
             errors[name]['errors'] = association_errors
           end
         else
-          association_errors = model(name).pretty_errors(record.send(name))
+          association_errors = model.pretty_errors(record.send(name))
           if association_errors.present?
             errors[name]['errors'] = association_errors
           end
