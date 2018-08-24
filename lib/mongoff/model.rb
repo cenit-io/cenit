@@ -5,6 +5,7 @@ module Mongoff
   class Model
     include Setup::InstanceModelParser
     include MetadataAccess
+    include PrettyErrors
     include ThreadAware
     include DateTimeCharts::ClassMethods
 
