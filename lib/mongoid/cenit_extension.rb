@@ -35,6 +35,7 @@ module Mongoid
     module ClassMethods
 
       include Mongoff::MetadataAccess
+      include Mongoff::PrettyErrors
 
       def mongo_value(value, field, schema = nil, &success_block)
         if field && (property_model = property_model(field)).is_a?(Mongoff::Model)
