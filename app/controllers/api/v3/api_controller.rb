@@ -30,7 +30,6 @@ module Api::V3
 
     def index
       setup_viewport
-      page = get_page
       template_options.delete(:inspecting)
       if (model_ignore = klass.index_ignore_properties).present?
         template_options[:ignore] =
@@ -61,14 +60,19 @@ module Api::V3
           maximum_entries
         end
       items = select_items
-      items_data = items.map do |item|
-        Template.with(item) do |template|
-          template.default_hash(template_options)
+      items_data =
+        if get_limit == 0
+          []
+        else
+          items.map do |item|
+            Template.with(item) do |template|
+              template.default_hash(template_options)
+            end
+          end
         end
-      end
       count = items.count
       json = {
-        current_page: page,
+        current_page: get_page,
         count: count,
         items: items_data,
         data_type: {
@@ -210,6 +214,7 @@ module Api::V3
       @model = options[:model] || params[:__model_]
       @format = options[:format] || params[:format]
       @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
+      query_selector
     end
 
     protected
@@ -295,6 +300,10 @@ module Api::V3
           selector = selector.with_indifferent_access
           selector.merge!(params.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
           selector.each { |key, value| selector[key] = Cenit::Utility.json_value_of(value) }
+          %w(page limit).each do |key|
+            next unless selector.key?(key) && !klass.property?(key)
+            query_options[key] = selector.delete(key)
+          end
           selector
         end
     end
@@ -338,7 +347,7 @@ module Api::V3
 
     def get_page
       @page ||=
-        if (page = query_selector.delete(:page))
+        if (page = query_options.delete(:page))
           page.to_i
         else
           1
