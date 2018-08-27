@@ -59,6 +59,12 @@ class SessionsController < Devise::SessionsController
     end
   end
 
+  def require_no_authentication
+    r = super
+    flash.delete(:alert) if @auth_token_user
+    r
+  end
+
   protected
 
   def allow_x_frame
@@ -70,6 +76,7 @@ class SessionsController < Devise::SessionsController
       (token = ::Cenit::AuthToken.where(token: token).first) &&
       (data = token.data).is_a?(Hash) &&
       (@auth_token_user = ::User.where(email: (email = data['email'])).first)
+      sign_in(@auth_token_user)
       ::TourTrack.where(user_email: email).delete_all
     end
     true
