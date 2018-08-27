@@ -19,6 +19,7 @@ class TourTrack
         attributes = anonymous ? { ip: ip } : { user_email: user.email, ip: ip }
         new(attributes).save
       end
+      show_tour
     end
   end
 end
