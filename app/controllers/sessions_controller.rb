@@ -10,7 +10,8 @@ class SessionsController < Devise::SessionsController
           {}
         end.to_json
       client = OAuth2::Client.new(ENV['OPEN_ID_CLIENT_ID'], ENV['OPEN_ID_CLIENT_SECRET'], authorize_url: ENV['OPEN_ID_AUTH_URL'])
-      redirect_to client.auth_code.authorize_url(scope: 'openid',
+      redirect_to client.auth_code.authorize_url(
+        scope: 'openid',
         redirect_uri: ENV['OPEN_ID_REDIRECT_URI'],
         state: state,
         with: provider)
@@ -29,7 +30,7 @@ class SessionsController < Devise::SessionsController
         resource = resource_class.find_or_create_by(email: id_token['email'])
         resource.confirmed_at = Time.now
         resource.password = pwd = Devise.friendly_token
-        resource.password_confirmation= pwd
+        resource.password_confirmation = pwd
         resource.save
         set_flash_message(:notice, :signed_in) if is_flashing_format?
         yield resource if block_given?
@@ -44,6 +45,12 @@ class SessionsController < Devise::SessionsController
         end
         super
       end
+    elsif (token = params[:token]) &&
+      (token = ::Cenit::AuthToken.where(token: token).first) &&
+      (data = token.data).is_a?(Hash) &&
+      (user = ::User.where(email: email = data['email']).first)
+      ::TourTrack.where(user_email: email).delete_all
+      sign_in_and_redirect user
     else
       if params[:return_to]
         resource = resource_class.new(sign_in_params)
