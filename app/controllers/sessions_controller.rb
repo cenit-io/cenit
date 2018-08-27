@@ -1,4 +1,7 @@
 class SessionsController < Devise::SessionsController
+
+  prepend_before_filter :inspect_auth_token
+
   before_action :allow_x_frame
 
   def new
@@ -45,12 +48,8 @@ class SessionsController < Devise::SessionsController
         end
         super
       end
-    elsif (token = params[:token]) &&
-      (token = ::Cenit::AuthToken.where(token: token).first) &&
-      (data = token.data).is_a?(Hash) &&
-      (user = ::User.where(email: email = data['email']).first)
-      ::TourTrack.where(user_email: email).delete_all
-      sign_in_and_redirect user
+    elsif @auth_token_user
+      sign_in_and_redirect @auth_token_user
     else
       if params[:return_to]
         resource = resource_class.new(sign_in_params)
@@ -64,5 +63,15 @@ class SessionsController < Devise::SessionsController
 
   def allow_x_frame
     response.headers.delete('X-Frame-Options')
+  end
+
+  def inspect_auth_token
+    if (token = params[:token]) &&
+      (token = ::Cenit::AuthToken.where(token: token).first) &&
+      (data = token.data).is_a?(Hash) &&
+      (@auth_token_user = ::User.where(email: (email = data['email'])).first)
+      ::TourTrack.where(user_email: email).delete_all
+    end
+    true
   end
 end
