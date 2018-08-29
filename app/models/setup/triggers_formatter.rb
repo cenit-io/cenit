@@ -50,7 +50,7 @@ module Setup
               field_changed(obj_now, obj_before, field_name)
           else
             r &&= condition_apply(obj_now, obj_before, field_name, condition) &&
-              !condition_apply(obj_before, obj_now, field_name, condition)
+              (obj_before.nil? || !condition_apply(obj_before, obj_now, field_name, condition))
           end
         end
 
