@@ -23,6 +23,7 @@ module Setup
         super(attrs, selected_fields) do |doc|
           binds.each do |metadata|
             if (id = Setup::Binding.id_for(doc, metadata.klass))
+              doc.changed_attributes[metadata.foreign_key] = doc.attributes[metadata.foreign_key]
               doc.attributes[metadata.foreign_key] = id
             end
           end
