@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include RailsAdmin::Models::Setup::CategoryAdmin
 
-    build_in_data_type
+    build_in_data_type.and({ properties: { id: { type: 'string' } } })
 
     deny :all
     allow :index, :show, :simple_export, :export
