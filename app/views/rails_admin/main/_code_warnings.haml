@@ -1,0 +1,42 @@
+- default_snippet = @object.default_snippet
+- current_snippet = @object.snippet_ref
+- if default_snippet
+  .alert.alert-warning
+    %p
+      = "The default snippet ref is pointing to #{default_snippet.custom_title}"
+  - if @object.shared? && (default_snippet.not_shared? || (@object.origin == :shared && default_snippet.origin != :shared))
+    .alert.alert-danger
+      %p
+        = "This #{@model_config.label} and the default snippet are not in the same sharing scope!"
+    .alert.alert-warning
+      %p
+        = "Go to #{default_snippet.custom_title} cross it to the <strong>#{@object.origin}</strong> scope".html_safe
+- else
+  .alert.alert-danger
+    %p
+      = "The default snippet ref is broken or unreachable!"
+  - if @object.creator == User.current
+    .alert.alert-warning
+      %p
+        = "However you're the creator of this code, continue and save to set this code as default."
+- if current_snippet.new_record?
+  - if @object.snippet_ref_binding
+    .alert.alert-danger
+      %p
+        = "There's a snippet ref binding and it's broken!"
+    .alert.alert-warning
+      %p
+        = "The broken ref binding will be fixed when saved. Go to the bindings configuration and delete the binding to use the default code."
+- else
+  - unless default_snippet.nil? || default_snippet == current_snippet
+    .alert.alert-warning
+      %p
+        = "Go to the bindings configuration and delete the binding to use the default code."
+  - if current_snippet.shared?
+    .alert.alert-warning
+      %p
+        = "You're seeing the code from #{current_snippet.custom_title} which is shared and therefore not editable. If you continue and save a new snippet will be created."
+  - else
+    .alert.alert-warning
+      %p
+        = "You're editing #{current_snippet.custom_title}."
