@@ -8,7 +8,7 @@ module RailsAdmin
           included do
             rails_admin do
               navigation_label 'Monitors'
-              navigation_icon 'fa fa-code-fork'
+              navigation_icon 'fa fa-history'
               object_label_method :label
               weight 600
               visible true
