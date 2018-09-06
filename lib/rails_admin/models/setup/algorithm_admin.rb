@@ -21,6 +21,16 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            configure :code_warning do
+              read_only true
+              help ''
+              warning = proc do
+                bindings[:view].render partial: 'code_warnings'
+              end
+              pretty_value(&warning)
+              formatted_value(&warning)
+            end
+
             configure :code, :code do
               help { 'Required' }
               code_config do
@@ -49,6 +59,11 @@ module RailsAdmin
               field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :parameters, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :language, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :code_warning do
+                visible do
+                  !bindings[:object].new_record?
+                end
+              end
               field :code
               field :call_links do
                 shared_read_only
@@ -65,6 +80,7 @@ module RailsAdmin
               field :description
               field :language
               field :parameters
+              field :code_warning
               field :code
               field :call_links
               field :tags

@@ -192,7 +192,7 @@ class Ability
       end
 
       @@shared_allowed.each do |keys, models|
-        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'tenant_id' => user.account.id }] }
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'creator_id' => user.id }] }
       end
 
       can :manage, Mongoff::Model

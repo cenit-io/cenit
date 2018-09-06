@@ -1,0 +1,53 @@
+- js_data = { suffix_name: '_id', xhr: true, remote_source: index_path(@abstract_model.to_param, compact: true) }
+%form.form-horizontal.denser
+  %fieldset
+    .form-group.control-group
+      %label.col-sm-2.control-label
+        = "Base #{@model_config.label}"
+      .col-sm-10.controls
+        = select_tag 'base_id', options_for_select({@base_label => @base_id}, @base_id), {data: { filteringselect: true, options: js_data.to_json }, placeholder: t('admin.misc.search'), include_blank: true}
+        - if @touched && @base_id.nil?
+          %span.help-inline.text-danger
+            = "Please select a base #{@model_config.label}"
+        %span.help-block
+          = "The base #{@model_config.label} to compare with"
+    .form-group.control-group
+      %label.col-sm-2.control-label
+        = "Fork #{@model_config.label}"
+      .col-sm-10.controls
+        = select_tag 'fork_id', options_for_select({@fork_label => @fork_id}, @fork_id), {data: { filteringselect: true, options: js_data.to_json }, placeholder: t('admin.misc.search'), include_blank: true}
+        - if @touched && @fork_id.nil?
+          %span.help-inline.text-danger
+            = "Please select a fork #{@model_config.label}"
+        %span.help-block
+          = "The fork #{@model_config.label} to compare"
+    .form-group.control-group
+      %label.col-sm-2.control-label
+        = "Properties"
+      .col-sm-10.controls
+        = select_tag 'properties', options_for_select(@properties, @comparing_properties), {class: 'select-tag', multiple: true}
+        - if @touched && @comparing_properties.empty?
+          %span.help-inline.text-danger
+            = 'Select at least one property to compare'
+        %span.help-block
+          = "Properties to compare"
+
+  .form-group.form-actions
+    .col-sm-offset-2.col-sm-10
+      - if @can_merge
+        %button.btn.btn-danger{type: 'submit', name: '_merge', 'data-disable-with': label = 'Merge'}
+          = label
+      %button.btn.btn-primary{type: 'submit', 'data-disable-with': label = wording_for(:menu, @action)}
+        %i{class: @action.try(:link_icon)}
+        = label + (@diff ? ' again' : '')
+      %button.btn{type: 'submit', name: '_continue', (@action.class.try(:disable_buttons?) ? :'data-disable-with' : nil) => t('admin.form.cancel')}
+        %i.icon-remove
+        = t('admin.form.cancel')
+
+.clearfix
+
+- if @diff
+  .changes
+    = @diff[:html]
+- elsif @base_id && @fork_id && @comparing_properties.present?
+  .alert.alert-info= 'No changes detected'

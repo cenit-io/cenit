@@ -1,0 +1,61 @@
+- snippet_model = RailsAdmin.config(Setup::Snippet).abstract_model
+- if (default_snippet = @object.default_snippet)
+  - default_link = capture_haml do
+    %a{href: rails_admin.show_path(model_name: snippet_model.to_param, id: default_snippet.id)}
+      = default_snippet.custom_title
+- if (current_snippet = @object.snippet_ref)
+  - current_link = capture_haml do
+    %a{href: rails_admin.show_path(model_name: snippet_model.to_param, id: current_snippet.id)}
+      = current_snippet.custom_title
+- binding_model = RailsAdmin.config(Setup::Binding).abstract_model
+- delete_bindings= capture_haml do
+  = 'Go to the '
+  %a{href: rails_admin.index_path(model_name: binding_model.to_param)}
+    = 'bindings configuration'
+  =' and delete the binding to use the default code.'
+- if default_snippet
+  .alert.alert-warning
+    %p
+      = "The default snippet ref is pointing to #{default_link}".html_safe
+      - if default_snippet == current_snippet
+        = ' and is actually the current code.'
+  - if @object.shared? && (default_snippet.not_shared? || (@object.origin == :shared && default_snippet.origin != :shared))
+    .alert.alert-danger
+      %p
+        = "This #{@model_config.label} and the default snippet are not in the same sharing scope!"
+    .alert.alert-warning
+      %p
+        = "Go to #{default_link} cross it to the <strong>#{@object.origin}</strong> scope".html_safe
+- else
+  .alert.alert-danger
+    %p
+      = "The default snippet ref is broken or unreachable!"
+  - if @object.creator == User.current
+    .alert.alert-warning
+      %p
+        = "However you're the creator of this code, continue and save to set this code as default."
+- if current_snippet.new_record?
+  - if @object.snippet_ref_binding
+    .alert.alert-danger
+      %p
+        = "There's a snippet ref binding and it's broken!"
+    .alert.alert-warning
+      %p
+        = "The broken ref binding will be fixed when saved. #{delete_bindings}".html_safe
+- else
+  - unless default_snippet.nil? || default_snippet == current_snippet
+    .alert.alert-warning
+      %p
+        = delete_bindings.html_safe
+  - if current_snippet.shared?
+    .alert.alert-warning
+      %p
+        = "You're seeing the code from #{current_link} which is shared and therefore not editable. If you continue and save a new snippet will be created.".html_safe
+  - elsif default_snippet != current_snippet
+    .alert.alert-warning
+      %p
+        = "This code is from #{current_link}".html_safe
+        - if default_snippet
+          = ', to <strong>compare</strong> with the default code'.html_safe
+          %a{href: rails_admin.compare_path(model_name: snippet_model.to_param, base_id: default_snippet.id, fork_id: current_snippet.id, properties: %w(code))}
+            ='click here.'

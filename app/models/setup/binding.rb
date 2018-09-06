@@ -61,6 +61,12 @@ module Setup
     end
 
     class << self
+      def bind_bind_id_for(binder, bind_model)
+        bind_id = bind_id(bind_model)
+        bind = where(binder_id(binder) => binder.id, bind_id.to_sym.exists => true).first
+        [bind, bind_id]
+      end
+
       def id_for(binder, bind_model)
         bind_id = bind_id(bind_model)
         if (bind = where(binder_id(binder) => binder.id,
@@ -100,7 +106,7 @@ module Setup
         binder = binder.class unless binder.is_a?(Class)
         "#{binder.mongoid_root_class.to_s.split('::').last.underscore}_binder_id"
       end
-      
+
     end
   end
 end

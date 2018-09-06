@@ -57,7 +57,7 @@ module RailsAdmin
         end
 
         register_instance_option :link_icon do
-          'fa fa-code-fork'
+          'fa fa-history'
         end
 
         register_instance_option :listing? do
