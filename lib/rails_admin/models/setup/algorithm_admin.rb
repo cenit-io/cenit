@@ -24,9 +24,6 @@ module RailsAdmin
             configure :code_warning do
               read_only true
               help ''
-              visible do
-                !bindings[:object].new_record?
-              end
               warning = proc do
                 bindings[:view].render partial: 'code_warnings'
               end
@@ -62,7 +59,11 @@ module RailsAdmin
               field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :parameters, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :language, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
-              field :code_warning
+              field :code_warning do
+                visible do
+                  !bindings[:object].new_record?
+                end
+              end
               field :code
               field :call_links do
                 shared_read_only

@@ -39,13 +39,13 @@ module Mongoid
           [
             Setup::Algorithm,
             Setup::Connection,
-            Setup::JsonDataType
+            Setup::JsonDataType,
+            Setup::Snippet
           # Setup::PlainWebhook,
           # Setup::Resource,
           # Setup::Flow,
           # Setup::Oauth2Scope,
-          # Setup::Snippet,
-          # Setup::RemoteOauthClient
+           # Setup::RemoteOauthClient
           ] -
           [
             Setup::CenitDataType
