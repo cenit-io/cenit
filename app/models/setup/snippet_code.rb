@@ -68,7 +68,7 @@ module Setup
         end
         snippet_ref.name = name
       elsif snippet_ref.changed_attributes.key?('code') && snippet_ref.origin != :default
-        self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
+        self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, v| v.nil? || %w(_id origin).include?(key) })
         name = snippet_ref.name
         i = 0
         while Setup::Snippet.where(namespace: namespace, name: name).exists?
