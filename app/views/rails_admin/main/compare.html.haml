@@ -34,7 +34,7 @@
 
   .form-group.form-actions
     .col-sm-offset-2.col-sm-10
-      - if @diff
+      - if @can_merge
         %button.btn.btn-danger{type: 'submit', name: '_merge', 'data-disable-with': label = 'Merge'}
           = label
       %button.btn.btn-primary{type: 'submit', 'data-disable-with': label = wording_for(:menu, @action)}

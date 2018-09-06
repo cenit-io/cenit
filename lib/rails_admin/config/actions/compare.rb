@@ -74,7 +74,7 @@ module RailsAdmin
                 trace = ::Mongoid::Tracer::Trace.new(base_record.trace_action_attributes(:update))
                 @diff = build_diff(@abstract_model, trace.changes_set(base_trace))
                 unless @diff[:additions] + @diff[:deletions] > 0
-                  @diff = nill
+                  @can_merge = @diff = nill
                 end
               end
             end
