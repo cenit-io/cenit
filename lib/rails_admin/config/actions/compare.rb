@@ -68,7 +68,7 @@ module RailsAdmin
                   handle_save_error
                 end
               else
-                mirror_record = @abstract_model.model.new(base_record.attributes)
+                mirror_record = @abstract_model.model.new(base_record.attributes.reject { |_, v| v.nil? })
                 base_trace = ::Mongoid::Tracer::Trace.new(mirror_record.trace_action_attributes(:create))
                 base_record.fill_from(hash)
                 trace = ::Mongoid::Tracer::Trace.new(base_record.trace_action_attributes(:update))
