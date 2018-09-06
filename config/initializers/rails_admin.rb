@@ -105,7 +105,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo,
   RailsAdmin::Config::Fields::Types::SortReverseString,
   RailsAdmin::Config::Fields::Types::AutoComplete,
-  RailsAdmin::Config::Fields::Types::ToggleBoolean
+  RailsAdmin::Config::Fields::Types::ToggleBoolean,
+  RailsAdmin::Config::Fields::Types::CodeWarnings
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'

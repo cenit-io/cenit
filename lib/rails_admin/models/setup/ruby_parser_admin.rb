@@ -18,6 +18,8 @@ module RailsAdmin
 
             configure :discard_events, :toggle_boolean
 
+            configure :code_warnings, :code_warnings
+
             configure :code, :code do
               code_config do
                 {
@@ -39,9 +41,20 @@ module RailsAdmin
               field :discard_events do
                 shared_read_only
               end
+              field :code_warnings
               field :code, :code do
                 help { 'Required' }
               end
+            end
+
+            show do
+              field :namespace
+              field :name
+              field :target_data_type
+              field :discard_events
+              field :code_warnings
+              field :code
+              field :updated_at
             end
 
             fields :namespace, :name, :target_data_type, :code, :updated_at

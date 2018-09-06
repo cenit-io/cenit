@@ -13,6 +13,8 @@ module RailsAdmin
 
             hide_on_navigation
 
+            configure :code_warnings, :code_warnings
+
             configure :code, :code do
               code_config do
                 {
@@ -63,10 +65,22 @@ module RailsAdmin
                 visible { !bindings[:object].file_extension_enum.empty? }
                 help { "Extensions for #{bindings[:object].mime_type}" }
               end
+              field :code_warnings
               field :code, :code do
                 visible { bindings[:object].ready_to_save? }
                 help { 'Required' }
               end
+            end
+
+            show do
+              field :namespace
+              field :name
+              field :source_data_type
+              field :mime_type
+              field :file_extension
+              field :code_warnings
+              field :code
+              field :updated_at
             end
 
             fields :namespace, :name, :source_data_type, :mime_type, :file_extension, :code, :updated_at

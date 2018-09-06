@@ -13,6 +13,8 @@ module RailsAdmin
             label 'XSLT Validator'
             object_label_method { :custom_title }
 
+            configure :code_warnings, :code_warnings
+
             configure :code, :code do
               code_config do
                 {
@@ -30,10 +32,11 @@ module RailsAdmin
             edit do
               field :namespace, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :code_warnings
               field :code
             end
 
-            fields :namespace, :name, :code, :updated_at
+            fields :namespace, :name, :code_warnings, :code, :updated_at
           end
         end
 

@@ -12,6 +12,8 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            configure :code_warnings, :code_warnings
+
             configure :schema, :code do
               code_config do
                 if bindings[:object].schema_type == :json_schema
@@ -38,6 +40,7 @@ module RailsAdmin
                 end
               end
 
+              field :code_warnings
               field :schema
 
               field :schema_data_type do
@@ -50,6 +53,7 @@ module RailsAdmin
             show do
               field :namespace
               field :uri
+              field :code_warnings
               field :schema
               field :schema_data_type
 

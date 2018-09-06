@@ -26,6 +26,10 @@
     .alert.alert-warning
       %p
         = "Go to #{default_link} cross it to the <strong>#{@object.origin}</strong> scope".html_safe
+- elsif @object.new_record?
+  .alert.alert-warning
+    %p
+      = "A new snippet will be created and set as default."
 - else
   .alert.alert-danger
     %p
