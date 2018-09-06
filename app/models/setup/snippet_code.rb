@@ -21,17 +21,36 @@ module Setup
 
       trace_ignore :snippet_id
 
-      before_save do
-        if snippet_required?
-          configure_snippet
-          if snippet_ref.changed? && !snippet_ref.save
-            snippet_ref.errors.full_messages.each do |msg|
-              errors.add(:code, msg)
-            end
+      before_save :check_snippet
+    end
+
+    def default_snippet_id
+      instance_variable_get(:@_binding_shadow_snippet_id)
+    end
+
+    def default_snippet
+      @default_snippet ||= Setup::Snippet.where(id: default_snippet_id).first
+    end
+
+    def snippet_ref_binding
+      instance_variable_get(:@_snippet_id_binding)
+    end
+
+    def check_snippet
+      if snippet_required?
+        configure_snippet
+        if snippet_ref.changed? && !snippet_ref.save
+          snippet_ref.errors.full_messages.each do |msg|
+            errors.add(:code, msg)
           end
         end
-        errors.blank?
+        if default_snippet
+          self.changed_attributes.delete('snippet_id')
+        elsif User.current == creator
+          self.changed_attributes['snippet_id'] ||= default_snippet_id
+        end
       end
+      errors.blank?
     end
 
     # TODO Remove when refactoring translators and included only on code required models
@@ -48,8 +67,7 @@ module Setup
           name = snippet_name("(#{i += 1})")
         end
         snippet_ref.name = name
-      elsif snippet_ref.changed_attributes.key?('code') &&
-            snippet_ref.tenant != Cenit::MultiTenancy.tenant_model.current
+      elsif snippet_ref.changed_attributes.key?('code') && snippet_ref.origin != :default
         self.snippet = Setup::Snippet.new(snippet_ref.attributes.reject { |key, _| %w(_id origin).include?(key) })
         name = snippet_ref.name
         i = 0

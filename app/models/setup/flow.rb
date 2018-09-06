@@ -407,7 +407,9 @@ module Setup
         end - 1
       translation_options = nil
       connections_present = true
+      records_processed = false
       0.step(max, limit) do |offset|
+        records_processed = true
         next unless connections_present
         verbose_response =
           webhook.target.with(connection_role).and(authorization).submit(
@@ -462,6 +464,8 @@ module Setup
         end
         connections_present = verbose_response[:connections_present]
       end
+      Setup::SystemNotification.create(warning: "No connections processed") unless connections_present
+      Setup::SystemNotification.create(warning: "No records processed") unless records_processed
     end
 
     def unsuccessful_response(http_response, task_msg)

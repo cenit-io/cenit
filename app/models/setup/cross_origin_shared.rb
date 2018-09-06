@@ -33,7 +33,7 @@ module Setup
     end
 
     def validates_before
-      self.tenant = Account.current if new_record?
+      self.tenant = Account.current if new_record? || tenant.nil?
     end
 
     def tracing?
