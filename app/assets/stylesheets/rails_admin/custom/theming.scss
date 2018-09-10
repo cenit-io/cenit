@@ -2783,9 +2783,17 @@ li.no-childrens {
 }
 
 .popover-title {
-  background: #f9f9f9;
-  color: #ea7400;
+  background: #3d4046;
+  color: white;
   font-weight: bold;
+}
+
+.popover-content {
+  background: beige;
+}
+
+.popover-navigation{
+  background: beige;
 }
 
 .panel[id^='main-dashboard-'] .nav-icon {

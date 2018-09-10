@@ -52,6 +52,6 @@
             .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
           -else
             .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
-- tour = TourTrack.show_tour?(request.remote_ip, User.current) && (User.current ? 'user' : 'anonymous')
+- tour = User.current.present? && TourTrack.show_tour?(request.remote_ip, User.current)
 :javascript
-  var doStartTour = '#{tour}';
+  var doStartTour = #{tour};
