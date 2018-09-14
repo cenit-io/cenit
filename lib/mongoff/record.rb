@@ -293,9 +293,11 @@ module Mongoff
       end
     end
 
-    def eql?(other)
+    def ==(other)
       other.is_a?(Mongoff::Record) && other.orm_model.eql?(orm_model) && other.id.eql?(id)
     end
+
+    alias eql? ==
 
     def _reload
       {}.merge(orm_model.collection.find(_id: _id).read(mode: :primary).first || {})
