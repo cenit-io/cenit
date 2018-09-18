@@ -90,11 +90,8 @@ module Mongoff
     end
 
     def validate
-      unless @vailidated
-        errors.clear
-        orm_model.fully_validate_against_schema(attributes).each do |error|
-          errors.add(:base, error[:message])
-        end
+      unless @validated
+        Mongoff::Validator.soft_validates(self, skip_nulls: true)
         @validated = true
       end
     end
