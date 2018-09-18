@@ -184,6 +184,34 @@ module Mongoff
       raise "must be strictly greater than #{value}" if value && (minimum = state[:minimum]) && instance.is_a?(Numeric) && instance <= minimum
     end
 
+    # Validation Keywords for Strings
+
+    def check_schema_maxLength(value)
+      _check_type(:maxLength, value, Integer)
+      raise "Invalid value for maxLength, a non negative value is expected" if value < 0
+    end
+
+    def check_maxLength(value, instance)
+      raise "is too long (#{instance.length} of #{value} max)" if instance.is_a?(String) && instance.length > value
+    end
+
+    def check_schema_minLength(value)
+      _check_type(:maxLength, value, Integer)
+      raise "Invalid value for minLength, a non negative value is expected" if value < 0
+    end
+
+    def check_minLength(value, instance)
+      raise "is too short (#{instance.length} for #{value} min)" if instance.is_a?(String) && instance.length < value
+    end
+
+    def check_schema_pattern(value)
+      _check_type(:pattern, value, String)
+    end
+
+    def check_pattern(value, instance)
+      raise "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
+    end
+
     # Utilities
 
     def _check_type(key, value, *klasses)
