@@ -21,7 +21,8 @@ module Setup
     end
 
     def do_configure_when_save?
-      shared? && User.current != creator
+      auth_user = (Tenant.current && Tenant.current.owner) || User.current
+      shared? && auth_user != creator
     end
 
     module ClassMethods
@@ -35,6 +36,6 @@ module Setup
       end
 
     end
-    
+
   end
 end
