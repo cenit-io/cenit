@@ -212,6 +212,97 @@ module Mongoff
       raise "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
     end
 
+    # Validation Keywords for Arrays
+
+    def check_schema_items(items_schema)
+      _check_type(:items, items_schema, Hash, Array)
+      if items_schema.is_a?(Hash)
+        validate(items_schema)
+      else # Is an array
+        raise "array of schemas for items is not yet supported" # TODO Support array of schemas for items and additionalItems validation keyword
+      end
+    end
+
+    def check_items(items_schema, items, _, data_type, options)
+      if items.is_a?(Mongoff::RecordArray)
+        items_schema = items.orm_model.schema
+        data_type = items.orm_model.data_type
+        has_errors = false
+        items.each do |item|
+          item.errors.clear
+          begin
+            validate_instance(item, items_schema, data_type, options)
+          rescue RuntimeError => ex
+            item.errors.add(:base, ex.message)
+          end
+          has_errors ||= item.errors.present?
+        end
+        raise SoftError, 'has errors' if has_errors
+      elsif items.is_a?(Array)
+        items_schema = data_type.merge_schema(items_schema)
+        items.each_with_index do |item, index|
+          begin
+            validate_instance(item, items_schema, data_type, options)
+          rescue RuntimeError => ex
+            raise "on item #{index}, #{ex.message}"
+          end
+        end
+      end
+    end
+
+    def check_schema_maxItems(max)
+      _check_type(:maxItems, max, Integer)
+      raise "Invalid value for maxItems, a non negative value is expected" if max < 0
+    end
+
+    def check_maxItems(max, items)
+      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+        raise "has too many items (#{instance.count} of #{max} max)" if items.count > max
+      end
+    end
+
+    def check_schema_minItems(min)
+      _check_type(:minItems, min, Integer)
+      raise "Invalid value for minItems, a non negative value is expected" if min < 0
+    end
+
+    def check_minItems(min, items)
+      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+        raise "has too few items (#{instance.count} for #{min} min)" if items.count < min
+      end
+    end
+
+    def check_schema_uniqueItems(unique)
+      _check_type(:uniqueItems, unique, Boolean)
+    end
+
+    def check_uniqueItems(min, items)
+      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+        set = Set.new(items)
+        raise "items are not unique" if set.count < items.count
+      end
+    end
+
+    def check_schema_contains(schema)
+      validate(schema)
+    end
+
+    def check_contains(schema, items, _, data_type, options)
+      schema = data_type.merge_schema(schema)
+      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+        data_type = items.orm_model.data_type if items.is_a?(Mongoff::RecordArray)
+        items.each do |item|
+          begin
+            validate_instance(item, schema, data_type, options)
+            return
+          rescue
+            next
+          end
+        end
+        raise 'no item match against the contains schema'
+      end
+    end
+
     # Utilities
 
     def _check_type(key, value, *klasses)
