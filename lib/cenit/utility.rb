@@ -193,7 +193,7 @@ module Cenit
       end
 
       def save_references(record, options, saved, visited = Set.new)
-        return true if !record.changed? || visited.include?(record)
+        return true if visited.include?(record)
         visited << record
         if (model = record.try(:orm_model))
           model.for_each_association do |relation|
