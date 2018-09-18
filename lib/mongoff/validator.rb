@@ -303,6 +303,187 @@ module Mongoff
       end
     end
 
+    # Validation Keywords for Objects
+
+    def check_schema_properties(value)
+      _check_type(:properties, value, Hash)
+      value.each do |property, schema|
+        begin
+          validate(schema)
+        rescue RuntimeError => ex
+          raise "Property #{property} schema is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_properties(properties, instance, state, data_type, options)
+      unless (checked_properties = state[:checked_properties])
+        checked_properties = state[:checked_properties] = Set.new
+      end
+      if instance.is_a?(Mongoff::Record)
+        unless state[:instance_clear]
+          instance.errors.clear
+          state[:instance_clear]
+        end
+        if instance.changed?
+          model = instance.orm_model
+          model.stored_properties_on(instance).each do |property|
+            next unless properties.key?(property)
+            checked_properties << property
+            begin
+              property_data_type =
+                if (property_model = model.property_model(property))
+                  property_model.data_type
+                else
+                  data_type
+                end
+              validate_instance(instance[property], model.property_schema(property), property_data_type, options)
+            rescue RuntimeError => ex
+              instance.errors.add(property, ex.message)
+            end
+          end
+        end
+        raise SoftError, 'has errors' if instance.errors.present?
+      elsif instance.is_a?(Hash)
+        instance.each do |property, value|
+          next unless properties.key?(property)
+          checked_properties << property
+          validate_instance(value, data_type.merge_schema(properties[property]), data_type, options)
+        end
+      end
+    end
+
+    def check_schema_maxProperties(max)
+      _check_type(:maxProperties, max, Integer)
+      raise "Invalid value for maxProperties, a non negative value is expected" if max < 0
+    end
+
+    def check_maxProperties(max, instance)
+      if instance.is_a?(Mongoff::Record) || instance.is_a?(Hash)
+        instance = instance.orm_model.stored_properties_on(instance) if instance.is_a?(Mongoff::Record)
+        raise "has too many properties (#{instance.size} of #{max} max)" if instance.size > max
+      end
+    end
+
+    def check_schema_minProperties(min)
+      _check_type(:minProperties, min, Integer)
+      raise "Invalid value for minProperties, a non negative value is expected" if min < 0
+    end
+
+    def check_minProperties(min, instance)
+      if instance.is_a?(Mongoff::Record) || instance.is_a?(Hash)
+        instance = instance.orm_model.stored_properties_on(instance) if instance.is_a?(Mongoff::Record)
+        raise "has too few properties (#{instance.size} for #{min} min)" if instance.size < min
+      end
+    end
+
+    def check_schema_patternProperties(value)
+      _check_type(:properties, value, Hash)
+      value.each do |pattern, schema|
+        begin
+          raise "Property pattern #{pattern} is not regex compatible" unless pattern.is_a?(String)
+          validate(schema)
+        rescue RuntimeError => ex
+          raise "Property pattern #{pattern} schema is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_patternProperties(patterns, instance, state, data_type, options)
+      unless (checked_properties = state[:checked_properties])
+        checked_properties = state[:checked_properties] = Set.new
+      end
+      patterns = patterns.collect { |pattern, schema| [Regex.new(pattern), schema] }.to_h
+      merged_schemas = {}
+      if instance.is_a?(Mongoff::Record)
+        unless state[:instance_clear]
+          instance.errors.clear
+          state[:instance_clear]
+        end
+        if instance.changed?
+          model = instance.orm_model
+          model.stored_properties_on(instance).each do |property|
+            pattern = patterns.keys.detect { |regex| regex.match(property) }
+            next unless pattern
+            checked_properties << property
+            begin
+              property_data_type =
+                if (property_model = model.property_model(property))
+                  property_model.data_type
+                else
+                  data_type
+                end
+              unless (schema = merged_schemas[property])
+                schema = merged_schemas[property] = property_data_type.merge_schema(patterns[pattern])
+              end
+              validate_instance(instance[property], schema, property_data_type, options)
+            rescue RuntimeError => ex
+              instance.errors.add(property, "#{ex.message} (against additional property pattern #{pattern})")
+            end
+          end
+        end
+        raise SoftError, 'has errors' if instance.errors.present?
+      elsif instance.is_a?(Hash)
+        instance.each do |property, value|
+          pattern = patterns.keys.detect { |regex| regex.match(property) }
+          next unless pattern
+          checked_properties << property
+          unless (schema = merged_schemas[property])
+            schema = merged_schemas[property] = data_type.merge_schema(patterns[pattern])
+          end
+          begin
+            validate_instance(value, schema, data_type, options)
+          rescue RuntimeError => ex
+            "#{ex.message} (against additional property pattern #{pattern})"
+          end
+        end
+      end
+    end
+
+    def check_schema_additionalProperties(schema)
+      validate(schema)
+    end
+
+    def check_additionalProperties(schema, instance, state, data_type, options)
+      unless (checked_properties = state[:checked_properties])
+        checked_properties = state[:checked_properties] = Set.new
+      end
+      schema = data_type.merge_schema(schema)
+      if instance.is_a?(Mongoff::Record)
+        unless state[:instance_clear]
+          instance.errors.clear
+          state[:instance_clear]
+        end
+        if instance.changed?
+          model = instance.orm_model
+          model.stored_properties_on(instance).each do |property|
+            next if checked_properties.key?(property)
+            begin
+              property_data_type =
+                if (property_model = model.property_model(property))
+                  property_model.data_type
+                else
+                  data_type
+                end
+              validate_instance(instance[property], schema, property_data_type, options)
+            rescue RuntimeError => ex
+              instance.errors.add(property, "#{ex.message} (against additional properties schema)")
+            end
+          end
+        end
+        raise SoftError, 'has errors' if instance.errors.present?
+      elsif instance.is_a?(Hash)
+        instance.each do |property, value|
+          next if checked_properties.key?(property)
+          begin
+            validate_instance(value, schema, data_type, options)
+          rescue RuntimeError => ex
+            raise "#{ex.message} (against additional properties schema)"
+          end
+        end
+      end
+    end
+
     # Utilities
 
     def _check_type(key, value, *klasses)
