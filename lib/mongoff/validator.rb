@@ -106,6 +106,40 @@ module Mongoff
       raise "Invalid schema type #{type}" unless type.nil? || TYPE_MAP.key?(type.to_s.to_sym)
     end
 
+    # Validation Keywords for Any Instance Type
+
+    def check_type(type, instance, _, _, options)
+      return if instance.nil? && options[:skip_nulls]
+      type =
+        if (instance.is_a?(Mongoff::Record) || instance.is_a?(Mongoff::RecordArray)) && instance.orm_model.modelable?
+          if type == 'object'
+            :record
+          else
+            :record_array
+          end
+        else
+          type && type.to_sym
+        end
+      if type
+        raise "of type #{instance.class} is not an instance for type #{type}" unless instance.is_a?(TYPE_MAP[type])
+      else
+        raise "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
+      end
+    end
+
+    def check_schema_enum(enum)
+      raise "Invalid schema enum of type #{enum.class}, array is expected" unless enum.is_a?(Array)
+    end
+
+    def check_enum(enum, instance)
+      raise "is not included in the enumeration" unless enum.include?(instance)
+    end
+
+    def check_const(const, instance)
+      raise "is not the const value #{const}" unless const == instance
+    end
+
+
     # Utilities
 
     def _check_type(key, value, *klasses)
