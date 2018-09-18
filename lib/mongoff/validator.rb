@@ -139,6 +139,50 @@ module Mongoff
       raise "is not the const value #{const}" unless const == instance
     end
 
+    # Validation Keywords for Numeric Instances (number and integer)
+
+    def check_schema_multipleOf(value)
+      _check_type(:multipleOf, value, Numeric)
+      raise "Invalid value for multipleOf, strictly greater than zero is expected" unless value > 0
+    end
+
+    def check_multipleOf(value, instance)
+      raise "is not multiple of #{value}" if instance.is_a?(Numeric) && instance % value != 0
+    end
+
+    def check_schema_maximum(value)
+      _check_type(:maximum, value, Numeric)
+    end
+
+    def check_maximum(value, instance, state)
+      raise "maximum is #{value}" if instance.is_a?(Numeric) && instance > value
+      state[:maximum] = value
+    end
+
+    def check_schema_exclusiveMaximum(value)
+      _check_type(:exclusiveMaximum, value, Boolean)
+    end
+
+    def check_exclusiveMaximum(value, instance, state)
+      raise "must be strictly less than #{value}" if value && (maximum = state[:maximum]) && instance.is_a?(Numeric) && instance >= maximum
+    end
+
+    def check_schema_minimum(value)
+      _check_type(:minimum, value, Numeric)
+    end
+
+    def check_minimum(value, instance, state)
+      raise "minimum is #{value}" if instance.is_a?(Numeric) && instance < value
+      state[:minimum] = value
+    end
+
+    def check_schema_exclusiveMinimum(value)
+      _check_type(:exclusiveMinimum, value, Boolean)
+    end
+
+    def check_exclusiveMinimum(value, instance, state)
+      raise "must be strictly greater than #{value}" if value && (minimum = state[:minimum]) && instance.is_a?(Numeric) && instance <= minimum
+    end
 
     # Utilities
 
