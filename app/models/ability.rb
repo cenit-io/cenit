@@ -191,8 +191,15 @@ class Ability
         can keys, models, { 'origin' => 'default' }
       end
 
+      creator_id =
+        if Account.current && Account.current.owner
+          Account.current.owner.id
+        else
+          user.id
+        end
+
       @@shared_allowed.each do |keys, models|
-        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'creator_id' => user.id }] }
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'creator_id' => creator_id }] }
       end
 
       can :manage, Mongoff::Model

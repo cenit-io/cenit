@@ -89,7 +89,10 @@ module Mongoff
         if properties_models.key?(property)
           model = properties_models[property]
         else
-          ref, property_dt = check_referenced_schema(property_schema)
+          ref, property_dt = nil
+          unless Mongoff::Validator::INSTANCE_VALIDATION_KEYWORDS.any? { |keyword| property_schema.key?(keyword) }
+            ref, property_dt = check_referenced_schema(property_schema)
+          end
           model =
             if ref
               if property_dt
