@@ -484,6 +484,39 @@ module Mongoff
       end
     end
 
+    def check_schema_propertyNames(schema)
+      validate(schema)
+    end
+
+    def check_propertyNames(schema, instance, state, data_type, options)
+      schema = data_type.merge_schema(schema)
+      if instance.is_a?(Mongoff::Record)
+        unless state[:instance_clear]
+          instance.errors.clear
+          state[:instance_clear]
+        end
+        if instance.changed?
+          model = instance.orm_model
+          model.stored_properties_on(instance).each do |property|
+            begin
+              validate_instance(property, schema, data_type, options)
+            rescue RuntimeError => ex
+              instance.errors.add(property, "name does not match the property names schema (#{ex.message})")
+            end
+          end
+        end
+        raise SoftError, 'has errors' if instance.errors.present?
+      elsif instance.is_a?(Hash)
+        instance.keys.each do |property|
+          begin
+            validate_instance(property, schema, data_type, options)
+          rescue RuntimeError => ex
+            raise "property name #{property} does not match property manes schema (#{ex.message})"
+          end
+        end
+      end
+    end
+
     # Utilities
 
     def _check_type(key, value, *klasses)
