@@ -48,9 +48,6 @@ module RailsAdmin
           configure :password do
             group :credentials
           end
-          configure :password_confirmation do
-            group :credentials
-          end
           configure :key do
             group :credentials
           end
@@ -99,9 +96,6 @@ module RailsAdmin
               visible { ::User.current_super_admin? }
             end
             field :password do
-              visible { ::User.current_super_admin? }
-            end
-            field :password_confirmation do
               visible { ::User.current_super_admin? }
             end
             field :key do
