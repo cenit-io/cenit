@@ -16,9 +16,6 @@
         - if @minimum_password_length
           %em= "#{@minimum_password_length} characters minimum"
         = f.password_field :password, autofocus: true, autocomplete: "off", class: 'form-control'
-      .field.text-justify
-        = f.label :password_confirmation, "Confirm new password"
-        = f.password_field :password_confirmation, autocomplete: "off", class: 'form-control'
       .actions
         %button.btn.btn-primary.pull-right{type:'submit'}
           = t('admin.forgotten.edit_submit')

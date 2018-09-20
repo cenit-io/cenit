@@ -133,13 +133,13 @@ module Api::V3
       end
     end
 
-    USER_MODEL_FIELDS = %w(name email password password_confirmation)
+    USER_MODEL_FIELDS = %w(name email password)
     USER_API_FIELDS = USER_MODEL_FIELDS + %w(token code)
 
     def new_user
       data = (JSON.parse(request_data) rescue {}).keep_if { |key, _| USER_API_FIELDS.include?(key) }
       data = data.with_indifferent_access
-      data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
+      data.reverse_merge!(email: params[:email], password: pwd = params[:password])
       data.reject! { |_, value| value.nil? }
       status = :not_acceptable
       response =
@@ -167,7 +167,6 @@ module Api::V3
           end
         elsif data[:email]
           data[:password] = Devise.friendly_token unless data[:password]
-          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
           if (user = User.new(data)).valid?(context: :create)
             if (captcha_token = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
               status = :ok
@@ -311,7 +310,6 @@ module Api::V3
     def create_user_with(data)
       status = :not_acceptable
       data[:password] ||= Devise.friendly_token
-      data[:password_confirmation] ||= data[:password]
       data.reject! { |key, _| USER_MODEL_FIELDS.exclude?(key) }
       current_account = Account.current
       begin

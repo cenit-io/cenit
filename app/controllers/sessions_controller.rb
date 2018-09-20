@@ -33,7 +33,6 @@ class SessionsController < Devise::SessionsController
         resource = resource_class.find_or_create_by(email: id_token['email'])
         resource.confirmed_at = Time.now
         resource.password = pwd = Devise.friendly_token
-        resource.password_confirmation = pwd
         resource.save
         set_flash_message(:notice, :signed_in) if is_flashing_format?
         yield resource if block_given?
