@@ -13,7 +13,7 @@ module RailsAdmin
 
     def ordered_filter_string
       @ordered_filter_string ||= ordered_filters.map do |duplet|
-        options = {index: duplet[0]}
+        options = { index: duplet[0] }
         filter_for_field = duplet[1]
         filter_name = filter_for_field.keys.first
         filter_hash = filter_for_field.values.first
@@ -28,8 +28,8 @@ module RailsAdmin
           options[:datetimepicker_format] = field.parser.to_momentjs
         end
         options[:label] = field.label
-        options[:name]  = field.name
-        options[:type]  = field.filter_type
+        options[:name] = field.name
+        options[:type] = field.filter_type
         options[:value] = filter_hash['v'].to_s #Patch Better String when value is a BSON::ObjectId foe instead
         options[:label] = field.label
         options[:operator] = filter_hash['o']
@@ -39,6 +39,48 @@ module RailsAdmin
 
     def filterable_fields
       @filterable_fields ||= @model_config.filter_fields
+    end
+
+    def with_cache_key?(key)
+      key = "@@_#{key}"
+      RailsAdmin::MainController.class_variable_defined?(key)
+    rescue
+      false
+    end
+
+    def with_cache_key(key, value = nil, &block)
+      key = "@@_#{key}"
+      if RailsAdmin::MainController.class_variable_defined?(key)
+        cache = RailsAdmin::MainController.class_variable_get(key)
+      else
+        cache = value || block.call
+        RailsAdmin::MainController.class_variable_set(key, cache)
+      end
+      cache
+    rescue
+      value || block.call
+    end
+
+    def with_cache_user_key(key, value = nil, &block)
+      with_cache_key(cache_user_key(key), value, &block)
+    end
+
+    def with_cache_user_key?(key)
+      with_cache_key?(cache_user_key(key))
+    end
+
+    def cache_user_key(key)
+      user_key =
+        if (user = User.current)
+          if user.super_admin?
+            :super_admin
+          else
+            :admin
+          end
+        else
+          :anonymous
+        end
+      "#{key}_#{user_key}"
     end
   end
 end
