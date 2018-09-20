@@ -7,6 +7,7 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Definitions'
+            label 'JSON Type'
             weight 111
             object_label_method { :custom_title }
 
