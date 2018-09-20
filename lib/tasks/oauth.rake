@@ -50,7 +50,6 @@ namespace :admin do
       end
       attributes = {
         :password => password,
-        :password_confirmation => password,
         :email => email
       }
 
