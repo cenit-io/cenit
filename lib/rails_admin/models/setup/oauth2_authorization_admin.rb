@@ -38,9 +38,13 @@ module RailsAdmin
                 visible { bindings[:object].ready_to_save? }
                 associated_collection_scope do
                   limit = (associated_collection_cache_all ? nil : 30)
-                  provider_id = (obj = bindings[:object]) && obj.provider_id
+                  provider_id = (obj = bindings[:object]) && (obj = obj.provider) && obj.id
                   Proc.new do |scope|
-                    scope.where(provider_id: provider_id).limit(limit)
+                    if provider_id
+                      scope.where(provider_id: provider_id)
+                    else
+                      scope
+                    end.limit(limit)
                   end
                 end
               end
