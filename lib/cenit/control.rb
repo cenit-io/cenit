@@ -147,14 +147,16 @@ module Cenit
 
     def access_token_for(auth)
       fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
-      unless (app_id = Cenit::ApplicationId.where(identifier: auth.client && auth.client.get_identifier).first)
-        fail "Invalid authorization client: #{auth.client.custom_title}"
+      unless auth.client == app  && (app_id = app.application_id)
+        fail 'Invalid authorization client'
       end
-      scope = auth.scopes.collect { |scope| Cenit::OauthScope.new(scope.name) }.inject(&:merge)
-      if scope.valid? && scope.auth?
-        Cenit::OauthAccessToken.for(app_id, scope, User.current)
+      unless (access_grant = Cenit::OauthAccessGrant.where(application_id: app_id).first)
+        fail 'No access granted'
+      end
+      if access_grant.oauth_scope.auth?
+        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
       else
-        fail 'Invalid authorization scope'
+        fail 'Authorization scope granted does not include auth'
       end
     end
 
