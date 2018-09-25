@@ -43,6 +43,8 @@ module RailsAdmin
             list do
               field :name
               field :registered
+              field :oauth_name
+              field :slug
               field :tenant_id
               field :identifier
               field :updated_at
