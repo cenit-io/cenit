@@ -149,29 +149,14 @@ module Cenit
       unless (app_id = app.application_id)
         fail 'Invalid App, the app identifier ref is broken!'
       end
-      unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id._id).first)
+      unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id.id).first)
         fail 'No access granted for this App'
       end
-      if access_grant.oauth_scope.auth?
-        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
-      else
+      unless (oauth_scope = access_grant.oauth_scope).auth?
         fail 'Granted access does not include the auth scope'
       end
-    end
-
-    def access_token_for(auth)
-      fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
-      unless auth.client == app  && (app_id = app.application_id)
-        fail 'Invalid authorization client'
-      end
-      unless (access_grant = Cenit::OauthAccessGrant.where(application_id: app_id).first)
-        fail 'No access granted'
-      end
-      if access_grant.oauth_scope.auth?
-        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
-      else
-        fail 'Authorization scope granted does not include auth'
-      end
+      fail 'Granted access does not include the offline_access scope' unless oauth_scope.offline_access?
+      Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
     end
 
     def xhr?
