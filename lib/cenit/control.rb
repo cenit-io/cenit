@@ -149,7 +149,7 @@ module Cenit
       unless (app_id = app.application_id)
         fail 'Invalid App, the app identifier ref is broken!'
       end
-      unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id._id).first)
+      unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id.id).first)
         fail 'No access granted for this App'
       end
       if access_grant.oauth_scope.auth?
