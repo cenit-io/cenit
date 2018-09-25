@@ -159,21 +159,6 @@ module Cenit
       end
     end
 
-    def access_token_for(auth)
-      fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
-      unless auth.client == app  && (app_id = app.application_id)
-        fail 'Invalid authorization client'
-      end
-      unless (access_grant = Cenit::OauthAccessGrant.where(application_id: app_id).first)
-        fail 'No access granted'
-      end
-      if access_grant.oauth_scope.auth?
-        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
-      else
-        fail 'Authorization scope granted does not include auth'
-      end
-    end
-
     def xhr?
       @controller.request.xhr?
     end
