@@ -145,6 +145,20 @@ module Cenit
       set_instance_var(key, value)
     end
 
+    def generate_access_token
+      unless (app_id = app.application_id)
+        fail 'Invalid App, the app identifier ref is broken!'
+      end
+      unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id._id).first)
+        fail 'No access granted for this App'
+      end
+      if access_grant.oauth_scope.auth?
+        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
+      else
+        fail 'Granted access does not include the auth scope'
+      end
+    end
+
     def access_token_for(auth)
       fail "Invalid authorization class: #{auth.class}" unless auth.is_a?(Setup::Oauth2Authorization)
       unless auth.client == app  && (app_id = app.application_id)
