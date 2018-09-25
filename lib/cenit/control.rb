@@ -152,11 +152,11 @@ module Cenit
       unless (access_grant = Cenit::OauthAccessGrant.where(application_id_id: app_id.id).first)
         fail 'No access granted for this App'
       end
-      if access_grant.oauth_scope.auth?
-        Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
-      else
+      unless (oauth_scope = access_grant.oauth_scope).auth?
         fail 'Granted access does not include the auth scope'
       end
+      fail 'Granted access does not include the offline_access scope' unless oauth_scope.offline_access?
+      Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
     end
 
     def xhr?
