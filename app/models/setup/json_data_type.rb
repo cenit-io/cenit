@@ -31,7 +31,7 @@ module Setup
           type: 'string'
         }
       }
-    }.stringify_keys
+    }.deep_stringify_keys
 
     after_initialize do
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
