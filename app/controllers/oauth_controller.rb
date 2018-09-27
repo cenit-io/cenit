@@ -50,13 +50,13 @@ class OauthController < ApplicationController
   end
 
   def callback
-    redirect_path = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
+    redirect_uri = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
     error = params[:error]
     if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
       cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
-        redirect_path =
+        redirect_uri =
           if (app = cenit_token.application)
             "/app/#{app.slug_id}/authorization/#{authorization.id}?redirect_token=#{redirect_token}" +
               case app.authentication_method
@@ -66,6 +66,8 @@ class OauthController < ApplicationController
                 #:application_id
                 ''
               end
+          elsif (token_data = cenit_token.data).is_a?(Hash) && token_data.key?('redirect_uri')
+            token_data['redirect_uri']
           else
             rails_admin.show_path(model_name: authorization.class.to_s.underscore.tr('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
           end
@@ -94,9 +96,19 @@ class OauthController < ApplicationController
     if error.present?
       error = error[1..500] + '...' if error.length > 500
       flash[:error] = error.html_safe
+      uri =
+        begin
+          URI.parse(redirect_uri)
+        rescue
+          nil
+        end
+      if uri && !uri.relative?
+        uri.query = [uri.query, "error=#{error}"].compact.join('&')
+        redirect_uri = uri.to_s
+      end
     end
 
-    redirect_to redirect_path
+    redirect_to redirect_uri
   end
 
   private
