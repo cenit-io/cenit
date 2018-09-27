@@ -80,6 +80,7 @@ Cenit::Application.routes.draw do
       post '/:ns/:model/:id/pull', to: 'api#pull'
       post '/:ns/:model/:id/run', to: 'api#run'
       get '/:ns/:model/:id/retry', to: 'api#retry'
+      get '/:ns/:model/:id/authorize', to: 'api#authorize'
       get '/:ns/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
       match '/auth', to: 'api#auth', via: [:head]
       match '/*path', to: 'api#cors_check', via: [:options]
