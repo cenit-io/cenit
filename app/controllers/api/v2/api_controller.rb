@@ -4,7 +4,7 @@ module Api::V2
     before_action :authorize_account, except: [:new_user, :cors_check, :auth]
     before_action :save_request_data, except: [:cors_check, :auth]
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
-    before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry]
+    before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry, :authorize]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -56,7 +56,7 @@ module Api::V2
           count = items.count
           {
             json: {
-              total_pages: (count*1.0 / get_limit).ceil,
+              total_pages: (count * 1.0 / get_limit).ceil,
               current_page: page,
               count: count,
               @model.pluralize => items_data
@@ -236,6 +236,25 @@ module Api::V2
       end
     end
 
+    def authorize
+      if (auth = @item).is_a?(Setup::Oauth2Authorization)
+        if (redirect_uri = params[:redirect_uri])
+          if auth.check
+            cenit_token = OauthAuthorizationToken.create(authorization: auth, data: { redirect_uri: redirect_uri })
+            auth_url = auth.authorize_url(cenit_token: cenit_token)
+            cenit_token.save
+            render json: { authorize_url: auth_url }
+          else
+            render json: { error: "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}" }, status: :unprocessable_entity
+          end
+        else
+          render json: { error: 'Missing parameter redirect_uri' }, status: :bad_request
+        end
+      else
+        render json: { status: :not_allowed }, status: :bad_request
+      end
+    end
+
     def auth
       authorize_account
       if Account.current
@@ -315,7 +334,7 @@ module Api::V2
       ensure
         Account.current = current_account
       end
-      response=
+      response =
         if user.errors.blank?
           status = :ok
           { id: user.id.to_s, number: user.number, token: user.authentication_token }
