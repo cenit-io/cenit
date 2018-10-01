@@ -145,7 +145,7 @@ module Cenit
       set_instance_var(key, value)
     end
 
-    def generate_access_token
+    def generate_access_token(options = {})
       unless (app_id = app.application_id)
         fail 'Invalid App, the app identifier ref is broken!'
       end
@@ -156,7 +156,11 @@ module Cenit
         fail 'Granted access does not include the auth scope'
       end
       fail 'Granted access does not include the offline_access scope' unless oauth_scope.offline_access?
-      Cenit::OauthAccessToken.for(app_id, access_grant.scope, User.current)
+      if options[:session_token]
+        Cenit::OauthSessionAccessToken
+      else
+        Cenit::OauthAccessToken
+      end.for(app_id, access_grant.scope, User.current)
     end
 
     def xhr?
