@@ -395,7 +395,7 @@ module Api::V3
       if (auth_header = request.headers['Authorization'])
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
-          access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
+          @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
           if access_token && access_token.alive?
             if access_token.set_current_tenant!
               access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
@@ -457,8 +457,10 @@ module Api::V3
           else
             @_action_name.to_sym
           end
-        unless @ability.can?(action_symbol, @item || klass) &&
+        if @ability.can?(action_symbol, @item || klass) &&
           (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
+          @access_token.hit if @access_token
+        else
           success = false
           unless options[:skip_response]
             responder = Cenit::Responder.new(@request_id, :unauthorized)
