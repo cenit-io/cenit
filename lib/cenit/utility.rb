@@ -36,7 +36,7 @@ module Cenit
           if save_references(record, options, saved) && record.save(options)
             true
           else
-            for_each_node_starting_at(record, stack: stack=[]) do |obj|
+            for_each_node_starting_at(record, stack: stack = []) do |obj|
               obj.errors.each do |attribute, error|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                   ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : "'s '") +
@@ -195,7 +195,25 @@ module Cenit
       def save_references(record, options, saved, visited = Set.new)
         return true if visited.include?(record)
         visited << record
-        if (model = record.try(:orm_model))
+        if record.is_a?(Setup::Collection)
+          Setup::Collection::COLLECTING_PROPERTIES.each do |property|
+            record.send(property).each do |value|
+              next unless visited.exclude?(value) && value.changed?
+              new_record = value.new_record?
+              if value.save(options)
+                if new_record || value.instance_variable_get(:@dynamically_created)
+                  value.instance_variable_set(:@dynamically_created, true)
+                  options[:create_collector] << value if options[:create_collector]
+                else
+                  options[:update_collector] << value if options[:update_collector]
+                end
+                saved << value
+              else
+                return false
+              end
+            end
+          end
+        elsif (model = record.try(:orm_model))
           model.for_each_association do |relation|
             next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
             if (values = record.send(relation[:name]))
