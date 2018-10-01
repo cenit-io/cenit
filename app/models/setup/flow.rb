@@ -110,7 +110,7 @@ module Setup
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
           if translator.type == :Import
-            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
+            unless before_submit.nil? || before_submit.parameters.size == 1 || before_submit.parameters.size == 2
               errors.add(:before_submit, 'must receive one or two parameter')
             end
           else
