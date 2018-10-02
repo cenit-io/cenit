@@ -99,6 +99,7 @@ Cenit::Application.routes.draw do
     end
   end
 
+  match '/app/*path', to: 'app#cors_check', via: [:options]
   match 'app/:id_or_ns' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]
