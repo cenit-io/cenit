@@ -8,9 +8,12 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.each_pull_parameter do |pull_parameter|
-          if pull_parameter.required? && !pull_parameters.key?(param_id = pull_parameter.id.to_s)
-            missing_parameters << param_id
+        unless options[:ignore_missing_parameters]
+          shared_collection.each_pull_parameter do |pull_parameter|
+            param_id = pull_parameter.id.to_s
+            if pull_parameter.required? && !pull_parameters.key?(param_id)
+              missing_parameters << param_id
+            end
           end
         end
 
