@@ -139,7 +139,7 @@ module Setup
           rejects(:lot_size, :response_translator, :response_data_type)
         end
       end
-      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
+      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.size != 1 }).present?
         errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
       end
       errors.blank?
