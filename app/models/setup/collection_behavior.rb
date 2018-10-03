@@ -67,6 +67,16 @@ module Setup
       field :warnings, type: Array
     end
 
+    def save(options = {})
+      @add_dependencies =
+        if options.key?(:add_dependencies)
+          options.delete(:add_dependencies)
+        else
+          @add_dependencies
+        end
+      super
+    end
+
     def make_title
       self.title = name.to_title if title.blank?
       errors.blank?

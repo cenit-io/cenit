@@ -202,7 +202,7 @@ module Cenit
                 Setup::Collection.where(name: shared_collection.name).delete
                 collection.name = shared_collection.name
                 collection.image = shared_collection.image if shared_collection.image.present?
-                collection.save
+                collection.save(add_dependencies: false)
                 shared_collection.pulled(collection: collection,
                                          install: pull_request[:install])
                 pull_request[:collection] = { id: collection.id.to_s }
