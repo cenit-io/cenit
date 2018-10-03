@@ -344,12 +344,6 @@ module Setup
     end
 
     def save(options = {})
-      @add_dependencies =
-        if options.key?(:add_dependencies)
-          options.delete(:add_dependencies)
-        else
-          @add_dependencies
-        end
       if (result = super)
         reinstall(add_dependencies: false) unless !installed? || skip_reinstall_callback
         self.skip_reinstall_callback = false
