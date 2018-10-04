@@ -29,7 +29,8 @@ class Ability
               Setup::SystemReport,
               Setup::Operation,
               Setup::Category,
-              TourTrack
+              TourTrack,
+              ActiveTenant
             ]
         can [:index, :show, :edit], Setup::Configuration
         can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
