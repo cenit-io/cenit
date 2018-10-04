@@ -56,8 +56,8 @@ module Setup
       has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
 
       has_and_belongs_to_many :authorizations, class_name: Setup::Authorization.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth_providers, class_name: Setup::BaseOauthProvider.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth_clients, class_name: Setup::RemoteOauthClient.to_s, inverse_of: nil
+      has_and_belongs_to_many :oauth_providers, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil
+      has_and_belongs_to_many :oauth_clients, class_name: Setup::RemoteOauthClient.to_s, inverse_of: nil #!!!
       has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
 
       before_save :make_title, :add_dependencies
@@ -213,7 +213,7 @@ module Setup
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
         next unless (model = r.klass).include?(Setup::CrossOriginShared)
-        criteria = criteria.merge(:origin.ne => :default) if model == Setup::RemoteOauthClient
+        criteria = criteria.merge(:origin.ne => :default) if model == Setup::RemoteOauthClient #!!!
         model.where(:id.in => send(r.foreign_key)).and(criteria).with_tracing.cross(origin) do |_, non_traced_ids|
           next unless non_traced_ids.present?
           Account.each do |account|

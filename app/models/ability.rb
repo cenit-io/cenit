@@ -227,7 +227,7 @@ class Ability
 
   CROSSING_MODELS_WITH_ORIGIN =
     [
-      Setup::OauthClient,
+      Setup::AuthorizationClient,
       Setup::Oauth2Scope,
       Setup::Algorithm,
       Setup::Resource,
@@ -239,7 +239,7 @@ class Ability
       Setup::ApiSpec
     ] +
       Setup::Translator.class_hierarchy +
-      Setup::BaseOauthProvider.class_hierarchy +
+      Setup::AuthorizationProvider.class_hierarchy +
       Setup::DataType.class_hierarchy +
       Setup::Validator.class_hierarchy
 

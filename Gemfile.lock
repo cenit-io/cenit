@@ -13,11 +13,11 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 785ceaa35e634b8efe12757060818c97501163a8
+  revision: 93300d9a2f8b6528ce08e2484604d6be37db1209
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
-      glebtv_mongoid_userstamp
+      glebtv_mongoid_userstamp (~> 0.6.0)
       mongoid (>= 5.0.1)
 
 GIT
@@ -60,7 +60,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/cross_origin.git
-  revision: edb8b50ed02feece97c523cb2634bc50bca9ebee
+  revision: 0b0719488905177578ca3665fa36528543836688
   specs:
     cross_origin (0.0.3)
       mongoid (>= 5.0.1)
@@ -272,8 +272,8 @@ GEM
       multi_json (>= 1.7.5, < 2.0)
       nokogiri (~> 1.6.6)
       oauth2
-    glebtv_mongoid_userstamp (0.6.0)
-      mongoid (>= 4.0.0, < 6.0)
+    glebtv_mongoid_userstamp (0.6.2)
+      mongoid (>= 4.0.0, < 6.1)
       request_store
     globalid (0.4.1)
       activesupport (>= 4.2.0)
@@ -485,7 +485,8 @@ GEM
       json
     ref (2.0.0)
     remotipart (1.3.1)
-    request_store (1.2.0)
+    request_store (1.4.1)
+      rack (>= 1.4)
     responders (2.1.0)
       railties (>= 4.2.0, < 5)
     rest-client (1.8.0)

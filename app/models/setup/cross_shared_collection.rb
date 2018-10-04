@@ -192,7 +192,7 @@ module Setup
     def config_pull_parameters
       unless @config_pull_parameters
         @config_pull_parameters = []
-        clients = COLLECTING_PROPERTIES.detect { |p| reflect_on_association(p).klass == Setup::RemoteOauthClient }.to_s
+        clients = COLLECTING_PROPERTIES.detect { |p| reflect_on_association(p).klass == Setup::RemoteOauthClient }.to_s #!!!
         (pull_data[clients] || []).each do |client_data|
           client = Setup::RemoteOauthClient.new_from_json(client_data, add_only: true)
           Cenit::Utility.bind_references(client)
