@@ -7,6 +7,16 @@ module Cenit
 
     class << self
 
+      def maximum_active_tasks
+        @maximum__active_tasks ||= 50 * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
+      end
+
+      def tasks_quota
+        active_tenants = ActiveTenant.where(:tasks.gt => 0).count
+        quota = maximum_active_tasks / (active_tenants > 0 ? active_tenants : 1)
+        quota < 1 ? 1 : quota
+      end
+
       def enqueue(message, &block)
         message = message.with_indifferent_access
         auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
@@ -41,7 +51,7 @@ module Cenit
             message = TaskToken.create(data: message.to_json,
                                        task: task,
                                        user: Cenit::MultiTenancy.user_model.current).token
-            if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now)
+            if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
               unless task.joining?
@@ -50,6 +60,7 @@ module Cenit
                   if channel.nil? || channel.closed?
                     Setup::DelayedMessage.create(message: message)
                   else
+                    ActiveTenant.inc_tasks_for
                     channel.default_exchange.publish(message, routing_key: queue.name)
                   end
                 ensure
@@ -85,6 +96,7 @@ module Cenit
           (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
           Setup::SystemReport.create(message: "Can not determine tenant for message: #{message}")
         else
+          ActiveTenant.dec_tasks_for
           begin
             rabbit_consumer = nil
             task_class, task, report = detask(message)
@@ -212,18 +224,30 @@ module Cenit
             begin
               channel_mutex.lock
               unless channel.closed?
-                messages_present = false
-                (delayed_messages = Setup::DelayedMessage.all.or(:publish_at.lte => Time.now).or(unscheduled: true)).each do |delayed_message|
-                  publish_options = { routing_key: queue.name }
-                  publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-                  channel.default_exchange.publish(delayed_message.message, publish_options)
-                  messages_present = true
+                delayed_messages =
+                  Setup::DelayedMessage
+                    .all.limit(2 * maximum_active_tasks)
+                    .or(:publish_at.lte => Time.now)
+                    .or(unscheduled: true)
+                dispatched_ids = []
+                quota = tasks_quota
+                delayed_messages.each do |delayed_message|
+                  if (tenant = delayed_message.tenant) && ActiveTenant.tasks_for(tenant) > quota
+                    delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
+                  else
+                    publish_options = { routing_key: queue.name }
+                    publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+                    channel.default_exchange.publish(delayed_message.message, publish_options)
+                    ActiveTenant.inc_tasks_for(tenant)
+                    dispatched_ids << delayed_message.id
+                  end
                 end
                 begin
-                  delayed_messages.destroy_all
+                  Setup::DelayedMessage.where(:id.in => dispatched_ids).destroy_all
                 rescue Exception => ex
                   Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
-                end if messages_present
+                end unless dispatched_ids.empty?
+                ActiveTenant.where(:tasks.lte => 0).delete_all
               end
             ensure
               channel_mutex.unlock
