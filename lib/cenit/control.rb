@@ -108,12 +108,13 @@ module Cenit
       redirect_to_called? || render_called?
     end
 
-    def authorize(auth)
+    def authorize(auth, parameters = {})
       case auth
       when Setup::BaseOauthAuthorization
         if auth.check
           cenit_token = OauthAuthorizationToken.create(application: app, authorization: auth, data: {})
-          auth_url = auth.authorize_url(cenit_token: cenit_token)
+          parameters[:cenit_token] = cenit_token
+          auth_url = auth.authorize_url(parameters)
           cenit_token.save
           controller.session[:oauth_state] = cenit_token.token
           redirect_to auth_url
@@ -288,6 +289,10 @@ module Cenit
 
     def response_headers
       @controller.response.headers
+    end
+
+    def session
+      @controller.session
     end
 
     private
