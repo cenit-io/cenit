@@ -13,11 +13,19 @@ class AppController < ApplicationController
     render plain: ex.message, status: :internal_server_error if @app_control && !@app_control.done?
   end
 
+  def cors_check
+    process_headers
+    render nothing: true
+  end
+
   protected
 
   def process_headers
-    response.headers.delete('X-Frame-Options')
-    response.headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
+    headers.delete('X-Frame-Options')
+    headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
+    headers['Access-Control-Allow-Credentials'] = false
+    headers['Access-Control-Allow-Headers'] = '*'
+    headers['Access-Control-Allow-Methods'] = '*'
   end
 
   def find_app_control_action

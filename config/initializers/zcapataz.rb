@@ -29,7 +29,7 @@ Capataz.config do
 
   allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
 
-  allow_on [Account, Tenant], [:name, :where, :all, :switch, :notify, :data_type, :current]
+  allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :name, :current]
 
   allow_on [OauthAuthorizationToken], [:where]
 

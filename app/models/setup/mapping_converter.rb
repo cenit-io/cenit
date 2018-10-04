@@ -22,7 +22,7 @@ module Setup
           if v.present? && map_model.property?(k)
             if map_model.associations[k]
               if v.is_a?(Hash)
-                v.delete_if { |sub_k, sub_v| %w(source transformation_id options).exclude?(sub_k.to_s) || !sub_v.is_a?(String) || sub_v.blank? }
+                v.delete_if { |sub_k, sub_v| %w(source transformation_id options).exclude?(sub_k.to_s) || !(sub_v.is_a?(String) || sub_v.is_a?(BSON::ObjectId)) || sub_v.blank? }
                 value.delete(k) if v.empty?
               else
                 value.delete(k)

@@ -22,8 +22,12 @@ module Setup
       def instantiate(attrs = nil, selected_fields = nil, &block)
         super(attrs, selected_fields) do |doc|
           binds.each do |metadata|
-            if (id = Setup::Binding.id_for(doc, metadata.klass))
-              doc.attributes[metadata.foreign_key] = id
+            key = metadata.foreign_key
+            doc.instance_variable_set(:"@_binding_shadow_#{key}", doc.attributes[key])
+            bind, id = Setup::Binding.bind_bind_id_for(doc, metadata.klass)
+            if bind
+              doc.instance_variable_set(:"@_#{key}_binding", bind)
+              doc.attributes[key] = bind[id]
             end
           end
           block.call(doc) if block

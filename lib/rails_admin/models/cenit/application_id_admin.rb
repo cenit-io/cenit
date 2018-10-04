@@ -18,12 +18,15 @@ module RailsAdmin
             configure :redirect_uris, :json_value
             configure :tenant_id do
               pretty_value do
-                tenant = bindings[:object].tenant
-                model_config = RailsAdmin.config(tenant)
-                am = model_config.abstract_model
-                wording = tenant.send(model_config.object_label_method)
-                v = bindings[:view]
-                v.link_to(wording, v.url_for(action: :show, model_name: am.to_param, id: tenant.id), class: 'pjax')
+                if (tenant = bindings[:object].tenant)
+                  model_config = RailsAdmin.config(tenant)
+                  am = model_config.abstract_model
+                  wording = tenant.send(model_config.object_label_method)
+                  v = bindings[:view]
+                  v.link_to(wording, v.url_for(action: :show, model_name: am.to_param, id: tenant.id), class: 'pjax')
+                else
+                  value.to_s
+                end
               end
             end
 
@@ -40,6 +43,8 @@ module RailsAdmin
             list do
               field :name
               field :registered
+              field :oauth_name
+              field :slug
               field :tenant_id
               field :identifier
               field :updated_at

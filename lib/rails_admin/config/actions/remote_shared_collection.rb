@@ -74,7 +74,9 @@ module RailsAdmin
                         msg += t('admin.actions.remote_shared_collection.try_install', object_label: obj2msg(shared_collection, action: :pull, action_label: t('admin.actions.remote_shared_collection.click_to_install')))
                         flash[:success] = msg.html_safe
                       else
-                        do_flash_now(:error, t('admin.actions.remote_shared_collection.error_creating_local', model: @model_config.label), shared_collection.errors.full_messages)
+                        error = t('admin.actions.remote_shared_collection.error_creating_local', model: @model_config.label)
+                        Setup::SystemNotification.create(message: "#{error}: #{shared_collection.errors.full_messages.to_sentence}")
+                        do_flash_now(:error, error, shared_collection.errors.full_messages)
                       end
                       redirect_to shared_collection_index_path
                     else

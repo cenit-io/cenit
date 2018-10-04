@@ -36,6 +36,10 @@ module Mongoff
       @changed = false
     end
 
+    def orm_model
+      model
+    end
+
     def changed?
       @changed
     end

@@ -169,6 +169,19 @@ class Account
 
   class << self
 
+    def find_where(expression)
+      user_id = (user = User.current) && user.id
+      member_account_ids = user && user.member_account_ids
+      all(expression).and({ '$or' => [
+        { 'owner_id' => user_id },
+        { '_id' => { '$in' => member_account_ids || [] } }
+      ] })
+    end
+
+    def find_all
+      find_where({})
+    end
+
     def notify(attrs)
       current && current.notify(attrs)
     end

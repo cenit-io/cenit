@@ -5,7 +5,7 @@
      {
          label: schema['title'] || property.titleize,
          name: property,
-         options: schema['enum'] || [],
+         options: (schema['enum'] || []).map(&:to_s),
          type: schema['enum'] ? 'enum' : model.type_symbol_for(schema).first
      }
    end

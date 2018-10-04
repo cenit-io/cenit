@@ -8,9 +8,12 @@ module Cenit
 
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
-        shared_collection.each_pull_parameter do |pull_parameter|
-          if pull_parameter.required? && !pull_parameters.key?(param_id = pull_parameter.id.to_s)
-            missing_parameters << param_id
+        unless options[:ignore_missing_parameters]
+          shared_collection.each_pull_parameter do |pull_parameter|
+            param_id = pull_parameter.id.to_s
+            if pull_parameter.required? && !pull_parameters.key?(param_id)
+              missing_parameters << param_id
+            end
           end
         end
 
@@ -199,7 +202,7 @@ module Cenit
                 Setup::Collection.where(name: shared_collection.name).delete
                 collection.name = shared_collection.name
                 collection.image = shared_collection.image if shared_collection.image.present?
-                collection.save
+                collection.save(add_dependencies: false)
                 shared_collection.pulled(collection: collection,
                                          install: pull_request[:install])
                 pull_request[:collection] = { id: collection.id.to_s }

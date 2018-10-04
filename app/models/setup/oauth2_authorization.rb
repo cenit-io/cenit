@@ -17,6 +17,10 @@ module Setup
     def check
       if super
         errors.add(:client, 'provider is not OAuth 2.0 compatible') unless provider.is_a?(Setup::Oauth2Provider)
+        scopes.each do |scope|
+          next if scope.provider == provider
+          errors.add(:scopes, "contains not compatible scope #{scope.name} of #{scope.provider.custom_title}")
+        end
       end
       errors.blank?
     end

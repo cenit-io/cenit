@@ -8,7 +8,15 @@ module RailsAdmin
         end
 
         SHARED_READ_ONLY = Proc.new do
-          read_only { (obj = bindings[:object]).creator_id != User.current.id && obj.shared? }
+          read_only do
+            creator_id =
+              if Account.current && Account.current.owner
+                Account.current.owner.id
+              else
+                User.current && User.current.id
+              end
+            (obj = bindings[:object]).creator_id != creator_id && obj.shared?
+          end
         end
 
         def shared_read_only

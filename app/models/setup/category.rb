@@ -3,7 +3,14 @@ module Setup
     include CenitUnscoped
     include RailsAdmin::Models::Setup::CategoryAdmin
 
-    build_in_data_type
+    build_in_data_type.and(
+      properties: {
+        _id: {
+          type: 'string',
+          edi: { segment: 'id' }
+        }
+      }
+    )
 
     deny :all
     allow :index, :show, :simple_export, :export

@@ -1633,7 +1633,15 @@ label {
       color: #fff;
     }
   }
-
+  .select2-container--bootstrap .select2-selection--multiple .select2-selection__choice[title="digest"] {
+    color: white;
+    background: rebeccapurple;
+    border-color: rebeccapurple;
+    .select2-selection__choice__remove {
+      color: white;
+      color: #fff;
+    }
+  }
 }
 
 .scope_at_index {
@@ -2775,9 +2783,17 @@ li.no-childrens {
 }
 
 .popover-title {
-  background: #f9f9f9;
-  color: #ea7400;
+  background: #3d4046;
+  color: white;
   font-weight: bold;
+}
+
+.popover-content {
+  background: beige;
+}
+
+.popover-navigation{
+  background: beige;
 }
 
 .panel[id^='main-dashboard-'] .nav-icon {

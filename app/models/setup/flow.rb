@@ -110,7 +110,7 @@ module Setup
         if [:Import, :Export].include?(translator.type)
           requires(:webhook)
           if translator.type == :Import
-            unless before_submit.nil? || before_submit.parameters.count == 1 || before_submit.parameters.count == 2
+            unless before_submit.nil? || before_submit.parameters.size == 1 || before_submit.parameters.size == 2
               errors.add(:before_submit, 'must receive one or two parameter')
             end
           else
@@ -139,7 +139,7 @@ module Setup
           rejects(:lot_size, :response_translator, :response_data_type)
         end
       end
-      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.count != 1 }).present?
+      if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.size != 1 }).present?
         errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
       end
       errors.blank?
@@ -407,7 +407,9 @@ module Setup
         end - 1
       translation_options = nil
       connections_present = true
+      records_processed = false
       0.step(max, limit) do |offset|
+        records_processed = true
         next unless connections_present
         verbose_response =
           webhook.target.with(connection_role).and(authorization).submit(
@@ -462,6 +464,8 @@ module Setup
         end
         connections_present = verbose_response[:connections_present]
       end
+      Setup::SystemNotification.create(warning: "No connections processed") unless connections_present
+      Setup::SystemNotification.create(warning: "No records processed") unless records_processed
     end
 
     def unsuccessful_response(http_response, task_msg)

@@ -15,9 +15,6 @@ module Mongoff
     def initialize(model, attributes = nil, new_record = true)
       @orm_model = model
       @document = BSON::Document.new
-      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
-        @document[:_id] ||= BSON::ObjectId.new
-      end
       @fields = {}
       @new_record = new_record || false
       model.properties_schemas.each do |property, schema|
@@ -27,6 +24,9 @@ module Mongoff
       end
       assign_attributes(attributes)
       Cenit::Utility.for_each_node_starting_at(self) { |record| record.instance_variable_set(:@new_record, false) } unless @new_record
+      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
+        @document[:_id] ||= BSON::ObjectId.new
+      end
       @changed = false
     end
 
@@ -90,7 +90,8 @@ module Mongoff
     end
 
     def validate
-      unless @vailidated
+      unless @validated
+        # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
         orm_model.fully_validate_against_schema(attributes).each do |error|
           errors.add(:base, error[:message])
@@ -293,9 +294,11 @@ module Mongoff
       end
     end
 
-    def eql?(other)
+    def ==(other)
       other.is_a?(Mongoff::Record) && other.orm_model.eql?(orm_model) && other.id.eql?(id)
     end
+
+    alias eql? ==
 
     def _reload
       {}.merge(orm_model.collection.find(_id: _id).read(mode: :primary).first || {})

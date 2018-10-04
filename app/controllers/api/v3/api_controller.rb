@@ -3,8 +3,9 @@ module Api::V3
 
     before_action :authorize_account, except: [:new_user, :cors_check]
     before_action :save_request_data, :allow_origin_header
-    before_action :authorize_action, except: [:new_user, :push, :cors_check] #TODO Review push action
+    before_action :find_model, except: [:new_user, :cors_check]
     before_action :find_item, only: [:update, :show, :destroy, :digest]
+    before_action :authorize_action, except: [:new_user, :cors_check]
 
     rescue_from Exception, :with => :exception_handler
 
@@ -22,198 +23,123 @@ module Api::V3
     def cors_headers
       allow_origin_header
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector, X-Digest-Options'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
 
     def index
-      page = get_page
-      res =
-        if klass
-          @template_options.delete(:inspecting)
-          if (model_ignore = klass.index_ignore_properties).present?
-            @template_options[:ignore] =
-              if (ignore_option = @template_options[:ignore])
-                unless ignore_option.is_a?(Array)
-                  ignore_option = ignore_option.to_s.split(',').collect(&:strip)
-                end
-                ignore_option + model_ignore
-              else
-                model_ignore
-              end
-          end
-          maximum_entries =
-            if (account = Account.current)
-              account.index_max_entries
-            else
-              Account::DEFAULT_INDEX_MAX_ENTRIES
+      setup_viewport
+      template_options.delete(:inspecting)
+      if (model_ignore = klass.index_ignore_properties).present?
+        template_options[:ignore] =
+          if (ignore_option = template_options[:ignore])
+            unless ignore_option.is_a?(Array)
+              ignore_option = ignore_option.to_s.split(',').collect(&:strip)
             end
-          @template_options[:max_entries] =
-            if (max_entries = @template_options[:max_entries])
-              max_entries = max_entries.to_i
-              if max_entries == 0 || max_entries > maximum_entries
-                maximum_entries
-              else
-                max_entries
-              end
-            else
-              maximum_entries
-            end
-          items = select_items
-          items_data = items.map do |item|
-            item.default_hash(@template_options)
+            ignore_option + model_ignore
+          else
+            model_ignore
           end
-          count = items.count
-          json = {
-            current_page: page,
-            count: count,
-            items: items_data,
-            data_type: {
-              (@template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
-            }
-          }
-          if get_limit > 0
-            json[:total_pages] = (count * 1.0 / get_limit).ceil
-          end
-          {
-            json: json
-          }
+      end
+      maximum_entries =
+        if (account = Account.current)
+          account.index_max_entries
         else
-          {
-            json: { error: 'no model found' },
-            status: :not_found
-          }
+          Account::DEFAULT_INDEX_MAX_ENTRIES
         end
-      render res
+      template_options[:max_entries] =
+        if (max_entries = template_options[:max_entries])
+          max_entries = max_entries.to_i
+          if max_entries == 0 || max_entries > maximum_entries
+            maximum_entries
+          else
+            max_entries
+          end
+        else
+          maximum_entries
+        end
+      items = select_items
+      items_data =
+        if get_limit == 0
+          []
+        else
+          items.map do |item|
+            Template.with(item) do |template|
+              template.default_hash(template_options)
+            end
+          end
+        end
+      count = items.count
+      json = {
+        current_page: get_page,
+        count: count,
+        items: items_data,
+        data_type: {
+          (template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
+        }
+      }
+      if get_limit > 0
+        json[:total_pages] = (count * 1.0 / get_limit).ceil
+      end
+      render json: json
     end
 
     def show
-      if @item.orm_model.data_type.is_a?(Setup::FileDataType)
-        send_data @item.data, filename: @item[:filename], type: @item[:contentType]
-      else
-        render json: @item.to_hash(@template_options)
-      end
-    end
-
-    def push
-      response =
-        {
-          success: success_report = Hash.new { |h, k| h[k] = [] },
-          errors: broken_report = Hash.new { |h, k| h[k] = [] }
-        }
-      @parser_options[:add_only] = true unless @parser_options.key?('add_only')
-      @payload.each do |root, message|
-        @model = root
-        if authorized_action? && (data_type = @payload.data_type_for(root))
-          message = [message] unless message.is_a?(Array)
-          message.each do |item|
-            options = @parser_options.merge(create_collector: Set.new).symbolize_keys
-            model = data_type.records_model
-            if model.is_a?(Class) && model < FieldsInspection
-              options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-            end
-            if (record = data_type.send(@payload.create_method,
-                                        @payload.process_item(item, data_type, options),
-                                        options)).errors.blank?
-              success_report[root.pluralize] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
-            else
-              broken_report[root] << { errors: record.errors.full_messages, item: item }
-            end
-          end
-        else
-          broken_report[root] = 'no model found'
-        end
-      end
-      response.delete(:success) if success_report.blank?
-      response.delete(:errors) if broken_report.blank?
-      render json: response, status: 202
+      setup_viewport
+      render json: Template.with(@item) { |template| template.to_hash(template_options) }
     end
 
     def new
-      response = {}
-      %w(success warnings errors).each { |key| response[key.to_sym] = Hash.new { |h, k| h[k] = [] } }
-      @payload.each do |root, message|
-        if (data_type = @payload.data_type_for(root))
-          message = [message] unless message.is_a?(Array)
-          message.each do |item|
-            begin
-              options = @parser_options.merge(create_collector: Set.new).symbolize_keys
-              model = data_type.records_model
-              if model.is_a?(Class) && model < FieldsInspection
-                options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-              end
-              if (record = data_type.send(@payload.create_method,
-                                          @payload.process_item(item, data_type, options),
-                                          options)).errors.blank?
-                response[:success][root] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
-                if (warnings = record.try(:warnings))
-                  warnings =
-                    begin
-                      warnings.to_json
-                    rescue
-                      nil
-                    end
-                  response[:warnings][root] << { record.id.to_s => JSON.parse(warnings) } if warnings
-                end
-              else
-                response[:errors][root] << { errors: record.errors.full_messages, item: item }
-              end
-            rescue Exception => ex
-              response[:errors][root] = { errors: ex.message, item: item }
-            end
-          end
-        else
-          response[:errors][root] = 'no model found'
-        end
+      if klass.is_a?(Class) && klass < FieldsInspection
+        options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
       end
-      response.reject! { |_, v| v.blank? }
-      render json: response
+      parser = Parser.new(klass.data_type)
+      record = parser.create_from(request_data, parser_options)
+      if record.errors.blank?
+        if setup_viewport(:headers)
+          render json: Template.with(record) { |template| template.to_hash(template_options) }
+        else
+          render nothing: true
+        end
+      else
+        render json: klass.pretty_errors(record), status: :unprocessable_entity
+      end
     end
 
     def update
-      @payload.each do |_, message|
-        message = message.first if message.is_a?(Array)
-        @parser_options[:add_only] = true
-        @item.send(@payload.update_method, message, @parser_options)
-        save_options = {}
-        if @item.class.is_a?(Class) && @item.class < FieldsInspection
-          save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-        end
-        if Cenit::Utility.save(@item, save_options)
-          if (warnings = @item.try(:warnings))
-            warnings =
-              begin
-                warnings.to_json
-              rescue
-                nil
-              end
-            response.headers['X-Warnings'] = warnings if warnings
-          end
-          find_item
-          render json: @item.to_hash, status: :ok
+      parser_options[:add_only] = true
+      @item.fill_from(request_data, parser_options)
+      save_options = {}
+      if @item.class.is_a?(Class) && @item.class < FieldsInspection
+        save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+      end
+      if Cenit::Utility.save(@item, save_options)
+        if setup_viewport(:headers)
+          render json: Template.with(@item) { |template| template.to_hash(template_options) }
         else
-          render json: { errors: @item.errors.full_messages }, status: :not_acceptable
+          render nothing: true
         end
-        break
+      else
+        render json: klass.pretty_errors(@item), status: :unprocessable_entity
       end
     end
 
     def destroy
       if @item.destroy
-        render json: { status: :ok }
+        render nothing: true
       else
-        render json: { errors: @item.errors.full_messages }, status: :not_acceptable
+        render json: klass.pretty_errors(@item), status: :unprocessable_entity
       end
     end
 
-    USER_MODEL_FIELDS = %w(name email password password_confirmation)
+    USER_MODEL_FIELDS = %w(name email password)
     USER_API_FIELDS = USER_MODEL_FIELDS + %w(token code)
 
     def new_user
-      data = (JSON.parse(@webhook_body) rescue {}).keep_if { |key, _| USER_API_FIELDS.include?(key) }
+      data = (JSON.parse(request_data) rescue {}).keep_if { |key, _| USER_API_FIELDS.include?(key) }
       data = data.with_indifferent_access
-      data.reverse_merge!(email: params[:email], password: pwd = params[:password], password_confirmation: params[:password_confirmation] || pwd)
+      data.reverse_merge!(email: params[:email], password: pwd = params[:password])
       data.reject! { |_, value| value.nil? }
       status = :not_acceptable
       response =
@@ -241,7 +167,6 @@ module Api::V3
           end
         elsif data[:email]
           data[:password] = Devise.friendly_token unless data[:password]
-          data[:password_confirmation] = data[:password] unless data[:password_confirmation]
           if (user = User.new(data)).valid?(context: :create)
             if (captcha_token = CaptchaToken.create(email: data[:email], data: data)).errors.blank?
               status = :ok
@@ -260,8 +185,19 @@ module Api::V3
     end
 
     def digest
-      if @item.respond_to?(:digest)
-        render @item.digest(@webhook_body)
+      path = (params[:path] || '').split('/').map(&:presence).compact.join('_').presence
+      path = path ? "digest_#{path}" : :digest
+      if @item.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || @item.respond_to?(method = path)
+        options =
+          begin
+            JSON.parse(request.headers['X-Digest-Options'])
+          rescue
+            nil
+          end
+        options = {} unless options.is_a?(Hash)
+        render @item.send(method, request, options)
+      elsif @item.respond_to?(method = "handle_#{request.method.to_s.downcase}_#{path}")
+        @item.send(method, self)
       else
         render json: {
           error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
@@ -269,12 +205,111 @@ module Api::V3
       end
     end
 
+    attr_reader :model
+
+    def setup_request(options = {})
+      @klass = @ns_name = nil
+      @ns_slug = options[:namespace] || params[:__ns_]
+      @model = options[:model] || params[:__model_]
+      @format = options[:format] || params[:format]
+      @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
+      query_selector
+    end
+
     protected
+
+    def parser_options
+      @parser_options ||=
+        begin
+          unless (opts = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
+            opts = {}
+          end
+          params.each do |key, value|
+            next if %w(controller action __ns_ __model_ __id_ format api).include?(key)
+            opts[key] = Cenit::Utility.json_value_of(value)
+          end
+          %w(primary_field primary_fields ignore reset).each do |option|
+            unless (value = opts.delete(option)).is_a?(Array)
+              value = value.to_s.split(',').collect(&:strip)
+            end
+            opts[option] = value
+          end
+          opts
+        end
+    end
+
+    def template_options
+      @template_options ||=
+        begin
+          unless (opts = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
+            opts = {}
+          end
+          opts = opts.with_indifferent_access
+          if query_selector.present? && klass
+            %w(only ignore embedding).each do |option|
+              if query_selector.key?(option) && !klass.property?(option)
+                unless (value = query_selector.delete(option)).is_a?(Array)
+                  value = value.to_s.split(',').collect(&:strip)
+                end
+                opts[option] = value
+              end
+            end
+          end
+          if (fields_option = query_selector.delete(:fields)) || !opts.key?(:only)
+            fields_option =
+              case fields_option
+              when Array
+                fields_option
+              when Hash
+                fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
+              else
+                fields_option.to_s.split(',').collect(&:strip)
+              end
+            opts[:only] = fields_option
+          end
+          opts
+        end
+    end
+
+    def setup_viewport(source = nil)
+      unless source == :headers || template_options.key?(:viewport) || request_data.blank?
+        template_options[:viewport] = request_data
+      end
+      unless template_options[:viewport] || template_options.key?(:include_id)
+        template_options[:include_id] = true
+      end
+      template_options.key?(:viewport)
+    end
+
+    def query_options
+      @query_options ||=
+        if (opts = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
+          opts
+        else
+          {}
+        end.with_indifferent_access
+    end
+
+    def query_selector
+      @criteria ||=
+        begin
+          unless (selector = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
+            selector = {}
+          end
+          selector = selector.with_indifferent_access
+          selector.merge!(params.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
+          selector.each { |key, value| selector[key] = Cenit::Utility.json_value_of(value) }
+          %w(page limit).each do |key|
+            next unless selector.key?(key) && klass && !klass.property?(key)
+            query_options[key] = selector.delete(key)
+          end
+          selector
+        end
+    end
 
     def create_user_with(data)
       status = :not_acceptable
       data[:password] ||= Devise.friendly_token
-      data[:password_confirmation] ||= data[:password]
       data.reject! { |key, _| USER_MODEL_FIELDS.exclude?(key) }
       current_account = Account.current
       begin
@@ -296,22 +331,21 @@ module Api::V3
     end
 
     def get_limit
-      unless @limit
-        limit_option = @criteria_options.delete(:limit)
-        limit = (@criteria.delete(:limit) || limit_option || Kaminari.config.default_per_page).to_i
-        @limit =
+      @limit ||=
+        begin
+          limit_option = query_options.delete(:limit)
+          limit = (query_selector.delete(:limit) || limit_option || Kaminari.config.default_per_page).to_i
           if limit < 0
             Kaminari.config.default_per_page
           else
             [Kaminari.config.default_per_page, limit].min
           end
-      end
-      @limit
+        end
     end
 
     def get_page
       @page ||=
-        if (page = @criteria.delete(:page))
+        if (page = query_options.delete(:page))
           page.to_i
         else
           1
@@ -320,7 +354,7 @@ module Api::V3
 
     def select_items
       asc = true
-      if (order = @criteria.delete(:order))
+      if (order = query_selector.delete(:order))
         order.strip!
         asc = !order.match(/^-.*/)
       end
@@ -330,9 +364,9 @@ module Api::V3
       skip = page < 1 ? 0 : (page - 1) * limit
 
       # TODO: Include Kaminari methods on CrossOrigin::Criteria
-      items = accessible_records.limit(limit).skip(skip).where(@criteria)
+      items = accessible_records.limit(limit).skip(skip).where(query_selector)
 
-      if (sort = @criteria_options[:sort])
+      if (sort = query_options[:sort])
         sort.each do |field, sort_option|
           items =
             case sort_option
@@ -361,7 +395,7 @@ module Api::V3
       if (auth_header = request.headers['Authorization'])
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
-          access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
+          @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
           if access_token && access_token.alive?
             if access_token.set_current_tenant!
               access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
@@ -418,19 +452,15 @@ module Api::V3
       if klass
         action_symbol =
           case @_action_name
-          when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
           when 'update'
             :edit
-          when 'retry'
-            :retry_task
-          when 'digest'
-            :show
           else
             @_action_name.to_sym
           end
-        unless @ability.can?(action_symbol, @item || klass) &&
+        if @ability.can?(action_symbol, @item || klass) &&
           (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
+          @access_token.hit if @access_token
+        else
           success = false
           unless options[:skip_response]
             responder = Cenit::Responder.new(@request_id, :unauthorized)
@@ -456,8 +486,17 @@ module Api::V3
       false
     end
 
+    def find_model
+      if klass
+        true
+      else
+        render json: { status: 'model not found' }, status: :not_found
+        false
+      end
+    end
+
     def find_item
-      if (id = params[:id]) == 'me' && klass == User
+      if (id = params[:__id_]) == 'me' && klass == User
         id = User.current_id
       end
       if (@item = accessible_records.where(id: id).first)
@@ -509,7 +548,7 @@ module Api::V3
     end
 
     def klass
-      @klass ||= get_model(@model)
+      @klass ||= get_model(model)
     end
 
     def accessible_records
@@ -519,208 +558,125 @@ module Api::V3
     def save_request_data
       @data_types ||= {}
       @request_id = request.uuid
-      @webhook_body = request.body.read
-      @ns_slug = params[:ns]
-      @ns_name = nil
-      @model = params[:model]
-      @format = params[:format]
-      @path = "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      case @_action_name
-      when 'new', 'push', 'update'
-        unless (@parser_options = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
-          @parser_options = {}
-        end
-        params.each do |key, value|
-          next if %w(controller action ns model format api).include?(key)
-          @parser_options[key] = Cenit::Utility.json_value_of(value)
-        end
-        %w(primary_field primary_fields ignore reset).each do |option|
-          unless (value = @parser_options.delete(option)).is_a?(Array)
-            value = value.to_s.split(',').collect(&:strip)
-          end
-          @parser_options[option] = value
-        end
-        content_type = request.content_type
-        if @_action_name == 'push' && %w(application/json application/xml).exclude?(content_type)
-          content_type =
-            begin
-              JSON.parse(@webhook_body)
-              'application/json'
-            rescue Exception
-              begin
-                Nokogiri::XML(@webhook_body)
-                'application/xml'
-              rescue Exception
-                nil
-              end
-            end
-        end
-        @payload =
-          case content_type
-          when 'application/json'
-            JSONPayload
-          when 'application/xml'
-            XMLPayload
-          else
-            BasicPayload
-          end.new(controller: self,
-                  message: @webhook_body,
-                  content_type: content_type)
-      when 'index', 'show'
-        unless (@criteria = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
-          @criteria = {}
-        end
-        unless (@criteria_options = Cenit::Utility.json_value_of(request.headers['X-Query-Options'])).is_a?(Hash)
-          @criteria_options = {}
-        end
-        @criteria = @criteria.with_indifferent_access
-        @criteria_options = @criteria_options.with_indifferent_access
-        @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
-        @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
-        unless (@template_options = Cenit::Utility.json_value_of(request.headers['X-Template-Options'])).is_a?(Hash)
-          @template_options = {}
-        end
-        @template_options = @template_options.with_indifferent_access
-        if @criteria && klass
-          %w(only ignore embedding).each do |option|
-            if @criteria.key?(option) && !klass.property?(option)
-              unless (value = @criteria.delete(option)).is_a?(Array)
-                value = value.to_s.split(',').collect(&:strip)
-              end
-              @template_options[option] = value
-            end
-          end
-        end
-        if (fields_option = @criteria_options.delete(:fields)) || !@template_options.key?(:only)
-          fields_option =
-            case fields_option
-            when Array
-              fields_option
-            when Hash
-              fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
-            else
-              fields_option.to_s.split(',').collect(&:strip)
-            end
-          @template_options[:only] = fields_option
-        end
-        unless @template_options.key?(:viewport) || @webhook_body.blank?
-          @template_options[:viewport] = @webhook_body
-        end
-        unless @template_options[:viewport] || @template_options.key?(:include_id)
-          @template_options[:include_id] = true
-        end
-      end
+      @request_data = request.body.read
+      setup_request
     end
 
     private
 
-    attr_reader :webhook_body
+    attr_reader :request_data
 
-    class BasicPayload
+    class Parser
+      include Setup::DataTypeParser
 
-      attr_reader :config
-
-      def initialize(config)
-        @config =
-          {
-            method_suffix: case config[:content_type]
-                           when 'application/json'
-                             :from_json
-                           when 'application/xml'
-                             :from_xml
-                           else
-                             :from
-                           end,
-            message: ''
-          }.merge(config || {})
-        controller = config[:controller]
-        @data_type =
-          begin
-            controller.send(:get_data_type, (@root = controller.request.params[:model] || controller.request.headers['data-type']))
-          rescue Exception
-            nil
-          end
+      def initialize(data_type)
+        @data_type = data_type
       end
 
-      def create_method
-        "create_#{config[:method_suffix]}"
+      def parser_data_type
+        @data_type
       end
 
-      def update_method
-        suffix = config[:method_suffix]
-        if suffix == :from
-          'fill_from'
-        else
-          suffix
-        end
-      end
-
-      def message
-        config[:message]
-      end
-
-      def each_root(&block)
-        block.call(@root, message) if block
-      end
-
-      def each(&block)
-        if @data_type
-          block.call(@data_type.slug, message)
-        else
-          each_root(&block)
-        end
-      end
-
-      def process_item(item, data_type, options)
-        item
-      end
-
-      def data_type_for(root)
-        @data_type && @data_type.slug == root ? @data_type : config[:controller].send(:get_data_type, root)
+      def method_missing(symbol, *args, &block)
+        parser_data_type.send(symbol, *args, &block)
       end
     end
 
-    class JSONPayload < BasicPayload
+    class Template
+      class << self
+        include Edi::Formatter
 
-      def message
-        @message ||= JSON.parse(msg = super)
-      end
-
-      def each_root(&block)
-        if message.is_a?(Hash)
-          message.each { |root, message| block.call(root, message) }
-        else
-          fail "JSON object payload expected but #{message.class} found"
+        def with(record)
+          Thread.current[SELF_RECORD_KEY] = record
+          yield self
+        ensure
+          Thread.current[SELF_RECORD_KEY] = nil
         end
+
+        def self_record
+          Thread.current[SELF_RECORD_KEY]
+        end
+
       end
 
-      def process_item(item, data_type, options)
-        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
-          item.to_json
-        else
-          item
-        end
-      end
+      SELF_RECORD_KEY = "[cenit]#{self}.self_record"
+    end
+  end
+end
+
+module Setup
+
+  class DataType
+
+    def handle_get_digest(controller)
+      controller.setup_request(namespace: ns_slug, model: slug)
+      controller.index
     end
 
-    class XMLPayload < BasicPayload
+    def handle_post_digest(controller)
+      controller.setup_request(namespace: ns_slug, model: slug)
+      controller.new
+    end
 
-      def each_root(&block)
-        if (roots = Nokogiri::XML::DocumentFragment.parse(message).element_children)
-          roots.each do |root|
-            if (elements = root.element_children)
-              elements.each { |e| block.call(root.name, e) }
-            end
-          end
-        end if block
+    def digest_schema(request, options = {})
+      data =
+        if request.get?
+          merged_schema(options)
+        else
+          request.body.rewind #TODO Do not run save_request_data for digest
+          merge_schema(JSON.parse(request.body.read), options)
+        end
+      {
+        json: data
+      }
+    rescue Exception => ex
+      {
+        json: { error: ex.message },
+        status: :bad_request
+      }
+    end
+  end
+
+  class FileDataType
+
+    def post_digest_upload(request, options = {})
+      request.body.rewind
+      file = create_from(request.body, options)
+      {
+        json: Api::V3::ApiController::Template.with(file) { |template| template.to_hash }
+      }
+    rescue Exception => ex
+      {
+        json: { error: ex.message },
+        status: :bad_request
+      }
+    end
+  end
+end
+
+require 'mongoff/grid_fs/file'
+
+module Mongoff
+  module GridFs
+    class File
+
+      def post_digest(request, options = {})
+        request.body.rewind
+        fill_from(options)
+        self.data = request.body
+        save
+        {
+          json: Api::V3::ApiController::Template.with(self) { |template| template.to_hash }
+        }
+      rescue Exception => ex
+        {
+          json: { error: ex.message },
+          status: :bad_request
+        }
       end
 
-      def process_item(item, data_type, options)
-        if data_type.is_a?(Setup::FileDataType) && !options[:data_type_parser] && !item.is_a?(String)
-          item.to_xml
-        else
-          item
-        end
+      def handle_get_digest(controller)
+        controller.send_data(data, filename: filename, type: contentType)
       end
     end
   end

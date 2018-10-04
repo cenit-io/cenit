@@ -191,8 +191,15 @@ class Ability
         can keys, models, { 'origin' => 'default' }
       end
 
+      creator_id =
+        if Account.current && Account.current.owner
+          Account.current.owner.id
+        else
+          user.id
+        end
+
       @@shared_allowed.each do |keys, models|
-        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'tenant_id' => user.account.id }] }
+        can keys, models, { '$or' => [{ 'origin' => 'default' }, { 'creator_id' => creator_id }] }
       end
 
       can :manage, Mongoff::Model
@@ -243,6 +250,7 @@ class Ability
   ADMIN_CROSSING_MODELS = UNCONDITIONAL_ADMIN_CROSSING_MODELS + [Setup::CrossSharedCollection]
 
   def can?(action, subject, *extra_args)
+    return true if action == :digest
     if action == :json_edit
       subject.is_a?(Mongoff::Record) && !subject.is_a?(Mongoff::GridFs::File)
     elsif (action == :simple_cross && crossing_models.exclude?(subject.is_a?(Class) ? subject : subject.class)) ||

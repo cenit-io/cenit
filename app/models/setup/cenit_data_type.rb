@@ -75,6 +75,14 @@ module Setup
       self
     end
 
+    def slug
+      if (m = build_in) && (m = m.model)
+        m.to_s.split('::').last.underscore
+      else
+        super
+      end
+    end
+
     class << self
 
       def init!

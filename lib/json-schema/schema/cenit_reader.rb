@@ -23,6 +23,18 @@ module JSON
           raise Exception.new("Unresolved schema reference #{ref}")
         end
       end
+
+      def absolute_ref_uri(ref, parent_uri, validator)
+        if (schema = schema_finder.find_ref_schema(ref))
+          if schema.is_a?(Hash)
+            schema
+          else
+            JSON.parse(schema)
+          end
+        else
+          raise Exception.new("Unresolved schema reference #{ref}")
+        end
+      end
     end
   end
 end

@@ -48,9 +48,10 @@ module RailsAdmin
               field :name
               field :type
               field :description
+              field :updated_at
             end
 
-            fields :namespace, :name, :type, :description, :code
+            fields :namespace, :name, :type, :description, :code, :updated_at
           end
         end
 

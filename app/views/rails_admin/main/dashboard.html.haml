@@ -32,48 +32,70 @@
           = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: auth_monitor_data(totals[:auths])}
           = render partial: 'rails_admin/main/dashboard/monitor', locals:{options: notif_monitor_data(totals[:notif])}
       .models{'data-model-count': 0}
-        - secondary = ['Monitors', 'Configuration', 'Administration']
-        - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
-        - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
-        - if primaries.length > 0
-          .row
-            %ul.nav.nav-tabs{role: "tablist"}
-              - primaries.each_with_index do |d,index|
-                %li{class: index==0 ? 'active': ''}
-                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                    %i{class: "fa #{d[:icon]}"}
-                    =d[:label]
-            .tab-content
-              - primaries.each_with_index do |d,index|
-                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                  = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
-        -if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
-          .row
-            -home_groups = RailsAdmin::Config.dashboard_groups
-            %ul.nav.nav-tabs{role: "tablist"}
-              - home_groups.each_with_index do |d,index|
-                %li{class: index==0 ? 'active': ''}
-                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                    %i{class: "fa #{d[:icon]}"}
-                    =d[:label]
-            .tab-content
-              - home_groups.each_with_index do |d,index|
-                - locals = d[:sublinks]
-                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                  - locals.each_with_index do |l,i|
-                    = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {a: l, index: i}
-        - if auxiliaries.length > 0
-          .row
-            %ul.nav.nav-tabs{role: "tablist"}
-              - auxiliaries.each_with_index do |d,index|
-                %li{class: index==0 ? 'active': ''}
-                  %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
-                    %i{class: "fa #{d[:icon]}"}
-                    =d[:label]
-            .tab-content
-              - auxiliaries.each_with_index do |d,index|
-                .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
-                  = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d, index: index}
+        - secondary = %w(Monitors Configuration Administration)
+        - if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
+          - if with_cache_user_key?(:dashboard_monitors)
+            = with_cache_user_key(:dashboard_monitors)
+          - else
+            - monitors = capture_haml do
+              .row
+                -home_groups = RailsAdmin::Config.dashboard_groups
+                %ul.nav.nav-tabs{role: "tablist"}
+                  - home_groups.each_with_index do |d,index|
+                    %li{class: index==0 ? 'active': ''}
+                      %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                        %i{class: "fa #{d[:icon]}"}
+                        =d[:label]
+                .tab-content
+                  - home_groups.each_with_index do |d,index|
+                    - locals = d[:sublinks]
+                    .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                      - locals.each_with_index do |l,i|
+                        = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {a: l}
+            = with_cache_user_key(:dashboard_monitors, monitors)
+        - else
+          - primaries = dashboard_data.select{ |d|  !secondary.include?(d[:label])}
+          - if primaries.length > 0
+            .row
+              %ul.nav.nav-tabs{role: "tablist"}
+                - primaries.each_with_index do |d,index|
+                  %li{class: index==0 ? 'active': ''}
+                    %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                      %i{class: "fa #{d[:icon]}"}
+                      =d[:label]
+              .tab-content
+                - if %w(objects files ecommerce).include?(params[:group].to_s)
+                  - primaries.each_with_index do |d,index|
+                    .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                      = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d}
+                - else
+                  - primaries.each_with_index do |d,index|
+                    .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                      - key = "dashboard_group_#{d[:label]}_monitors"
+                      -  if with_cache_user_key?(key)
+                        = with_cache_user_key(key)
+                      - else
+                        - monitors = capture_haml do
+                          = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d}
+                        = with_cache_user_key(key, monitors)
+        -  if with_cache_user_key?(:dashboard_auxiliaries_monitors)
+          = with_cache_user_key(:dashboard_auxiliaries_monitors)
+        - else
+          - monitors = capture_haml do
+            - auxiliaries = dashboard_data.select{ |d|  secondary.include?(d[:label])}
+            - if auxiliaries.length > 0
+              .row
+                %ul.nav.nav-tabs{role: "tablist"}
+                  - auxiliaries.each_with_index do |d,index|
+                    %li{class: index==0 ? 'active': ''}
+                      %a{href: "##{d[:label]}", role:"tab", data: {toggle: "tab"} }
+                        %i{class: "fa #{d[:icon]}"}
+                        =d[:label]
+                .tab-content
+                  - auxiliaries.each_with_index do |d,index|
+                    .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: d[:label] }
+                      = render partial: 'rails_admin/main/dashboard/model_monitor', locals: {d: d}
+          = with_cache_user_key(:dashboard_auxiliaries_monitors, monitors)
     .col-sm-3.traces.no-padding-left
       %ul.nav.nav-tabs
         - origins = Mongoid::Tracer::Trace.origins
@@ -91,6 +113,6 @@
           .tab-pane{class: "fade in #{index==0 ? 'active': ''}", id: o }
             %ol{data:{page: 1, origin: o}}
         =link_to  "#", id: 'load_more_traces' do
-          %i.fa.fa-code-fork
+          %i.fa.fa-history
           %span
             ="Load more Traces"

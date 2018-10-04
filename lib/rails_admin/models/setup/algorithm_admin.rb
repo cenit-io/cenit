@@ -21,6 +21,8 @@ module RailsAdmin
 
             configure :namespace, :enum_edit
 
+            configure :code_warnings, :code_warnings
+
             configure :code, :code do
               help { 'Required' }
               code_config do
@@ -49,6 +51,7 @@ module RailsAdmin
               field :description, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :parameters, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :language, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :code_warnings
               field :code
               field :call_links do
                 shared_read_only
@@ -65,6 +68,7 @@ module RailsAdmin
               field :description
               field :language
               field :parameters
+              field :code_warnings
               field :code
               field :call_links
               field :tags

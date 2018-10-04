@@ -184,6 +184,10 @@ module Setup
         .reject! { |_, value| value.nil? }
       halt_anyway = false
       begin
+        if body.to_s.empty? && headers['Content-Type'] == 'application/x-www-form-urlencoded'
+          body = parameters.www_form_encode
+          query = nil
+        end
         conformed_path += '?' + query if query.present?
         url = conformed_url.gsub(%r{\/+\Z}, '') + ('/' + conformed_path).gsub(%r{\/+}, '/')
         template_parameters[:uri] ||= url

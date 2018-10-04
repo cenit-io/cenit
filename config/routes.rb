@@ -80,6 +80,7 @@ Cenit::Application.routes.draw do
       post '/:ns/:model/:id/pull', to: 'api#pull'
       post '/:ns/:model/:id/run', to: 'api#run'
       get '/:ns/:model/:id/retry', to: 'api#retry'
+      get '/:ns/:model/:id/authorize', to: 'api#authorize'
       get '/:ns/:model/:id/:view', to: 'api#content', defaults: { format: 'json' }
       match '/auth', to: 'api#auth', via: [:head]
       match '/*path', to: 'api#cors_check', via: [:options]
@@ -87,17 +88,18 @@ Cenit::Application.routes.draw do
 
     namespace :v3 do
       post '/setup/user', to: 'api#new_user'
-      post '/:ns/push', to: 'api#push'
-      post '/:ns/:model', to: 'api#new'
-      get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
-      get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
-      post '/:ns/:model/:id', to: 'api#update'
-      post '/:ns/:model/:id/digest', to: 'api#digest'
-      delete '/:ns/:model/:id', to: 'api#destroy'
+      post '/:__ns_/:__model_', to: 'api#new'
+      get '/:__ns_/:__model_', to: 'api#index', defaults: { format: 'json' }
+      get '/:__ns_/:__model_/:__id_', to: 'api#show', defaults: { format: 'json' }
+      post '/:__ns_/:__model_/:__id_', to: 'api#update'
+      match '/:__ns_/:__model_/:__id_/digest', to: 'api#digest', via: [:get, :post]
+      match '/:__ns_/:__model_/:__id_/digest/*path', to: 'api#digest', via: [:get, :post]
+      delete '/:__ns_/:__model_/:__id_', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
     end
   end
 
+  match '/app/*path', to: 'app#cors_check', via: [:options]
   match 'app/:id_or_ns' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:all]
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:all]

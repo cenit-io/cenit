@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-home.git
-  revision: 1704c1ed3a1d54cd1f5f7e0a9a014b2f0070545f
+  revision: 135bbc1555aa575ee9fb03f631c83c42dbb1e584
   specs:
     cenit-home (0.0.1.alpha)
       bootstrap-sass
@@ -22,7 +22,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: 7d13b95aaa9c18be0bc5e50a58c2c7ca73dac85e
+  revision: ac33340e12e0a2932e41c89c18bd75f8c897268a
   specs:
     cenit-oauth (0.0.1)
       cenit-token
@@ -45,7 +45,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: c25d088a1be11c14ad26afca3518c2442aecac1c
+  revision: 808bcbb8a334d34869742cd9e9fb79ba16d4adea
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
@@ -67,7 +67,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/mongoid-tracer.git
-  revision: bb74b75aa53f573ae42e70035bd7bc5ad8e8642e
+  revision: eca89bbc00ff5d1155bf7a790a01fc7cafd9de94
   specs:
     mongoid-tracer (0.0.1)
       mongoid (>= 5.0.1)

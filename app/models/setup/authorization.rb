@@ -36,7 +36,9 @@ module Setup
     end
 
     def sign_params(params, template_parameters = {})
-
+      if (template_parameters['notify_parameters'] || (respond_to?(:template_parameters_hash) && template_parameters_hash['notify_parameters'])).to_b
+        Tenant.notify(message: params.to_json, type: :notice)
+      end
     end
 
     def method_missing(symbol, *args)

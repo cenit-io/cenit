@@ -63,11 +63,11 @@ module Mongoff
     end
 
     def property_schema(property)
-      if (sch = properties_schemas[property.to_s])
-        data_type.merge_schema(sch)
-      else
-        nil
-      end
+      @merged_properties_schemas ||= {}
+      property = property.to_s
+      @merged_properties_schemas[property] ||
+        ((sch = properties_schemas[property]) &&
+          (@merged_properties_schemas[property] = data_type.merge_schema(sch)))
     end
 
     def properties

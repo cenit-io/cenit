@@ -72,7 +72,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::CollectionTraceIndex,
   RailsAdmin::Config::Actions::DataTypeConfig,
   RailsAdmin::Config::Actions::JsonEdit,
-  RailsAdmin::Config::Actions::Sudo
+  RailsAdmin::Config::Actions::Sudo,
+  RailsAdmin::Config::Actions::Compare
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -104,7 +105,8 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
   RailsAdmin::Config::Fields::Types::ContextualBelongsTo,
   RailsAdmin::Config::Fields::Types::SortReverseString,
   RailsAdmin::Config::Fields::Types::AutoComplete,
-  RailsAdmin::Config::Fields::Types::ToggleBoolean
+  RailsAdmin::Config::Fields::Types::ToggleBoolean,
+  RailsAdmin::Config::Fields::Types::CodeWarnings
 ].each { |f| RailsAdmin::Config::Fields::Types.register(f) }
 
 require 'rails_admin/config/fields/factories/tag'
@@ -641,6 +643,7 @@ RailsAdmin.config do |config|
     simple_delete_data_type
     bulk_delete_data_type
     collect
+    compare
     delete
     trash
     notebooks_root if Cenit.jupyter_notebooks

@@ -24,8 +24,17 @@ module Setup
 
     shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
 
+    DEFAULT_SCHEMA = {
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string'
+        }
+      }
+    }.deep_stringify_keys
+
     after_initialize do
-      self.schema = {} if new_record? && @schema.nil?
+      self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
     end
 
     def validates_configuration
@@ -144,7 +153,7 @@ module Setup
       Account.tenant_collection_name(collection_data_type.data_type_name)
     end
 
-    def each_ref(params={}, &block)
+    def each_ref(params = {}, &block)
       params[:visited] ||= Set.new
       params[:not_found] ||= Set.new
       for_each_ref(params[:visited], params, &block)
@@ -183,9 +192,9 @@ module Setup
       # check_type_name(self.name)
       self.schema = JSON.parse(schema) unless schema.is_a?(Hash)
       JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), schema.to_json)
-      embedded_refs={}
+      embedded_refs = {}
       if schema['type'] == 'object'
-        check_schema(schema, self.name, defined_types=[], embedded_refs, schema)
+        check_schema(schema, self.name, defined_types = [], embedded_refs, schema)
       end
       [schema, embedded_refs]
     end
