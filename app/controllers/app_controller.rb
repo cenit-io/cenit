@@ -25,7 +25,7 @@ class AppController < ApplicationController
     headers['Access-Control-Allow-Origin'] = '*'
     headers['Access-Control-Allow-Credentials'] = false
     headers['Access-Control-Allow-Headers'] = '*'
-    headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    headers['Access-Control-Allow-Methods'] = Setup::Webhook::METHODS.join(',')
     headers['Access-Control-Max-Age'] = '1728000'
   end
 

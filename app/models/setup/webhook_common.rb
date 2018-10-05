@@ -473,27 +473,17 @@ module Setup
       end
     end
 
+    METHODS = %W(GET POST PUT DELETE PATCH COPY OPTIONS LINK UNLINK PURGE LOCK UNLOCK HEAD LINK UNLINK PURGE LOCK UNLOCK PROPFIND)
+
+    SYM_METHODS = METHODS.map(&:downcase).map(&:to_sym)
+
     module ClassMethods
 
       def method_enum
-        [
-          :get,
-          :post,
-          :put,
-          :delete,
-          :patch,
-          :copy,
-          :head,
-          :options,
-          :link,
-          :unlink,
-          :purge,
-          :lock,
-          :unlock,
-          :propfind
-        ]
+        SYM_METHODS
       end
     end
+
 
     class HttpResponse
 

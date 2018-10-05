@@ -100,9 +100,9 @@ Cenit::Application.routes.draw do
   end
 
   match '/app/*path', to: 'app#cors_check', via: [:options]
-  match 'app/:id_or_ns' => 'app#index', via: [:get, :post, :put, :patch, :delete]
-  match 'app/:id_or_ns/:app_slug' => 'app#index', via: [:get, :post, :put, :patch, :delete]
-  match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: [:get, :post, :put, :patch, :delete]
+  match 'app/:id_or_ns' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
+  match 'app/:id_or_ns/:app_slug' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
+  match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
 
   get 'remote_shared_collection/:id', to: 'rails_admin/main#remote_shared_collection'
   get 'remote_shared_collection/:id/pull', to: 'rails_admin/main#remote_shared_collection'
