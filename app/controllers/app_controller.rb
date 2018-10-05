@@ -22,10 +22,11 @@ class AppController < ApplicationController
 
   def process_headers
     headers.delete('X-Frame-Options')
-    headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
+    headers['Access-Control-Allow-Origin'] = '*'
     headers['Access-Control-Allow-Credentials'] = false
     headers['Access-Control-Allow-Headers'] = '*'
     headers['Access-Control-Allow-Methods'] = '*'
+    headers['Access-Control-Max-Age'] = '1728000'
   end
 
   def find_app_control_action
