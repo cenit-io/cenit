@@ -25,7 +25,8 @@ class AppController < ApplicationController
     headers['Access-Control-Allow-Origin'] = '*'
     headers['Access-Control-Allow-Credentials'] = false
     headers['Access-Control-Allow-Headers'] = '*'
-    headers['Access-Control-Allow-Methods'] = '*'
+    headers['Access-Control-Allow-Methods'] = request.headers['Access-Control-Request-Method'] ||
+      Setup::Webhook.method_enum.map(&:to_s).map(&:upcase).join(',')
     headers['Access-Control-Max-Age'] = '1728000'
   end
 
