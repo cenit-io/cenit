@@ -27,9 +27,9 @@ Capataz.config do
 
   allow_on Setup::SystemNotification, :create_with
 
-  allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi]
+  allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
 
-  allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type]
+  allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current, :name]
 
   allow_on Cenit, [:homepage, :namespace]
 
@@ -162,9 +162,9 @@ Capataz.config do
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :present?, :blank?, :limit, :skip]
 
-  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources, :description, :agent]
+  allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources, :description, :agent, :join]
 
-  allow_for Setup::Scheduler, [:activate, :activated?, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
+  allow_for Setup::Scheduler, [:activate, :activated?, :deactivate, :name, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :namespace]
 
   allow_for Setup::Webhook::HttpResponse, [:code, :body, :headers, :content_type]
 

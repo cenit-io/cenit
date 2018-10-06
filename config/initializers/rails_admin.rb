@@ -578,6 +578,8 @@ RailsAdmin.config do |config|
 
   Setup::SystemReport
 
+  ActiveTenant
+
   RabbitConsumer
 
   Cenit::ApplicationId
