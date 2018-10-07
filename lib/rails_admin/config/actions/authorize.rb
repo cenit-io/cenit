@@ -22,10 +22,9 @@ module RailsAdmin
 
             errors = nil
             if @object.check
-              case @object
-              when Setup::BaseOauthAuthorization
+              if @object.is_a?(Setup::CallbackAuthorization)
                 begin
-                  cenit_token = OauthAuthorizationToken.create(authorization: @object, data: {})
+                  cenit_token = CallbackAuthorizationToken.create(authorization: @object, data: {})
                   url = @object.authorize_url(cenit_token: cenit_token)
                   cenit_token.save
                   session[:oauth_state] = cenit_token.token

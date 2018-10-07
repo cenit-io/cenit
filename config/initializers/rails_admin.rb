@@ -365,6 +365,8 @@ RailsAdmin.config do |config|
 
   Setup::BasicAuthorization
 
+  Setup::GenericCallbackAuthorization
+
   Setup::OauthAuthorization
 
   Setup::Oauth2Authorization

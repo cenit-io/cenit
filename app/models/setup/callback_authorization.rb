@@ -49,9 +49,9 @@ module Setup
       { callback_key => "#{Cenit.oauth2_callback_site}/oauth/callback" }
     end
 
-    def authorize_params(params = {})
+    def authorize_params(params = {}, template_parameters = {})
       params = callback_params.merge(params)
-      conformed_parameters.each { |key, value| params[key.to_sym] = value }
+      conformed_parameters(template_parameters).each { |key, value| params[key.to_sym] = value }
       params
     end
 
@@ -61,7 +61,7 @@ module Setup
 
     def resolve!(params)
       resolve(params)
-      save
+      save || raise(errors.full_messages.to_sentence)
     end
 
     def resolve(_params)
