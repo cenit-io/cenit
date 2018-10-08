@@ -4,8 +4,15 @@ module Setup
     include CallbackAuthorization
     include RailsAdmin::Models::Setup::GenericCallbackAuthorizationAdmin
 
-    build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters) # TODO Include custom fields
-    build_in_data_type.referenced_by(:namespace, :name)
+    build_in_data_type.with(
+      :namespace,
+      :name,
+      :client,
+      :callback_resolver,
+      :parameters_signer,
+      :parameters,
+      :template_parameters
+    ).referenced_by(:namespace, :name)
 
     belongs_to :callback_resolver, class_name: Setup::Algorithm.to_s, inverse_of: nil
     belongs_to :parameters_signer, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -41,7 +48,8 @@ module Setup
       fail "Callback resolver is not present" unless callback_resolver
       templates = template_parameters_hash
       callback_resolver.run([params, templates])
-      fill_from(template_parameters: templates.map { |key, value| { key: key, value: value } })
+      fill_from({template_parameters: templates.map { |key, value| { key: key, value: value } }}, add_only: true, reset: :template_parameters)
+      self.authorized_at = Time.now
     end
 
     def sign_params(params, template_parameters = {})
