@@ -29,9 +29,9 @@ module Setup
             }
           else
             {
-              source_key_options[:source_key] || :source =>
+              (source_key = source_key_options[:source_key] || :source) =>
                 begin
-                  obj = options[:object] ||
+                  obj = options[source_key] || options[:object] ||
                     ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) ||
                     model.all.skip(offset).first
                   options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?

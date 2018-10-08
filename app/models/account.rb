@@ -167,6 +167,14 @@ class Account
       Cenit[:"default_#{type}_notifications_span"] || 1.hour
   end
 
+  def owner_switch(&block)
+    current_user = User.current
+    User.current = owner
+    switch(&block)
+  ensure
+    User.current = current_user
+  end
+
   class << self
 
     def find_where(expression)
