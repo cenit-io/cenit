@@ -204,7 +204,7 @@ module RailsAdmin
               label: 'Security',
               icon: 'fa fa-shield',
               externals: [],
-              sublinks: %w(Setup::AuthorizationClient Setup::AuthorizationProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant ) #!!!
+              sublinks: %w(Setup::AuthorizationClient Setup::AuthorizationProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
             }
           ]
           @dashboard_groups.select { |g| g[:param] == 'compute' }.each do |g|
