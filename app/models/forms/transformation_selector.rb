@@ -46,6 +46,8 @@ module Forms
                   :target_data_type_id
                 end => [nil, data_type.id]
               }
+            else
+              {}
             end
           end
           contextual_association_scope do
