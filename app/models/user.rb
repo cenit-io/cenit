@@ -180,6 +180,18 @@ class User
 
   class << self
 
+    def find_where(expression)
+      scope = all(expression)
+      unless current_super_admin?
+        scope = scope.and(id: current && current.id)
+      end
+      scope
+    end
+
+    def find_all
+      find_where({})
+    end
+
     def method_missing(symbol, *args)
       if (match = symbol.to_s.match(/\Acurrent_(.+)\?/))
         current && current.send("#{match[1]}?")

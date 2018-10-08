@@ -122,7 +122,15 @@ module Setup
         nil
     end
 
-    RECORDS_MODEL_METHODS = %w(where all count only).collect(&:to_sym)
+    RECORDS_MODEL_METHODS = %w(all count only).collect(&:to_sym)
+
+    def where(expression, &block)
+      if records_model.respond_to?(:find_where)
+        records_model.find_where(expression, &block)
+      else
+        records_model.where(expression, &block)
+      end
+    end
 
     def respond_to?(*args)
       symbol = args[0]
