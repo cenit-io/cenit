@@ -391,7 +391,7 @@ module Api::V3
     end
 
     def authorize_account
-      user = nil
+      Account.current = user = nil
       if (auth_header = request.headers['Authorization'])
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
@@ -439,8 +439,13 @@ module Api::V3
       else
         User.current ||= (Account.current ? Account.current.owner : nil)
       end
-      @ability = Ability.new(User.current)
-      true
+      if User.current && Account.current
+        @ability = Ability.new(User.current)
+        true
+      else
+        render json: { error: 'not unauthorized' }, status: :unauthorized
+        false
+      end
     end
 
     def authorized_action?
