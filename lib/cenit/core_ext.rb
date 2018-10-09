@@ -202,6 +202,14 @@ class String
     OpenSSL::HMAC.hexdigest(openssl_digest[:sha256], key.to_s, self)
   end
 
+  def sha256
+    openssl_digest[:sha256].digest(self)
+  end
+
+  def to_hex
+    each_byte.map { |b| b.to_s(16) }.join
+  end
+
   def openssl_digest
     @openssl_digest ||= Hash.new { |h, k| h[k] = OpenSSL::Digest.new(k.to_s) }
   end
