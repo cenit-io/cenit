@@ -6,6 +6,7 @@ class Account
   include CredentialsGenerator
   include FieldsInspection
   include TimeZoneAware
+  include ObserverTenantLookup
   include RailsAdmin::Models::AccountAdmin
 
   DEFAULT_INDEX_MAX_ENTRIES = 100
