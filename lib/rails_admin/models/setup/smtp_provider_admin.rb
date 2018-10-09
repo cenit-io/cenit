@@ -7,10 +7,15 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
-            parent ::Setup::BaseOauthProvider
+            parent ::Setup::AuthorizationProvider
             object_label_method { :custom_title }
             weight 331
-            label 'SMTP Provider'
+            label 'SMTP provider'
+            register_instance_option :label_navigation do
+              'SMTP'
+            end
+
+            configure :namespace, :enum_edit
 
             configure :address, :string do
               label 'SMTP Host'

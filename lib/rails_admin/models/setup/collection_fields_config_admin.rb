@@ -100,6 +100,10 @@ module RailsAdmin
             group :security
           end
 
+          configure :generic_clients do
+            group :security
+          end
+
           configure :oauth2_scopes do
             group :security
           end
@@ -146,6 +150,7 @@ module RailsAdmin
             security: {
               authorizations: 'Authorizations',
               oauth_clients: 'OAuth Clients',
+              generic_clients: 'Generic Clients',
               oauth_providers: 'OAuth Providers',
               oauth2_scopes: 'OAuth 2.0 Scopes'
             },
@@ -207,6 +212,7 @@ module RailsAdmin
             field :authorizations, &SHARING_INVISIBLE
             field :oauth_providers, &SHARING_INVISIBLE
             field :oauth_clients, &SHARING_INVISIBLE
+            field :generic_clients, &SHARING_INVISIBLE
             field :oauth2_scopes, &SHARING_INVISIBLE
             field :metadata, :json_value, &SHARING_INVISIBLE
           end
@@ -330,6 +336,11 @@ module RailsAdmin
                 end
               end
               field :oauth_clients do
+                pretty_value do
+                  value.count > 0 ? value.count : '-'
+                end
+              end
+              field :generic_clients do
                 pretty_value do
                   value.count > 0 ? value.count : '-'
                 end

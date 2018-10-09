@@ -52,7 +52,7 @@ class OauthController < ApplicationController
   def callback
     redirect_uri = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
     error = params[:error]
-    if (cenit_token = OauthAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
+    if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
       cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
@@ -71,9 +71,10 @@ class OauthController < ApplicationController
           else
             rails_admin.show_path(model_name: authorization.class.to_s.underscore.tr('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
           end
-        if authorization.accept_callback?(params)
-          params[:cenit_token] = cenit_token
-          authorization.request_token!(params)
+        resolve_params = params.reject { |k, _| %w(controller action).include?(k) }
+        if authorization.accept_callback?(resolve_params)
+          resolve_params[:cenit_token] = cenit_token
+          authorization.resolve!(resolve_params)
         else
           authorization.cancel!
         end

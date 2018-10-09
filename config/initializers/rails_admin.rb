@@ -204,7 +204,7 @@ module RailsAdmin
               label: 'Security',
               icon: 'fa fa-shield',
               externals: [],
-              sublinks: %w(Setup::RemoteOauthClient Setup::BaseOauthProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
+              sublinks: %w(Setup::AuthorizationClient Setup::AuthorizationProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
             }
           ]
           @dashboard_groups.select { |g| g[:param] == 'compute' }.each do |g|
@@ -339,9 +339,17 @@ RailsAdmin.config do |config|
 
   config.navigation 'Security', icon: 'fa fa-shield'
 
+  Setup::AuthorizationClient
+
+  Setup::GenericAuthorizationClient
+
   Setup::OauthClient
 
   Setup::RemoteOauthClient
+
+  Setup::AuthorizationProvider
+
+  Setup::GenericAuthorizationProvider
 
   Setup::BaseOauthProvider
 
@@ -356,6 +364,8 @@ RailsAdmin.config do |config|
   Setup::Authorization
 
   Setup::BasicAuthorization
+
+  Setup::GenericCallbackAuthorization
 
   Setup::OauthAuthorization
 

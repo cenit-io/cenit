@@ -57,10 +57,10 @@ module Setup
       create_http_client(authorize_url: authorization_endpoint).auth_code.authorize_url(authorize_params(params))
     end
 
-    def authorize_params(params)
+    def authorize_params(params, template_parameters = {})
       scope_sep = provider.scope_separator.blank? ? ' ' : provider.scope_separator
-      params[:scope] ||= conformed_scopes.values.to_a.join(scope_sep)
-      super(params)
+      params[:scope] ||= conformed_scopes(template_parameters).values.to_a.join(scope_sep)
+      super(params, template_parameters)
     end
 
     def request_token(params)

@@ -240,7 +240,7 @@ module Api::V2
       if (auth = @item).is_a?(Setup::Oauth2Authorization)
         if (redirect_uri = params[:redirect_uri])
           if auth.check
-            cenit_token = OauthAuthorizationToken.create(authorization: auth, data: { redirect_uri: redirect_uri })
+            cenit_token = CallbackAuthorizationToken.create(authorization: auth, data: { redirect_uri: redirect_uri })
             auth_url = auth.authorize_url(cenit_token: cenit_token)
             cenit_token.save
             render json: { authorize_url: auth_url }

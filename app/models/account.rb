@@ -6,6 +6,7 @@ class Account
   include CredentialsGenerator
   include FieldsInspection
   include TimeZoneAware
+  include ObserverTenantLookup
   include RailsAdmin::Models::AccountAdmin
 
   DEFAULT_INDEX_MAX_ENTRIES = 100
@@ -167,15 +168,27 @@ class Account
       Cenit[:"default_#{type}_notifications_span"] || 1.hour
   end
 
+  def owner_switch(&block)
+    current_user = User.current
+    User.current = owner
+    switch(&block)
+  ensure
+    User.current = current_user
+  end
+
   class << self
 
     def find_where(expression)
-      user_id = (user = User.current) && user.id
-      member_account_ids = user && user.member_account_ids
-      all(expression).and({ '$or' => [
-        { 'owner_id' => user_id },
-        { '_id' => { '$in' => member_account_ids || [] } }
-      ] })
+      scope = all(expression)
+      unless User.current_super_admin?
+        user_id = (user = User.current) && user.id
+        member_account_ids = user && user.member_account_ids
+        scope = scope.and({ '$or' => [
+          { 'owner_id' => user_id },
+          { '_id' => { '$in' => member_account_ids || [] } }
+        ] })
+      end
+      scope
     end
 
     def find_all
