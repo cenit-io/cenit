@@ -7,10 +7,10 @@ module RailsAdmin
         included do
           rails_admin do
             navigation_label 'Security'
-            weight 333
-            label 'Callback Authorization'
+            weight 334
+            label 'Generic Callback Authorization'
             register_instance_option :label_navigation do
-              'OAuth 2.0'
+              'Callback Authorization'
             end
             object_label_method { :custom_title }
             parent ::Setup::Authorization
