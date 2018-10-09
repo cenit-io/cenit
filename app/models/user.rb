@@ -9,6 +9,7 @@ class User
   include CredentialsGenerator
   include FieldsInspection
   include TimeZoneAware
+  include ObserverTenantLookup
   include RailsAdmin::Models::UserAdmin
 
 

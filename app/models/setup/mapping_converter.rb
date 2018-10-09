@@ -358,7 +358,8 @@ module Setup
           source_model = source_data_type.records_model
           titles = Set.new
           source_model.properties.each do |property|
-            property_dt = source_model.property_model(property).data_type
+            next unless (property_model = source_model.property_model(property))
+            property_dt = property_model.data_type
             unless property_dt == source_data_type
               enum << property
               title = property_dt.schema['title'] || property.to_title

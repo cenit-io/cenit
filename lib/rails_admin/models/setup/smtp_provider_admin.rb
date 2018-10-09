@@ -12,6 +12,8 @@ module RailsAdmin
             weight 331
             label 'SMTP Provider'
 
+            configure :namespace, :enum_edit
+
             configure :address, :string do
               label 'SMTP Host'
               required true

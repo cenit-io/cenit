@@ -22,6 +22,8 @@ module Setup
     field :home_integrations, type: Array, default: -> { default_home_section(:home_integrations) }
     field :home_features, type: Array, default: -> { default_home_section(:home_features) }
 
+    belongs_to :observer_tenant, class_name: Account.to_s, inverse_of: nil
+
     def warnings
       @warnings ||= []
     end
