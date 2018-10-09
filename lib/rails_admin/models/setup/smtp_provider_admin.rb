@@ -15,6 +15,8 @@ module RailsAdmin
               'SMTP'
             end
 
+            configure :namespace, :enum_edit
+
             configure :address, :string do
               label 'SMTP Host'
               required true
