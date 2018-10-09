@@ -331,7 +331,7 @@ en:
         doing: 'pull'
         skip_pull_review: "Skipp pull review"
         skip_pull_review_help: "The pull will procede without warning about changes if checked"
-        client_property_description: "Your OAuth Client '%{client_name}' requires a non blank %{property} value to works correctly. You can configure the %{property} value later by editing the client record."
+        client_property_description: "Your Client '%{client_name}' might requires a non blank %{property} value to works correctly. You can configure the %{property} value later by editing the client record."
       retry_task:
         title: "Retry"
         menu: "Retry"

@@ -1,14 +1,14 @@
 module Setup
-  class RemoteOauthClient < OauthClient
+  class GenericAuthorizationClient < AuthorizationClient
     include SharedEditable
     include Parameters
     include WithTemplateParameters
     include AuthorizationClientCommon
-    include RailsAdmin::Models::Setup::RemoteOauthClientAdmin
+    include RailsAdmin::Models::Setup::GenericAuthorizationClientAdmin
 
     build_in_data_type.including(:provider).referenced_by(:_type, :provider, :name).protecting(:identifier, :secret)
 
-    parameters :request_token_parameters, :request_token_headers, :template_parameters
+    parameters :template_parameters
 
   end
 end

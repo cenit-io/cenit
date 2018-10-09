@@ -8,6 +8,7 @@ module RailsAdmin
           rails_admin do
             navigation_label 'Security'
             weight 312
+            parent ::Setup::AuthorizationProvider
             label 'OAuth 2.0 provider'
             register_instance_option :label_navigation do
               'OAuth 2.0'

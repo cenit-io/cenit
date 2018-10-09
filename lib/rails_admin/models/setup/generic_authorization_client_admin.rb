@@ -1,13 +1,13 @@
 module RailsAdmin
   module Models
     module Setup
-      module RemoteOauthClientAdmin
+      module GenericAuthorizationClientAdmin
         extend ActiveSupport::Concern
 
         included do
           rails_admin do
             navigation_label 'Security'
-            label 'Remote OAuth Client'
+            label 'Generic Client'
             navigation_icon 'fa fa-user'
             weight 300
             parent ::Setup::AuthorizationClient
@@ -31,7 +31,7 @@ module RailsAdmin
               end
             end
 
-            fields :provider, :name, :identifier, :secret, :tenant, :request_token_parameters, :request_token_headers, :template_parameters, :updated_at
+            fields :provider, :name, :identifier, :secret, :tenant, :template_parameters, :updated_at
           end
         end
 

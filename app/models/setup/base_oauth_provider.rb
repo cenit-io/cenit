@@ -1,19 +1,12 @@
 module Setup
-  class BaseOauthProvider
-    include SharedEditable
-    include MandatoryNamespace
-    include ClassHierarchyAware
-    include BuildIn
+  class BaseOauthProvider < AuthorizationProvider
     include RailsAdmin::Models::Setup::BaseOauthProviderAdmin
-
-    origins origins_config, :cenit
 
     abstract_class true
 
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :response_type, type: String
-    field :authorization_endpoint, type: String
     field :token_endpoint, type: String
     field :token_method, type: String
 

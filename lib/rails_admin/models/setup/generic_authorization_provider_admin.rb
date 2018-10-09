@@ -1,7 +1,7 @@
 module RailsAdmin
   module Models
     module Setup
-      module BaseOauthProviderAdmin
+      module GenericAuthorizationProviderAdmin
         extend ActiveSupport::Concern
 
         included do
@@ -10,13 +10,9 @@ module RailsAdmin
             navigation_icon 'fa fa-wrench'
             weight 310
             object_label_method { :custom_title }
-            label 'OAuth Provider'
-            visible false
-
-            configure :_type do
-              pretty_value do
-                value.split('::').last.to_title
-              end
+            label 'Generic provider'
+            register_instance_option :label_navigation do
+              'Generic'
             end
 
             configure :namespace, :enum_edit
@@ -24,15 +20,10 @@ module RailsAdmin
             list do
               field :namespace
               field :name
-              field :_type
-              field :response_type
               field :authorization_endpoint
-              field :token_endpoint
-              field :token_method
-              field :updated_at
             end
 
-            fields :namespace, :name, :_type, :response_type, :authorization_endpoint, :token_endpoint, :token_method
+            fields :namespace, :name, :authorization_endpoint
           end
         end
 
