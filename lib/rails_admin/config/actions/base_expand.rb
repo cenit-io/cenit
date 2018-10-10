@@ -3,6 +3,10 @@ module RailsAdmin
     module Actions
       class BaseExpand < RailsAdmin::Config::Actions::Base
 
+        register_instance_option :only do
+          Setup::JsonDataType
+        end
+
         register_instance_option :http_methods do
           [:get, :post]
         end

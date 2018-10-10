@@ -4,7 +4,7 @@ module RailsAdmin
       class BaseDeleteDataType < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          Setup::DataType.class_hierarchy
+          [Setup::JsonDataType, Setup::FileDataType]
         end
 
         register_instance_option :http_methods do

@@ -3,10 +3,6 @@ module RailsAdmin
     module Actions
       class BulkExpand < RailsAdmin::Config::Actions::BaseExpand
 
-        register_instance_option :only do
-          Setup::JsonDataType
-        end
-
         register_instance_option :collection do
           true
         end

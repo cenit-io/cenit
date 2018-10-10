@@ -100,7 +100,7 @@ class Ability
             non_root.each do |action|
               models = allowed_hash[key = action.authorization_key]
               denied = (excluded_actions.include?(:all) || excluded_actions.include?(action.key))
-              if relevant_rules_for_match(action.authorization_key, model).empty? && !denied
+              if relevant_rules_for_match(action.authorization_key, model).empty? && !denied && action.enabled_for(model)
                 models << model
               elsif denied
                 models.delete(model)
