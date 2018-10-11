@@ -3,10 +3,6 @@ module RailsAdmin
     module Actions
       class SimpleExpand < RailsAdmin::Config::Actions::BaseExpand
 
-        register_instance_option :only do
-          [Setup::DataType, Setup::JsonDataType]
-        end
-
         register_instance_option :visible? do
           authorized? && bindings[:object].is_a?(Setup::JsonDataType)
         end
