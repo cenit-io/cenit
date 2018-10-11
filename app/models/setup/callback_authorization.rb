@@ -45,8 +45,12 @@ module Setup
       fail NotImplementedError
     end
 
+    def callback_url
+      "#{Cenit.oauth2_callback_site}/oauth/callback"
+    end
+
     def callback_params
-      { callback_key => "#{Cenit.oauth2_callback_site}/oauth/callback" }
+      { callback_key => callback_url }
     end
 
     def authorize_params(params = {}, template_parameters = {})
@@ -79,6 +83,11 @@ module Setup
 
     def accept_callback?(_params)
       fail NotImplementedError
+    end
+
+    def inject_template_parameters(hash)
+      client && client.inject_template_parameters(hash)
+      hash[callback_key.to_s] ||= callback_url
     end
   end
 end
