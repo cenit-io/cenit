@@ -16,10 +16,10 @@ module Setup
     end
 
     def inject_template_parameters(hash)
-      hash['identifier'] = get_identifier
-      hash['secret'] = get_secret
-      hash['timestamp'] = (timestamp.to_f * 1000).to_i
-      hash['utc_timestamp'] = (timestamp.utc.to_f * 1000).to_i
+      hash['identifier'] ||= get_identifier
+      hash['secret'] ||= get_secret
+      hash['timestamp'] ||= (timestamp.to_f * 1000).to_i
+      hash['utc_timestamp'] ||= (timestamp.utc.to_f * 1000).to_i
     end
 
     def timestamp

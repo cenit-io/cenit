@@ -27,7 +27,7 @@ module Setup
     end
 
     def callback_key
-      template_parameters_hash['callback_key'].presence || :redirect_uri
+      ((template = template_parameters.where(key: 'callback_key').first) && template.value.presence) || :redirect_uri
     end
 
     def authorize_url(params)
