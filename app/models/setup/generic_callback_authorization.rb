@@ -53,7 +53,7 @@ module Setup
     end
 
     def sign_params(params, template_parameters = {})
-      parameters_signer.run(params, template_parameters) if parameters_signer
+      parameters_signer.run([params, template_parameters]) if parameters_signer
     end
   end
 end
