@@ -348,8 +348,8 @@ module Edi
                 end
               else
                 next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)
-                unless (property_value = json[name]).nil?
-                  record.send("#{property_name}=", property_value)
+                if json.key?(name)
+                  record.send("#{property_name}=", json[name])
                 end
               end
             end if taken_items.size < json.size
