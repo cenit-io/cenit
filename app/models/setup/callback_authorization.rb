@@ -86,7 +86,7 @@ module Setup
     end
 
     def inject_template_parameters(hash)
-      client && client.inject_template_parameters(hash)
+      client && client.try(:inject_template_parameters, hash)
       hash[callback_key.to_s] ||= callback_url
     end
   end
