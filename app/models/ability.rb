@@ -58,7 +58,8 @@ class Ability
 
   CROSSING_MODELS_WITH_ORIGIN =
     [
-      Setup::AuthorizationClient,
+      Setup::RemoteOauthClient,
+      Setup::GenericAuthorizationClient,
       Setup::Oauth2Scope,
       Setup::Algorithm,
       Setup::Resource,

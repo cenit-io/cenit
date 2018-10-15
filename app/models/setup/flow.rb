@@ -425,6 +425,9 @@ module Setup
                   parameters: template_parameters,
                   task: message[:task]
                 }
+              if (options = message[:template_options]).is_a?(Hash)
+                translation_options[:options] = options
+              end
               translator.run(translation_options)
             },
             contentType: translator.mime_type,
@@ -464,8 +467,8 @@ module Setup
         end
         connections_present = verbose_response[:connections_present]
       end
-      Setup::SystemNotification.create(warning: "No connections processed") unless connections_present
-      Setup::SystemNotification.create(warning: "No records processed") unless records_processed
+      Setup::SystemNotification.create(type: :warning, message: "No connections processed") unless connections_present
+      Setup::SystemNotification.create(type: :warning, message: "No records processed") unless records_processed
     end
 
     def unsuccessful_response(http_response, task_msg)
