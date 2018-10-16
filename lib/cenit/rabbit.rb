@@ -208,8 +208,10 @@ module Cenit
                                                       tag: channel.generate_consumer_tag(Cenit.rabbit_mq_queue))
           new_consumer = queue.subscribe(consumer_tag: new_rabbit_consumer.tag, manual_ack: true) do |delivery_info, properties, body|
             consumer = delivery_info.consumer
+            reject = true
             if (rabbit_consumer = RabbitConsumer.where(tag: consumer.consumer_tag).first)
               begin
+                reject = false
                 Cenit::MultiTenancy.tenant_model.current =
                   Cenit::MultiTenancy.user_model.current = nil
                 Thread.clean_keys_prefixed_with('[cenit]')
@@ -225,8 +227,11 @@ module Cenit
             else
               Setup::SystemNotification.create(message: "Rabbit consumer with tag '#{consumer.consumer_tag}' not found")
             end
-            channel.reject(delivery_info.delivery_tag, true) unless rabbit_consumer && !rabbit_consumer.cancelled?
-            channel.ack(delivery_info.delivery_tag)
+            if reject
+              channel.reject(delivery_info.delivery_tag, true)
+            else
+              channel.ack(delivery_info.delivery_tag)
+            end
             begin
               channel_mutex.lock #channel might be closed
               consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
