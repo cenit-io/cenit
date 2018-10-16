@@ -33,62 +33,9 @@ Cenit.config do
   #Captcha length
   captcha_length 5
 
-  #Process flow messages asynchronous
-  asynchronous_flow_execution true
-
-  #Generate data types asynchronous
-  asynchronous_data_type_generation true
-
-  #Execute translations asynchronous
-  asynchronous_translation true
-
-  #Execute data import asynchronous
-  asynchronous_data_import true
-
-  #Execute schemas import asynchronous
-  asynchronous_schemas_import true
-
-  #Expand data types asynchronous
-  asynchronous_data_type_expansion true
-
-  #Delete records asynchronous
-  asynchronous_deletion true
-
-  #Execute algorithms asynchronous
-  asynchronous_algorithm_execution true
-
-  #Execute scripts asynchronous
-  asynchronous_script_execution true
-
-  #Process webhook submits asynchronous
-  asynchronous_submission true
-
-  #Process pull imports asynchronous
-  asynchronous_pull_import true
-
-  #Process shared collection pulls asynchronous
-  asynchronous_shared_collection_pull true
-
-  #Process API pulls asynchronous
-  asynchronous_api_pull true
-
-  #Performs crossing origins asynchronous
-  asynchronous_crossing true
-
-  #Performs pushes asynchronous
-  asynchronous_push true
-
-  #Performs chart rendering asynchronous
-  asynchronous_chart_rendering true
-
-  #Performs namespace collection asynchronous
-  asynchronous_namespace_collection true
-
-  #Performs notification execution asynchronous
-  asynchronous_notification_execution true
-
-  #Performs file store migrations asynchronous
-  asynchronous_file_store_migration true
+  # By default all tasks are processed asynchronous, set synchronous_#{task_model_slug} to true to change that behavior.
+  # Example
+  # synchronous_flow_execution true
 
   #oauth2 callback site
   oauth2_callback_site ENV['OAUTH2_CALLBACK_SITE'] || homepage
