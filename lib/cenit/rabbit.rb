@@ -48,9 +48,11 @@ module Cenit
             end
             tokens.delete_all
             message[:task_id] = task.id.to_s
-            message = TaskToken.create(data: message.to_json,
-                                       task: task,
-                                       user: Cenit::MultiTenancy.user_model.current).token
+            message = TaskToken.create(
+              data: message.to_json,
+              task: task,
+              user: Cenit::MultiTenancy.user_model.current
+            ).token
             if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
@@ -82,15 +84,18 @@ module Cenit
         unless message.is_a?(Hash)
           message = JSON.parse(message) rescue { token: message }
         end
+        tenant = token = nil
         message = message.with_indifferent_access
-        message_token = message.delete(:token)
-        if (token = TaskToken.where(token: message_token).first)
-          ActiveTenant.dec_tasks_for(token.tenant)
-          Cenit::MultiTenancy.user_model.current = token.user
-          tenant = token.set_current_tenant
-          message = JSON.parse(token.data).with_indifferent_access if token.data
-        else
-          tenant = nil
+        if (message_token = message.delete(:token))
+          if (token = TaskToken.where(token: message_token).first)
+            Cenit::MultiTenancy.user_model.current = token.user
+            tenant = token.set_current_tenant
+            ActiveTenant.dec_tasks_for(tenant)
+            message = JSON.parse(token.data).with_indifferent_access if token.data
+          else
+            Setup::SystemReport.create(message: "No task token for #{message_token}")
+            tenant = nil
+          end
         end
         if Cenit::MultiTenancy.tenant_model.current.nil?
           Setup::SystemReport.create(message: "Can not determine tenant for message: #{message} (token #{message_token})")
