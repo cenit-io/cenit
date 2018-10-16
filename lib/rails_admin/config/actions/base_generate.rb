@@ -36,7 +36,7 @@ module RailsAdmin
               Setup::DataTypeGeneration.data_type_schemas(@bulk_ids).values.each do |h|
                 @new_data_types_count += h.size
                 conflicting_data_types += Setup::DataType.any_in(name: h.keys).to_a
-              end unless Cenit.asynchronous_data_type_generation
+              end if Cenit.synchronous_data_type_generation
               @new_data_types_count -= conflicting_data_types.length
               if @object
                 @object.instance_variable_set(:@_to_override, conflicting_data_types)

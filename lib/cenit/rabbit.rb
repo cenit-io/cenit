@@ -22,7 +22,7 @@ module Cenit
         auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
-        asynchronous_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
+        async_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
         task_class, task, report = detask(message)
         if task_class || task
           if task
@@ -38,10 +38,10 @@ module Cenit
           end
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
-          asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+          async_message ||= !Cenit.send('synchronous_' + task_class.to_s.split('::').last.underscore)
           task_execution = task.queue_execution
           message[:execution_id] = task_execution.id.to_s
-          if scheduler || publish_at || asynchronous_message
+          if scheduler || publish_at || async_message
             tokens = TaskToken.where(task_id: task.id)
             if (token = message[:token])
               tokens = tokens.or(token: token)
@@ -85,6 +85,7 @@ module Cenit
         message = message.with_indifferent_access
         message_token = message.delete(:token)
         if (token = TaskToken.where(token: message_token).first)
+          ActiveTenant.dec_tasks_for(token.tenant)
           token.destroy
           Cenit::MultiTenancy.user_model.current = token.user
           tenant = token.set_current_tenant
@@ -92,11 +93,13 @@ module Cenit
         else
           tenant = nil
         end
-        if Cenit::MultiTenancy.tenant_model.current.nil? ||
-          (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
-          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message}")
+        if Cenit::MultiTenancy.tenant_model.current.nil?
+          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message} (token #{message_token})")
+        elsif message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant
+          msg = "Trying to execute on tenant #{Cenit::MultiTenancy.tenant_model.current.label}" +
+            " but token tenant is #{tenant ? tenant.label : '<anonymous>'} (token: #{message_token}, message: #{message})"
+          Setup::SystemReport.create(message: msg)
         else
-          ActiveTenant.dec_tasks_for
           begin
             rabbit_consumer = nil
             task_class, task, report = detask(message)
