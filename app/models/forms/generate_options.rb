@@ -10,7 +10,7 @@ module Forms
       edit do
         field :override_data_types do
           visible do
-            Cenit.asynchronous_data_type_generation || bindings[:object].instance_variable_get(:@_to_override).present?
+            !Cenit.synchronous_data_type_generation || bindings[:object].instance_variable_get(:@_to_override).present?
           end
           help nil
         end

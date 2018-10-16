@@ -22,7 +22,7 @@ module Cenit
         auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
-        asynchronous_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
+        async_message = (message.delete(:asynchronous) || scheduler || publish_at).present?
         task_class, task, report = detask(message)
         if task_class || task
           if task
@@ -38,10 +38,10 @@ module Cenit
           end
           task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
           block.call(task) if block
-          asynchronous_message ||= Cenit.send('asynchronous_' + task_class.to_s.split('::').last.underscore)
+          async_message ||= !Cenit.send('synchronous_' + task_class.to_s.split('::').last.underscore)
           task_execution = task.queue_execution
           message[:execution_id] = task_execution.id.to_s
-          if scheduler || publish_at || asynchronous_message
+          if scheduler || publish_at || async_message
             tokens = TaskToken.where(task_id: task.id)
             if (token = message[:token])
               tokens = tokens.or(token: token)
