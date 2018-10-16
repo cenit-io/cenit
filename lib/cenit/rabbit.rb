@@ -85,6 +85,7 @@ module Cenit
         message = message.with_indifferent_access
         message_token = message.delete(:token)
         if (token = TaskToken.where(token: message_token).first)
+          ActiveTenant.dec_tasks_for(token.tenant)
           token.destroy
           Cenit::MultiTenancy.user_model.current = token.user
           tenant = token.set_current_tenant
@@ -92,11 +93,13 @@ module Cenit
         else
           tenant = nil
         end
-        if Cenit::MultiTenancy.tenant_model.current.nil? ||
-          (message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant)
-          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message}")
+        if Cenit::MultiTenancy.tenant_model.current.nil?
+          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message} (token #{message_token})")
+        elsif message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant
+          msg = "Trying to execute on tenant #{Cenit::MultiTenancy.tenant_model.current.label}" +
+            " but token tenant is #{tenant ? tenant.label : '<anonymous>'} (token: #{message_token}, message: #{message})"
+          Setup::SystemReport.create(message: msg)
         else
-          ActiveTenant.dec_tasks_for
           begin
             rabbit_consumer = nil
             task_class, task, report = detask(message)
