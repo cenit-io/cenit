@@ -95,8 +95,13 @@ module Cenit
         message = message.with_indifferent_access
         if (message_token = message.delete(:token))
           if (token = TaskToken.where(token: message_token).first)
-            Cenit::MultiTenancy.user_model.current = token.user
             tenant = token.set_current_tenant
+            unless (Cenit::MultiTenancy.user_model.current = token.user)
+              if tenant
+                Cenit::MultiTenancy.user_model.current = tenant.owner
+                Setup::SystemReport.create(message: "No token user, using tenant #{tenant.label} owner (task ##{token.task_id})", type: :warning)
+              end
+            end
             ActiveTenant.dec_tasks_for(tenant)
             message = JSON.parse(token.data).with_indifferent_access if token.data
           else
