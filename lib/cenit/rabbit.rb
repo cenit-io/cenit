@@ -48,11 +48,18 @@ module Cenit
             end
             tokens.delete_all
             message[:task_id] = task.id.to_s
-            message = TaskToken.create(
+            token = TaskToken.create(
               data: message.to_json,
               task: task,
               user: Cenit::MultiTenancy.user_model.current
-            ).token
+            )
+            message = token.token
+            unless token.persisted?
+              Setup::SystemReport.create(message: "Task token errors: #{token.errors.full_messages.to_sentence}")
+            end
+            unless Cenit::MultiTenancy.user_model.current
+              Setup::SystemReport.create(message: "Queueing with NO current user: #{caller.join("\n")}")
+            end
             if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
               Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
             else
