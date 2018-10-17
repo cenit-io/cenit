@@ -36,52 +36,48 @@ module Cenit
               return Setup::SystemNotification.create(message: "Task instance for #{task_class} could not be persisted: #{task.errors.full_messages.to_sentence}")
             end
           end
-          task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
-          block.call(task) if block
-          async_message ||= !Cenit.send('synchronous_' + task_class.to_s.split('::').last.underscore)
-          task_execution = task.queue_execution
-          message[:execution_id] = task_execution.id.to_s
-          if scheduler || publish_at || async_message
-            tokens = TaskToken.where(task_id: task.id)
-            if (token = message[:token])
-              tokens = tokens.or(token: token)
-            end
-            tokens.delete_all
-            message[:task_id] = task.id.to_s
-            token = TaskToken.create(
-              data: message.to_json,
-              task: task,
-              user: Cenit::MultiTenancy.user_model.current
-            )
-            message = token.token
-            unless token.persisted?
-              Setup::SystemReport.create(message: "Task token errors: #{token.errors.full_messages.to_sentence}")
-            end
-            unless Cenit::MultiTenancy.user_model.current
-              Setup::SystemReport.create(message: "Queueing with NO current user: #{caller.join("\n")}")
-            end
-            if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
-              Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
-            else
-              unless task.joining?
-                begin
-                  channel_mutex.lock
-                  if channel.nil? || channel.closed?
-                    Setup::DelayedMessage.create(message: message)
-                  else
-                    ActiveTenant.inc_tasks_for
-                    channel.default_exchange.publish(message, routing_key: queue.name)
-                  end
-                ensure
-                  channel_mutex.unlock
+          if TaskToken.where(task_id: task.id).exists?
+            Setup::SystemNotification.create(message: "Task #{task} already onboard, skipping requeuing (task ID: #{task.id})!", type: :warning)
+          else
+            task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
+            block.call(task) if block
+            task_execution = task.queue_execution
+            unless task.joining?
+              async_message ||= !Cenit.send('synchronous_' + task_class.to_s.split('::').last.underscore)
+              message[:execution_id] = task_execution.id.to_s
+              if scheduler || publish_at || async_message
+                if (token = message[:token])
+                  TaskToken.where(token: token).delete_all
                 end
+                message[:task_id] = task.id.to_s
+                token = TaskToken.create(
+                  data: message.to_json,
+                  task: task,
+                  user: Cenit::MultiTenancy.user_model.current
+                )
+                message = token.token
+                if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
+                  Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
+                else
+                  begin
+                    channel_mutex.lock
+                    if channel.nil? || channel.closed?
+                      Setup::DelayedMessage.create(message: message)
+                    else
+                      ActiveTenant.inc_tasks_for
+                      channel.default_exchange.publish(message, routing_key: queue.name)
+                    end
+                  ensure
+                    channel_mutex.unlock
+                  end
+                end
+              else
+                message[:task] = task
+                process_message(message)
               end
             end
-          else
-            message[:task] = task
-            process_message(message)
+            task_execution
           end
-          task_execution
         else
           Setup::SystemNotification.create(message: report)
         end
