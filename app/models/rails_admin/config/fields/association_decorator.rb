@@ -63,7 +63,7 @@ module RailsAdmin
           action = v.instance_variable_get(:@action)
           values, total = show_values(limit = 40)
           if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) &&
-             !v.instance_variable_get(:@showing)
+            !v.instance_variable_get(:@showing)
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
@@ -131,17 +131,17 @@ module RailsAdmin
             table.html_safe
           else
             max_associated_to_show = 3
-            count_associated= values.count
+            count_associated = values.count
             associated_links = values.collect do |associated|
               amc = polymorphic? ? RailsAdmin.config(associated) : associated_model_config # perf optimization for non-polymorphic associations
               am = amc.abstract_model
               wording = associated.send(amc.object_label_method)
               can_see = !am.embedded? && !associated.new_record? && (show_action = v.action(:show, am, associated))
               can_see ? v.link_to(wording, v.url_for(action: show_action.action_name, model_name: am.to_param, id: associated.id), class: 'pjax') : ERB::Util.html_escape(wording)
-            end.to(max_associated_to_show-1).to_sentence.html_safe
+            end.to(max_associated_to_show - 1).to_sentence.html_safe
             if count_associated > max_associated_to_show
               more_link = all_associated_link(values, am, "#{count_associated - max_associated_to_show} more")
-              associated_links = associated_links + ' and '+more_link.html_safe
+              associated_links = associated_links + ' and ' + more_link.html_safe
             end
             associated_links
           end
@@ -186,7 +186,7 @@ module RailsAdmin
 
         register_instance_option :associated_collection_scope do
           limit = (associated_collection_cache_all ? nil : 30)
-          contextual_params = self.contextual_params.merge(bindings[:controller].params[:contextual_params] || {})
+          contextual_params = (self.contextual_params || {}).merge(bindings[:controller].params[:contextual_params] || {})
           model_config = associated_model_config
           contextual_association_scope = self.contextual_association_scope
           proc do |scope|
