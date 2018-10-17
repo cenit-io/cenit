@@ -96,6 +96,10 @@ end
 
 class String
 
+  def delay(s)
+    sleep(s)
+  end
+
   def to_title
     title =
       gsub(/([A-Z])(\d)/, '\1 \2').
