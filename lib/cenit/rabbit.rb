@@ -11,8 +11,8 @@ module Cenit
         @maximum__active_tasks ||= 50 * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
       end
 
-      def tasks_quota
-        active_tenants = ActiveTenant.where(:tasks.gt => 0).count
+      def tasks_quota(active_tenants = nil)
+        active_tenants ||= ActiveTenant.where(:tasks.gt => 0).count
         quota = maximum_active_tasks / (active_tenants > 0 ? active_tenants : 1)
         quota < 1 ? 1 : quota
       end
@@ -247,15 +247,15 @@ module Cenit
             begin
               channel_mutex.lock
               unless channel.closed?
-                delayed_messages =
-                  Setup::DelayedMessage
-                    .all.limit(2 * maximum_active_tasks)
-                    .or(:publish_at.lte => Time.now)
-                    .or(unscheduled: true)
                 dispatched_ids = []
-                quota = tasks_quota
-                delayed_messages.each do |delayed_message|
-                  if (tenant = delayed_message.tenant) && ActiveTenant.tasks_for(tenant) > quota
+                tenant_tasks = {}
+                ActiveTenant.where(:tasks.gt => 0).each do |active_tenant|
+                  tenant_tasks[active_tenant.id] = active_tenant.tasks
+                end
+                quota = tasks_quota(tenant_tasks.size)
+
+                delayed_message_digester = proc do |delayed_message|
+                  if (tenant = delayed_message.tenant) && (tenant_tasks[tenant.id] || 0) > quota
                     delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
                   else
                     publish_options = { routing_key: queue.name }
@@ -263,6 +263,24 @@ module Cenit
                     channel.default_exchange.publish(delayed_message.message, publish_options)
                     ActiveTenant.inc_tasks_for(tenant)
                     dispatched_ids << delayed_message.id
+                  end
+                end
+
+                on_messages_ready = Setup::DelayedMessage
+                                      .all
+                                      .limit(2 * maximum_active_tasks)
+                                      .or(:publish_at.lte => Time.now)
+                penalty_factor = 0.75
+                penalty_quota = penalty_factor * quota
+                penalized_ids = tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota }
+
+                on_messages_ready.and(:tenant_id.nin => penalized_ids).each do |delayed_message|
+                  delayed_message_digester.call(delayed_message)
+                end
+                if (dispatched_ids.size + tenant_tasks.values.reduce(&:+)) < maximum_active_tasks * penalty_factor
+                  on_messages_ready.and(:tenant_id.in => penalized_ids)
+                    .limit(2 * (1 - penalty_factor) * maximum_active_tasks).each do |delayed_message|
+                    delayed_message_digester.call(delayed_message)
                   end
                 end
                 begin
