@@ -262,6 +262,8 @@ module Cenit
                     publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
                     channel.default_exchange.publish(delayed_message.message, publish_options)
                     ActiveTenant.inc_tasks_for(tenant)
+                    tenant_tasks[tenant.id] ||= 0
+                    tenant_tasks[tenant.id] += 1
                     dispatched_ids << delayed_message.id
                   end
                 end
