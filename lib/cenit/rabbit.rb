@@ -250,7 +250,7 @@ module Cenit
                 dispatched_ids = []
                 tenant_tasks = {}
                 ActiveTenant.where(:tasks.gt => 0).each do |active_tenant|
-                  tenant_tasks[active_tenant.id] = active_tenant.tasks
+                  tenant_tasks[active_tenant.tenant_id] = active_tenant.tasks
                 end
                 quota = tasks_quota(tenant_tasks.size)
 
