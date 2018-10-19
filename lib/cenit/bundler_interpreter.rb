@@ -149,6 +149,8 @@ module Cenit
                                              self_send_prefixer: self,
                                              iteration_counter_prefix: "alg#{algorithm.id}_it",
                                              invoke_counter_prefix: "alg#{algorithm.id}_invk")
+      rescue Exception => ex
+        raise "Error bundling algorithm #{algorithm.custom_title}: #{ex.message}"
       end
 
       def bundled_javascript_code(algorithm)
@@ -179,7 +181,7 @@ module Cenit
           @__js_arguments__.pop
           result"
         else
-          fail 'JavaScript syntax error'
+          fail "Error bundling algorithm #{algorithm.custom_title}:JavaScript syntax error"
         end
       end
     end
