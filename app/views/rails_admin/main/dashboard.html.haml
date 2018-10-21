@@ -19,6 +19,8 @@
           .date
             .created{title: "{{created_at}}"}
               ="{{created_at}}"
+- if @show_terms
+  = render partial: 'cenit/home/terms'
 - if @abstract_models
   - totals = monitor_totals
   .row.dashboard

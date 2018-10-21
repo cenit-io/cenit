@@ -7,7 +7,9 @@ module RailsAdmin
             @dashboard_models = []
             @dashboard_group_ref = params['group'] || nil
             @dashboard_group = dashboard_group(@dashboard_group_ref)
-            if @action.statistics?
+            if request.path == '/terms'
+              @show_terms = true
+            elsif @action.statistics?
               #Patch
               @model_configs = {}
               @abstract_models =
