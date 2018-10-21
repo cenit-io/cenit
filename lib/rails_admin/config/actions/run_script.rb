@@ -28,6 +28,7 @@ module RailsAdmin
                   @output = @object.run(@input = params.delete(:input))
                 end
               rescue Exception => ex
+                Setup::SystemReport.create_from(ex)
                 @error = ex.message
               end
             end
