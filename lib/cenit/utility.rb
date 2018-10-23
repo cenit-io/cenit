@@ -160,7 +160,7 @@ module Cenit
       end
 
       def while_modifying(hash)
-        do_it = :again
+        do_it = nil
         start_size = hash.size + 1
         while do_it == :again || (hash.present? && hash.size < start_size)
           start_size = hash.size
