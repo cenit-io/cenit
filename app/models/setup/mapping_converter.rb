@@ -10,6 +10,20 @@ module Setup
 
     validates_presence_of :target_data_type, :map_attributes
 
+    before_save :catch_map_attributes
+
+    def catch_map_attributes
+      if @mapping
+        if @mapping.is_a?(Hash)
+          self.map_attributes = @mapping
+          @mapping = nil
+        else
+          self.map_attributes = @mapping.attributes
+        end
+      end
+      errors.blank?
+    end
+
     def execute(options)
       options[:target] = do_map(options[:source])
     end
@@ -161,12 +175,7 @@ module Setup
       end
       if source_data_type && target_data_type
         @mapping = map_model.new_from_json(data)
-        if @mapping.is_a?(Hash)
-          self.map_attributes = @mapping
-          @mapping = nil
-        else
-          self.map_attributes = @mapping.attributes
-        end
+        catch_map_attributes
         @lazy_mapping = nil
       else
         @lazy_mapping = data
