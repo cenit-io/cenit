@@ -68,17 +68,19 @@ module Cenit
         options ||= {}
         references = {}
         for_each_node_starting_at(record, options) do |obj|
-          if (record_refs = obj.instance_variable_get(:@_references))
+          if (record_refs = obj.instance_variable_get(:@_references)).present?
             references[obj] = record_refs
           end
         end
 
-        visited = options.delete(:visited)
+        visited = options[:visited]
+        bound_records = []
 
         while_modifying references do
+
           while_modifying references do
-            visited.each do |obj|
-              references.each do |obj_waiting, to_bind|
+            references.each do |obj_waiting, to_bind|
+              visited.each do |obj|
                 to_bind.each do |property_name, property_binds|
                   is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
                   property_binds.each do |property_bind|
@@ -95,7 +97,10 @@ module Cenit
                     end
                     to_bind.delete(property_name) if property_binds.empty?
                   end
-                  references.delete(obj_waiting) if to_bind.empty?
+                  if to_bind.empty?
+                    bound_records << obj_waiting
+                    references.delete(obj_waiting)
+                  end
                 end
               end
             end
@@ -127,9 +132,25 @@ module Cenit
               end
               to_bind.delete(property_name) if property_binds.empty?
             end
-            references.delete(obj) if to_bind.empty?
+            if to_bind.empty?
+              bound_records << obj
+              references.delete(obj)
+            end
+          end
+
+          if references.empty?
+            bound_records.each do |record|
+              visited.delete(record)
+              for_each_node_starting_at(record, options) do |obj|
+                if (record_refs = obj.instance_variable_get(:@_references)).present?
+                  references[obj] = record_refs
+                end
+              end
+            end
+            bound_records.clear
           end
         end
+        options.delete(:visited)
         record.errors.blank?
       end
 
