@@ -138,27 +138,33 @@ module Cenit
             end
           end
 
+          do_it = nil
+
           if references.empty?
             bound_records.each do |record|
               visited.delete(record)
               for_each_node_starting_at(record, options) do |obj|
                 if (record_refs = obj.instance_variable_get(:@_references)).present?
+                  do_it = :again
                   references[obj] = record_refs
                 end
               end
             end
             bound_records.clear
           end
+
+          do_it
         end
         options.delete(:visited)
         record.errors.blank?
       end
 
       def while_modifying(hash)
+        do_it = :again
         start_size = hash.size + 1
-        while hash.present? && hash.size < start_size
+        while do_it == :again || (hash.present? && hash.size < start_size)
           start_size = hash.size
-          yield
+          do_it = yield
         end
       end
 
