@@ -31,8 +31,14 @@ class SessionsController < Devise::SessionsController
         (id_token = JWT.decode(id_token, nil, false, verfify_expiration: false)[0]) &&
         id_token['email'].present? && id_token['email_verified']
         resource = resource_class.find_or_create_by(email: id_token['email'])
-        resource.confirmed_at = Time.now
-        resource.password = pwd = Devise.friendly_token
+        resource.confirmed_at ||= Time.now
+        resource.password ||= Devise.friendly_token
+        unless resource.name.present?
+          resource.name = id_token['name'] || "#{id_token['given_name']} #{id_token['family_name']}".strip.presence
+        end
+        unless resource.attributes['picture_url']
+          resource.picture_url = id_token['picture']
+        end
         resource.save
         set_flash_message(:notice, :signed_in) if is_flashing_format?
         yield resource if block_given?
