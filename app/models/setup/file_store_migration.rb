@@ -58,7 +58,7 @@ module Setup
     class << self
 
       def migrating?(data_type)
-        Setup::FileStoreMigration.where(:status.in => Setup::Task::RUNNING_STATUS, data_type: data_type).present?
+        Setup::FileStoreMigration.where(:status.in => Setup::Task::ALIVE_STATUS, data_type: data_type).present?
       end
 
       def enabled?
