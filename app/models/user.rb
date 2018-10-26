@@ -58,6 +58,7 @@ class User
   #Profile
   mount_uploader :picture, ImageUploader
   field :name, type: String
+  field :picture_url, type: String
 
   #UI options
   field :code_theme, type: String
@@ -110,7 +111,7 @@ class User
   end
 
   def picture_url(size = 50)
-    custom_picture_url(size) || gravatar_or_identicon_url(size)
+    custom_picture_url(size) || read_attribute(:picture_url) || gravatar_or_identicon_url(size)
   end
 
   def custom_picture_url(size)
