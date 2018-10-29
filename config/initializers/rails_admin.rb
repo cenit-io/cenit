@@ -371,6 +371,8 @@ RailsAdmin.config do |config|
 
   Setup::Oauth2Authorization
 
+  Setup::AppAuthorization
+
   Setup::LazadaAuthorization
 
   Setup::AwsAuthorization

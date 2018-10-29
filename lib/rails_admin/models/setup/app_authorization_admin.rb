@@ -1,14 +1,14 @@
 module RailsAdmin
   module Models
     module Setup
-      module LazadaAuthorizationAdmin
+      module AppAuthorizationAdmin
         extend ActiveSupport::Concern
 
         included do
           rails_admin do
             navigation_label 'Security'
             weight 333
-            label 'Lazada Authorization'
+            label 'App Authorization'
             object_label_method { :custom_title }
             parent ::Setup::Oauth2Authorization
             visible false
@@ -31,18 +31,19 @@ module RailsAdmin
             edit do
               field :namespace
               field :name
-              field :client
-              field :scopes do
-                visible { bindings[:object].ready_to_save? }
+              field :client do
+                limit = associated_collection_cache_all ? nil : 30
                 associated_collection_scope do
-                  limit = (associated_collection_cache_all ? nil : 30)
-                  provider = ((obj = bindings[:object]) && obj.provider) || nil
                   Proc.new do |scope|
-                    if provider
-                      scope.where(provider_id: provider.id)
-                    else
-                      scope
-                    end.limit(limit)
+                    scope.where(_type: ::Setup::Application.to_s).limit(limit)
+                  end
+                end
+              end
+              field :scopes do
+                limit = associated_collection_cache_all ? nil : 30
+                associated_collection_scope do
+                  Proc.new do |scope|
+                    scope.where(provider_id: ::Setup::Oauth2Provider.build_in_provider_id).limit(limit)
                   end
                 end
               end
