@@ -51,7 +51,7 @@ module RailsAdmin
             elsif request.post? || request.patch? # CREATE / COPY
 
               # Patch
-              if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware && model.abstract_class
+              if (model = @abstract_model.model).is_a?(Class) && model < Setup::ClassHierarchyAware
                 selector_config = RailsAdmin::Config.model(Forms::ChildModelSelector)
                 if (selector_attrs = params[selector_config.abstract_model.param_key]) && (child_model_name = selector_attrs[:child_model_name])
                   child_model =
