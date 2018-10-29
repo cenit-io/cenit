@@ -13,7 +13,7 @@ class User
   include RailsAdmin::Models::UserAdmin
 
 
-  inspect_fields :name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
+  inspect_fields :name, :given_name, :family_name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
 
   rolify
 
@@ -58,6 +58,8 @@ class User
   #Profile
   mount_uploader :picture, ImageUploader
   field :name, type: String
+  field :given_name, type: String
+  field :family_name, type: String
   field :picture_url, type: String
 
   #UI options
@@ -71,6 +73,9 @@ class User
 
   def check_attributes
     remove_attribute(:super_admin_enabled) unless has_role?(:super_admin)
+    if attributes['name'] && attributes['given_name'].present? && attributes['family_name'].present?
+      remove_attribute(:name)
+    end
     true
   end
 
@@ -108,6 +113,10 @@ class User
 
   def all_accounts
     (accounts + member_accounts).uniq
+  end
+
+  def name
+    read_attribute(:name) || "#{given_name} #{family_name}".strip.presence
   end
 
   def picture_url(size = 50)
