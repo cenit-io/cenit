@@ -391,7 +391,7 @@ module Api::V3
     end
 
     def authorize_account
-      Account.current = user = nil
+      Account.current = User.current = error_description = nil
       if (auth_header = request.headers['Authorization'])
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
@@ -401,50 +401,32 @@ module Api::V3
               access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
               if access_grant
                 @oauth_scope = access_grant.oauth_scope
+              else
+                error_description = 'Access grant revoked or moved outside token tenant'
               end
             end
+          else
+            error_description = 'Access token is expired or malformed'
           end
+        else
+          error_description = 'Malformed authorization header'
+        end
+        User.current = (Account.current ? Account.current.owner : nil)
+        if User.current && Account.current
+          @ability = Ability.new(User.current)
+          true
+        else
+          unless error_description
+            report = Setup::SystemReport.create(message: "Unable to locate tenant for authorization header #{auth_header}")
+            error_description = "Ask for support by supplying this code: #{report.id}"
+          end
+          response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="invalid_token",error_description=#{error_description})
+          render json: { error: 'invalid_token', error_description: error_description }, status: :unauthorized
+          false
         end
       else
-
-        # New key and token params.
-        key = request.headers['X-Tenant-Access-Key'] || params.delete('X-Tenant-Access-Key')
-        token = request.headers['X-Tenant-Access-Token'] || params.delete('X-Tenant-Access-Token')
-
-        # Legacy key and token params.
-        key ||= request.headers['X-User-Access-Key'] || params.delete('X-User-Access-Key')
-        token ||= request.headers['X-User-Access-Token'] || params.delete('X-User-Access-Token')
-
-        if key || token
-          [
-            User,
-            Account
-          ].each do |model|
-            next if user
-            record = model.where(key: key).first
-            if record && Devise.secure_compare(record[:authentication_token], token)
-              Account.current = record.api_account
-              user = record.user
-            end
-          end
-        end
-        unless key || token
-          key = request.headers['X-Hub-Store']
-          token = request.headers['X-Hub-Access-Token']
-          Account.set_current_with_connection(key, token) if key || token
-        end
-      end
-      if user
-        User.current = user
-      else
-        User.current ||= (Account.current ? Account.current.owner : nil)
-      end
-      if User.current && Account.current
-        @ability = Ability.new(User.current)
+        @ability = Ability.new(nil)
         true
-      else
-        render json: { error: 'not unauthorized' }, status: :unauthorized
-        false
       end
     end
 
@@ -468,8 +450,9 @@ module Api::V3
         else
           success = false
           unless options[:skip_response]
-            responder = Cenit::Responder.new(@request_id, :unauthorized)
-            render json: responder, root: false, status: responder.code
+            error_description = 'The requested action is out of the access token scope'
+            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
+            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
           end
         end
       else
@@ -478,7 +461,9 @@ module Api::V3
           if Account.current
             render json: { error: 'no model found' }, status: :not_found
           else
-            render json: { error: 'not unauthorized' }, status: :unauthorized
+            error_description = 'The requested action is out of the access token scope'
+            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
+            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
           end
         end
       end

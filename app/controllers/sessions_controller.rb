@@ -33,8 +33,10 @@ class SessionsController < Devise::SessionsController
         resource = resource_class.find_or_create_by(email: id_token['email'])
         resource.confirmed_at ||= Time.now
         resource.password ||= Devise.friendly_token
-        unless resource.name.present?
-          resource.name = id_token['name'] || "#{id_token['given_name']} #{id_token['family_name']}".strip.presence
+        resource.given_name ||= id_token['given_name']
+        resource.family_name ||= id_token['family_name']
+        if resource.attributes['name'].blank? && id_token.key?('name')
+          resource.name = id_token['name']
         end
         unless resource.attributes['picture_url']
           resource.picture_url = id_token['picture']
