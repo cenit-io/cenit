@@ -43,7 +43,7 @@ module Setup
 
     def validates_configuration
       invalid_algorithms = []
-      before_save_callbacks.each { |algorithm| invalid_algorithms << algorithm unless algorithm.parameters.count == 1 }
+      before_save_callbacks.each { |algorithm| invalid_algorithms << algorithm unless algorithm.parameters.size == 1 }
       if invalid_algorithms.present?
         errors.add(:before_save_callbacks, "algorithms should receive just one parameter: #{invalid_algorithms.collect(&:custom_title).to_sentence}")
       end
@@ -51,7 +51,7 @@ module Setup
         by_name = Hash.new { |h, k| h[k] = 0 }
         send(methods).each do |method|
           by_name[method.name] += 1
-          if method.parameters.count == 0
+          if method.parameters.size == 0
             errors.add(methods, "contains algorithm taking no parameter: #{method.custom_title} (at less one parameter is required)")
           end
         end
