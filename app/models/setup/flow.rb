@@ -100,7 +100,7 @@ module Setup
             rejects(:scope_evaluator)
           when :evaluation
             unless requires(:scope_evaluator)
-              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.count == 1
+              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.size == 1
             end
             rejects(:scope_filter)
           else
