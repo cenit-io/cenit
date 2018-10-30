@@ -79,8 +79,8 @@ module Setup
       elsif triggers.present?
         format_triggers_on(:triggers, true)
       elsif trigger_evaluator.present?
-        unless trigger_evaluator.parameters.count == 2 || trigger_evaluator.parameters.count == 1
-          errors.add(:trigger_evaluator, 'should receive one or two paramters')
+        unless trigger_evaluator.parameters.size == 2 || trigger_evaluator.parameters.size == 1
+          errors.add(:trigger_evaluator, 'should receive one or two parameters')
         end
       else
         errors.add(:base, 'Triggers or evaluator missing')
