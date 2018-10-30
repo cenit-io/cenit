@@ -337,12 +337,20 @@ module Cenit
           rescue
             nil
           end
+        new_criteria = {}
         criteria.each do |key, value|
           if (a = associations[key])
             criteria.delete(key)
-            criteria[a.foreign_key] = { '$in' => associated_ids(a, key => value) }
+            a_criteria =
+              if a == association
+                value
+              else
+                { key => value }
+              end
+            new_criteria[a.foreign_key] = { '$in' => associated_ids(a, a_criteria) }
           end
         end if associations
+        criteria.merge!(new_criteria)
         association.klass.where(criteria).collect(&:id)
       end
 
