@@ -85,13 +85,18 @@ module Cenit
 
       def process_message(message, options = {})
         unless message.is_a?(Hash)
-          message = JSON.parse(message) rescue { token: message }
+          message =
+            begin
+              JSON.parse(message)
+            rescue
+              { token: message }
+            end
         end
         tenant = token = nil
         message = message.with_indifferent_access
         if (message_token = message.delete(:token))
           if (token = TaskToken.where(token: message_token).first)
-            tenant = token.set_current_tenant
+            tenant = token.set_current_tenant!
             unless (Cenit::MultiTenancy.user_model.current = token.user)
               if tenant
                 Cenit::MultiTenancy.user_model.current = tenant.owner
