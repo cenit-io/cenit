@@ -196,7 +196,7 @@ Capataz.config do
 
   deny_for Cenit::Control, [:model_adapter, :controller, :view]
 
-  allow_for User, [:id, :name, :number, :email, :sign_in_count, :created_at, :updated_at, :current_sign_in_ip, :last_sign_in_ip, :has_role?, :present?]
+  allow_for User, [:id, :name, :given_name, :family_name, :picture_url, :number, :email, :sign_in_count, :created_at, :updated_at, :current_sign_in_ip, :last_sign_in_ip, :has_role?, :present?]
 
   allow_on User, [:find_where, :find_all, :current]
 end
