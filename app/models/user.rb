@@ -4,7 +4,7 @@ require 'mongoid_userstamp'
 
 class User
   include Setup::CenitUnscoped
-  include Cenit::Oauth::User
+  include Cenit::MultiTenancy::UserScope
   extend DeviseOverrides
   include CredentialsGenerator
   include FieldsInspection
@@ -187,6 +187,33 @@ class User
       end
     end
     @notification_spans[type]
+  end
+
+  def avatar_id
+    email
+  end
+
+  def gravatar()
+    gravatar_check = "//gravatar.com/avatar/#{Digest::MD5.hexdigest(avatar_id.to_s.downcase)}.png?d=404"
+    uri = URI.parse(gravatar_check)
+    http = Net::HTTP.new(uri.host, uri.port)
+    request = Net::HTTP::Get.new("/avatar/#{Digest::MD5.hexdigest(avatar_id.to_s.downcase)}.png?d=404")
+    response = http.request(request)
+    response.code.to_i < 400 # from d=404 parameter
+  rescue
+    false
+  end
+
+  def identicon(size=50)
+    Identicon.data_url_for avatar_id.to_s.downcase, size
+  end
+
+  def gravatar_or_identicon_url(size=50)
+    if gravatar()
+      "//gravatar.com/avatar/#{Digest::MD5.hexdigest avatar_id.to_s}?s=#{size}"
+    else
+      identicon size
+    end
   end
 
   class << self

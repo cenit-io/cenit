@@ -40,9 +40,7 @@ Cenit::Application.routes.draw do
 
   match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
   get "#{oauth_path}/callback", to: 'oauth#callback'
-  if Cenit.oauth_token_end_point.to_s.to_sym == :embedded
-    mount Cenit::Oauth::Engine => oauth_path
-  end
+  post "#{oauth_path}/token", to: 'oauth#token'
 
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'

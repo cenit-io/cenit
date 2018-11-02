@@ -21,17 +21,6 @@ GIT
       mongoid (>= 5.0.1)
 
 GIT
-  remote: https://github.com/cenit-io/cenit-oauth.git
-  revision: ac33340e12e0a2932e41c89c18bd75f8c897268a
-  specs:
-    cenit-oauth (0.0.1)
-      cenit-token
-      identicon
-      json-schema
-      jwt
-      rails (>= 4.2.5)
-
-GIT
   remote: https://github.com/cenit-io/cenit-service.git
   revision: 5653c22fa9828a53414128533e6b53018c77c8fb
   specs:
@@ -636,7 +625,6 @@ DEPENDENCIES
   cenit-config!
   cenit-home!
   cenit-multi_tenancy!
-  cenit-oauth!
   cenit-service!
   cenit-token!
   cenit_cmd!
