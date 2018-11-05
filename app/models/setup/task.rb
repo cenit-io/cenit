@@ -144,14 +144,30 @@ module Setup
         end
         Thread.current[:task_token] = thread_token.token
         current_execution.start(time: time)
-        run(message)
-        time = Time.now
-        if resuming_later?
-          finish(:paused, "Task ##{id} paused at #{time}", :notice, time)
+        before_run_ex = nil
+        do_run =
+          begin
+            before_run
+          rescue ::Exception => ex
+            before_run_ex = ex
+            false
+          end
+        if do_run
+          run(message)
+          time = Time.now
+          if resuming_later?
+            finish(:paused, "Task ##{id} paused at #{time}", :notice, time)
+          else
+            self.state = {}
+            self.progress = 100
+            finish(:completed, "Task ##{id} completed at #{time}", :info, time)
+          end
         else
-          self.state = {}
-          self.progress = 100
-          finish(:completed, "Task ##{id} completed at #{time}", :info, time)
+          if before_run_ex
+            finish(:failed, before_run_ex.message, :error, time)
+          else
+            finish(:failed, "Task ##{id} wasn't executed!", :warning, time)
+          end
         end
       end
     rescue ::Exception => ex
@@ -179,6 +195,12 @@ module Setup
     def run(_message)
       fail NotImplementedError
     end
+
+    def before_run
+      true
+    end
+
+    protected :before_run
 
     def break(message = nil)
       raise Broken.new(message)
@@ -392,11 +414,11 @@ module Setup
                     end
         end
       end
+      notify(type: message_type, message: message, attachment: finish_attachment)
       if current_execution
         current_execution.finish(status: status, time: time)
         self.current_execution = nil
       end
-      notify(type: message_type, message: message, attachment: finish_attachment)
     end
 
   end

@@ -156,6 +156,8 @@ class Account
     switch do
       Cenit::ApplicationId.where(:id.in => Cenit::Oauth.app_model.all.collect(&:application_id_id)).delete_all
     end
+    TaskToken.where(tenant_id: id).delete_all
+    Setup::DelayedMessage.where(tenant_id: id).delete_all
     each_tenant_collection(&:drop)
   end
 

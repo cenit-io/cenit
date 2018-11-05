@@ -1,8 +1,9 @@
 module Api::V3
   class ApiController < ApplicationController
 
+    before_action :allow_origin_header
     before_action :authorize_account, except: [:new_user, :cors_check]
-    before_action :save_request_data, :allow_origin_header
+    before_action :save_request_data
     before_action :find_model, except: [:new_user, :cors_check]
     before_action :find_item, only: [:update, :show, :destroy, :digest]
     before_action :authorize_action, except: [:new_user, :cors_check]
