@@ -110,4 +110,6 @@ Cenit.config do
   default_notice_notifications_span 3.days
 
   default_info_notifications_span 1.hour
+
+  slack_link ENV['SLACK_INVITATION']
 end
