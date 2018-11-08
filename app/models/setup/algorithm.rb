@@ -201,20 +201,20 @@ module Setup
       end
       rc = Cenit::BundlerInterpreter.run(self, *input)
 
-      if rc.present?
+      if rc
         if store_output
           unless output_datatype
             fail 'Execution failed! Output storage required and no Output DataType defined.'
           end
           begin
-            ids = do_store_output rc
+            ids = do_store_output(rc)
 
             args = {}
             parameters.each { |parameter| args[parameter.name] = input.shift }
             @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
                                                   output_ids: ids)
           rescue Exception => e
-            raise 'Execution failed!' + e.message if validate_output
+            fail "Failing storing output: #{e.message}" if validate_output
           end
         end
       end
