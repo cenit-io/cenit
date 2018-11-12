@@ -60,7 +60,7 @@ module Setup
 
     def configure_snippet
       if snippet_ref.new_record?
-        snippet_ref.namespace ||= namespace
+        snippet_ref.namespace = snippet_ref.namespace.presence || namespace
         name = snippet_ref.name.presence || snippet_name
         i = 0
         while Setup::Snippet.where(namespace: namespace, name: name).exists?
