@@ -63,7 +63,7 @@ module Setup
         snippet_ref.namespace = snippet_ref.namespace.presence || namespace
         name = snippet_ref.name.presence || snippet_name
         i = 0
-        while Setup::Snippet.where(namespace: namespace, name: name).exists?
+        while Setup::Snippet.where(namespace: snippet_ref.namespace, name: name).exists?
           name = snippet_name("(#{i += 1})")
         end
         snippet_ref.name = name
