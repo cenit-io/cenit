@@ -91,7 +91,7 @@ module RailsAdmin
         model_label: model_config && model_config.contextualized_label(label),
         model_label_plural: model_config && model_config.contextualized_label_plural(label),
         object_label: model_config && object.try(model_config.object_label_method),
-        )
+      )
     end
 
     def linking(model)
@@ -352,9 +352,28 @@ module RailsAdmin
             definitions_index = main_labels.length
           end
 
+          before_lis = ''
+          after_lis = ''
+          if label == 'Administration'
+            RailsAdmin::Config::Actions.all(:root).each do |action|
+              if (tail = action.admin_tail_link?) || action.admin_head_link?
+                link = %(
+                  <li>
+                    <a class='#{action.pjax? ? "pjax" : nil}' href='#{send(action.key.to_s + '_path')}'>
+                      <span class='text'>#{wording_for(:title, action)}</span>
+                    </a>
+                ).html_safe
+                if tail
+                  after_lis += link
+                else
+                  before_lis += link
+                end
+              end
+            end
+          end
           just_li = ecoindex == 0 || (@dashboard_group && @dashboard_group[:label] == label)
           nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex > 0
-          li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: just_li)
+          li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: just_li, before_lis: before_lis, after_lis: after_lis)
 
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
 
@@ -430,7 +449,7 @@ module RailsAdmin
     def navigation(nodes_stack, nodes, html_id, options = {})
       return if nodes.blank?
       i = -1
-      nav = nodes.collect do |node|
+      nav = options[:before_lis].to_s + nodes.collect do |node|
         i += 1
         stack_id = "#{html_id}-sub#{i}"
         origins =
@@ -598,7 +617,7 @@ module RailsAdmin
             </li>)
         end
         html
-      end.join
+      end.join + options[:after_lis].to_s
       nav = "<ul class='sub-menu'>#{nav}</ul>" unless options[:just_li]
       nav.html_safe
     end

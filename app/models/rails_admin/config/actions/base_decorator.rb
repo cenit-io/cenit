@@ -3,6 +3,14 @@ module RailsAdmin
     module Actions
       Base.class_eval do
 
+        register_instance_option :admin_tail_link? do
+          false
+        end
+
+        register_instance_option :admin_head_link? do
+          false
+        end
+
         def self.loading_member
           yield
         end

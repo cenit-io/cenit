@@ -227,6 +227,7 @@ module Setup
           end
         end
       end
+      reload
     end
 
     def shared?
