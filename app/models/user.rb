@@ -29,9 +29,8 @@ class User
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :rememberable
 
-  devise :trackable, :validatable, :database_authenticatable, :recoverable
+  devise :trackable, :validatable, :database_authenticatable, :recoverable, :confirmable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
-  devise :confirmable if ENV.has_key?('UNABLE_CONFIRMABLE') && !ENV['UNABLE_CONFIRMABLE'].to_b
 
   # Database authenticatable
   field :email, type: String, default: ''
@@ -208,11 +207,11 @@ class User
     false
   end
 
-  def identicon(size=50)
+  def identicon(size = 50)
     Identicon.data_url_for avatar_id.to_s.downcase, size
   end
 
-  def gravatar_or_identicon_url(size=50)
+  def gravatar_or_identicon_url(size = 50)
     if gravatar()
       "//gravatar.com/avatar/#{Digest::MD5.hexdigest avatar_id.to_s}?s=#{size}"
     else
@@ -259,4 +258,11 @@ class User
     end
   end
 
+  def confirmation_required?
+    ENV['CONFIRMATION_REQUIRED'].to_b &&
+      (super_method = method(__method__).super_method) &&
+      super_method.call
+  end
+
+  protected :confirmation_required?
 end

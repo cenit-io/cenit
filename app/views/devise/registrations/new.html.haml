@@ -1,50 +1,52 @@
-.user-auth.panel.panel-default.text-center
-  .panel-heading
-    = link_to root_path do
-      %span.cenit-logo
-        =image_tag 'logo_cenitsaas_web.png'
-      %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
-  .panel-body
-    .form-top
-      =t('admin.registration.new_title')
-    = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
-      - if (return_to = params[:return_to])
-        - f.hidden_field :return_to, value: return_to
-      = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-      = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
-        %i{class:"fa fa-fw fa-github"}
-        %span GitHub
-      = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
-        %i{class:'fa fa-fw fa-google'}
-        %span Google
-      = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-        %i{class:'fa fa-fw fa-facebook'}
-        %span Facebook
-    -#  = f.button class: 'btn btn-lg soc-btn soc-twitter', name: 'with', value: 'twitter' do
-    -#    %i{class:"fa fa-fw fa-twitter"}
-    -#    %span Twitter
+.user-auth.container
+  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+    .panel.panel-default.text-center
+      .panel-heading
+        = link_to root_path do
+          %span.cenit-logo
+            =image_tag 'logo_cenitsaas_web.png'
+          %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+      .panel-body
+        .form-top
+          =t('admin.registration.new_title')
+        = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
+          - if (return_to = params[:return_to])
+            - f.hidden_field :return_to, value: return_to
+          = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
+          = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
+            %i{class:"fa fa-fw fa-github"}
+            %span GitHub
+          = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
+            %i{class:'fa fa-fw fa-google'}
+            %span Google
+          = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
+            %i{class:'fa fa-fw fa-facebook'}
+            %span Facebook
+        -#  = f.button class: 'btn btn-lg soc-btn soc-twitter', name: 'with', value: 'twitter' do
+        -#    %i{class:"fa fa-fw fa-twitter"}
+        -#    %span Twitter
 
-    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
-      .form-option
-        =t('admin.misc.or')
-      = form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
-        .field.text-justify
-          = f.label :email
-          = f.email_field :email, autofocus: true, class: "form-control"
-        .field.text-justify
-          = f.label :password
-          = f.password_field :password, autocomplete: "off", class: "form-control"
-        .pull-right{style: 'padding-bottom:10px'}
-          = recaptcha_tags if ENV['ENABLE_RERECAPTCHA'].to_b && ENV['RECAPTCHA_SITE_KEY'].present?
-        .clearfix
-        .actions
-          .terms.text-right{style: 'padding-bottom:5px'}
-            %small.text-muted
-              =t('admin.registration.terms_preface')
-              =link_to "#{Cenit.homepage}/terms", target: '_blank' do
-                %span=t('admin.misc.terms')
-          %button.btn.btn-primary.pull-right{type:'submit'}
-            =t('admin.registration.submit')
-  .panel-footer.clearfix
-    .pull-left
-      = render "devise/shared/links"
+        - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+          .form-option
+            =t('admin.misc.or')
+          = form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
+            .field.text-justify
+              = f.label :email
+              = f.email_field :email, autofocus: true, class: "form-control"
+            .field.text-justify
+              = f.label :password
+              = f.password_field :password, autocomplete: "off", class: "form-control"
+            .pull-right{style: 'padding-bottom:10px'}
+              = recaptcha_tags if ENV['ENABLE_RERECAPTCHA'].to_b && ENV['RECAPTCHA_SITE_KEY'].present?
+            .clearfix
+            .actions
+              .terms.text-right{style: 'padding-bottom:5px'}
+                %small.text-muted
+                  =t('admin.registration.terms_preface')
+                  =link_to "#{Cenit.homepage}/terms", target: '_blank' do
+                    %span=t('admin.misc.terms')
+              %button.btn.btn-primary.pull-right{type:'submit'}
+                =t('admin.registration.submit')
+      .panel-footer.clearfix
+        .pull-left
+          = render "devise/shared/links"
