@@ -1,7 +1,7 @@
 class AppController < ApplicationController
 
-  before_action :authorize_account, :find_app, :find_app_control_action, except: :cors_check
   before_action :process_headers
+  before_action :authorize_account, :find_app, :find_app_control_action, except: :cors_check
 
   attr_reader :app_control
 

@@ -300,6 +300,8 @@ module Setup
         end
       end
 
+      collection.cross_to(origin, origin: :default)
+
       attributes = {}
       COLLECTING_PROPERTIES.each do |property|
         r = reflect_on_association(property)
@@ -335,10 +337,7 @@ module Setup
 
       self.installed = true
       self.skip_reinstall_callback = true
-      if save(add_dependencies: false)
-        collection.cross_to(origin, origin: :default)
-        true
-      end
+      save(add_dependencies: false)
     end
 
     def versioned_name
