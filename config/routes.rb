@@ -2,7 +2,8 @@ Cenit::Application.routes.draw do
 
   devise_for :users, controllers: {
     sessions: 'sessions',
-    registrations: 'registrations'
+    registrations: 'registrations',
+    confirmations: 'confirmations'
   } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end

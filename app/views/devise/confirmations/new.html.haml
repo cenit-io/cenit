@@ -15,10 +15,10 @@
             = devise_error_messages!
           .field.text-justify
             = f.label :email
-            = f.email_field :email, autofocus: true, value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email), class: 'form-control'
+            = f.email_field :email_view, value: resource_class.current.email, class: 'form-control', disabled: true
+            = f.email_field :email, value: resource_class.current.email, hidden: true
           .actions
             %button.btn.btn-primary.pull-right{type:'submit'}
               = t('admin.confirmation.resend')
       .panel-footer.clearfix
         .pull-left
-          = render "devise/shared/links"
