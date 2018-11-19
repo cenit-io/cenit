@@ -118,4 +118,16 @@ Cenit::Application.routes.draw do
   match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
 
   get '/:model_name/*id', to: 'rails_admin/main#show'
+
+  Cenit.options.keys.grep(/:route:draw:listener\Z/).each do |source_key|
+    if (listener = Cenit[source_key]).is_a?(String)
+      listener =
+        begin
+          Cenit[source_key].constantize
+        rescue
+          nil
+        end
+    end
+    listener && listener.try(:on_route_draw, self)
+  end
 end
