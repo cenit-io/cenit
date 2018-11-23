@@ -373,6 +373,7 @@ en:
         menu: "Delete"
         breadcrumb: "Delete"
         bulk_link: "Delete selected %{model_label_plural}"
+        doing: "deletion"
       process_flow:
         title: "Process"
         menu: "Process"
