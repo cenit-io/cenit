@@ -84,15 +84,11 @@ gem 'parser'
 gem 'oauth'
 gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
-gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
-gem 'jeweler'
-gem 'github_api'
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
 gem 'oauth2', '1.0.0'
-gem "octokit"
 gem 'exception_notification'
 
 gem 'mime'

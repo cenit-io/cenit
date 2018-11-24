@@ -14,7 +14,7 @@ OPEN_ID_CLIENT_SECRET: "{OPEN_ID_CLIENT_SECRET}"
 OPEN_ID_AUTH_URL: "https://cenit.io/app/open_id/sign_in"
 OPEN_ID_REDIRECT_URI: "https://cenit.io/users/sign_in"
 OPEN_ID_TOKEN_URL: "https://cenit.io/app/open_id/sign_in/token"
-EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share build_gem bulk_pull
+EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share bulk_pull
 RABBITMQ_BIGWIG_TX_URL: "{RABBITMQ_BIGWIG_TX_URL}"
 NOTIFIER_EMAIL: "{NOTIFIER_EMAIL}"
 EXCEPTION_RECIPIENTS: "{List of emails}"

@@ -379,10 +379,6 @@ en:
         menu: "Process"
         done: "processed"
         doing: "execution"
-      build_gem:
-        title: "Build Gem"
-        menu: "Build Gem"
-        done: "build"
       run:
         title: "Run"
         menu: "Run"

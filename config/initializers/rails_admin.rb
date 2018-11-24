@@ -23,7 +23,6 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::RetryTask,
   RailsAdmin::Config::Actions::DownloadFile,
   RailsAdmin::Config::Actions::ProcessFlow,
-  RailsAdmin::Config::Actions::BuildGem,
   RailsAdmin::Config::Actions::Run,
   RailsAdmin::Config::Actions::Authorize,
   RailsAdmin::Config::Actions::SimpleDeleteDataType,
@@ -628,7 +627,6 @@ RailsAdmin.config do |config|
     share
     simple_cross
     bulk_cross
-    build_gem
     pull
     push
     download_file
