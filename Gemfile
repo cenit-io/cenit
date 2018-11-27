@@ -88,7 +88,7 @@ gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
-gem 'oauth2', '1.0.0'
+gem 'oauth2'
 gem 'exception_notification'
 
 gem 'mime'
