@@ -50,6 +50,14 @@ module Setup
       super
     end
 
+    def set_relation(name, relation)
+      r = super
+      if name == :snippet
+        @schema = nil
+      end
+      r
+    end
+
     def schema_code
       schema!
     rescue
