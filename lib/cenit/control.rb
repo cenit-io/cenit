@@ -80,6 +80,12 @@ module Cenit
       args[0].to_s =~ /\Arender_.+\Z/ || super
     end
 
+    def respond_to(&block)
+      @controller.respond_to do |format|
+        block.call(format)
+      end
+    end
+
     def render_called?
       @render_called ||= false
     end
