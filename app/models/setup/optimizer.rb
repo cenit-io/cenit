@@ -7,11 +7,9 @@ module Setup
 
     def regist_data_types(data_types)
       data_types = [data_types] unless data_types.is_a?(Enumerable)
-      if (data_type = data_types.first)
-        ns_hash = @nss[data_type.namespace]
-        data_types.each do |dt|
-          ns_hash[dt.name] = dt unless ns_hash.has_key?(dt.name)
-        end
+      data_types.each do |dt|
+        next unless dt.is_a?(Setup::DataType)
+        @nss[dt.namespace][dt.name] = dt
       end
     end
 
@@ -120,6 +118,6 @@ module Setup
 
       delegate(*Setup::Optimizer.instance_methods(false), to: :instance)
     end
-    
+
   end
 end
