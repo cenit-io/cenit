@@ -519,7 +519,7 @@ module Edi
       return output unless record
       field_sep = options[:field_separator]
       segment =
-        if (edi_options = schema['edi'] || {})['virtual']
+        if (edi_options = schema['edi'] || {})['virtual'] || options[:skip_segment_tag]
           ''
         else
           edi_options['segment'] ||
@@ -573,6 +573,9 @@ module Edi
       end
       while segment.end_with?(field_sep)
         segment = segment.chomp(field_sep)
+      end
+      if options[:skip_segment_tag] && segment.start_with?(field_sep)
+        segment[0] = ''
       end
       output.unshift(segment) unless edi_options['virtual']
       output
