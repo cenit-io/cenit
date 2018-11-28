@@ -68,6 +68,7 @@ module Cenit
         options ||= {}
         references = {}
         for_each_node_starting_at(record, options) do |obj|
+          ::Setup::Optimizer.instance.regist_data_types(obj)
           if (record_refs = obj.instance_variable_get(:@_references)).present?
             references[obj] = record_refs
           end
@@ -76,10 +77,13 @@ module Cenit
         visited = options[:visited]
         bound_records = []
 
+        lazy_models = [Setup::MappingConverter]
+
         while_modifying references do
 
           while_modifying references do
             references.each do |obj_waiting, to_bind|
+              next if lazy_models.include?(obj_waiting.class)
               visited.each do |obj|
                 to_bind.each do |property_name, property_binds|
                   is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
@@ -107,6 +111,7 @@ module Cenit
           end
 
           references.each do |obj, to_bind|
+            next if lazy_models.include?(obj.class)
             to_bind.each do |property_name, property_binds|
               is_array = property_binds.is_a?(Array) ? true : (property_binds = [property_binds]; false)
               property_binds.each do |property_bind|
@@ -140,17 +145,23 @@ module Cenit
 
           do_it = nil
 
-          if references.empty?
+
+          if bound_records.empty?
+            if lazy_models.present?
+              lazy_models.shift
+              do_it = :again
+            end
+          else
             bound_records.each do |record|
               visited.delete(record)
               for_each_node_starting_at(record, options) do |obj|
                 if (record_refs = obj.instance_variable_get(:@_references)).present?
-                  do_it = :again
                   references[obj] = record_refs
                 end
               end
             end
             bound_records.clear
+            do_it = :again
           end
 
           do_it
