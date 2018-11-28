@@ -89,5 +89,9 @@ module Cenit
         self[:file_stores_roles] = args.flatten.collect(&:to_s)
       end
     end
+
+    def fail(*several_variants)
+      super
+    end
   end
 end
