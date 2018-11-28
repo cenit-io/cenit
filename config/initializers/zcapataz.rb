@@ -31,7 +31,7 @@ Capataz.config do
 
   allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current, :name]
 
-  allow_on Cenit, [:homepage, :namespace, :slack_link]
+  allow_on Cenit, [:homepage, :namespace, :slack_link, :fail]
 
   allow_on JWT, [:encode, :decode]
 
