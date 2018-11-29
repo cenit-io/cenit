@@ -312,7 +312,7 @@ module Setup
           attachment: attachment,
           skip_notification_level: options[:skip_notification_level] || options[:notify_request]
         )
-        msg[:timeout] = remaining_request_time
+        #msg[:timeout] = remaining_request_time #TODO handle timeout
         begin
           uri = URI.parse(url)
           process_method = "process_#{uri.scheme}"
