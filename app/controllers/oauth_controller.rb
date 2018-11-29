@@ -57,15 +57,21 @@ class OauthController < ApplicationController
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_uri =
-          if (app = cenit_token.application)
-            "/app/#{app.slug_id}/authorization/#{authorization.id}?redirect_token=#{redirect_token}" +
-              case app.authentication_method
-              when :user_credentials
-                "X-User-Access-Key=#{Account.current.owner.number}&X-User-Access-Token=#{Account.current.owner.token}"
-              else
-                #:application_id
-                ''
-              end
+          if (app = cenit_token.app_id) && (app = app.app)
+            callback_authorization_id = authorization.metadata[:callback_authorization_id] ||
+              authorization.metadata['callback_authorization_id'] ||
+              authorization.id
+            callback_params = authorization.metadata[:callback_authorization_params] ||
+              authorization.metadata['callback_authorization_params']
+            unless callback_params.is_a?(Hash)
+              callback_params = {}
+            end
+            callback_params[:redirect_token] = redirect_token
+            if app.authentication_method == :user_credentials
+              callback_params[:'X-User-Access-Key'] = Tenant.current.owner.number
+              callback_params[:'X-User-Access-Token'] = Tenant.current.owner.token
+            end
+            "/app/#{app.slug_id}/authorization/#{callback_authorization_id}?" + callback_params.to_param
           elsif (token_data = cenit_token.data).is_a?(Hash) && token_data.key?('redirect_uri')
             token_data['redirect_uri']
           else
