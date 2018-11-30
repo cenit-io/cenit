@@ -13,6 +13,10 @@ module RailsAdmin
             #Patch
             if request.get? || params[:_restart] # NEW
 
+              if @model_config.asynchronous_persistence
+                flash[:warning] = "When you save the operation will occurs asynchronous"
+              end
+
               @object =
                 if (token = Cenit::Token.where(token: params[:json_token]).first)
                   hash = JSON.parse(token.data) rescue {}
@@ -97,7 +101,15 @@ module RailsAdmin
                 if (ok = params[:_next].nil?)
                   ok =
                     begin
-                      @object.save
+                      if @model_config.asynchronous_persistence
+                        do_flash_process_result ::Setup::AsynchronousPersistence.process(
+                          model_name: @abstract_model.model_name,
+                          attributes: @object.attributes
+                        )
+                        true
+                      else
+                        @object.save
+                      end
                     rescue Exception => ex
                       @object.errors.add(:base, "Error while creating: #{ex.message}")
                       false
@@ -109,7 +121,7 @@ module RailsAdmin
                   end
                   @auditing_adapter && @auditing_adapter.create_object(@object, @abstract_model, _current_user)
                   respond_to do |format|
-                    format.html { redirect_to_on_success }
+                    format.html { redirect_to_on_success(skip_flash: @model_config.asynchronous_persistence) }
                     format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
                   end
                 else

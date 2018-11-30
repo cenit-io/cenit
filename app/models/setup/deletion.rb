@@ -4,8 +4,12 @@ module Setup
 
     build_in_data_type
 
+    def target_model_name
+      message[:model_name] || message['model_name']
+    end
+
     def deletion_model
-      model_name = message[:model_name.to_s]
+      model_name = target_model_name
       model =
         begin
           model_name.constantize
@@ -50,7 +54,7 @@ module Setup
           end
         end
       else
-        fail "Can not determine records model from name '#{model_name}'"
+        fail "Can not determine records model from name '#{target_model_name}'"
       end
     end
 

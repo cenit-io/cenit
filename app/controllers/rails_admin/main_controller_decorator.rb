@@ -207,5 +207,22 @@ module RailsAdmin
       options = options.merge(criteria: params[:c]) if params[:c].present?
       model_config.abstract_model.all(options, scope)
     end
+
+    def redirect_to_on_success(opts = nil)
+      flash = {}
+      unless opts && opts[:skip_flash]
+        flash = {
+          success: I18n.t('admin.flash.successful', name: @model_config.label, action: I18n.t("admin.actions.#{@action.key}.done"))
+        }
+      end
+      if params[:_add_another]
+        redirect_to new_path(return_to: params[:return_to]), flash: flash
+      elsif params[:_add_edit]
+        redirect_to edit_path(id: @object.id, return_to: params[:return_to]), flash: flash
+      else
+        redirect_to back_or_index, flash: flash
+      end
+    end
+
   end
 end

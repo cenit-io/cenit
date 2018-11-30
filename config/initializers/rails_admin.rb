@@ -536,6 +536,8 @@ RailsAdmin.config do |config|
 
   Setup::Storage
 
+  Setup::AsynchronousPersistence
+
   #Configuration
 
   config.navigation 'Configuration', icon: 'fa fa-sliders'

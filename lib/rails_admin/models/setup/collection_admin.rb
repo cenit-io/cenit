@@ -13,6 +13,8 @@ module RailsAdmin
               'My Collections'
             end
 
+            asynchronous_persistence true
+
             instance_eval &RailsAdmin::Models::Setup::CollectionFieldsConfigAdmin::FIELDS_CONFIG
           end
         end

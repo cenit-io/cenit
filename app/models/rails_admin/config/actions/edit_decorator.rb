@@ -16,6 +16,10 @@ module RailsAdmin
 
             if request.get? # EDIT
 
+              if @model_config.asynchronous_persistence
+                flash[:warning] = "When you save the operation will occurs asynchronous"
+              end
+
               respond_to do |format|
                 format.html { render @action.template_name }
                 format.js { render @action.template_name, layout: false }
@@ -50,7 +54,17 @@ module RailsAdmin
               end
               ok =
                 begin
-                  @object.save(save_options)
+                  if @model_config.asynchronous_persistence
+                    do_flash_process_result ::Setup::AsynchronousPersistence.process(
+                      model_name: @abstract_model.model_name,
+                      id: @object.id,
+                      attributes: @object.attributes,
+                      options: save_options
+                    )
+                    true
+                  else
+                    @object.save(save_options)
+                  end
                 rescue Exception => ex
                   @object.errors.add(:base, "Error while updating: #{ex.message}")
                   false
@@ -61,7 +75,7 @@ module RailsAdmin
                 end
                 @auditing_adapter && @auditing_adapter.update_object(@object, @abstract_model, _current_user, changes)
                 respond_to do |format|
-                  format.html { redirect_to_on_success }
+                  format.html { redirect_to_on_success(skip_flash: @model_config.asynchronous_persistence) }
                   format.js { render json: { id: @object.id.to_s, label: @model_config.with(object: @object).object_label } }
                 end
               else
