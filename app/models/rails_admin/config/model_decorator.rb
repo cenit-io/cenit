@@ -2,6 +2,10 @@ module RailsAdmin
   module Config
     Model.class_eval do
 
+      register_instance_option :asynchronous_persistence do
+        false
+      end
+
       register_instance_option :hierarchy_selectable do
         false
       end

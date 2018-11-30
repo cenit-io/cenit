@@ -28,6 +28,8 @@ module RailsAdmin
               !(a = bindings[:action]) || a.key != :edit
             end
 
+            asynchronous_persistence true
+
             instance_eval &RailsAdmin::Models::Setup::CollectionFieldsConfigAdmin::FIELDS_CONFIG
           end
         end
