@@ -75,6 +75,10 @@ en:
       powered_api_guru: 'API specs supplied by'
       refresh: 'Refresh'
     actions:
+      new:
+        doing: "persistence"
+      edit:
+        doing: "persistence"
       dashboard:
         title: "Dashboard"
         recent_users:
