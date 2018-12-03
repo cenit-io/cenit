@@ -87,12 +87,16 @@ module Setup
         )
         body = JSON.parse(http_response.body)
         if http_response.code == 200
-          authorization.update!(
+          update_data = {
             authorized_at: Time.now,
             token_type: body['token_type'],
             access_token: body['access_token'],
             token_span: body['expires_in']
-          )
+          }
+          if (refresh_token = body['refresh_token'])
+            update_data[:refresh_token] = refresh_token
+          end
+          authorization.update!(update_data)
         else
           fail "(response code #{http_response.code} - #{body['error']}) #{body['error_description']}"
         end
