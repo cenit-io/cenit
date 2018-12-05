@@ -1,4 +1,5 @@
 require 'oauth2'
 
-OAuth2::Response::PARSERS[:text] = ->(body) { MultiJson.load(body) rescue Rack::Utils.parse_query(body) }
-OAuth2::Response::CONTENT_TYPES['text/html'] = :text
+OAuth2::Response.register_parser(:text, 'text/html') do |body|
+  MultiJson.load(body) rescue Rack::Utils.parse_query(body)
+end

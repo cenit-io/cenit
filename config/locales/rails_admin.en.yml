@@ -31,6 +31,8 @@ en:
       short_submit: 'Reset'
       edit_title: 'Change your password'
       edit_submit: 'Change my password'
+    confirmation:
+      resend: 'Resend confirmation instructions'
     js:
       present_and_change: Present & Change
     flash:
@@ -381,10 +383,6 @@ en:
         menu: "Process"
         done: "processed"
         doing: "execution"
-      build_gem:
-        title: "Build Gem"
-        menu: "Build Gem"
-        done: "build"
       run:
         title: "Run"
         menu: "Run"
