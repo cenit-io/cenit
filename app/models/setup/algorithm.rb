@@ -199,7 +199,13 @@ module Setup
           input << task || Setup::Task.current
         end
       end
-      rc = Cenit::BundlerInterpreter.run(self, *input)
+
+      begin
+        rc = Cenit::BundlerInterpreter.run(self, *input)
+      rescue Exception => ex
+        ex.backtrace.unshift("In algorithm #{namespace}::#{name}")
+        fail(ex)
+      end
 
       if rc
         if store_output
@@ -212,7 +218,7 @@ module Setup
             args = {}
             parameters.each { |parameter| args[parameter.name] = input.shift }
             @last_output = AlgorithmOutput.create(algorithm: self, data_type: output_datatype, input_params: args,
-                                                  output_ids: ids)
+              output_ids: ids)
           rescue Exception => e
             fail "Failing storing output: #{e.message}" if validate_output
           end
@@ -271,9 +277,9 @@ module Setup
 
     def configuration_model
       @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
-                                            schema: configuration_schema,
-                                            name: self.class.configuration_model_name,
-                                            cache: false)
+        schema: configuration_schema,
+        name: self.class.configuration_model_name,
+        cache: false)
     end
 
     def language_name

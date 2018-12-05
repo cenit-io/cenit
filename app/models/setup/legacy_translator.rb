@@ -197,7 +197,12 @@ module Setup
       context_options[:source_data_type].regist_creation_listener(self) if context_options[:source_data_type]
       context_options[:translator] = self
 
-      context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
+      begin
+        context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
+      rescue Exception => ex
+        ex.backtrace.unshift("In translator #{namespace}::#{name}")
+        fail(ex)
+      end
 
       context_options[:target_data_type].unregist_creation_listener(self) if context_options[:target_data_type]
       context_options[:source_data_type].unregist_creation_listener(self) if context_options[:source_data_type]
