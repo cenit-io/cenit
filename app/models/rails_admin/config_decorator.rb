@@ -33,6 +33,10 @@ module RailsAdmin
         model.add_deferred_block(&block) if block
         model
       end
+
+      def namespace_modules
+        @namespace_modules ||= [Setup, Cenit, Forms, Mongoid::Tracer]
+      end
     end
 
   end

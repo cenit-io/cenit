@@ -2,7 +2,7 @@ module Setup
   class Application < OauthClient
     include NamespaceNamed
     include Slug
-    include Cenit::Oauth::AppConfig
+    include Cenit::AppConfig
     include RailsAdmin::Models::Setup::ApplicationAdmin
 
     origins :app

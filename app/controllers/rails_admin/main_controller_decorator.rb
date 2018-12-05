@@ -4,7 +4,6 @@ module RailsAdmin
     include OverrideActionsHelper
     include RestApiHelper
     include SwaggerHelper
-    include AlgorithmHelper
     include NotebooksHelper
     include TraceHelper
 

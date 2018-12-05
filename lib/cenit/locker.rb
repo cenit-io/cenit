@@ -2,6 +2,16 @@ module Cenit
   module Locker
     class << self
 
+      def locking(obj)
+        if lock(obj)
+          begin
+            yield if block_given?
+          ensure
+            unlock(obj)
+          end
+        end
+      end
+
       def lock(obj)
         collection.insert_one(_id: obj_id(obj))
         true

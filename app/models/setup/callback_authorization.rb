@@ -46,7 +46,7 @@ module Setup
     end
 
     def callback_url
-      "#{Cenit.oauth2_callback_site}/oauth/callback"
+      "#{Cenit.homepage}/oauth/callback"
     end
 
     def callback_params

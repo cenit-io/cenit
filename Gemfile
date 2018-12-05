@@ -84,15 +84,11 @@ gem 'parser'
 gem 'oauth'
 gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
-gem 'cenit_cmd', git: 'https://github.com/openjaf/cenit_cmd.git'
-gem 'jeweler'
-gem 'github_api'
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
-gem 'oauth2', '1.0.0'
-gem "octokit"
+gem 'oauth2'
 gem 'exception_notification'
 
 gem 'mime'
@@ -109,7 +105,6 @@ gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
 gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
-gem 'cenit-oauth', git: 'https://github.com/cenit-io/cenit-oauth.git'
 gem 'cenit-home', git: 'https://github.com/cenit-io/cenit-home.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'

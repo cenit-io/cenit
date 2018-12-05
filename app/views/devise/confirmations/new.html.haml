@@ -9,16 +9,16 @@
 
       .panel-body
         .form-top
-          = t('admin.forgotten.new_title')
-        = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+          = t('admin.confirmation.resend')
+        = form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f|
           .text-danger
             = devise_error_messages!
           .field.text-justify
             = f.label :email
-            = f.email_field :email, autofocus: true, class: 'form-control'
+            = f.email_field :email_view, value: resource_class.current.email, class: 'form-control', disabled: true
+            = f.email_field :email, value: resource_class.current.email, hidden: true
           .actions
             %button.btn.btn-primary.pull-right{type:'submit'}
-              = t('admin.forgotten.new_submit')
+              = t('admin.confirmation.resend')
       .panel-footer.clearfix
         .pull-left
-          = render "devise/shared/links"
