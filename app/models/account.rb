@@ -154,7 +154,7 @@ class Account
 
   def clean_up
     switch do
-      Cenit::ApplicationId.where(:id.in => Cenit::Oauth.app_model.all.collect(&:application_id_id)).delete_all
+      Cenit::ApplicationId.where(:id.in => Setup::Application.all.collect(&:application_id_id)).delete_all
     end
     TaskToken.where(tenant_id: id).delete_all
     Setup::DelayedMessage.where(tenant_id: id).delete_all

@@ -2,7 +2,8 @@ Cenit::Application.routes.draw do
 
   devise_for :users, controllers: {
     sessions: 'sessions',
-    registrations: 'registrations'
+    registrations: 'registrations',
+    confirmations: 'confirmations'
   } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
@@ -40,9 +41,7 @@ Cenit::Application.routes.draw do
 
   match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
   get "#{oauth_path}/callback", to: 'oauth#callback'
-  if Cenit.oauth_token_end_point.to_s.to_sym == :embedded
-    mount Cenit::Oauth::Engine => oauth_path
-  end
+  post "#{oauth_path}/token", to: 'oauth#token'
 
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'

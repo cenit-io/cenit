@@ -56,21 +56,6 @@ module Cenit
         end
       end
 
-      Cenit::ApplicationParameter.instance_eval do
-        include Setup::CenitScoped
-        build_in_data_type.referenced_by(:name)
-      end
-
-      Cenit::OauthAccessGrant.instance_eval do
-        include Setup::CenitScoped
-
-        # TODO Include App information field
-        build_in_data_type.with(:scope)
-
-        deny :all
-        allow :index, :show, :delete, :edit
-      end
-
       Setup::CenitDataType.init!
 
       require 'mongoff/model'
