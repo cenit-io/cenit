@@ -643,6 +643,23 @@ module Setup
       }
     end
   end
+
+  class Flow
+
+    def post_digest(request, options = {})
+      begin
+        message = JSON.parse(request.body)
+        fail unless message.is_a?(Hash)
+      rescue
+        message = {}
+      end
+      execution = process(message.with_indifferent_access)
+      execution.reload
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'
