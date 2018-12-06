@@ -206,6 +206,10 @@ class String
     openssl_digest[:sha256].digest(self)
   end
 
+  def hex_sha256
+    openssl_digest[:sha256].hexdigest(self)
+  end
+
   def to_hex
     each_byte.map { |b| b.to_s(16) }.join
   end
