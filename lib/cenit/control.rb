@@ -116,7 +116,7 @@ module Cenit
 
     def authorize(auth, parameters = {})
       case auth
-      when Setup::BaseOauthAuthorization
+      when Setup::CallbackAuthorization
         if auth.save
           cenit_token = CallbackAuthorizationToken.create(app_id: app.application_id, authorization: auth, data: {})
           parameters[:cenit_token] = cenit_token
