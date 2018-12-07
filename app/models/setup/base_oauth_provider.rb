@@ -74,10 +74,13 @@ module Setup
     def default_refresh_token(authorization)
       if (refresh_token = authorization.refresh_token) &&
         (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) < Time.now - 60))
-        fail 'Missing client configuration' unless authorization.client
+        fail 'Missing client configuration' unless (client = authorization.client)
         http_response = HTTMultiParty.post(
           authorization.token_endpoint,
-          headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
+          headers: {
+            'Content-Type' => 'application/x-www-form-urlencoded'
+          }.merge(client.conformed_request_token_headers(template_parameters = authorization.template_parameters_hash)),
+          query: client.conformed_request_token_parameters(template_parameters),
           body: {
             grant_type: :refresh_token,
             refresh_token: refresh_token,
