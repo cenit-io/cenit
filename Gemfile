@@ -130,3 +130,9 @@ gem 'diffy'
 
 gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
 gem 'combine_pdf', '1.0.4'
+
+custom_gemfile_name = 'custom_Gemfile'
+
+if File.exist?(custom_gemfile_name)
+  instance_eval File.read(custom_gemfile_name)
+end
