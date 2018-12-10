@@ -206,6 +206,10 @@ class Account
       current && current.notify(attrs)
     end
 
+    def current_id
+      current && current.id
+    end
+
     def current_key
       (current && current.number) || 'XXXXXXX'
     end
