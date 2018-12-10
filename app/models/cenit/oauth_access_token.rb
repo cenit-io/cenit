@@ -14,14 +14,6 @@ module Cenit
     def hit
       # Nothing here
     end
-
-    def get_tenant
-      if access_grant.origin == :owner
-        tenant.owner.account
-      else
-        super
-      end
-    end
     
     class << self
       def for(app_id, scope, user_or_id, tenant = Cenit::MultiTenancy.tenant_model.current)
