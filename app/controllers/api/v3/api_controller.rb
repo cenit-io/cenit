@@ -489,6 +489,8 @@ module Api::V3
     def find_item
       if (id = params[:__id_]) == 'me' && klass == User
         id = User.current_id
+      elsif id == 'current' && klass == Account
+        id = Account.current_id
       end
       if (@item = accessible_records.where(id: id).first)
         true
