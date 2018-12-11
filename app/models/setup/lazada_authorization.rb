@@ -8,6 +8,10 @@ module Setup
 
     auth_template_parameters access_token: ->(oauth2_auth) { oauth2_auth.fresh_access_token }
 
+    def create_http_client(options = {})
+      super(options.merge(auth_scheme: :none))
+    end
+
     def token_params(params = {}, template_parameters = {})
       super
       sign_params(params, url: client.provider.token_endpoint, skip_access_token: true)
