@@ -22,7 +22,7 @@ module Cenit
         super
       end
     end
-    
+
     class << self
       def for(app_id, scope, user_or_id, tenant = Cenit::MultiTenancy.tenant_model.current)
         user_model = Cenit::MultiTenancy.user_model

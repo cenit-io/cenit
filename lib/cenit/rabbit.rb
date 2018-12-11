@@ -249,60 +249,62 @@ module Cenit
       def start_scheduler
         if init
           @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
-            begin
-              channel_mutex.lock
-              unless channel.closed?
-                dispatched_ids = []
-                tenant_tasks = {}
-                ActiveTenant.where(:tasks.gt => 0).each do |active_tenant|
-                  tenant_tasks[active_tenant.tenant_id] = active_tenant.tasks
-                end
-                quota = tasks_quota(tenant_tasks.size)
-
-                delayed_message_digester = proc do |delayed_message|
-                  if (tenant = delayed_message.tenant) && (tenant_tasks[tenant.id] || 0) > quota
-                    delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
-                  else
-                    publish_options = { routing_key: queue.name }
-                    publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-                    channel.default_exchange.publish(delayed_message.message, publish_options)
-                    ActiveTenant.inc_tasks_for(tenant)
-                    tenant_tasks[tenant.id] ||= 0
-                    tenant_tasks[tenant.id] += 1
-                    dispatched_ids << delayed_message.id
-                  end
-                end
-
-                on_messages_ready = Setup::DelayedMessage
-                                      .all
-                                      .limit(2 * maximum_active_tasks)
-                                      .or(:publish_at.lte => Time.now)
-                penalty_factor = 0.75
-                penalty_quota = penalty_factor * quota
-                penalized_ids = tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota }
-
-                on_messages_ready.and(:tenant_id.nin => penalized_ids).each do |delayed_message|
-                  delayed_message_digester.call(delayed_message)
-                end
-                if (dispatched_ids.size + tenant_tasks.values.reduce(&:+)) < maximum_active_tasks * penalty_factor
-                  on_messages_ready.and(:tenant_id.in => penalized_ids)
-                    .limit(2 * (1 - penalty_factor) * maximum_active_tasks).each do |delayed_message|
-                    delayed_message_digester.call(delayed_message)
-                  end
-                end
-                begin
-                  Setup::DelayedMessage.where(:id.in => dispatched_ids).destroy_all
-                rescue Exception => ex
-                  Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
-                end unless dispatched_ids.empty?
-                ActiveTenant.where(:tasks.lte => 0).delete_all
-              end
-            ensure
-              channel_mutex.unlock
-            end
+            lookup_messages
           end
           puts 'RABBIT SCHEDULER STARTED'
         end
+      end
+
+      def lookup_messages(opts = {})
+        channel_mutex.lock
+        unless channel.closed?
+          dispatched_ids = []
+          tenant_tasks = {}
+          ActiveTenant.where(:tasks.gt => 0).each do |active_tenant|
+            tenant_tasks[active_tenant.tenant_id] = active_tenant.tasks
+          end
+          quota = opts[:quota] || tasks_quota(tenant_tasks.size)
+
+          delayed_message_digester = proc do |delayed_message|
+            if (tenant = delayed_message.tenant) && (tenant_tasks[tenant.id] || 0) > quota
+              delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
+            else
+              publish_options = { routing_key: queue.name }
+              publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+              channel.default_exchange.publish(delayed_message.message, publish_options)
+              ActiveTenant.inc_tasks_for(tenant)
+              tenant_tasks[tenant.id] ||= 0
+              tenant_tasks[tenant.id] += 1
+              dispatched_ids << delayed_message.id
+            end
+          end
+
+          on_messages_ready = Setup::DelayedMessage
+                                .all
+                                .limit(2 * maximum_active_tasks)
+                                .or(:publish_at.lte => Time.now)
+          penalty_factor = 0.75
+          penalty_quota = penalty_factor * quota
+          penalized_ids = tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota }
+
+          on_messages_ready.and(:tenant_id.nin => penalized_ids).each do |delayed_message|
+            delayed_message_digester.call(delayed_message)
+          end
+          if (dispatched_ids.size + tenant_tasks.values.reduce(&:+)) < maximum_active_tasks * penalty_factor
+            on_messages_ready.and(:tenant_id.in => penalized_ids)
+              .limit(2 * (1 - penalty_factor) * maximum_active_tasks).each do |delayed_message|
+              delayed_message_digester.call(delayed_message)
+            end
+          end
+          begin
+            Setup::DelayedMessage.where(:id.in => dispatched_ids).destroy_all
+          rescue Exception => ex
+            Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
+          end unless dispatched_ids.empty?
+          ActiveTenant.where(:tasks.lte => 0).delete_all
+        end
+      ensure
+        channel_mutex.unlock
       end
 
       private

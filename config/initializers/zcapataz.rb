@@ -29,7 +29,9 @@ Capataz.config do
 
   allow_for Setup::CrossSharedCollection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
 
-  allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current, :name]
+  allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current]
+
+  allow_for [Account, Tenant], [:id, :name, :key, :token, :notification_level, :switch, :nil?, :get_owner, :owner]
 
   allow_on Cenit, [:homepage, :namespace, :slack_link, :fail]
 

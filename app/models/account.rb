@@ -178,6 +178,11 @@ class Account
     User.current = current_user
   end
 
+  def get_owner
+    fail 'Illegal access to tenant owner' unless User.current_super_admin?
+    owner
+  end
+
   class << self
 
     def find_where(expression)
@@ -199,6 +204,10 @@ class Account
 
     def notify(attrs)
       current && current.notify(attrs)
+    end
+
+    def current_id
+      current && current.id
     end
 
     def current_key
