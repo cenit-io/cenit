@@ -62,6 +62,10 @@ module Mongoff
       end
     end
 
+    def respond_to?(*args)
+      %w(distinct).include?(args[0].to_s) || super
+    end
+
     def method_missing(symbol, *args, &block)
       if (q = query).respond_to?(symbol)
         q.send(symbol, *args, &block)
