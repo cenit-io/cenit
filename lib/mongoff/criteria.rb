@@ -63,7 +63,7 @@ module Mongoff
     end
 
     def respond_to?(*args)
-      %w(distinct).include?(args[0].to_s) || super
+      %w(where distinct).include?(args[0].to_s) || super
     end
 
     def method_missing(symbol, *args, &block)
