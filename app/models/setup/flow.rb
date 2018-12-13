@@ -100,7 +100,13 @@ module Setup
             rejects(:scope_evaluator)
           when :evaluation
             unless requires(:scope_evaluator)
-              errors.add(:scope_evaluator, 'must receive one parameter') unless scope_evaluator.parameters.size == 1
+              if scope_evaluator.parameters.size == 1
+                unless scope_evaluator.parameters.first.name == 'scope'
+                  errors.add(:scope_evaluator, "argument name should be 'scope'")
+                end
+              else
+                errors.add(:scope_evaluator, 'must receive one parameter')
+              end
             end
             rejects(:scope_filter)
           else
@@ -223,8 +229,8 @@ module Setup
       end
     end
 
-    def process(message={}, &block)
-      execution_graph = current_thread_cache.last ||{}
+    def process(message = {}, &block)
+      execution_graph = current_thread_cache.last || {}
       if (trigger_flow_id = execution_graph['trigger_flow_id'])
         execution_graph[trigger_flow_id] ||= []
         adjacency_list = execution_graph[trigger_flow_id]
@@ -486,7 +492,7 @@ module Setup
     end
 
     def attachment_from(http_response)
-      file_extension = ((types =MIME::Types[http_response.content_type]).present? &&
+      file_extension = ((types = MIME::Types[http_response.content_type]).present? &&
         (ext = types.first.extensions.first).present? && '.' + ext) || ''
       {
         filename: http_response.object_id.to_s + file_extension,
@@ -503,7 +509,28 @@ module Setup
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
       elsif scope_symbol == :evaluation
-        data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
+        unless (parameters_size = scope_evaluator.parameters.size) == 1
+          fail "Illegal arguments size for scope evaluator: #{parameters_size} (1 expected)"
+        end
+        if scope_evaluator.parameters.first.name == 'scope'
+          evaluation = scope_evaluator.run(data_type.all)
+          if evaluation.is_a?(Mongoid::Criteria) || evaluation.is_a?(Mongoff::Criteria)
+            if evaluation.count == data_type.count
+              nil
+            else
+              evaluation.distinct(:_id).flatten
+            end
+          elsif ((model = data_type.records_model).is_a?(Class) || evaluation.is_a?(Mongoff::Record)) &&
+            evaluation.is_a?(model)
+            [evaluation.id]
+          elsif evaluation.is_a?(Array)
+            evaluation.collect(&:id)
+          else
+            fail "Illegal scope evaluator result of type #{evaluation.class}: #{evaluation}"
+          end
+        else
+          data_type.records_model.all.select { |record| scope_evaluator.run(record).present? }.collect(&:id)
+        end
       else
         nil
       end
