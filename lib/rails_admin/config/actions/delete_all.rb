@@ -3,10 +3,6 @@ module RailsAdmin
     module Actions
       class DeleteAll < RailsAdmin::Config::Actions::Base
 
-        register_instance_option :visible? do
-          authorized? && bindings[:controller].list_entries(bindings[:abstract_model].config, :destroy).size > 0
-        end
-
         register_instance_option :collection do
           true
         end
