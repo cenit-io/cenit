@@ -18,7 +18,7 @@ module RailsAdmin
 
               json_formatter do
                 proc do |traces, options|
-                  attrs = %w(model_label target_show_url object_name author_data).except(options[:except])
+                  attrs = %w(model_label target_show_url object_name author_data) - (options[:except] || []).to_a
                   attrs = attrs.select { |attr| options[:only].include?(attr) } unless options[:only].empty?
                   traces.collect do |trace|
                     json = options ? trace.as_json(options) : trace.as_json
