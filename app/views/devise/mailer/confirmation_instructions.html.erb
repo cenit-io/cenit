@@ -26,7 +26,7 @@
             <br/>
               However, if you indeed signed up for an account on our platform, please click the
               following link to complete the sign-up process:
-              <%= link_to 'Confirm account', confirmation_url(@resource, confirmation_token: @token) %>
+              <%= link_to 'Confirm account', confirmation_url(@resource, confirmation_token: @token, host: Cenit.homepage) %>
             </p>
           </td>
         </tr>
