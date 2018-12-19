@@ -20,7 +20,7 @@ module Cenit
     end
 
     def parse(xml)
-      Encoder.decode_hash_value(Hash.from_xml(xml))
+      Encoder.hash_decode(Hash.from_xml(xml))
     end
 
     module Encoder
@@ -79,58 +79,58 @@ module Cenit
         }
       end
 
-      def decode_hash_value(value)
+      def hash_decode(value)
         case value
         when Hash
+          r = nil
           if value.size == 1
             k = value.keys.first
             v = value[k]
-            case k
-            when 'value'
-              decode_hash_value(v)
-            when 'string'
-              v.to_s
-            when 'int', 'i4'
-              v.to_i
-            when 'double'
-              v.to_f
-            when 'boolean'
-              v.to_b
-            when 'dateTime.iso8601'
-              Time.parse(v.to_s)
-            when 'struct'
-              if v.is_a?(Hash) && v.size == 1 && ((members = v['member']).is_a?(Hash) || members.is_a?(Array))
-                members = [members] unless members.is_a?(Array)
-                members.inject({}) do |hash, member|
-                  hash[member['name']] = decode_hash_value(member['value'])
-                  hash
+            r =
+              case k
+              when 'value'
+                hash_decode(v)
+              when 'string'
+                v.to_s
+              when 'int', 'i4'
+                v.to_i
+              when 'double'
+                v.to_f
+              when 'boolean'
+                v.to_b
+              when 'dateTime.iso8601'
+                Time.parse(v.to_s)
+              when 'struct'
+                if v.is_a?(Hash) && v.size == 1 && ((members = v['member']).is_a?(Hash) || members.is_a?(Array))
+                  members = [members] unless members.is_a?(Array)
+                  members.inject({}) do |hash, member|
+                    hash[member['name']] = hash_decode(member['value'])
+                    hash
+                  end
+                else
+                  nil
+                end
+              when 'array'
+                if v.is_a?(Hash) && (data = v['data']).is_a?(Hash) && data.size == 1 && ((values = data['value']).is_a?(Hash) || values.is_a?(Array))
+                  values = [values] unless values.is_a?(Array)
+                  values.collect { |v| hash_decode(v) }
+                else
+                  nil
                 end
               else
-                hash = {}
-                value.each { |k, v| hash[k] = decode_hash_value(v) }
-                hash
+                nil
               end
-            when 'array'
-              if v.is_a?(Hash) && (data = v['data']).is_a?(Hash) && data.size == 1 && ((values = data['value']).is_a?(Hash) || values.is_a?(Array))
-                values = [values] unless values.is_a?(Array)
-                values.collect { |v| decode_hash_value(v) }
-              else
-                hash = {}
-                value.each { |k, v| hash[k] = decode_hash_value(v) }
-                hash
-              end
-            else
+          else
+            nil
+          end
+          r ||
+            begin
               hash = {}
-              value.each { |k, v| hash[k] = decode_hash_value(v) }
+              value.each { |k, v| hash[k] = hash_decode(v) }
               hash
             end
-          else
-            hash = {}
-            value.each { |k, v| hash[k] = decode_hash_value(v) }
-            hash
-          end
         when Array
-          value.collect { |v| decode_hash_value(v) }
+          value.collect { |v| hash_decode(v) }
         else
           value
         end
