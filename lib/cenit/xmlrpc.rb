@@ -7,16 +7,32 @@ module Cenit
     end
 
     def method_missing(symbol, *args)
-      Encoder.encode(
-        methodCall: {
-          methodName: symbol,
-          params: args.collect { |p| { param: Encoder.hash_encode(p) } }
+      body_request = {
+        :methodCall => {
+          :methodName => symbol
         }
-      )
+      }
+      body_request[:methodCall][:params] = args.collect { |p| { param: Encoder.hash_encode(p) } } unless args.empty?
+      Encoder.encode(body_request)
     end
 
     def method_call(method, *args)
       method_missing(method, *args)
+    end
+
+    def parse_method_response(xml)
+      parsing_xml = Encoder.hash_decode(Hash.from_xml(xml))
+      fail 'No valid method response!' if parsing_xml['methodName']
+      parsing_xml = parsing_xml['methodResponse']
+      if parsing_xml['fault']
+        # is a fault structure
+        [false, parsing_xml['fault']]
+      else
+        # is a normal return value
+        fail 'Missing return value!' if parsing_xml['params'].length == 0
+        fail 'Too many return values. Only one allowed!' if parsing_xml['params'].length > 1
+        [true, parsing_xml['params']['param']]
+      end
     end
 
     def parse(xml)
