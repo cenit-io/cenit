@@ -22,15 +22,15 @@ module Cenit
 
     def parse_method_response(xml)
       parsing_xml = Encoder.hash_decode(Hash.from_xml(xml))
-      raise "No valid method response!" unless parsing_xml['methodName'].nil?
+      fail 'No valid method response!' if parsing_xml['methodName']
       parsing_xml = parsing_xml['methodResponse']
-      if parsing_xml['fault'] != nil
+      if parsing_xml['fault']
         # is a fault structure
         [false, parsing_xml['fault']]
       else
         # is a normal return value
-        raise "Missing return value!" if parsing_xml['params'].length == 0
-        raise "Too many return values. Only one allowed!" if parsing_xml['params'].length > 1
+        fail 'Missing return value!' if parsing_xml['params'].length == 0
+        fail 'Too many return values. Only one allowed!' if parsing_xml['params'].length > 1
         [true, parsing_xml['params']['param']]
       end
     end
