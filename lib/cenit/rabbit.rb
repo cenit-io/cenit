@@ -266,16 +266,21 @@ module Cenit
           quota = opts[:quota] || tasks_quota(tenant_tasks.size)
 
           delayed_message_digester = proc do |delayed_message|
-            if (tenant = delayed_message.tenant) && (tenant_tasks[tenant.id] || 0) > quota
-              delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
+            if (tenant = delayed_message.tenant)
+              if (tenant_tasks[tenant.id] || 0) > quota
+                delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
+              else
+                publish_options = { routing_key: queue.name }
+                publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
+                channel.default_exchange.publish(delayed_message.message, publish_options)
+                ActiveTenant.inc_tasks_for(tenant)
+                tenant_tasks[tenant.id] ||= 0
+                tenant_tasks[tenant.id] += 1
+                dispatched_ids << delayed_message.id
+              end
             else
-              publish_options = { routing_key: queue.name }
-              publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-              channel.default_exchange.publish(delayed_message.message, publish_options)
-              ActiveTenant.inc_tasks_for(tenant)
-              tenant_tasks[tenant.id] ||= 0
-              tenant_tasks[tenant.id] += 1
-              dispatched_ids << delayed_message.id
+              delayed_message.delete
+              Setup::SystemReport.create(message: "Delayed message #{delayed_message.message} with no associated tenant was deleted.", type: :warning)
             end
           end
 
