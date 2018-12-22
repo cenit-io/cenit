@@ -14,7 +14,7 @@ class ScriptExecution < Setup::Task
   def run(message)
     if (script = Script.where(id: (script_id = message[:script_id])).first)
       result =
-        case result = script.run(message[:input])
+        case result = script.run(self)
         when Hash, Array
           JSON.pretty_generate(result)
         else
