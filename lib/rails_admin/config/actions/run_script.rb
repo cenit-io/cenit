@@ -25,7 +25,8 @@ module RailsAdmin
                                                                     input: params.delete(:input),
                                                                     skip_notification_level: true)
                 else
-                  @output = @object.run(@input = params.delete(:input))
+                  @output = @object.run(task = ::ScriptExecution.create(message: { script_id: @object.id }))
+                  task.update(status: :completed, progress: 100)
                 end
               rescue Exception => ex
                 Setup::SystemReport.create_from(ex)

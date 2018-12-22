@@ -18,7 +18,7 @@ class Script
     []
   end
 
-  def run(input)
-    instance_eval(code)
+  def run(task)
+    task.instance_eval(code)
   end
 end
