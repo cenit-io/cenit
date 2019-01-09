@@ -116,7 +116,7 @@ module Edi
       end
       options.keys.each do |option|
         if option.is_a?(String)
-          options[option.to_sym] = value
+          options[option.to_sym] = options.delete(option)
         end
       end
     end
