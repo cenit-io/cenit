@@ -114,7 +114,11 @@ module Edi
         end
         options[:viewport] = viewport
       end
-      options.symbolize_keys!
+      options.keys.each do |option|
+        if option.is_a?(String)
+          options[option.to_sym] = value
+        end
+      end
     end
 
     def parse_viewport(value)
