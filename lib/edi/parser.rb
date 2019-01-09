@@ -64,7 +64,11 @@ module Edi
           val = val.select { |p| p.is_a?(Symbol) || p.is_a?(String) }.collect(&:to_sym)
           options[opt] = val
         end
-        options.symbolize_keys!
+        options.keys.each do |option|
+          if option.is_a?(String)
+            options[option.to_sym] = value
+          end
+        end
       end
 
       def qualify_name(xml_node)
