@@ -114,6 +114,7 @@ module Edi
         end
         options[:viewport] = viewport
       end
+      options.symbolize_keys!
     end
 
     def parse_viewport(value)
