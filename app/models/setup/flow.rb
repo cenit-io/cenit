@@ -239,8 +239,11 @@ module Setup
       message = message.merge(flow_id: id.to_s,
                               execution_graph: execution_graph,
                               auto_retry: auto_retry)
-      if (data_type = message.delete(:data_type))
+      if (data_type = message.delete(:data_type)).is_a?(Setup::DataType)
         message[:data_type_id] = data_type.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
+      end
+      if (authorization = message.delete(:authorization)).is_a?(Setup::Authorization)
+        message[:authorization_id] = authorization.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
       end
       result = Setup::FlowExecution.process(message, &block)
       save
@@ -380,6 +383,9 @@ module Setup
           before_submit.run([options, message[:task]])
         end
       end
+      authorization = (
+      (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
+      ) || self.authorization
       verbose_response =
         webhook.target.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
@@ -414,6 +420,9 @@ module Setup
       translation_options = nil
       connections_present = true
       records_processed = false
+      authorization = (
+      (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
+      ) || self.authorization
       0.step(max, limit) do |offset|
         records_processed = true
         next unless connections_present
@@ -504,7 +513,7 @@ module Setup
     def source_ids_from(message)
       if (object_ids = message[:object_ids])
         object_ids
-      elsif scope_symbol == :event_source && (id = message[:source_id])
+      elsif (id = message[:source_id])
         [id]
       elsif scope_symbol == :filtered
         data_type.records_model.all.select { |record| field_triggers_apply_to?(:scope_filter, record) }.collect(&:id)
