@@ -537,6 +537,8 @@ RailsAdmin.config do |config|
 
   Setup::AsynchronousPersistence
 
+  Setup::DataTypeDigest
+
   #Configuration
 
   config.navigation 'Configuration', icon: 'fa fa-sliders'
