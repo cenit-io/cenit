@@ -117,6 +117,15 @@ module Api::V2
       render json: response, status: 202
     end
 
+    def data_type_digest
+      execution = ::Setup::DataTypeDigest.process(
+        data_type: klass.data_type,
+        payload: @webhook_body,
+        options: @parser_options
+      )
+      render json: execution.to_hash(include_id: true, include_blanks: false)
+    end
+
     def new
       response = {}
       %w(success warnings errors).each { |key| response[key.to_sym] = Hash.new { |h, k| h[k] = [] } }
