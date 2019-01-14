@@ -73,6 +73,7 @@ Cenit::Application.routes.draw do
       post '/setup/user', to: 'api#new_user'
       post '/:ns/push', to: 'api#push'
       post '/:ns/:model', to: 'api#new'
+      post '/:ns/:model/digest', to: 'api#data_type_digest'
       get '/:ns/:model', to: 'api#index', defaults: { format: 'json' }
       get '/:ns/:model/:id', to: 'api#show', defaults: { format: 'json' }
       post '/:ns/:model/:id', to: 'api#update'
