@@ -245,6 +245,9 @@ module Setup
       if (authorization = message.delete(:authorization)).is_a?(Setup::Authorization)
         message[:authorization_id] = authorization.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
       end
+      if (connection = message.delete(:connection)).is_a?(Setup::Connection)
+        message[:connection_id] = connection.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
+      end
       result = Setup::FlowExecution.process(message, &block)
       save
       result
@@ -383,11 +386,14 @@ module Setup
           before_submit.run([options, message[:task]])
         end
       end
+      connection = (
+      (connection_id = message[:connection_id]) && Setup::Connection.where(id: connection_id).first
+      ) || self.connection_role
       authorization = (
       (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
-        webhook.target.with(connection_role).and(authorization).submit(options) do |response, template_parameters|
+        webhook.target.with(connection).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
                          data: response.body,
                          discard_events: discard_events,
@@ -420,6 +426,9 @@ module Setup
       translation_options = nil
       connections_present = true
       records_processed = false
+      connection = (
+      (connection_id = message[:connection_id]) && Setup::Connection.where(id: connection_id).first
+      ) || self.connection_role
       authorization = (
       (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
@@ -427,7 +436,7 @@ module Setup
         records_processed = true
         next unless connections_present
         verbose_response =
-          webhook.target.with(connection_role).and(authorization).submit(
+          webhook.target.with(connection).and(authorization).submit(
             ->(template_parameters) {
               translation_options =
                 {
