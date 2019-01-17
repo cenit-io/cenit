@@ -97,26 +97,30 @@ module Setup
     end
 
     def check_indices
-      if schema_changed?
-        unique_properties = records_model.unique_properties
-        indexed_properties = []
-        begin
-          records_model.collection.indexes.each do |index|
-            if unique_properties.detect { |p| p == indexed_property }
-              indexed_properties << indexed_property
-            else
-              records_model.collection.indexes.drop_one(index['name'])
-            end
+      build_indices if schema_changed?
+      errors.blank?
+    end
+
+    def build_indices
+      unique_properties = records_model.unique_properties
+      indexed_properties = []
+      begin
+        records_model.collection.indexes.each do |index|
+          indexed_property = index['key'].keys.first
+          if unique_properties.detect { |p| p == indexed_property }
+            indexed_properties << indexed_property
+          else
+            records_model.collection.indexes.drop_one(index['name'])
           end
-        rescue
-          # Mongo driver raises an exception if the collection does not exists, nothing to worry about
         end
-        unique_properties.reject { |p| indexed_properties.include?(p) }.each do |p|
-          begin
-            records_model.collection.indexes.create_one({ p => 1 }, unique: true)
-          rescue Exception => ex
-            errors.add(:schema, "with error when creating index for unique property '#{p}': #{ex.message}")
-          end
+      rescue
+        # Mongo driver raises an exception if the collection does not exists, nothing to worry about
+      end
+      unique_properties.reject { |p| indexed_properties.include?(p) }.each do |p|
+        begin
+          records_model.collection.indexes.create_one({ p => 1 }, unique: true)
+        rescue Exception => ex
+          errors.add(:schema, "with error when creating index for unique property '#{p}': #{ex.message}")
         end
       end
       errors.blank?
