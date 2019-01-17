@@ -29,10 +29,22 @@ class Thread
 end
 
 class Hash
-  def plain_query(namespace = nil)
+  def plain_query(namespace_or_opts = nil)
+    namespace =
+      if (options = namespace_or_opts).is_a?(Hash)
+        namespace_or_opts[:namespace]
+      else
+        options = {}
+        namespace_or_opts
+      end
     collect do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
+        key = namespace ? "#{namespace}[#{key}]" : key
+        if options[:skip_encoding]
+          "#{key}=#{value}"
+        else
+          value.to_query(key)
+        end
       end
     end.compact * '&'
   end

@@ -173,7 +173,7 @@ module Setup
         auth.sign_params(parameters, template_parameters)
       end
 
-      query = parameters.plain_query
+      query = parameters.plain_query(skip_encoding: template_parameters['skip_query_encoding'].to_b)
       template_parameters[:query] = query
 
       headers = {}
