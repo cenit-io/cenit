@@ -1,9 +1,9 @@
 #
 # This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
-# .NET, PHP, Python and Node applications with deep visibility and low
+# .NET, PHP, Python, Node, and Go applications with deep visibility and low
 # overhead.  For more information, visit www.newrelic.com.
 #
-# Generated September 11, 2016, for version 3.16.2.321
+# Generated January 20, 2019, for version 5.7.0.350
 #
 # For full documentation of agent configuration options, please refer to
 # https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration
@@ -29,6 +29,7 @@ common: &default_settings
 development:
   <<: *default_settings
   app_name: Cenit (Development)
+  monitor_mode: false
 
   # NOTE: There is substantial overhead when running in developer mode.
   # Do not use for production or load testing.
@@ -42,6 +43,7 @@ test:
 staging:
   <<: *default_settings
   app_name: Cenit (Staging)
+  monitor_mode: false
 
 production:
   <<: *default_settings
