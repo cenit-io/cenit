@@ -243,6 +243,7 @@ GEM
       thor (~> 0.14)
     font-awesome-rails (4.6.2.0)
       railties (>= 3.2, < 5.1)
+    get_process_mem (0.2.3)
     glebtv_mongoid_userstamp (0.6.2)
       mongoid (>= 4.0.0, < 6.1)
       request_store
@@ -548,6 +549,9 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
+    unicorn-worker-killer (0.4.4)
+      get_process_mem (~> 0)
+      unicorn (>= 4, < 6)
     wannabe_bool (0.3.0)
     warden (1.2.3)
       rack (>= 1.0)
@@ -661,6 +665,7 @@ DEPENDENCIES
   thin
   uglifier
   unicorn (= 4.9.0)
+  unicorn-worker-killer
   wannabe_bool
   wicked_pdf
   wkhtmltopdf-binary
