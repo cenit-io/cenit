@@ -324,11 +324,14 @@ module Setup
     end
 
     def simple_translate(message, &block)
+      unless (options = message[:options]).is_a?(Hash)
+        options = {}
+      end
       object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       task = message[:task]
       if translator.try(:source_handler)
         begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type)
+          translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type, options: options)
         rescue Exception => ex
           msg = "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
           if task
@@ -344,7 +347,7 @@ module Setup
           data_type.records_model.all
         end.each do |obj|
           begin
-            translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type)
+            translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type, options: options)
           rescue Exception => ex
             msg = "Error translating record with ID '#{obj.id}' of type '#{data_type.custom_title}' when executing '#{translator.custom_title}': #{ex.message}"
             if task
