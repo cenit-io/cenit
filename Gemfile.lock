@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-home.git
-  revision: 497230877a070656dff869ca020ecc86b8ea7873
+  revision: 99258a43a6b0e13096bdbab989b82ad6be13d373
   specs:
     cenit-home (0.0.1.alpha)
       bootstrap-sass
@@ -241,8 +241,8 @@ GEM
     ffi (1.9.25)
     figaro (1.1.1)
       thor (~> 0.14)
-    font-awesome-rails (4.6.2.0)
-      railties (>= 3.2, < 5.1)
+    font-awesome-rails (4.7.0.4)
+      railties (>= 3.2, < 6.0)
     glebtv_mongoid_userstamp (0.6.2)
       mongoid (>= 4.0.0, < 6.1)
       request_store
