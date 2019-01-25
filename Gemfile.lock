@@ -341,7 +341,6 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (3.0.1)
     netrc (0.11.0)
-    newrelic_rpm (5.7.0.350)
     nokogiri (1.6.8.1)
       mini_portile2 (~> 2.1.0)
     oauth (0.4.7)
@@ -627,7 +626,6 @@ DEPENDENCIES
   mongoid-tracer!
   net-scp
   net-sftp
-  newrelic_rpm
   nokogiri
   oauth
   oauth2
