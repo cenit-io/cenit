@@ -1,7 +1,7 @@
 module Setup
   class Scheduler < Event
     include HashField
-    include RailsAdmin::Models::Setup::SchedulerAdmin
+    include ::RailsAdmin::Models::Setup::SchedulerAdmin
     # = Scheduler
     #
     # Are events triggered on a certain moment and can be optionally recurrent.

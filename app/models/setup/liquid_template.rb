@@ -1,7 +1,7 @@
 module Setup
   class LiquidTemplate < Template
     include SnippetCodeTemplate
-    include RailsAdmin::Models::Setup::LiquidTemplateAdmin
+    include ::RailsAdmin::Models::Setup::LiquidTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

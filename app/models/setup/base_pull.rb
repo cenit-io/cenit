@@ -1,7 +1,7 @@
 module Setup
   class BasePull < Setup::Task
     include UploaderHelper
-    include RailsAdmin::Models::Setup::BasePullAdmin
+    include ::RailsAdmin::Models::Setup::BasePullAdmin
 
     abstract_class
 

@@ -1,5 +1,5 @@
 class ScriptExecution < Setup::Task
-  include RailsAdmin::Models::ScriptExecutionAdmin
+  include ::RailsAdmin::Models::ScriptExecutionAdmin
 
   agent_field :script
 

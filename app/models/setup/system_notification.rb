@@ -2,7 +2,7 @@ module Setup
   class SystemNotification
     include CenitScoped
     include SystemNotificationCommon
-    include RailsAdmin::Models::Setup::SystemNotificationAdmin
+    include ::RailsAdmin::Models::Setup::SystemNotificationAdmin
 
     build_in_data_type
 

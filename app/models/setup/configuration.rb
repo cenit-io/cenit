@@ -2,7 +2,7 @@ module Setup
   class Configuration
     include CenitUnscoped
     include Setup::Singleton
-    include RailsAdmin::Models::Setup::ConfigurationAdmin
+    include ::RailsAdmin::Models::Setup::ConfigurationAdmin
 
     build_in_data_type
 

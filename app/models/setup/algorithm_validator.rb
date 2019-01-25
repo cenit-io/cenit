@@ -1,6 +1,6 @@
 module Setup
   class AlgorithmValidator < CustomValidator
-    include RailsAdmin::Models::Setup::AlgorithmValidatorAdmin
+    include ::RailsAdmin::Models::Setup::AlgorithmValidatorAdmin
     # = Algorithm Validator
     #
     # Allow the associate a validator with an algorithm.

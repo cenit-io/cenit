@@ -2,7 +2,7 @@ module Setup
   class CrossCollectionAuthor
     include ReqRejValidator
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::CrossCollectionAuthorAdmin
+    include ::RailsAdmin::Models::Setup::CrossCollectionAuthorAdmin
 
     build_in_data_type.referenced_by(:email)
 

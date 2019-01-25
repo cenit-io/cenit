@@ -3,7 +3,7 @@ module Setup
     include NamespaceNamed
     include Slug
     include Cenit::AppConfig
-    include RailsAdmin::Models::Setup::ApplicationAdmin
+    include ::RailsAdmin::Models::Setup::ApplicationAdmin
 
     origins :app
 

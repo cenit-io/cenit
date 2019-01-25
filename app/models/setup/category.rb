@@ -1,7 +1,7 @@
 module Setup
   class Category
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::CategoryAdmin
+    include ::RailsAdmin::Models::Setup::CategoryAdmin
 
     build_in_data_type.and(
       properties: {

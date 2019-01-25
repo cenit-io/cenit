@@ -2,7 +2,7 @@ module Setup
   class XsltConverter < ConverterTransformation
     include TemplateConverter
     include XsltTemplateCommon
-    include RailsAdmin::Models::Setup::XsltConverterAdmin
+    include ::RailsAdmin::Models::Setup::XsltConverterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

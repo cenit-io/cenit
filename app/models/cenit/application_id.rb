@@ -2,7 +2,7 @@ module Cenit
   class ApplicationId
     include Mongoid::Document
     include Mongoid::Timestamps
-    include RailsAdmin::Models::Cenit::ApplicationIdAdmin
+    include ::RailsAdmin::Models::Cenit::ApplicationIdAdmin
 
     field :tenant_id
 

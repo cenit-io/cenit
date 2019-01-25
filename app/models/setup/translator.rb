@@ -3,7 +3,7 @@ module Setup
     include CrossOriginShared
     include NamespaceNamed
     include ClassHierarchyAware
-    include RailsAdmin::Models::Setup::TranslatorAdmin
+    include ::RailsAdmin::Models::Setup::TranslatorAdmin
 
     abstract_class true
 

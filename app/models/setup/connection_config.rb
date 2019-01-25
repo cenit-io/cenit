@@ -2,7 +2,7 @@ module Setup
   class ConnectionConfig
     include CenitScoped
     include CredentialsGenerator
-    include RailsAdmin::Models::Setup::ConnectionConfigAdmin
+    include ::RailsAdmin::Models::Setup::ConnectionConfigAdmin
 
     deny :all
     allow :index, :show, :new, :edit, :delete, :delete_all

@@ -1,3 +1,4 @@
+
 Cenit::Application.routes.draw do
 
   devise_for :users, controllers: {
@@ -7,11 +8,6 @@ Cenit::Application.routes.draw do
   } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
-
-  root to: 'rails_admin/main#dashboard'
-  get ':group/dashboard', to: 'rails_admin/main#dashboard', as: :dashboard_group
-  get 'dashboard', to: 'rails_admin/main#dashboard'
-  get 'terms', to: 'rails_admin/main#dashboard'
 
   get 'explore/:api', to: 'api#explore', as: :explore_api
   post 'write/:api', to: 'api#write', as: :write_api
@@ -105,22 +101,12 @@ Cenit::Application.routes.draw do
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
 
-  get 'remote_shared_collection/:id', to: 'rails_admin/main#remote_shared_collection'
-  get 'remote_shared_collection/:id/pull', to: 'rails_admin/main#remote_shared_collection'
-
   namespace :contact_us do
     controller :contacts do
       post '/contacts' => :create
       get :thanks
     end
   end
-
-  mount RailsAdmin::Engine => '/', as: 'rails_admin'
-
-  match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
-
-  get '/:model_name/*id', to: 'rails_admin/main#show'
-
   Cenit.options.keys.grep(/:route:draw:listener\Z/).each do |source_key|
     if (listener = Cenit[source_key]).is_a?(String)
       listener =

@@ -1,7 +1,7 @@
 module Setup
   class OauthAuthorization < Setup::BaseOauthAuthorization
     include CenitScoped
-    include RailsAdmin::Models::Setup::OauthAuthorizationAdmin
+    include ::RailsAdmin::Models::Setup::OauthAuthorizationAdmin
 
     build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters)
     build_in_data_type.referenced_by(:namespace, :name)

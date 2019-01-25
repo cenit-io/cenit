@@ -21,6 +21,14 @@ GIT
       mongoid (>= 5.0.1)
 
 GIT
+  remote: https://github.com/cenit-io/cenit-rails_admin.git
+  revision: 8c947821d4ea7108a8b1fc028a0252f4f33364c7
+  specs:
+    cenit-rails_admin (0.0.1)
+      cenit-config
+      rails_admin (~> 1.0.0)
+
+GIT
   remote: https://github.com/cenit-io/cenit-service.git
   revision: 5653c22fa9828a53414128533e6b53018c77c8fb
   specs:
@@ -591,6 +599,7 @@ DEPENDENCIES
   cenit-config!
   cenit-home!
   cenit-multi_tenancy!
+  cenit-rails_admin!
   cenit-service!
   cenit-token!
   chartkick

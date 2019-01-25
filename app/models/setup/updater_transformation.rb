@@ -2,7 +2,7 @@ module Setup
   class UpdaterTransformation < Translator
     include TargetHandlerTransformation
     include DiscardEventsOption
-    include RailsAdmin::Models::Setup::UpdaterTransformationAdmin
+    include ::RailsAdmin::Models::Setup::UpdaterTransformationAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

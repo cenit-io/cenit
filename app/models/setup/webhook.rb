@@ -4,7 +4,7 @@ module Setup
     include ShareWithBindingsAndParameters
     include WebhookCommon
     include ClassHierarchyAware
-    include RailsAdmin::Models::Setup::WebhookAdmin
+    include ::RailsAdmin::Models::Setup::WebhookAdmin
 
     abstract_class true
   end

@@ -1,7 +1,7 @@
 module Setup
   class FileStoreConfig
     include CenitScoped
-    include RailsAdmin::Models::Setup::FileStoreConfigAdmin
+    include ::RailsAdmin::Models::Setup::FileStoreConfigAdmin
 
     deny :all
 

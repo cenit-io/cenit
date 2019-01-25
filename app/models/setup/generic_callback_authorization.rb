@@ -2,7 +2,7 @@ module Setup
   class GenericCallbackAuthorization < Authorization
     include CenitScoped
     include CallbackAuthorization
-    include RailsAdmin::Models::Setup::GenericCallbackAuthorizationAdmin
+    include ::RailsAdmin::Models::Setup::GenericCallbackAuthorizationAdmin
 
     build_in_data_type.with(
       :namespace,

@@ -2,7 +2,7 @@ module Setup
   class ApiPull < Setup::BasePull
     include PullingField
     include HashField
-    include RailsAdmin::Models::Setup::ApiPullAdmin
+    include ::RailsAdmin::Models::Setup::ApiPullAdmin
 
     agent_field :api
 

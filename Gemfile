@@ -133,6 +133,8 @@ gem 'diffy'
 gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
 gem 'combine_pdf', '1.0.4'
 
+gem 'cenit-rails_admin', git: 'https://github.com/cenit-io/cenit-rails_admin.git'
+
 custom_gemfile_name = 'custom_Gemfile'
 
 if File.exist?(custom_gemfile_name)

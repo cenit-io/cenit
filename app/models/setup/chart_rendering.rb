@@ -1,6 +1,6 @@
 module Setup
   class ChartRendering < Setup::Task
-    include RailsAdmin::Models::Setup::ChartRenderingAdmin
+    include ::RailsAdmin::Models::Setup::ChartRenderingAdmin
 
     build_in_data_type
 

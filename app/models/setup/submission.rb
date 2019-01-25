@@ -1,6 +1,6 @@
 module Setup
   class Submission < Setup::Task
-    include RailsAdmin::Models::Setup::SubmissionAdmin
+    include ::RailsAdmin::Models::Setup::SubmissionAdmin
 
     agent_field :webhook
 

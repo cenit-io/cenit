@@ -1,6 +1,6 @@
 module Setup
   class DataTypeDigest < Setup::Task
-    include RailsAdmin::Models::Setup::DataTypeDigestAdmin
+    include ::RailsAdmin::Models::Setup::DataTypeDigestAdmin
 
     build_in_data_type
 

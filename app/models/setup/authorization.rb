@@ -4,7 +4,7 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include JsonMetadata
-    include RailsAdmin::Models::Setup::AuthorizationAdmin
+    include ::RailsAdmin::Models::Setup::AuthorizationAdmin
 
     abstract_class true
 

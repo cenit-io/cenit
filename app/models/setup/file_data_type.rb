@@ -2,7 +2,7 @@ require 'stringio'
 
 module Setup
   class FileDataType < DataType
-    include RailsAdmin::Models::Setup::FileDataTypeAdmin
+    include ::RailsAdmin::Models::Setup::FileDataTypeAdmin
 
     validates_presence_of :namespace
 

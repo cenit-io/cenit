@@ -1,6 +1,6 @@
 module Setup
   class NotificationExecution < Setup::Task
-    include RailsAdmin::Models::Setup::NotificationExecutionAdmin
+    include ::RailsAdmin::Models::Setup::NotificationExecutionAdmin
 
     agent_field :notification
 

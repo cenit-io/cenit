@@ -1,7 +1,7 @@
 module Setup
   class AlgorithmOutput
     include CenitScoped
-    include RailsAdmin::Models::Setup::AlgorithmOutputAdmin
+    include ::RailsAdmin::Models::Setup::AlgorithmOutputAdmin
     # = Algorithm Output
     #
     # Allow the associate a Data Type with the output of an algorithm.

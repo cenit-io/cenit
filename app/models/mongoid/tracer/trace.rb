@@ -5,7 +5,7 @@ module Mongoid
     class Trace
       include Setup::CenitScoped
       include CrossOrigin::CenitDocument
-      include RailsAdmin::Models::Mongoid::Tracer::TraceAdmin
+      include ::RailsAdmin::Models::Mongoid::Tracer::TraceAdmin
 
       Setup::Models.regist(self)
 

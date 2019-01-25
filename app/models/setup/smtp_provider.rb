@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include NamespaceNamed
 
-    include RailsAdmin::Models::Setup::SmtpProviderAdmin
+    include ::RailsAdmin::Models::Setup::SmtpProviderAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

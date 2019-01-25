@@ -2,7 +2,7 @@ module Setup
   class XsltTemplate < Template
     include SnippetCodeTemplate
     include XsltTemplateCommon
-    include RailsAdmin::Models::Setup::XsltTemplateAdmin
+    include ::RailsAdmin::Models::Setup::XsltTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

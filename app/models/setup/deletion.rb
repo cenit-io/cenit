@@ -1,6 +1,6 @@
 module Setup
   class Deletion < Setup::Task
-    include RailsAdmin::Models::Setup::DeletionAdmin
+    include ::RailsAdmin::Models::Setup::DeletionAdmin
 
     build_in_data_type
 

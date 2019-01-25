@@ -2,7 +2,7 @@ module Setup
   class RubyConverter < ConverterTransformation
     include WithSourceOptions
     include RubyCodeTransformation
-    include RailsAdmin::Models::Setup::RubyConverterAdmin
+    include ::RailsAdmin::Models::Setup::RubyConverterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

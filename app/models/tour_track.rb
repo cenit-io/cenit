@@ -1,7 +1,7 @@
 class TourTrack
   include Mongoid::Document
   include Mongoid::Timestamps
-  include RailsAdmin::Models::TourTrackAdmin
+  include ::RailsAdmin::Models::TourTrackAdmin
 
   field :ip, type: String
   field :user_email, type: String

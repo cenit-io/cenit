@@ -1,6 +1,6 @@
 module Setup
   class WebHookNotification < Setup::Notification
-    include RailsAdmin::Models::Setup::WebHookNotificationAdmin
+    include ::RailsAdmin::Models::Setup::WebHookNotificationAdmin
     include Setup::TranslationCommon::ClassMethods
 
     transformation_types Setup::Template.concrete_class_hierarchy

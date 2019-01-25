@@ -1,7 +1,7 @@
 class Script
   include Mongoid::Document
   include Mongoid::Timestamps
-  include RailsAdmin::Models::ScriptAdmin
+  include ::RailsAdmin::Models::ScriptAdmin
 
   field :name
   field :description, type: String

@@ -1,6 +1,6 @@
 module Setup
   class Updater < LegacyTranslator
-    include RailsAdmin::Models::Setup::UpdaterAdmin
+    include ::RailsAdmin::Models::Setup::UpdaterAdmin
     # = Updater
     #
     # Updating data already stored.

@@ -1,6 +1,6 @@
 module Setup
   class NamespaceCollection < Setup::Task
-    include RailsAdmin::Models::Setup::NamespaceCollectionAdmin
+    include ::RailsAdmin::Models::Setup::NamespaceCollectionAdmin
 
     agent_field :target_collection
 

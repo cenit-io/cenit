@@ -2,7 +2,7 @@ module Setup
   class BasicAuthorization < Setup::Authorization
     include CenitScoped
     include AuthorizationHeader
-    include RailsAdmin::Models::Setup::BasicAuthorizationAdmin
+    include ::RailsAdmin::Models::Setup::BasicAuthorizationAdmin
 
     build_in_data_type.with(
       :namespace,

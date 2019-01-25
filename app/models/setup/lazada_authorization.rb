@@ -1,7 +1,7 @@
 module Setup
   class LazadaAuthorization < Setup::Oauth2Authorization
     include CenitScoped
-    include RailsAdmin::Models::Setup::LazadaAuthorizationAdmin
+    include ::RailsAdmin::Models::Setup::LazadaAuthorizationAdmin
 
     build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters, :scopes)
     build_in_data_type.referenced_by(:namespace, :name)

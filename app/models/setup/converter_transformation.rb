@@ -2,7 +2,7 @@ module Setup
   class ConverterTransformation < Translator
     include TargetHandlerTransformation
     include DiscardEventsOption
-    include RailsAdmin::Models::Setup::ConverterTransformationAdmin
+    include ::RailsAdmin::Models::Setup::ConverterTransformationAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

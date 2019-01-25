@@ -2,7 +2,7 @@ module Setup
   class Pin
     include CenitScoped
     include DynamicValidators
-    include RailsAdmin::Models::Setup::PinAdmin
+    include ::RailsAdmin::Models::Setup::PinAdmin
 
     build_in_data_type
 

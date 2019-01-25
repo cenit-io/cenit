@@ -1,7 +1,7 @@
 module Setup
   class ParserTransformation < Translator
     include DiscardEventsOption
-    include RailsAdmin::Models::Setup::ParserTransformationAdmin
+    include ::RailsAdmin::Models::Setup::ParserTransformationAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

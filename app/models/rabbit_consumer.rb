@@ -1,7 +1,7 @@
 class RabbitConsumer
   include Mongoid::Document
   include Mongoid::Timestamps
-  include RailsAdmin::Models::RabbitConsumerAdmin
+  include ::RailsAdmin::Models::RabbitConsumerAdmin
 
   field :channel, type: String
   field :tag, type: String

@@ -5,7 +5,7 @@ module Setup
     include CustomTitle
     include ClassHierarchyAware
     include ReqRejValidator
-    include RailsAdmin::Models::Setup::NotificationAdmin
+    include ::RailsAdmin::Models::Setup::NotificationAdmin
 
     abstract_class true
 

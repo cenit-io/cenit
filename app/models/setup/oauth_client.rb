@@ -1,6 +1,6 @@
 module Setup
   class OauthClient < AuthorizationClient
-    include RailsAdmin::Models::Setup::OauthClientAdmin
+    include ::RailsAdmin::Models::Setup::OauthClientAdmin
 
     abstract_class true
 

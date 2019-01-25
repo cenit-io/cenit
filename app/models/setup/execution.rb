@@ -2,7 +2,7 @@ module Setup
   class Execution
     include CenitScoped
     include Setup::AttachmentUploader
-    include RailsAdmin::Models::Setup::ExecutionAdmin
+    include ::RailsAdmin::Models::Setup::ExecutionAdmin
 
     build_in_data_type.and(
       properties: {

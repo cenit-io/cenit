@@ -2,7 +2,7 @@ module Setup
   class ErbTemplate < Template
     include BulkableTransformation
     include SnippetCodeTemplate
-    include RailsAdmin::Models::Setup::ErbTemplateAdmin
+    include ::RailsAdmin::Models::Setup::ErbTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

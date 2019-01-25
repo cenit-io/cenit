@@ -2,7 +2,7 @@ module Setup
   class MappingConverter < ConverterTransformation
     include WithSourceOptions
     include Setup::TranslationCommon::ClassMethods
-    include RailsAdmin::Models::Setup::MappingConverterAdmin
+    include ::RailsAdmin::Models::Setup::MappingConverterAdmin
 
     build_in_data_type.and(properties: { mapping: { type: {} } }).excluding(:map_attributes).referenced_by(:namespace, :name)
 

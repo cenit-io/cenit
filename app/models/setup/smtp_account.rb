@@ -1,7 +1,7 @@
 module Setup
   class SmtpAccount < EmailChannel
     include CenitScoped
-    include RailsAdmin::Models::Setup::SmtpAccountAdmin
+    include ::RailsAdmin::Models::Setup::SmtpAccountAdmin
 
     build_in_data_type.protecting(:password).referenced_by(:provider, :user_name, :_type)
 

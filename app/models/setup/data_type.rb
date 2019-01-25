@@ -9,7 +9,7 @@ module Setup
     include ClassHierarchyAware
     include ModelConfigurable
     include BuildIn
-    include RailsAdmin::Models::Setup::DataTypeAdmin
+    include ::RailsAdmin::Models::Setup::DataTypeAdmin
 
     origins origins_config, :cenit
 

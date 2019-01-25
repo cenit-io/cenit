@@ -3,7 +3,7 @@ module Setup
     include SharedEditable
     include CustomTitle
     include BuildIn
-    include RailsAdmin::Models::Setup::Oauth2ScopeAdmin
+    include ::RailsAdmin::Models::Setup::Oauth2ScopeAdmin
 
     origins origins_config, :cenit
 

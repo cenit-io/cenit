@@ -1,7 +1,7 @@
 module Setup
   class EdiValidator < CustomValidator
     include Setup::FormatValidator
-    include RailsAdmin::Models::Setup::EdiValidatorAdmin
+    include ::RailsAdmin::Models::Setup::EdiValidatorAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

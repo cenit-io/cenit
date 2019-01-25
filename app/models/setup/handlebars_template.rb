@@ -2,7 +2,7 @@ module Setup
   class HandlebarsTemplate < Template
     include BulkableTransformation
     include SnippetCodeTemplate
-    include RailsAdmin::Models::Setup::HandlebarsTemplateAdmin
+    include ::RailsAdmin::Models::Setup::HandlebarsTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

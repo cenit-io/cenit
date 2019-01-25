@@ -1,6 +1,6 @@
 class ActiveTenant
   include Mongoid::Document
-  include RailsAdmin::Models::ActiveTenantAdmin
+  include ::RailsAdmin::Models::ActiveTenantAdmin
 
   belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 

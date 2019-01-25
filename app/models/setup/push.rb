@@ -1,7 +1,7 @@
 module Setup
   class Push < Setup::Task
     include HashField
-    include RailsAdmin::Models::Setup::PushAdmin
+    include ::RailsAdmin::Models::Setup::PushAdmin
 
     agent_field :source_collection
 

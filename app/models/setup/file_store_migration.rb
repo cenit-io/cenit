@@ -1,6 +1,6 @@
 module Setup
   class FileStoreMigration < Setup::Task
-    include RailsAdmin::Models::Setup::FileStoreMigrationAdmin
+    include ::RailsAdmin::Models::Setup::FileStoreMigrationAdmin
 
     agent_field :data_type
 

@@ -1,7 +1,7 @@
 module Setup
   class EmailFlow < EmailChannel
     include CenitScoped
-    include RailsAdmin::Models::Setup::EmailFlowAdmin
+    include ::RailsAdmin::Models::Setup::EmailFlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name, :_type)
 

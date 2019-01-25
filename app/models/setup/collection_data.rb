@@ -1,7 +1,7 @@
 module Setup
   class CollectionData
     include CenitScoped
-    include RailsAdmin::Models::Setup::CollectionDataAdmin
+    include ::RailsAdmin::Models::Setup::CollectionDataAdmin
 
     build_in_data_type.excluding(:data_type).and('properties' => {
                                                    'namespace' => { 'type' => 'string' },

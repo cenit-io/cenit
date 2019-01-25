@@ -1,7 +1,7 @@
 module Setup
   class Notebook
     include CrossOriginShared
-    include RailsAdmin::Models::Setup::NotebookAdmin
+    include ::RailsAdmin::Models::Setup::NotebookAdmin
 
     build_in_data_type.with(:name, :parent, :type, :content, :writable, :origin, :created_at, :updated_at)
 

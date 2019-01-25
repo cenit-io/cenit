@@ -1,7 +1,7 @@
 module Setup
   class OauthProvider < Setup::BaseOauthProvider
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::OauthProviderAdmin
+    include ::RailsAdmin::Models::Setup::OauthProviderAdmin
 
     origins origins_config - [:cenit]
 

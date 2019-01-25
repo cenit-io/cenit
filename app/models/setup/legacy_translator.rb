@@ -2,7 +2,7 @@ module Setup
   class LegacyTranslator < Translator
     include ReqRejValidator
     include SnippetCode
-    include RailsAdmin::Models::Setup::LegacyTranslatorAdmin
+    include ::RailsAdmin::Models::Setup::LegacyTranslatorAdmin
     # = Translator
     #
     # A translator defines a logic for data manipulation
