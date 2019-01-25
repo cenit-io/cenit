@@ -19,7 +19,7 @@
     <%- if controller_name != 'sessions' %>
       <%= link_to "Sign up with #{provider.to_s.titleize}", omniauth_authorize_path(resource_name, provider) %><br/>
     <%- elsif controller_name != 'registrations' %>
-      <%= link_to "Sign in with #{provider.to_s.titleize}", omniauth_authorize_path(resource_name, provider) %><br/>
+      <%= link_to "#{t('admin.session.new_title')} #{provider.to_s.titleize}", omniauth_authorize_path(resource_name, provider) %><br/>
     <% end -%>
   <% end -%>
 <% end -%>
