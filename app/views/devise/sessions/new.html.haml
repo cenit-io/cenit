@@ -20,8 +20,9 @@
             %i{class:"fa fa-fw fa-google"}
             %span Google
           = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-            %i{class:"fa fa-fw fa-facebook"}
-            %span Facebook
+            %div{style: 'display:flex'}
+              =image_tag 'brands/flogo-HexRBG-Wht-58.svg', style: 'height:24px'
+              %span Facebook
         -#  = f.button class: 'btn btn-lg soc-btn soc-twitter', name: 'with', value: 'twitter' do
         -#    %i{class:"fa fa-fw fa-twitter"}
         -#    %span Twitter

@@ -119,6 +119,7 @@ section {
 .user-auth .soc-btn span {
   opacity: 0;
   transition: all 0.3s ease;
+  font-weight: bold;
 }
 
 .user-auth .soc-google {
@@ -126,7 +127,7 @@ section {
 }
 
 .user-auth .soc-facebook {
-  background-color: #4c69ba;
+  background-color: #4267B2;
 }
 
 .user-auth .soc-github {

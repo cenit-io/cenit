@@ -16,12 +16,12 @@ en:
     session:
       new: 'sign in'
       register: "Don't have a user?"
-      new_title: 'Sign in with'
+      new_title: 'Continue with'
       submit: 'Log in'
       forgotten: 'Forgot your password?'
     registration:
       new: "try it free"
-      new_title: 'Sign up with'
+      new_title: 'Continue with'
       sign: 'Already have a user?'
       submit: 'Sign up'
       terms_preface: 'By signing up you agree with the'
