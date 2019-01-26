@@ -13,19 +13,7 @@
           - if (return_to = params[:return_to])
             - f.hidden_field :return_to, value: return_to
           = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-          = f.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
-            %i{class:"fa fa-fw fa-github"}
-            %span GitHub
-          = f.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
-            %i{class:"fa fa-fw fa-google"}
-            %span Google
-          = f.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
-            %div{style: 'display:flex'}
-              =image_tag 'brands/flogo-HexRBG-Wht-58.svg', style: 'height:24px'
-              %span Facebook
-        -#  = f.button class: 'btn btn-lg soc-btn soc-twitter', name: 'with', value: 'twitter' do
-        -#    %i{class:"fa fa-fw fa-twitter"}
-        -#    %span Twitter
+          = render partial: 'devise/social_buttons', locals: {form: f}
 
         - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
           .form-option
