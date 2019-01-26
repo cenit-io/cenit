@@ -1,0 +1,13 @@
+%div{style: 'display:flex;flex-wrap:wrap;justify-content:space-around'}
+  = form.button class: 'btn btn-lg soc-btn soc-github', name: 'with', value: 'github' do
+    %div{style: 'display:flex'}
+      =image_tag 'brands/GitHub-Mark-Light-32px.png', alt: nil
+      %span GitHub
+  = form.button class: 'btn btn-lg soc-btn soc-google', name: 'with', value: 'google' do
+    %div{style: 'display:flex'}
+      =image_tag 'brands/btn_google_dark_normal_ios.svg', style: 'height: 45px', alt: nil
+      %span Google
+  = form.button class: 'btn btn-lg soc-btn soc-facebook', name: 'with', value: 'facebook' do
+    %div{style: 'display:flex'}
+      =image_tag 'brands/flogo-HexRBG-Wht-58.svg', style: 'height: 45px;padding-left: 8px', alt: nil
+      %span Facebook
