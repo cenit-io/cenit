@@ -51,11 +51,11 @@ Cenit.config do
 
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
-  maximum_unicorn_consumers (ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3).to_i
+  maximum_unicorn_consumers ENV['MAXIMUM_UNICORN_CONSUMERS'] || 4
 
   min_scheduler_interval 60
 
-  scheduler_lookup_interval (ENV['SCHEDULER_LOOKUP_INTERVAL']|| 60).to_i
+  scheduler_lookup_interval ENV['SCHEDULER_LOOKUP_INTERVAL'] || 60
 
   default_delay 30
 
@@ -65,7 +65,7 @@ Cenit.config do
 
   default_code_theme 'monokai'
 
-  request_timeout (ENV['REQUEST_TIMEOUT'] || 300).to_i
+  request_timeout ENV['REQUEST_TIMEOUT'] || 300
 
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']
 
