@@ -5,7 +5,7 @@ shared_dir = File.expand_path('../../../shared/', __FILE__)
 app_name = "cenit"
 
 # Set unicorn options
-worker_processes 8
+worker_processes 5
 preload_app true
 timeout 240
 
