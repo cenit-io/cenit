@@ -131,7 +131,7 @@ module Cenit
                   values = [values] unless values.is_a?(Array)
                   values.collect { |v| hash_decode(v) }
                 else
-                  nil
+                  []
                 end
               else
                 nil
@@ -139,12 +139,10 @@ module Cenit
           else
             nil
           end
-          r ||
-            begin
-              hash = {}
-              value.each { |k, v| hash[k] = hash_decode(v) }
-              hash
-            end
+          return r unless r.nil?
+          hash = {}
+          value.each { |k, v| hash[k] = hash_decode(v) }
+          hash
         when Array
           value.collect { |v| hash_decode(v) }
         else
