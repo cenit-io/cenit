@@ -5,9 +5,16 @@ shared_dir = File.expand_path('../../../shared/', __FILE__)
 app_name = "cenit"
 
 # Set unicorn options
-worker_processes 8
-preload_app true
-timeout 240
+config =
+  begin
+    require 'psych'
+    Psych.load(File.read("#{app_dir}/config/application.yml"))
+  rescue
+    {}
+  end
+worker_processes config['UNICORN_WORKERS'] || 5
+preload_app config.key?('UNICORN_PRELOAD') ? config['UNICORN_PRELOAD'].to_b : true
+timeout config['UNICORN_TIMEOUT'] || 240
 
 GC.respond_to?(:copy_on_write_friendly=) and GC.copy_on_write_friendly = true
 

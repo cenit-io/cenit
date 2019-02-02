@@ -51,11 +51,11 @@ Cenit.config do
 
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
-  maximum_unicorn_consumers ENV['MAXIMUM_UNICORN_CONSUMERS'] || 4
+  maximum_unicorn_consumers (ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3).to_i
 
   min_scheduler_interval 60
 
-  scheduler_lookup_interval ENV['SCHEDULER_LOOKUP_INTERVAL'] || 60
+  scheduler_lookup_interval (ENV['SCHEDULER_LOOKUP_INTERVAL'] || 60).to_i
 
   default_delay 30
 
