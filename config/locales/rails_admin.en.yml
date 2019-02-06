@@ -573,6 +573,10 @@ en:
         title: "Trace"
         menu: "Trace"
         breadcrumb: "Trace"
+      trace_merge:
+          title: "Merge"
+          menu: "Merge"
+          breadcrumb: "Merge"
       data_type_config:
         title: "Configure"
         menu: "Configure"

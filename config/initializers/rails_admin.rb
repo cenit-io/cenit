@@ -72,7 +72,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::DataTypeConfig,
   RailsAdmin::Config::Actions::JsonEdit,
   RailsAdmin::Config::Actions::Sudo,
-  RailsAdmin::Config::Actions::Compare
+  RailsAdmin::Config::Actions::Compare,
+  RailsAdmin::Config::Actions::TraceMerge
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -660,6 +661,7 @@ RailsAdmin.config do |config|
     bulk_delete_data_type
     collect
     compare
+    trace_merge
     delete
     trash
     notebooks_root if Cenit.jupyter_notebooks
