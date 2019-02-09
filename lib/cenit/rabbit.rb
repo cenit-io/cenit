@@ -295,7 +295,9 @@ module Cenit
           on_messages_ready.and(:tenant_id.nin => penalized_ids).each do |delayed_message|
             delayed_message_digester.call(delayed_message)
           end
-          if (dispatched_ids.size + tenant_tasks.values.reduce(&:+)) < maximum_active_tasks * penalty_factor
+          d_size = dispatched_ids.size
+          t_values = tenant_tasks.values.reduce(&:+)
+          if !d_size.nil? && !t_values.nil? && (d_size + t_values) < maximum_active_tasks * penalty_factor
             on_messages_ready.and(:tenant_id.in => penalized_ids)
               .limit(2 * (1 - penalty_factor) * maximum_active_tasks).each do |delayed_message|
               delayed_message_digester.call(delayed_message)
