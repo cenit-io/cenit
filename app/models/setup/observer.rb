@@ -1,6 +1,7 @@
 module Setup
   class Observer < Event
     include TriggersFormatter
+    include ObserverConditions
     include RailsAdmin::Models::Setup::ObserverAdmin
     # = Observer
     #
@@ -39,7 +40,9 @@ module Setup
     end
 
     def triggers_apply_to?(obj_now, obj_before = nil)
-      if triggers
+      if conditions.present?
+        conditions_apply_to?(obj_now, obj_before)
+      elsif triggers
         field_triggers_apply_to?(:triggers, obj_now, obj_before)
       elsif trigger_evaluator.parameters.count == 1
         trigger_evaluator.run(obj_now).present?
