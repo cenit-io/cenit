@@ -10,27 +10,56 @@ module RailsAdmin
           visible { ::User.current_super_admin? }
           object_label_method { :label }
 
+          group :profile do
+            label 'Profile'
+            active false
+          end
+
           group :accounts do
             label 'Accounts'
-            active true
+            active false
           end
 
           group :credentials do
             label 'Credentials'
-            active true
+            active false
           end
 
           group :activity do
             label 'Activity'
-            active true
+            active false
           end
 
-          configure :name, :string
-          configure :given_name, :string
-          configure :family_name, :string
-          configure :email
-          configure :code_theme
-          configure :roles
+          group :member_accounts do
+            label 'Member Accounts'
+            active false
+          end
+
+          configure :email, :string
+          configure :picture do
+            group :profile
+          end
+          configure :name, :string do
+            group :profile
+          end
+          configure :given_name, :string do
+            group :profile
+          end
+          configure :family_name, :string do
+            group :profile
+          end
+          configure :time_zone do
+            group :profile
+          end
+          configure :code_theme do
+            group :profile
+          end
+          configure :roles do
+            group :credentials
+          end
+          configure :super_admin_enabled do
+            group :credentials
+          end
           configure :account do
             group :accounts
             label 'Current Account'
