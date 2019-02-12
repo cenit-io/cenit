@@ -17,7 +17,7 @@ module RailsAdmin
             if (json_data = params[:json_data])
               begin
                 @object.from_json(json_data)
-                @object.save
+                ::Cenit::Utility.save(@object)
               rescue Exception => ex
                 @object.errors.add(:base, ex.message)
               end

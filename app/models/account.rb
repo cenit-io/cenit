@@ -64,9 +64,16 @@ class Account
     errors.blank?
   end
 
+  before_create :check_creation_enabled
+
   before_save :init_heroku_db, :validates_configuration
 
   after_destroy { clean_up }
+
+  def check_creation_enabled
+    errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.current_super_admin?
+    errors.blank?
+  end
 
   def api_account
     self

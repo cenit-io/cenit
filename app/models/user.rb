@@ -90,7 +90,7 @@ class User
       end
     end
     created_account = nil
-    self.account ||= Account.current || (created_account = Account.create_with_owner(owner: self))
+    self.account ||= accounts.first || member_accounts.first || Account.current || (created_account = Account.create_with_owner(owner: self))
     accounts << created_account if created_account
     unless owns?(account)
       errors.add(:account, 'is sealed and can not be inspected') if account && account.sealed?
