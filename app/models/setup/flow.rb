@@ -389,10 +389,10 @@ module Setup
           before_submit.run([options, message[:task]])
         end
       end
-      connection = (
+      connection = options[:connection] || (
       (connection_id = options[:connection_id] || message[:connection_id]) && Setup::Connection.where(id: connection_id).first
       ) || self.connection_role
-      authorization = (
+      authorization = options[:authorization] || (
       (authorization_id = options[:authorization_id] || message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
