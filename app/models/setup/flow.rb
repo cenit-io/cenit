@@ -403,6 +403,7 @@ module Setup
                          parameters: template_parameters,
                          headers: response.headers.to_hash,
                          statusCode: response.code,
+                         response_code: response.code,
                          task: message[:task])
         end
       if auto_retry == :automatic
