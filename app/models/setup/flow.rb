@@ -390,10 +390,10 @@ module Setup
         end
       end
       connection = (
-      (connection_id = message[:connection_id]) && Setup::Connection.where(id: connection_id).first
+      (connection_id = options[:connection_id] || message[:connection_id]) && Setup::Connection.where(id: connection_id).first
       ) || self.connection_role
       authorization = (
-      (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
+      (authorization_id = options[:authorization_id] || message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
         webhook.target.with(connection).and(authorization).submit(options) do |response, template_parameters|
