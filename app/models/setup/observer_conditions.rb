@@ -7,31 +7,32 @@ module Setup
     included do
 
       build_in_data_type.and(
-        properties: {
-          conditions: {
-            type: 'object'
+          properties: {
+              conditions: {
+                  type: 'object'
+              }
           }
-        }
       )
 
       hash_field :conditions
     end
 
     def conditions_apply_to?(object_now, object_before = nil, conditions = self.conditions)
-      or_cond = conditions['$or']
-      and_result = conditions.present? && (or_cond.nil? || conditions.size > 1)
-      conditions.each do |field, cond|
-        next if field == '$or'
-        and_result &&= (values = [object_before && object_before[field], object_now && object_now[field]]) && apply?(cond, *values)
-        unless and_result
-          if or_cond
-            break
+      if conditions.present?
+        conditions.each do |field, cond|
+          partial_eval = false
+          if field == '$or'
+            partial_eval = cond.any? {|c| conditions_apply_to?(object_now, object_before, c)}
+          elsif field == '$and'
+            partial_eval = cond.all? {|c| conditions_apply_to?(object_now, object_before, c)}
           else
-            return false
+            values = [object_before && object_before[field], object_now && object_now[field]]
+            partial_eval = values && apply?(cond, *values)
           end
+          return false unless partial_eval
         end
       end
-      and_result || (or_cond && or_cond.any? { |c| conditions_apply_to?(object_now, object_before, c) })
+      true
     end
 
     # Determines if a condition applies to a given pair of old-new values. If the condition
@@ -113,7 +114,7 @@ module Setup
     # applies when the <tt>price</tt> becomes greater than 100.
     #
     def apply_gt_operator?(old_value, new_value, constraint)
-      old_value <= constraint && new_value > constraint
+      (!old_value || old_value <= constraint) && (new_value > constraint)
     end
 
     # Evaluator for <tt>$gte</tt> operator.
@@ -125,7 +126,7 @@ module Setup
     # applies when the <tt>price</tt> becomes greater than or equals to 100.
     #
     def apply_gte_operator?(old_value, new_value, constraint)
-      old_value < constraint && new_value >= constraint
+      (!old_value || old_value < constraint) && new_value >= constraint
     end
 
     # Evaluator for <tt>$lt</tt> operator.
@@ -137,7 +138,7 @@ module Setup
     # applies when the <tt>price</tt> becomes less than 100.
     #
     def apply_lt_operator?(old_value, new_value, constraint)
-      old_value >= constraint && new_value < constraint
+      (!old_value || old_value >= constraint) && new_value < constraint
     end
 
     # Evaluator for <tt>$lte</tt> operator.
@@ -149,7 +150,7 @@ module Setup
     # applies when the <tt>price</tt> becomes less than or equals to 100.
     #
     def apply_lte_operator?(old_value, new_value, constraint)
-      old_value > constraint && new_value <= constraint
+      (!old_value || old_value > constraint) && new_value <= constraint
     end
 
     # Evaluator for <tt>$in</tt> operator.
@@ -161,7 +162,7 @@ module Setup
     # applies when a non RGB <tt>color</tt> takes one of the RGB values.
     #
     def apply_in_operator?(old_value, new_value, constraint)
-      constraint.exclude?(old_value) && constraint.include?(new_value)
+      (!old_value || constraint.exclude?(old_value)) && constraint.include?(new_value)
     end
 
     # Evaluator for <tt>$nin</tt> operator.
@@ -173,7 +174,7 @@ module Setup
     # applies when an RGB <tt>color</tt> becomes a non RGB value.
     #
     def apply_nin_operator?(old_value, new_value, constraint)
-      constraint.include?(old_value) && constraint.exclude?(new_value)
+      (!old_value || constraint.include?(old_value)) && constraint.exclude?(new_value)
     end
   end
 end
