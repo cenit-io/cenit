@@ -1,3 +1,5 @@
+require 'set'
+
 module Setup
   module ObserverConditions
     extend ActiveSupport::Concern
@@ -25,6 +27,8 @@ module Setup
             partial_eval = cond.any? {|c| conditions_apply_to?(object_now, object_before, c)}
           elsif field == '$and'
             partial_eval = cond.all? {|c| conditions_apply_to?(object_now, object_before, c)}
+          elsif field == '$not'
+            partial_eval = ! conditions_apply_to?(object_now, object_before, cond)
           else
             values = [object_before && object_before[field], object_now && object_now[field]]
             partial_eval = values && apply?(cond, *values)
@@ -63,21 +67,7 @@ module Setup
         end
         true
       else
-        old_value != cond && cond == new_value
-      end
-    end
-
-    # Evaluator for <tt>$present</tt> operator.
-    #
-    # Usage example:
-    #
-    #   { "created_at": { "$present": true }  }
-    #
-    def apply_present_operator?(old_value, new_value, constraint)
-      if constraint
-        new_value.present? && old_value.blank?
-      else
-        new_value.blank? && old_value.present?
+        old_value != cond && cond == new_value # the $eq operator
       end
     end
 
@@ -92,6 +82,65 @@ module Setup
       constraint && (new_value != old_value)
     end
 
+    # Evaluator for <tt>$size</tt> operator.
+    #
+    # For example:
+    #
+    #    { "field_array": { "$size": 3 } }
+    #
+    #
+    def apply_size_operator?(old_value, new_value, constraint)
+      (! old_value || old_value.size != constraint) && new_value.size == constraint
+    end
+
+    # Evaluator for <tt>regex</tt> operator.
+    #
+    # For example:
+    #
+    #    { "field": { "$regex": "^m" }
+    #
+    #
+    def apply_regex_operator?(old_value, new_value, constraint)
+      regex_pattern = Regexp.new(constraint)
+      (! old_value || ! (old_value =~ regex_pattern)) && new_value =~ regex_pattern
+    end
+
+    # Evaluator for <tt>$elemMatch</tt> operator.
+    #
+    # For example:
+    #
+    #    { "field_array": { "$elemMatch": {b:1, c: 2} } }
+    #
+    #
+    def apply_elemMatch_operator?(old_value, new_value, constraint)
+      (! old_value || ! (old_value.any? {|c| conditions_apply_to?(c,nil, constraint)})) &&
+      new_value.any? {|c| conditions_apply_to?(c, nil, constraint)}
+    end
+
+    # Evaluator for <tt>$all</tt> operator.
+    #
+    # For example:
+    #
+    #    { "field_array": { "$all": [10, 25, 30, "hello"] } }
+    #
+    #
+    def apply_all_operator?(old_value, new_value, constraint)
+      (!old_value || !(old_value.to_set.superset?(constraint.to_set))) &&
+      new_value.to_set.superset?(constraint.to_set)
+    end
+
+    # Evaluator for <tt>$mod</tt> operator.
+    #
+    # For example:
+    #
+    #    { "age": { "$mod": [2, 1] } }
+    #
+    # applies when a "age" attribute is odd.
+    #
+    def apply_mod_operator?(old_value, new_value, constraint)
+      (!old_value || old_value % constraint[0] == constraint[1]) && new_value % constraint[0] == constraint[1]
+    end
+
     # Evaluator for <tt>$ne</tt> operator.
     #
     # For example:
@@ -101,7 +150,7 @@ module Setup
     # applies when a "yellow" <tt>color</tt> attribute takes another value.
     #
     def apply_ne_operator?(old_value, new_value, constraint)
-      old_value.eql?(constraint) && !new_value.eql?(constraint)
+      (!old_value || old_value.eql?(constraint)) && !new_value.eql?(constraint)
     end
 
 
