@@ -16,7 +16,7 @@ module Setup
 
     before_validation :verify_triggers
 
-    before_save :format_triggers, :check_name
+    before_save :format_triggers, :check_name, :legacy_triggers_to_conditions?, :validate_conditions?
 
     def verify_triggers
       if changed_attributes.key?('triggers')
@@ -37,6 +37,56 @@ module Setup
 
     def to_s
       name ? name : super
+    end
+
+    def legacy_operator_to_conditions (operator, value)
+      conditions = []
+        case operator
+        when "starts_with"
+          conditions.push({'$regex' => '\A'.concat(value)})
+        when "ends_with"
+          conditions.push({'$regex' => value.concat('\Z')})
+        when "like"
+          conditions.push({'$regex' => value})
+        when "between"
+          conditions.push({'$gte' => value [1]})
+          conditions.push({'$lte' => value [2]})
+        when "is", "default"
+          conditions.push({'$eq' => value})
+        when nil
+          case value
+          when "_not_null"
+            conditions.push({'$ne' => nil})
+          when "_null"
+            conditions.push({'$eq' => nil})
+          when "_change"
+            conditions.push({'$change' => true})
+          when "_presence_change"
+            conditions.push({'$ne' => nil})
+            conditions.push({'$change' => true})
+          when Array
+            conditions.push({'$in' => value})
+          else
+            conditions.push({'$eq' => value})
+          end
+        end
+      return conditions
+    end
+
+    def legacy_triggers_to_conditions?(triggers = self.triggers)
+      if !conditions.present?
+        conditions = {}
+        triggers = JSON.parse(triggers) if triggers.is_a? (String)
+        triggers.each do |field, value|
+          value.each do |cond|
+            conditions[field] = [] unless conditions[field]
+            new_conds = legacy_operator_to_conditions(cond['o'], cond['v'])
+            conditions[field] += new_conds
+          end
+        end
+        self.conditions = conditions
+      end
+      return true
     end
 
     def triggers_apply_to?(obj_now, obj_before = nil)
