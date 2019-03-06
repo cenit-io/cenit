@@ -16,7 +16,11 @@ module Setup
 
     before_validation :verify_triggers
 
-    before_save :format_triggers, :check_name, :legacy_triggers_to_conditions?, :validate_conditions?
+    before_save :format_triggers, :check_name
+
+    def check_before_save
+      legacy_triggers_to_conditions? && validate_conditions? && super
+    end
 
     def verify_triggers
       if changed_attributes.key?('triggers')
