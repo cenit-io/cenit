@@ -19,43 +19,42 @@ module Setup
       hash_field :conditions
     end
 
-    def validate_field_condition?(conditions)
+    def validate_field_condition(conditions)
       conditions.each do |field, cond|
-        if match = field.match(/\A\$(.+)/)
-          unless self.respond_to?("apply_#{match[1]}_operator?")
+        if (match = field.match(/\A\$(.+)/))
+          if self.respond_to?("apply_#{match[1]}_operator?")
+            if field == '$regex'
+              begin
+                Regexp.new(cond)
+              rescue
+                errors.add(:conditions, "have the following error conforming regular expression: #{ex.message}")
+              end
+            else
+              case cond
+              when Array
+                unless field == '$in' || field == '$nin' || field == '$elemMatch' || field == '$all'
+                  errors.add(:conditions, "cannot apply the operator #{field} to a array #{cond}.")
+                end
+                unless field == '$elemMatch' && cond.size > 0 && cond.all? { |c| validate_conditions?(c) }
+                  errors.add(:conditions, "have invalid array of conditions #{cond} for operator #{field}.")
+                end
+              when Hash
+                unless field == '$elemMatch' && validate_conditions?(cond)
+                  errors.add(:conditions, "have invalid condition #{cond} for operator #{field}.")
+                end
+              else
+                # ?
+              end
+            end
+          else
             errors.add(:conditions, "have an invalid operator #{field} in a field.")
-            return false
-          end
-
-          if field == '$regex'
-            begin
-              Regexp.new(cond)
-            rescue
-              errors.add(:conditions, "have the following error conforming regular expression: #{ex.message}")
-              return false
-            end
-          end
-
-          if cond.is_a?(Array)
-            unless field == '$in' || field == '$nin' || field == '$elemMatch' || field == '$all'
-              errors.add(:conditions, "cannot apply the operator #{field} to a array #{cond}.")
-              return false
-            end
-            unless field == '$elemMatch' && cond.size > 0 && cond.all? {|c| validate_conditions?(c)}
-              errors.add(:conditions, "have invalid array of conditions #{cond} for operator #{field}.")
-              return false
-            end
-          elsif cond.is_a?(Hash)
-            unless field == '$elemMatch' && validate_conditions?(cond)
-              errors.add(:conditions, "have invalid condition #{cond} for operator #{field}.")
-              return false
-            end
           end
         else
-          return false
+          errors.add(:conditions, '?')
         end
+        break unless errors.blank?
       end
-      return true
+      errors.blank?
     end
 
     def validate_conditions?(conditions = self.conditions)
@@ -63,7 +62,7 @@ module Setup
         conditions.each do |field, cond|
           if field == '$or' || field == '$and' || field == '$nor'
             if cond.is_a?(Array) && cond.size > 1
-              return false unless cond.all? {|c| validate_conditions?(c)}
+              return false unless cond.all? { |c| validate_conditions?(c) }
             else
               errors.add(:conditions, "have no arguments for #{field} clause.")
               return false
@@ -71,7 +70,7 @@ module Setup
           elsif field == '$not'
             if cond.is_a?(Array)
               if cond.size > 0
-                return false unless cond.all? {|c| validate_conditions?(c)}
+                return false unless cond.all? { |c| validate_conditions?(c) }
               else
                 errors.add(:conditions, "have no arguments for #{field} clause.")
                 return false
@@ -101,13 +100,13 @@ module Setup
         conditions.each do |field, cond|
           partial_eval = false
           if field == '$or'
-            partial_eval = cond.any? {|c| conditions_apply_to?(object_now, object_before, c)}
+            partial_eval = cond.any? { |c| conditions_apply_to?(object_now, object_before, c) }
           elsif field == '$and'
-            partial_eval = cond.all? {|c| conditions_apply_to?(object_now, object_before, c)}
+            partial_eval = cond.all? { |c| conditions_apply_to?(object_now, object_before, c) }
           elsif field == '$not'
             partial_eval = !conditions_apply_to?(object_now, object_before, cond)
           elsif field == '$nor'
-            partial_eval = cond.all? {|c| ! conditions_apply_to?(object_now, object_before, c)}
+            partial_eval = cond.all? { |c| !conditions_apply_to?(object_now, object_before, c) }
           else
             values = [object_before && object_before[field], object_now && object_now[field]]
             partial_eval = values && apply?(cond, *values)
@@ -192,8 +191,8 @@ module Setup
     #
     #
     def apply_elemMatch_operator?(old_value, new_value, constraint)
-      (!old_value || !(old_value.any? {|c| conditions_apply_to?(c, nil, constraint)})) &&
-          new_value.any? {|c| conditions_apply_to?(c, nil, constraint)}
+      (!old_value || !(old_value.any? { |c| conditions_apply_to?(c, nil, constraint) })) &&
+        new_value.any? { |c| conditions_apply_to?(c, nil, constraint) }
     end
 
     # Evaluator for <tt>$all</tt> operator.
@@ -205,7 +204,7 @@ module Setup
     #
     def apply_all_operator?(old_value, new_value, constraint)
       (!old_value || !(old_value.to_set.superset?(constraint.to_set))) &&
-          new_value.to_set.superset?(constraint.to_set)
+        new_value.to_set.superset?(constraint.to_set)
     end
 
     # Evaluator for <tt>$mod</tt> operator.
@@ -229,7 +228,7 @@ module Setup
     # applies when a "yellow" <tt>color</tt> attribute takes this value.
     #
     def apply_eq_operator?(old_value, new_value, constraint)
-      (!old_value || ! old_value.eql?(constraint)) && new_value.eql?(constraint)
+      (!old_value || !old_value.eql?(constraint)) && new_value.eql?(constraint)
     end
 
     # Evaluator for <tt>$ne</tt> operator.
