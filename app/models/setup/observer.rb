@@ -19,7 +19,7 @@ module Setup
     before_save :format_triggers, :check_name
 
     def check_before_save
-      legacy_triggers_to_conditions? && validate_conditions? && super
+      legacy_triggers_to_conditions && validate_conditions && super
     end
 
     def verify_triggers
@@ -57,7 +57,7 @@ module Setup
           conditions.push({'$lte' => value [2]})
         when "is", "default"
           conditions.push({'$eq' => value})
-        when nil
+        when nil # consider use else
           case value
           when "_not_null"
             conditions.push({'$ne' => nil})
@@ -74,11 +74,11 @@ module Setup
             conditions.push({'$eq' => value})
           end
         end
-      return conditions
+      conditions
     end
 
-    def legacy_triggers_to_conditions?(triggers = self.triggers)
-      if !conditions.present?
+    def legacy_triggers_to_conditions(triggers = self.triggers)
+      if conditions.blank?
         conditions = {}
         triggers = JSON.parse(triggers) if triggers.is_a? (String)
         triggers.each do |field, value|
@@ -90,7 +90,7 @@ module Setup
         end
         self.conditions = conditions
       end
-      return true
+      errors.blank? # Consider to add some errors if the migration is not possible
     end
 
     def triggers_apply_to?(obj_now, obj_before = nil)
