@@ -3,3 +3,6 @@ Metrics/LineLength:
 
 Style/EmptyLinesAroundClassBody:
   EnforcedStyle: false
+
+Style/NumericPredicate:
+  AutoCorrect: true
