@@ -72,7 +72,7 @@ module Cenit
       end
 
       def stored?(file)
-        chunks(file).count > 0
+        chunks(file).count.positive?
       end
 
       private
@@ -109,7 +109,7 @@ module Cenit
       end
 
       def chunking(io, chunk_size, &block)
-        if io.method(:read).arity == 0
+        if io.method(:read).arity.zero?
           data = io.read
           i = 0
           loop do
@@ -123,7 +123,7 @@ module Cenit
             i += 1
           end
         else
-          while (buf = io.read(chunk_size)) && buf.size > 0
+          while (buf = io.read(chunk_size)) && buf.size.positive?
             block.call(buf)
           end
         end

@@ -336,7 +336,7 @@ module Setup
       end
 
       def agent_field(*args)
-        if args.length > 0
+        if args.length.positive?
           @agent_field = args[0]
         else
           @agent_field || superclass.try(:agent_field)

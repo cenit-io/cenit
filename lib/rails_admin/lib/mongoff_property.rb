@@ -110,7 +110,7 @@ module RailsAdmin
         end
       #Empty Test
       if !required? &&
-        ((((min = hash_schema['minLength']) && (min > 0 || (min == 0 && hash_schema['exclusiveMaximum']))) ||
+        ((((min = hash_schema['minLength']) && (min.positive? || (min.zero? && hash_schema['exclusiveMaximum']))) ||
           ((pattern = hash_schema['pattern']) && !''.match(pattern))))
 
         type = "non_empty_#{type}"

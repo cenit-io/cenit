@@ -22,7 +22,7 @@ module Edi
     def default_hash(options = {})
       prepare_options(options)
       max_entries = options[:max_entries].to_i
-      max_entries = nil if max_entries == 0
+      max_entries = nil if max_entries.zero?
       hash = record_to_hash(self_record, options, options.delete(:reference), nil, max_entries, options[:viewport].presence)
       options.delete(:stack)
       hash = { self_record.orm_model.data_type.slug => hash } if options[:include_root]
@@ -396,7 +396,7 @@ module Edi
           if (value = record.send(property_name))
             next if max_entries && value.size > max_entries
             sub_max_entries = max_entries && (max_entries - value.size)
-            sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries > 0
+            sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries.positive?
             new_value = []
             value.each do |sub_record|
               next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)

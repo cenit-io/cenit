@@ -80,7 +80,7 @@ module Setup
       end
 
       def transformation_type(*args)
-        if args.length > 0
+        if args.length.positive?
           @transformation_type = args[0].to_s.to_sym
         end
         @transformation_type || (superclass < Translator ? superclass.transformation_type : nil)

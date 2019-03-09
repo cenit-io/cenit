@@ -84,7 +84,7 @@ module Setup
 
         parameters.each { |param| fail I18n.t('cenit.api_spec.swagger_parser.error.parameter_name_conflict', param: param) if definitions.key?(param) }
 
-        if definitions.size > 0
+        if definitions.size.positive?
           definitions.each_pair do |name, schema|
             schema['type'] = 'object' if schema['properties'] && schema['type'].nil?
             schema['title'] = name
@@ -285,7 +285,7 @@ module Setup
           end
         end
 
-        if definitions.size > 0 || parameters.size > 0
+        if definitions.size.positive? || parameters.size.positive?
           data['snippets'] = snippets = []
           data['data_types'] = data_types = []
           {

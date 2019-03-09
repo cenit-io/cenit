@@ -61,7 +61,7 @@ module JSON
             end
           end
 
-          if diff.size > 0
+          if diff.size.positive?
             properties = diff.keys.join(', ')
             message = "The property '#{build_fragment(fragments)}' contained undefined properties: '#{properties}'"
             validation_error(processor, message, fragments, current_schema, self, options[:record_errors])

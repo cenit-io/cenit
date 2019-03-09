@@ -35,7 +35,7 @@ module CrossOrigin
       end
 
       def origins(*args)
-        if args.length == 0
+        if args.length.zero?
           origins = []
           acc = ::Account.current
           super.each do |origin|

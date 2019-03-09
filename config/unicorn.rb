@@ -51,7 +51,7 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  if worker.nr == 0
+  if worker.nr.zero?
     Cenit::Rabbit.start_scheduler
     Tenant.all.each do |tenant|
       tenant.switch do

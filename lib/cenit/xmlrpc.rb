@@ -29,7 +29,7 @@ module Cenit
         [false, parsing_xml['fault']]
       else
         # is a normal return value
-        fail 'Missing return value!' if parsing_xml['params'].length == 0
+        fail 'Missing return value!' if parsing_xml['params'].length.zero?
         fail 'Too many return values. Only one allowed!' if parsing_xml['params'].length > 1
         [true, parsing_xml['params']['param']]
       end
