@@ -26,7 +26,7 @@ module ClassHierarchyAware
       end
 
       def abstract_class(*args)
-        @abstract_class = args[0].present? if args.length > 0
+        @abstract_class = args[0].present? if args.length.positive?
         @abstract_class
       end
 

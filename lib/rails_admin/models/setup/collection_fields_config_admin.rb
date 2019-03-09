@@ -262,92 +262,92 @@ module RailsAdmin
               field :name
               field :flows do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :connection_roles do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :translators do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :events do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :data_types do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :schemas do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :custom_validators do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :algorithms do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :applications do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :webhooks do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :connections do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :resources do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :operations do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :authorizations do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :oauth_providers do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :oauth_clients do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :generic_clients do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :oauth2_scopes do
                 pretty_value do
-                  value.count > 0 ? value.count : '-'
+                  value.count.positive? ? value.count : '-'
                 end
               end
               field :updated_at

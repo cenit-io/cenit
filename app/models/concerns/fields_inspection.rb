@@ -30,7 +30,7 @@ module FieldsInspection
   module ClassMethods
 
     def inspect_fields(*args)
-      if args.length > 0
+      if args.length.positive?
         @inspecting_fields = args.collect(&:to_s).collect(&:to_sym)
       end
       @inspecting_fields || []

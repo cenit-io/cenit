@@ -40,7 +40,7 @@ module RailsAdmin
       unless (path = config.api_path)
         tokens = @model_name.split('::')
         path = tokens.pop.underscore
-        if tokens.length > 0
+        if tokens.length.positive?
           path = tokens.collect(&:underscore).join('/') + "/#{path}"
         else
           path = "#{Setup.to_s.underscore}/#{path}"

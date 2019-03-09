@@ -71,7 +71,7 @@ module Setup
       def method_missing(symbol, *args)
         if CONFIG_FIELDS.any? { |field| "auth_#{field.pluralize}" == symbol.to_s }
           ivar = "@#{symbol}".to_sym
-          instance_variable_set(ivar, args[0].stringify_keys) if args.length > 0
+          instance_variable_set(ivar, args[0].stringify_keys) if args.length.positive?
           value = instance_variable_get(ivar) || {}
           if superclass == Object
             value

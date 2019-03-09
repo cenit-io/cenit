@@ -31,7 +31,7 @@ module Xsd
       json = documenting('type' => 'object', 'title' => tag_name.to_title)
       json['properties'] = properties = {}
       required = []
-      if max_occurs == :unbounded || max_occurs > 0 || min_occurs > 1
+      if max_occurs == :unbounded || max_occurs.positive? || min_occurs > 1
         elements.each do |element|
           element_schema = element.to_json_schema
           if element.max_occurs == :unbounded || element.max_occurs > 1 || element.min_occurs > 1
@@ -42,7 +42,7 @@ module Xsd
                               'minItems' => element.min_occurs,
                               'items' => element_schema }
             properties[p]['maxItems'] = element.max_occurs unless element.max_occurs == :unbounded
-            required << p if element.min_occurs > 0
+            required << p if element.min_occurs.positive?
           elsif element.is_a?(Container)
             container_required = element_schema['required'] || []
             element_schema['properties'].each do |property, schema|

@@ -51,7 +51,7 @@ module Setup
         by_name = Hash.new { |h, k| h[k] = 0 }
         send(methods).each do |method|
           by_name[method.name] += 1
-          if method.parameters.size == 0
+          if method.parameters.size.zero?
             errors.add(methods, "contains algorithm taking no parameter: #{method.custom_title} (at less one parameter is required)")
           end
         end

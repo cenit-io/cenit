@@ -45,7 +45,7 @@ module RailsAdmin
                 @selector_token = Cenit::Token.create(data: scope.selector, token_span: 300).token
               end
               @object = Object.new
-              @object.instance_variable_set(:@_to_delete, scope) if scope.count > 0
+              @object.instance_variable_set(:@_to_delete, scope) if scope.count.positive?
               render :delete_data_types
             end
           end

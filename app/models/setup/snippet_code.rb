@@ -145,7 +145,7 @@ module Setup
       end
 
       def legacy_code_attribute(*args)
-        if args.length == 0
+        if args.length.zero?
           @legacy_code_attribute
         else
           @legacy_code_attribute = args[0].to_s

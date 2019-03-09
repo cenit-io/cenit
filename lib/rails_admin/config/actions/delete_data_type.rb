@@ -32,7 +32,7 @@ module RailsAdmin
               end
               redirect_to redirect_path
             else
-              @object.instance_variable_set(:@_to_delete, @object) if @object.count > 0
+              @object.instance_variable_set(:@_to_delete, @object) if @object.count.positive?
               render 'delete_data_types'
             end
           end

@@ -11,7 +11,7 @@ module CanCan
     class MongoidAdapter
 
       def database_records
-        if @rules.size == 0
+        if @rules.size.zero?
           @model_class.where(:_id => {'$exists' => false, '$type' => 7})
         elsif @rules.size == 1 && @rules[0].conditions.is_a?(Mongoid::Criteria)
           @rules[0].conditions
