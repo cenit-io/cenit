@@ -81,17 +81,8 @@ class User
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do
-    if self.class.empty?
-      # The first User
-      %w(super_admin installer cross_shared).each do |role_name|
-        unless roles.any? { |role| role.name.to_s == role_name }
-          roles << ::Role.find_or_create_by(name: role_name)
-        end
-      end
-    end
-    created_account = nil
-    self.account ||= accounts.first || member_accounts.first || Account.current || (created_account = Account.create_with_owner(owner: self))
-    accounts << created_account if created_account
+    self.role_ids = ((role_ids || []) + ::Role.default_ids(self.class.empty?)).uniq
+    self.account ||= accounts.first || member_accounts.first || Account.current || Account.new_for_create(owner_id: id)
     unless owns?(account)
       errors.add(:account, 'is sealed and can not be inspected') if account && account.sealed?
     end
@@ -101,7 +92,19 @@ class User
     errors.blank?
   end
 
-  before_save :check_attributes, :ensure_token, :validates_time_zone!, :check_account
+  before_save :check_attributes, :check_default_roles, :ensure_token, :validates_time_zone!, :check_account
+
+  after_create do
+    account.save unless account.persisted?
+  end
+
+  def check_default_roles
+    role_ids = self.role_ids || []
+    if ::Role.default_ids.any? { |id| role_ids.exclude?(id) }
+      self.role_ids = (role_ids + ::Role.default_ids).uniq
+    end
+    errors.blank?
+  end
 
   def check_account
     unless account_id.nil? || super_admin? || accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
