@@ -8,9 +8,9 @@ module Mongoff
     include ActiveModel::ForbiddenAttributesProtection
     include Cenit::Liquidfier
 
-    attr_reader :orm_model
-    attr_reader :document
-    attr_reader :fields
+    attr_reader :orm_model, :document, :fields
+
+    attr_accessor :new_record
 
     def initialize(model, attributes = nil, new_record = true)
       @orm_model = model
@@ -23,7 +23,6 @@ module Mongoff
         end
       end
       assign_attributes(attributes)
-      Cenit::Utility.for_each_node_starting_at(self) { |record| record.instance_variable_set(:@new_record, false) } unless @new_record
       unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
         @document[:_id] ||= BSON::ObjectId.new
       end
@@ -112,12 +111,12 @@ module Mongoff
       if property_model && property_model.modelable?
         @fields[field] ||=
           if (association = orm_model.associations[field.to_s]).many?
-            RecordArray.new(property_model, value, association.referenced?)
+            RecordArray.new(property_model, value, association.referenced?, self)
           else
             if association.referenced?
               value && property_model.find(value) rescue nil
             elsif value
-              Record.new(property_model, value)
+              Record.new(property_model, value, new_record?)
             else
               nil
             end
@@ -193,7 +192,7 @@ module Mongoff
       elsif !value.is_a?(Hash) && value.is_a?(Enumerable)
         attr_array = []
         if !attribute_assigning && property_model && property_model.modelable?
-          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key.to_s != field.to_s)
+          @fields[field] = field_array = RecordArray.new(property_model, attr_array, attribute_key.to_s != field.to_s, self)
           value.each do |v|
             field_array << v
           end
@@ -300,6 +299,10 @@ module Mongoff
 
     alias eql? ==
 
+    def hash
+      id.hash
+    end
+
     def _reload
       {}.merge(orm_model.collection.find(_id: _id).read(mode: :primary).first || {})
     end
@@ -310,6 +313,15 @@ module Mongoff
 
     def reflect_on_association(name)
       self.class.reflect_on_association(name)
+    end
+
+    def set_not_new_record
+      return unless new_record?
+      self.new_record = false
+      @fields.each do |field, value|
+        next unless value && (association = orm_model.associations[field]) && association.nested?
+        value.set_not_new_record
+      end
     end
 
     protected

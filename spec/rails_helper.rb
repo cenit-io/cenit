@@ -101,16 +101,22 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     # DatabaseCleaner.strategy = :truncation
+    test_user = ::User.create!(email: 'test@cenit.io', password: '12345678')
+    ::User.current = test_user
+    test_user.accounts.first.switch
   end
   config.before(:each) do
-    # DatabaseCleaner.start
-    Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
+    #DatabaseCleaner.start
+    #Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     # Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-    RailsAdmin::Config.reset
-    RailsAdmin::AbstractModel.reset
+    #RailsAdmin::Config.reset
+    #RailsAdmin::AbstractModel.reset
   end
   config.after(:each) do
-    Warden.test_reset!
+    #Warden.test_reset!
     #  DatabaseCleaner.clean
+  end
+  config.after(:suite) do
+    Mongoid.default_client.database.drop
   end
 end

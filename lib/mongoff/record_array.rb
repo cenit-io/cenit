@@ -3,11 +3,11 @@ module Mongoff
     include Enumerable
     include Cenit::Liquidfier
 
-    attr_reader :model
-    attr_reader :array
+    attr_reader :model, :array, :referenced, :parent
 
-    def initialize(model, array, referenced = false)
+    def initialize(model, array, referenced, parent)
       array ||= []
+      @parent = parent
       @model = model
       @array = array
       @referenced = referenced
@@ -15,7 +15,7 @@ module Mongoff
       array.each_with_index do |item, index|
         record =
           if item.is_a?(BSON::Document)
-            Record.new(model, item)
+            model.record_class.new(model, item, referenced || parent.new_record?)
           elsif item.is_a?(Mongoff::Record)
             item
           else
@@ -34,6 +34,13 @@ module Mongoff
           end
       end
       @changed = false
+    end
+
+    def set_not_new_record
+      @records.each do |record|
+        next unless record.is_a?(Record)
+        record.set_not_new_record
+      end
     end
 
     def orm_model
@@ -67,13 +74,13 @@ module Mongoff
     def << item
       if item.is_a?(Record) || item.class.respond_to?(:data_type) || item.is_a?(Hash)
         if item.is_a?(BSON::Document)
-          item = Record.new(model, item)
+          item = model.record_class.new(model, item, referenced || parent.new_record?)
         elsif item.is_a?(Hash)
           item = model.new_from_json(item)
         end
         unless @records.include?(item)
           @records << item
-          if @referenced
+          if referenced
             array << item.id unless array.include?(item.id)
           else
             array << item.attributes unless array.any? { |doc| doc['_id'] == item.id }
@@ -106,7 +113,7 @@ module Mongoff
 
     def criteria
       unless @criteria
-        if @referenced
+        if referenced
           @criteria = Mongoff::Criteria.new(model).any_in(id: array)
         else
           #TODO Not referenced

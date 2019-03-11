@@ -1,5 +1,9 @@
 require 'rails_helper'
 
-RSpec.describe Role, :type => :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+describe Role do
+
+  it 'resolve all default roles' do
+    roles = Role::FIRST_USER_DEFAULT_NAMES.map { |name| Role.where(name: name).first }
+    expect(roles).to all(be)
+  end
 end
