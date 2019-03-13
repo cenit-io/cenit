@@ -87,7 +87,7 @@ module Setup
             end
           total_count = 0
           Setup::SystemNotification.type_enum.each do |type|
-            if (count = scope.where(type: type).count) > 0
+            if (count = scope.where(type: type).count).positive?
               total_count += count
               counters[Setup::SystemNotification.type_color(type)] = count
             end

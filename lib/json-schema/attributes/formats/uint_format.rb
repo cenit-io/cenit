@@ -5,7 +5,7 @@ module JSON
       class << self
 
         def bits(*args)
-          if args.length == 0
+          if args.length.zero?
             @bits
           else
             unless %w(32 64).include? (@bits = args[0].to_i).to_s

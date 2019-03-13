@@ -73,7 +73,7 @@ module RailsAdmin
                 base_record.fill_from(hash)
                 trace = ::Mongoid::Tracer::Trace.new(base_record.trace_action_attributes(:update))
                 @diff = build_diff(@abstract_model, trace.changes_set(base_trace))
-                unless @diff[:additions] + @diff[:deletions] > 0
+                unless (@diff[:additions] + @diff[:deletions]).positive?
                   @can_merge = @diff = nil
                 end
               end
