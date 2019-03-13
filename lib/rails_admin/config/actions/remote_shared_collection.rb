@@ -63,7 +63,7 @@ module RailsAdmin
                         i += 1
                         new_name = "#{@response['name']}_remote_pull_#{i}"
                       end
-                      if i > 0
+                      if i.positive?
                         flash[:warning] = t('admin.actions.remote_shared_collection.pull_rename', model: @model_config.label, name: @response['name'], new_name: new_name)
                         @response['name'] = new_name
                       end

@@ -287,7 +287,7 @@ module Edi
               property_schema = data_type.merge_schema(property_schema)
               name = property_schema['edi']['segment'] if property_schema['edi']
               name ||= property_name
-              name = name.split(':').last if phase > 0
+              name = name.split(':').last if phase.positive?
               next if taken_items.include?(name)
               property_model = model.property_model(property_name)
               taken_items << property_name if json.has_key?(name)
@@ -449,7 +449,7 @@ module Edi
           end
         if !edi_options['virtual']
           return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
-          if (fields_count = model.properties_schemas.count { |property, schema| !model.property_model?(property) && (!schema['edi'] || !schema['edi']['discard']) }) == 0
+          if (fields_count = model.properties_schemas.count { |property, schema| !model.property_model?(property) && (!schema['edi'] || !schema['edi']['discard']) }).zero?
             segment_sep ||= content[start + seg_id.length]
           else
             field_sep ||= content[start + seg_id.length]
@@ -478,8 +478,8 @@ module Edi
                 raise Exception.new('Can not infers segment separator without EDI segment metadata in next sub-segment schema') unless next_seg_schema['edi'] && next_seg_id = next_seg_schema['edi']['segment']
                 puts "Inferring segment separator with field separator #{field_sep}..."
                 cursor = start + seg_id.length + 1
-                if fields_count > 0
-                  while fields_count > 0
+                if fields_count.positive?
+                  while fields_count.positive?
                     cursor = content.index(field_sep, cursor) + 1
                     fields_count -= 1
                   end

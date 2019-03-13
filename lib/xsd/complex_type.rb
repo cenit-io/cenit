@@ -53,7 +53,7 @@ module Xsd
               'items' => container_schema
             }
           properties[p]['maxItems'] = container.max_occurs unless container.max_occurs == :unbounded
-          required << p if container.min_occurs > 0
+          required << p if container.min_occurs.positive?
         else
           container_required = container_schema['required'] || []
           if (container_properties = container_schema['properties']).size == 1

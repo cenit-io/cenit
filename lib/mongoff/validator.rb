@@ -143,7 +143,7 @@ module Mongoff
 
     def check_schema_multipleOf(value)
       _check_type(:multipleOf, value, Numeric)
-      raise "Invalid value for multipleOf, strictly greater than zero is expected" unless value > 0
+      raise "Invalid value for multipleOf, strictly greater than zero is expected" unless value.positive?
     end
 
     def check_multipleOf(value, instance)
@@ -188,7 +188,7 @@ module Mongoff
 
     def check_schema_maxLength(value)
       _check_type(:maxLength, value, Integer)
-      raise "Invalid value for maxLength, a non negative value is expected" if value < 0
+      raise "Invalid value for maxLength, a non negative value is expected" if value.negative?
     end
 
     def check_maxLength(value, instance)
@@ -197,7 +197,7 @@ module Mongoff
 
     def check_schema_minLength(value)
       _check_type(:maxLength, value, Integer)
-      raise "Invalid value for minLength, a non negative value is expected" if value < 0
+      raise "Invalid value for minLength, a non negative value is expected" if value.negative?
     end
 
     def check_minLength(value, instance)
@@ -252,7 +252,7 @@ module Mongoff
 
     def check_schema_maxItems(max)
       _check_type(:maxItems, max, Integer)
-      raise "Invalid value for maxItems, a non negative value is expected" if max < 0
+      raise "Invalid value for maxItems, a non negative value is expected" if max.negative?
     end
 
     def check_maxItems(max, items)
@@ -263,7 +263,7 @@ module Mongoff
 
     def check_schema_minItems(min)
       _check_type(:minItems, min, Integer)
-      raise "Invalid value for minItems, a non negative value is expected" if min < 0
+      raise "Invalid value for minItems, a non negative value is expected" if min.negative?
     end
 
     def check_minItems(min, items)
@@ -355,7 +355,7 @@ module Mongoff
 
     def check_schema_maxProperties(max)
       _check_type(:maxProperties, max, Integer)
-      raise "Invalid value for maxProperties, a non negative value is expected" if max < 0
+      raise "Invalid value for maxProperties, a non negative value is expected" if max.negative?
     end
 
     def check_maxProperties(max, instance)
@@ -367,7 +367,7 @@ module Mongoff
 
     def check_schema_minProperties(min)
       _check_type(:minProperties, min, Integer)
-      raise "Invalid value for minProperties, a non negative value is expected" if min < 0
+      raise "Invalid value for minProperties, a non negative value is expected" if min.negative?
     end
 
     def check_minProperties(min, instance)

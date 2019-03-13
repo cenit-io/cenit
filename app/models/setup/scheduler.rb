@@ -256,9 +256,9 @@ module Setup
       if @conf[:type] == 'appointed_position'
         months_days = []
         # Retrieve days by weeks
-        if weeks_month.length > 0
+        if weeks_month.length.positive?
           weeks_month.each do |wm|
-            if wm > 0
+            if wm.positive?
               # firsts one
               months_days += weeks_days.collect { |wd| weeks_first_days(@year, wd, month)[wm - 1] }
             else
@@ -277,7 +277,7 @@ module Setup
 
       months_days = (1..a).to_a if months_days.blank?
 
-      months_days.select { |e| e > 0 && e <= a }
+      months_days.select { |e| e.positive? && e <= a }
     end
 
     def hours
@@ -295,7 +295,7 @@ module Setup
     def months
       res = @conf[:months]
       res = (1..12).to_a if res.blank?
-      res.select { |e| e > 0 && e <= 12 }
+      res.select { |e| e.positive? && e <= 12 }
     end
 
     def initialize(conf, year, tz)

@@ -21,7 +21,7 @@ module Api::V1
             end
             if (limit = @criteria.delete(:limit))
               limit = limit.to_s.to_i
-              limit = nil if limit == 0
+              limit = nil if limit.zero?
             end
             items = accessible_records.where(@criteria)
             if sort_key

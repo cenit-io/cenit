@@ -21,7 +21,7 @@ module Setup
             candidate.squeeze(' ').tr(' ', '_')
           end
         i = candidate.length - 1
-        while candidate.length > 0 && i == candidate.length - 1
+        while candidate.length.positive? && i == candidate.length - 1
           i -= 1 while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
           if i == candidate.length - 1
             candidate = candidate.to(i - 1)

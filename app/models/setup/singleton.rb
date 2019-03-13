@@ -3,7 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     def save(options = {})
-      fail "Only one record is allowed for #{self.class}" if new_record? && self.class.count > 0
+      fail "Only one record is allowed for #{self.class}" if new_record? && self.class.count.positive?
       super
     end
 

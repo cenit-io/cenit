@@ -13,7 +13,7 @@ module RailsAdmin
           end
 
           register_instance_option :pretty_value do
-            if (v = value) < 0
+            if (v = value).negative?
               negative_pretty_value
             else
               str = ''
@@ -30,7 +30,7 @@ module RailsAdmin
                 break if m == current_metric
               end
               h.each do |m, scale|
-                if (scaled_v = v / scale) > 0
+                if (scaled_v = v / scale).positive?
                   str = "#{v % scale}#{current_metric} #{str}"
                   v = scaled_v
                   current_metric = m

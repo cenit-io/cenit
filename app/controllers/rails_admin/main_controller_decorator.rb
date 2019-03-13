@@ -156,7 +156,7 @@ module RailsAdmin
           count += 1
         end
       end
-      if (count = messages.length - count) > 0
+      if (count = messages.length - count).positive?
         flash_message += "<br>- and another #{count}.".html_safe
       end
       flash_hash[flash_key] = flash_message.html_safe

@@ -12,7 +12,7 @@ module Cenit
       end
 
       def read(file, *args)
-        len = (args.length > 0 && args[0].to_i) || file.length || 0
+        len = (args.length.positive? && args[0].to_i) || file.length || 0
         if (stash_data = file.stash_data)
           if stash_data.is_a?(String)
             cursor = file.cursor
