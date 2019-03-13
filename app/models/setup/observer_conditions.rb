@@ -35,11 +35,11 @@ module Setup
                 unless field == '$in' || field == '$nin' || field == '$elemMatch' || field == '$all'
                   errors.add(:conditions, "cannot apply the operator #{field} to a array #{cond}.")
                 end
-                unless field == '$elemMatch' && cond.size > 0 && cond.all? { |c| validate_conditions?(c) }
+                unless field == '$elemMatch' && cond.size > 0 && cond.all? { |c| validate_conditions(c) }
                   errors.add(:conditions, "have invalid array of conditions #{cond} for operator #{field}.")
                 end
               when Hash
-                unless field == '$elemMatch' && validate_conditions?(cond)
+                unless field == '$elemMatch' && validate_conditions(cond)
                   errors.add(:conditions, "have invalid condition #{cond} for operator #{field}.")
                 end
               else
@@ -57,12 +57,12 @@ module Setup
       errors.blank?
     end
 
-    def validate_conditions?(conditions = self.conditions)
+    def validate_conditions(conditions = self.conditions)
       if conditions.present?
         conditions.each do |field, cond|
           if field == '$or' || field == '$and' || field == '$nor'
             if cond.is_a?(Array) && cond.size > 1
-              return false unless cond.all? { |c| validate_conditions?(c) }
+              return false unless cond.all? { |c| validate_conditions(c) }
             else
               errors.add(:conditions, "have no arguments for #{field} clause.")
               return false
@@ -70,13 +70,13 @@ module Setup
           elsif field == '$not'
             if cond.is_a?(Array)
               if cond.size > 0
-                return false unless cond.all? { |c| validate_conditions?(c) }
+                return false unless cond.all? { |c| validate_conditions(c) }
               else
                 errors.add(:conditions, "have no arguments for #{field} clause.")
                 return false
               end
             else
-              return false unless validate_conditions?(cond)
+              return false unless validate_conditions(cond)
             end
           else
             if field.match(/\A\$(.+)/)
@@ -84,7 +84,7 @@ module Setup
               return false
             end
             if cond.is_a?(Hash)
-              return false unless validate_field_condition?(cond)
+              return false unless validate_field_condition(cond)
             end
           end
         end
