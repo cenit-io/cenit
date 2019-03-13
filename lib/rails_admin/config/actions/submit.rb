@@ -38,7 +38,8 @@ module RailsAdmin
               mongoff_model = Mongoff::Model.for(data_type: model.data_type, schema: schema, name: model_name)
 
               if params.delete(:_save) && (@form_object = mongoff_model.new(data)).valid?
-                msg = @action.params_and_headers_from(@form_object).merge!(webhook_id: @object.id,
+                msg = @action.params_and_headers_from(@form_object).merge!(
+                  webhook_id: @object.id,
                   authorization_id: @form_object.attributes[:authorization_id],
                   connection_id: @form_object.attributes[:connection_id],
                   body: data[:body])
@@ -117,7 +118,8 @@ module RailsAdmin
                 end
                 params_hash[property_name] =
                   ph =
-                    (param.metadata || {}).deep_dup.merge!('title' => param.key.to_title,
+                    (param.metadata || {}).deep_dup.merge!(
+                      'title' => param.key.to_title,
                       'description' => param.description,
                       'group' => params_group.to_s.to_title,
                       params_group: params_group,

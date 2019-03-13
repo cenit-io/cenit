@@ -103,9 +103,9 @@ module Setup
 
     STYLES_MAP = {
       'liquid' => { Setup::Transformation::LiquidExportTransform => [:Export],
-        Setup::Transformation::LiquidConversionTransform => [:Conversion] },
+                    Setup::Transformation::LiquidConversionTransform => [:Conversion] },
       'xslt' => { Setup::Transformation::XsltConversionTransform => [:Conversion],
-        Setup::Transformation::XsltExportTransform => [:Export] },
+                  Setup::Transformation::XsltExportTransform => [:Export] },
       # 'json.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.rabl' => {Setup::Transformation::ActionViewTransform => [:Export]},
       # 'xml.builder' => {Setup::Transformation::ActionViewTransform => [:Export]},
