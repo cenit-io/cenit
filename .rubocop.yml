@@ -6,3 +6,6 @@ Style/EmptyLinesAroundClassBody:
 
 Style/NumericPredicate:
   AutoCorrect: true
+
+Style/AlignHash:
+  Enabled: true
