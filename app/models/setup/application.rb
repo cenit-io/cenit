@@ -54,7 +54,8 @@ module Setup
     end
 
     def configuration_model
-      @mongoff_model ||= Mongoff::Model.for(data_type: self.class.data_type,
+      @mongoff_model ||= Mongoff::Model.for(
+        data_type: self.class.data_type,
         schema: configuration_schema,
         name: self.class.configuration_model_name,
         cache: false)

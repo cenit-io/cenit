@@ -48,7 +48,8 @@ module Cenit
         end
         chunks_left = ((len - chunk_chunk) / chunk_size.to_f).ceil
         data = ''
-        chunks(file).ascending(:n).where(:n.gte => current_chunk,
+        chunks(file).ascending(:n).where(
+          :n.gte => current_chunk,
           :n.lte => current_chunk + chunks_left).each do |chunk|
           data += chunk.data.data[chunk_start, chunk_chunk]
           if (chunk_chunk = len - data.length) > chunk_size

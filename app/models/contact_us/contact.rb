@@ -8,8 +8,9 @@ module ContactUs
     field :message, type: String
     field :subject, type: String
 
-    validates :email, :format => { :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i },
-              :presence => true
+    validates :email,
+      :format => { :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i },
+      :presence => true
     validates :message, :presence => true
     validates :name, :presence => { :if => Proc.new { ContactUs.require_name } }
     validates :subject, :presence => { :if => Proc.new { ContactUs.require_subject } }

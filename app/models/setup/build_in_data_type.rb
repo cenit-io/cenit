@@ -260,7 +260,8 @@ module Setup
         unless (mongoff_models = model.instance_variable_get(:@mongoff_models))
           model.instance_variable_set(:@mongoff_models, mongoff_models = {})
         end
-        mongoff_models[field_name] = Mongoff::Model.for(data_type: self,
+        mongoff_models[field_name] = Mongoff::Model.for(
+          data_type: self,
           name: field_name.camelize,
           parent: model,
           schema: properties[field_name],
