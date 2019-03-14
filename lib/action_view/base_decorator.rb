@@ -13,7 +13,7 @@ module ActionView
     end
 
     def respond_to?(*args)
-      app_control && app_control.respond_to?(args[0]) || super(*args)
+      (app_control && app_control.respond_to?(*args)) || super(*args)
     end
   end
 end
