@@ -12,8 +12,8 @@ module ActionView
       app_control && app_control.respond_to?(method) ? app_control.send(method, *args) : super(method, *args)
     end
 
-    def respond_to?(method)
-      app_control && app_control.respond_to?(method) || super(method)
+    def respond_to?(*args)
+      app_control && app_control.respond_to?(args[0]) || super(*args)
     end
   end
 end
