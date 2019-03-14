@@ -18,8 +18,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.converter.wizard.start.label'),
-                      :description => I18n.t('admin.config.converter.wizard.start.description')
+                      label: I18n.t('admin.config.converter.wizard.start.label'),
+                      description: I18n.t('admin.config.converter.wizard.start.description')
                     }
                 }
               if bindings[:object].style == 'chain'

@@ -8,7 +8,7 @@ module Api::V3
     before_action :find_item, only: [:update, :show, :destroy, :digest]
     before_action :authorize_action, except: [:new_user, :cors_check]
 
-    rescue_from Exception, :with => :exception_handler
+    rescue_from Exception, with: :exception_handler
 
     respond_to :json
 
