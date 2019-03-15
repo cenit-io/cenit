@@ -18,3 +18,6 @@ Style/TrailingWhitespace:
 
 Style/EmptyLinesAroundBlockBody:
   Enabled: true
+
+Style/EmptyLinesAroundMethodBody:
+  Enabled: true
