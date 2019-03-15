@@ -12,3 +12,6 @@ Style/AlignHash:
 
 Style/HashSyntax:
   Enabled: true
+
+Style/TrailingWhitespace:
+  Enabled: true
