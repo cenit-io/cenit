@@ -7,7 +7,7 @@ module DateTimeCharts
       met = simple_properties_schemas.key?(base_calc.to_s) ? "map(&:#{base_calc})" : "send(:#{base_calc})" # TODO: Check aggregation calculation when base_calc is a relation
       proc = eval "lambda { |collection| collection.#{met}.#{calculation} }"
       set = acumulate =~ /^beginning_of/ ? set.map { |k, v| [k, proc.call(v)] } : set.sort.map { |c| [send(acumulate)[c[0]], proc.call(c[1])] }
-      [{ :data => set }]
+      [{ data: set }]
     end
 
     def wday

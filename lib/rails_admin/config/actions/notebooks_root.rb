@@ -17,7 +17,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            render :template => 'rails_admin/main/notebooks'
+            render template: 'rails_admin/main/notebooks'
           end
         end
 

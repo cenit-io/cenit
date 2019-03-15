@@ -21,7 +21,7 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-            render :template => 'rails_admin/main/rest_api'
+            render template: 'rails_admin/main/rest_api'
           end
         end
       end

@@ -11,9 +11,9 @@ module RailsAdmin
         nb_name = "api-#{lang[:id]}.ipynb"
 
         Setup::Notebook.where(
-          :name => nb_name,
-          :parent => nb_parent,
-          :type => :notebook
+          name: nb_name,
+          parent: nb_parent,
+          type: :notebook
         ).first || api_create_notebook(lang, nb_parent, nb_name, display_name)
       end
 
@@ -43,10 +43,10 @@ module RailsAdmin
         end
 
         attrs ={
-          :name => nb_name,
-          :parent => nb_parent,
-          :type => :notebook,
-          :content => {
+          name: nb_name,
+          parent: nb_parent,
+          type: :notebook,
+          content: {
             cells: cells,
             metadata: api_notebook_metadata(lang[:id]),
             nbformat: 4,
@@ -61,7 +61,7 @@ module RailsAdmin
       def api_create_notebook_path(nb_parent)
         parent = ""
         nb_parent.split('/').each do |name|
-          directory = Setup::Notebook.where(:name => name, :parent => parent, :type => :directory).first_or_create
+          directory = Setup::Notebook.where(name: name, parent: parent, type: :directory).first_or_create
           directory.origin = :shared
           parent = "#{parent}/#{name}".gsub(/^\//, '')
         end

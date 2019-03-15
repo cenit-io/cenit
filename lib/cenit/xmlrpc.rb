@@ -8,8 +8,8 @@ module Cenit
 
     def method_missing(symbol, *args)
       body_request = {
-        :methodCall => {
-          :methodName => symbol
+        methodCall: {
+          methodName: symbol
         }
       }
       body_request[:methodCall][:params] = args.collect { |p| { param: Encoder.hash_encode(p) } } unless args.empty?
