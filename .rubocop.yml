@@ -15,3 +15,6 @@ Style/HashSyntax:
 
 Style/TrailingWhitespace:
   Enabled: true
+
+Style/EmptyLinesAroundBlockBody:
+  Enabled: true
