@@ -9,3 +9,6 @@ Style/NumericPredicate:
 
 Style/AlignHash:
   Enabled: true
+
+Style/HashSyntax:
+  Enabled: true

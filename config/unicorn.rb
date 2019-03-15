@@ -22,7 +22,7 @@ GC.respond_to?(:copy_on_write_friendly=) and GC.copy_on_write_friendly = true
 working_directory app_dir
 
 # Set up socket location
-listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", :backlog => 64
+listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", backlog: 64
 
 # Loging
 stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"

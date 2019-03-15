@@ -42,9 +42,9 @@ module Cenit
 
     def default_directories
       [
-        {:name => 'REST-API', :parent => ''},
-        {:name => 'SHOWCASE', :parent => ''},
-        {:name => 'COMMUNITY', :parent => ''},
+        {name: 'REST-API', parent: ''},
+        {name: 'SHOWCASE', parent: ''},
+        {name: 'COMMUNITY', parent: ''},
       ]
     end
   end

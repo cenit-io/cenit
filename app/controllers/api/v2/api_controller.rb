@@ -6,7 +6,7 @@ module Api::V2
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
     before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry, :authorize]
 
-    rescue_from Exception, :with => :exception_handler
+    rescue_from Exception, with: :exception_handler
 
     respond_to :json
 

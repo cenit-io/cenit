@@ -31,8 +31,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.flow.wizard.start.label'),
-                      :description => I18n.t('admin.config.flow.wizard.start.description')
+                      label: I18n.t('admin.config.flow.wizard.start.label'),
+                      description: I18n.t('admin.config.flow.wizard.start.description')
                     }
                 }
 
@@ -47,15 +47,15 @@ module RailsAdmin
                   # Adjusting steps for custom_data_type field
                   steps[:data_type] =
                     {
-                      :label => "#{I18n.t('admin.config.flow.wizard.source_data_type.label')} #{data_type_label}",
-                      :description => "#{I18n.t('admin.config.flow.wizard.source_data_type.description')} #{data_type_label}"
+                      label: "#{I18n.t('admin.config.flow.wizard.source_data_type.label')} #{data_type_label}",
+                      description: "#{I18n.t('admin.config.flow.wizard.source_data_type.description')} #{data_type_label}"
                     }
                 end
                 if [::Setup::Parser, ::Setup::Renderer].include?(translator.class)
                   steps[:webhook] =
                     {
-                      :label => I18n.t('admin.config.flow.wizard.webhook.label'),
-                      :description => I18n.t('admin.config.flow.wizard.webhook.description')
+                      label: I18n.t('admin.config.flow.wizard.webhook.label'),
+                      description: I18n.t('admin.config.flow.wizard.webhook.description')
                     }
                 end
               end
