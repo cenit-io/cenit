@@ -14,7 +14,7 @@ module Setup
           tags.to_a
         end.flatten.uniq
       end
-      
+
     end
 
   end

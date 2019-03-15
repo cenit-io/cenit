@@ -48,6 +48,6 @@ module Setup
         fail "Algorithm with id #{algorithm_id} not found"
       end
     end
-    
+
   end
 end

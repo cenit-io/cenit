@@ -11,6 +11,6 @@ module Setup
         store(message.delete(:data), on: data) unless data.present?
       end
     end
-    
+
   end
 end

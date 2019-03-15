@@ -49,7 +49,7 @@ module Setup
           [:default, :owner]
         end
       end
-      
+
     end
 
   end

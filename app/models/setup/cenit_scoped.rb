@@ -20,7 +20,7 @@ module Setup
       def clean_up
         collection.drop
       end
-      
+
     end
   end
 end

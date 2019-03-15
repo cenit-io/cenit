@@ -39,6 +39,6 @@ module ClassHierarchyAware
       end
 
     end
-    
+
   end
 end

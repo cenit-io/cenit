@@ -85,6 +85,6 @@ module Setup
     def readables
       @temp_files ||= []
     end
-    
+
   end
 end

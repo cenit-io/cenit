@@ -28,6 +28,6 @@ module Setup
           fail 'Invalid message: data type ID is missing'
         end
     end
-    
+
   end
 end

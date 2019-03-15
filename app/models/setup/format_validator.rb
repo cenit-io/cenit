@@ -57,6 +57,6 @@ module Setup
         fail "Can not format to #{format} (schema data type is not configured)"
       end
     end
-    
+
   end
 end

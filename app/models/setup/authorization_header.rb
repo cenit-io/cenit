@@ -9,6 +9,6 @@ module Setup
     def build_auth_header(_template_parameters)
       fail NotImplementedError
     end
-    
+
   end
 end

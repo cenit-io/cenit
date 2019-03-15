@@ -16,6 +16,6 @@ module Setup
                        options: message[:options].deep_dup.with_indifferent_access)
       end
     end
-    
+
   end
 end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Setup
   class DataType
     include SharedConfigurable
@@ -102,7 +103,9 @@ module Setup
     end
 
     def model
-      data_type_name.constantize rescue nil
+      data_type_name.constantize
+    rescue
+      nil
     end
 
     def data_type_name
