@@ -3,7 +3,6 @@ require 'rmagick'
 
 IMGKit.class_eval do
   def self.image_from_html(url, options = {})
-
     image = new(url)
     image_converted = ''
 
