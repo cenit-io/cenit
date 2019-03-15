@@ -21,3 +21,6 @@ Style/EmptyLinesAroundBlockBody:
 
 Style/EmptyLinesAroundMethodBody:
   Enabled: true
+
+Style/EmptyLinesAroundModuleBody:
+  Enabled: true
