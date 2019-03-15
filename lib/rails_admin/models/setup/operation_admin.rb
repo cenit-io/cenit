@@ -35,7 +35,6 @@ module RailsAdmin
             filter_query_fields :none
           end
         end
-
       end
     end
   end

@@ -11,7 +11,6 @@ module RailsAdmin
             fields :name, :email
           end
         end
-
       end
     end
   end

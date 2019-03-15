@@ -11,7 +11,6 @@ module RailsAdmin
             fields :namespace, :name
           end
         end
-
       end
     end
   end

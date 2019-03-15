@@ -13,7 +13,6 @@ module RailsAdmin
             fields :created_at, :type, :message, :attachment
           end
         end
-
       end
     end
   end

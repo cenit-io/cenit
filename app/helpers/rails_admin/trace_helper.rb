@@ -1,6 +1,5 @@
 module RailsAdmin
   module TraceHelper
-
     def show_mongoid_tracer_trace
       respond_to do |format|
         format.json do

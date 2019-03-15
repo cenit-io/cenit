@@ -28,6 +28,5 @@ module Setup
         @attachment_uploader
       end
     end
-
   end
 end

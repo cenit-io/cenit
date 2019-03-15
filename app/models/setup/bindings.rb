@@ -18,7 +18,6 @@ module Setup
     end
 
     module ClassMethods
-
       def instantiate(attrs = nil, selected_fields = nil, &block)
         super(attrs, selected_fields) do |doc|
           binds.each do |metadata|
@@ -76,7 +75,6 @@ module Setup
         end
         q
       end
-
     end
   end
 end

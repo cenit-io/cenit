@@ -11,7 +11,6 @@ module Setup
     end
 
     module ClassMethods
-
       def binding_belongs_to(name, *options)
         r = super
         shared_configurable r.name, r.foreign_key

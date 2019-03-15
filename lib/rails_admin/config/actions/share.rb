@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Share < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -55,7 +54,6 @@ module RailsAdmin
           'icon-share'
         end
       end
-
     end
   end
 end

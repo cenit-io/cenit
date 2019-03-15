@@ -41,7 +41,6 @@ module RailsAdmin
           fields :created_at, :channel, :tag, :executor, :task_id, :alive, :created_at, :updated_at
         end
       end
-
     end
   end
 end

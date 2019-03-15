@@ -13,7 +13,6 @@ module RailsAdmin
             public_access true
           end
         end
-
       end
     end
   end

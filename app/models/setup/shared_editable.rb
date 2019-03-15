@@ -7,6 +7,5 @@ module Setup
     included do
       shared_allow :edit
     end
-
   end
 end

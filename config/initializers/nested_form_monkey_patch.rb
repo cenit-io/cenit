@@ -2,7 +2,6 @@ require 'nested_form/builder_mixin.rb'
 
 module NestedForm
   module BuilderMixin
-
     def link_to_add(*args, &block)
       options = args.extract_options!.symbolize_keys
       association = args.pop

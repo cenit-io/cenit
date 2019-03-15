@@ -2,7 +2,6 @@ module RailsAdmin
   module Models
     module Setup
       module CollectionFieldsConfigAdmin
-
         SHARING_INVISIBLE = Proc.new do
           visible { !bindings[:object].instance_variable_get(:@sharing) }
         end

@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Compare < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do

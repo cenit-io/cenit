@@ -32,7 +32,6 @@ module TimeZoneAware
   end
 
   module ClassMethods
-
     def time_zone_enum
       ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
     end

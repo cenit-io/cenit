@@ -234,7 +234,6 @@ class String
 end
 
 module Enumerable
-
   def to_xml_array(options = {})
     xml_doc = Nokogiri::XML::Document.new
     root = xml_doc.create_element(options[:root] || 'root', type: :array)
@@ -247,7 +246,6 @@ module Enumerable
     xml_doc << root
     xml_doc.to_xml
   end
-
 end
 
 {
@@ -291,7 +289,6 @@ end
 
 module Nokogiri
   module XML
-
     class Builder
 
       def respond_to?(*args)
@@ -361,7 +358,6 @@ end
 
 class V8::Conversion
   module Reference
-
     def self.construct!(object)
       context = V8::Context.current
       constructor = context.to_v8(object.ruby_class)
@@ -386,7 +382,6 @@ require 'zip'
 require 'zip/entry'
 
 module Zip
-
   def decode(zipped_data)
     file = Tempfile.new('zipped_data', encoding: 'ascii-8bit')
     file.write(result = zipped_data)

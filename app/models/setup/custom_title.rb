@@ -14,6 +14,5 @@ module Setup
       end
       title
     end
-
   end
 end

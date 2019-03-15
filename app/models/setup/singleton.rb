@@ -8,7 +8,6 @@ module Setup
     end
 
     module ClassMethods
-
       def singleton_record
         find_or_create_by
       end

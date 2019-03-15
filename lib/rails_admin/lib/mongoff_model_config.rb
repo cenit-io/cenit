@@ -1,5 +1,4 @@
 module RailsAdmin
-
   class MongoffModelConfig < RailsAdmin::Config::Model
 
     include ThreadAware

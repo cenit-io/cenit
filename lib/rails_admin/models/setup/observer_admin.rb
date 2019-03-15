@@ -92,7 +92,6 @@ module RailsAdmin
             fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :updated_at
           end
         end
-
       end
     end
   end

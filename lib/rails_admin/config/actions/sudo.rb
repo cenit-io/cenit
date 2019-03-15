@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Sudo < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -44,7 +43,6 @@ module RailsAdmin
         end
 
       end
-
     end
   end
 end

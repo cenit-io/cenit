@@ -107,7 +107,6 @@ module Cenit
     end
 
     module ClassMethods
-
       def before_validates_configuration(&block)
         block && configuration_callbacks << block
       end

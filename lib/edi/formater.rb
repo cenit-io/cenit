@@ -1,6 +1,5 @@
 module Edi
   module Formatter
-
     def self_record
       self
     end

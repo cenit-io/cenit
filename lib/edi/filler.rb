@@ -1,6 +1,5 @@
 module Edi
   module Filler
-
     def from_edi(data, options={})
       Edi::Parser.parse_edi(self.orm_model.data_type, data, options, self)
       self

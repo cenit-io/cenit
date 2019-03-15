@@ -10,15 +10,12 @@ class NilClass
 end
 
 module Mongoid
-
   module Document
-
     def tenant_version
       self
     end
 
     module ClassMethods
-
       def get_associations
         relations
       end
@@ -26,7 +23,6 @@ module Mongoid
   end
 
   module Scopable
-
     private
 
     def apply_default_scoping
@@ -39,7 +35,6 @@ module Mongoid
   end
 
   module Factory
-
     alias_method :mongoid_build, :build
 
     def build(klass, attributes = nil)

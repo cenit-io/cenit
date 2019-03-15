@@ -73,7 +73,6 @@ module RailsAdmin
             fields :namespace, :name, :aws_access_key, :aws_secret_key, :seller, :merchant, :markets, :signature_method, :signature_version, :updated_at
           end
         end
-
       end
     end
   end

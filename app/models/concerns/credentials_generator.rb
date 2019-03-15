@@ -13,5 +13,4 @@ module CredentialsGenerator
     regenerate_number
     regenerate_token
   end
-
 end

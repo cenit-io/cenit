@@ -68,7 +68,6 @@ module RailsAdmin
             fields :namespace, :name, :active, :data_type, :observers, :email_channel, :updated_at
           end
         end
-
       end
     end
   end

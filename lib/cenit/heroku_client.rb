@@ -1,5 +1,4 @@
 module HerokuClient
-
   class Client
 
     class << self
@@ -126,5 +125,4 @@ module HerokuClient
     end
 
   end
-
 end

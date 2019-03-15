@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Documentation < RailsAdmin::Config::Actions::Base
 
         register_instance_option :collection do
@@ -25,7 +24,6 @@ module RailsAdmin
           end
         end
       end
-
     end
   end
 end

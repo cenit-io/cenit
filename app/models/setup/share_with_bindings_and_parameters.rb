@@ -6,7 +6,6 @@ module Setup
     include Parameters
 
     module ClassMethods
-
       def clear_config_for(tenant, ids)
         super
         Setup::Parameter.reflect_on_all_associations(:belongs_to).each do |r|
@@ -14,8 +13,6 @@ module Setup
           Setup::Parameter.with(tenant).where(r.foreign_key.to_sym.in => ids).delete_all
         end
       end
-
     end
-
   end
 end

@@ -52,7 +52,6 @@ module Setup
     end
 
     module ClassMethods
-
       def namespace_enum
         (Setup::Namespace.all.collect(&:name) + all.distinct(:namespace).flatten).uniq.sort
       end

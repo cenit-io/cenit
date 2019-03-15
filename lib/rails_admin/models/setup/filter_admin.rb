@@ -96,7 +96,6 @@ module RailsAdmin
             fields :namespace, :name, :data_type, :segment, :triggers, :updated_at
           end
         end
-
       end
     end
   end

@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Reinstall < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -28,7 +27,6 @@ module RailsAdmin
           'icon-repeat'
         end
       end
-
     end
   end
 end

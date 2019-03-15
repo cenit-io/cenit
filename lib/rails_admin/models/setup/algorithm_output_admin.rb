@@ -27,7 +27,6 @@ module RailsAdmin
             fields :created_at, :algorithm, :input_parameters, :records_count
           end
         end
-
       end
     end
   end

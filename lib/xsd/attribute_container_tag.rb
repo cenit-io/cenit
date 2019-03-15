@@ -1,6 +1,5 @@
 module Xsd
   module AttributeContainerTag
-
     attr_reader :attributes
 
     def initialize_attribute_container_tag(args)

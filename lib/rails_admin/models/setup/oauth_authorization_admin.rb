@@ -86,7 +86,6 @@ module RailsAdmin
             fields :namespace, :name, :status, :client, :updated_at
           end
         end
-
       end
     end
   end

@@ -1,6 +1,5 @@
 module Mongoid
   module Validatable
-
     class AssertionValidator < ActiveModel::Validator
 
       def validate(record)
@@ -49,6 +48,5 @@ module Mongoid
       end
 
     end
-
   end
 end

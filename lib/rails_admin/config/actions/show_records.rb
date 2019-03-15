@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class ShowRecords < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -23,7 +22,6 @@ module RailsAdmin
           'icon-list'
         end
       end
-
     end
   end
 end

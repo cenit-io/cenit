@@ -2,7 +2,6 @@ module RailsAdmin
   ###
   # Generate sdk code for api service.
   module RestApiHelper
-
     include RailsAdmin::RestApi::Curl
     include RailsAdmin::RestApi::Php
     include RailsAdmin::RestApi::Ruby

@@ -52,7 +52,6 @@ module RailsAdmin
             fields :namespace, :name, :expression, :activated, :updated_at
           end
         end
-
       end
     end
   end

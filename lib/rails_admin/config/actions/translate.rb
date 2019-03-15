@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Translate < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do

@@ -18,7 +18,6 @@ module RailsAdmin
             instance_eval &RailsAdmin::Models::Setup::CollectionFieldsConfigAdmin::FIELDS_CONFIG
           end
         end
-
       end
     end
   end

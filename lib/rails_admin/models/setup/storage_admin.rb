@@ -58,7 +58,6 @@ module RailsAdmin
             fields :storer_model, :storer_object, :storer_property, :filename, :contentType, :length, :metadata
           end
         end
-
       end
     end
   end

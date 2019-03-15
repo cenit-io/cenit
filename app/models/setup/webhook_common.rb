@@ -479,7 +479,6 @@ module Setup
     SYM_METHODS = METHODS.map(&:downcase).map(&:to_sym)
 
     module ClassMethods
-
       def method_enum
         SYM_METHODS
       end

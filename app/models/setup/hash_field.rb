@@ -50,7 +50,6 @@ module Setup
     end
 
     module ClassMethods
-
       def local_hash_fields
         @hash_fields ||= []
       end
@@ -72,8 +71,6 @@ module Setup
           local_hash_fields << field_name
         end
       end
-
     end
-
   end
 end

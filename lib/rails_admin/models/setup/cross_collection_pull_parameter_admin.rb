@@ -14,7 +14,6 @@ module RailsAdmin
             fields :label, :type, :many, :required, :description, :properties_locations
           end
         end
-
       end
     end
   end

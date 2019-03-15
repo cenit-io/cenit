@@ -38,7 +38,6 @@ module NumberGenerator
   end
 
   module ClassMethods
-
     def by_number(number)
       where(number: number)
     end

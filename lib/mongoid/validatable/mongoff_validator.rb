@@ -2,7 +2,6 @@ require 'json-schema/schema/cenit_reader'
 
 module Mongoid
   module Validatable
-
     class MongoffValidator < ActiveModel::EachValidator
 
       def validate_each(record, attribute, value)

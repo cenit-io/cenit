@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Pull < RailsAdmin::Config::Actions::Base
 
         register_instance_option :pjax? do
@@ -88,7 +87,6 @@ module RailsAdmin
           'icon-arrow-down'
         end
       end
-
     end
   end
 end
