@@ -68,7 +68,6 @@ module RailsAdmin
           end
 
           fields :_id, :name, :owner, :users, :notification_level, :time_zone
-
         end
       end
 

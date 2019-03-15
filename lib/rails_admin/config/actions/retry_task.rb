@@ -21,7 +21,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if @object.can_retry?
               @object.retry
             else

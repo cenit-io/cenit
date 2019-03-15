@@ -18,7 +18,6 @@ module Setup
       end
       modified = nil
       hash.each do |field, conditions|
-
         # LEGACY: Transform form old Hash conditions format to new Array conditions format.
         if conditions.is_a?(Hash)
           hash[field] = conditions = conditions.values
@@ -31,7 +30,6 @@ module Setup
             modified = true
           end
         end
-
       end
       send("#{field}=", hash.to_json) if modified
     end
@@ -40,7 +38,6 @@ module Setup
       r = true
       triggers_hash = JSON.parse(send(field))
       triggers_hash.each do |field_name, conditions|
-
         # LEGACY: Transform form old Hash conditions format to new Array conditions format.
         conditions = conditions.values if conditions.is_a?(Hash)
 
@@ -53,7 +50,6 @@ module Setup
               (obj_before.nil? || !condition_apply(obj_before, obj_now, field_name, condition))
           end
         end
-
       end
       r
     end

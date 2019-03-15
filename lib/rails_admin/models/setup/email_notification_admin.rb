@@ -63,7 +63,6 @@ module RailsAdmin
                 required true
                 visible { !bindings[:object].data_type.nil? }
               end
-
             end
 
             fields :namespace, :name, :active, :data_type, :observers, :email_channel, :updated_at

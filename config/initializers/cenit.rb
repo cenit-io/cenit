@@ -3,7 +3,6 @@
 require 'cenit/cenit'
 
 Cenit.config do
-
   share_on_github false
 
   github_shared_collections_home ENV['GITHUB_SHARED_COLLECTIONS_HOME']

@@ -7,7 +7,6 @@ module JSON
 
           schema = current_schema.schema
           schema['properties'].each do |property, property_schema|
-
             if property_schema['referenced'] #TODO && mongoff_model_schema?(property_schema)
               if property_schema['type'] == 'array'
                 property = "#{property}_ids"

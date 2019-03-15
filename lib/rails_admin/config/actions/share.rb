@@ -18,7 +18,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             shared_collection_config = RailsAdmin::Config.model(Setup::CrossSharedCollection)
             if (shared_params = params.delete(shared_collection_config.abstract_model.param_key))
               sanitize_params_for!(:create, shared_collection_config, shared_params)

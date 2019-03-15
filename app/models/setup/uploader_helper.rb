@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-
       before_save do
         self.class.before_store_callbacks.each do |callback|
           instance_eval(&callback)

@@ -2,7 +2,6 @@ module RailsAdmin
   module Config
     module Actions
       Edit.class_eval do
-
         def self.loading_member
           Thread.current[:cenit_pins_off] = true
           yield
@@ -13,7 +12,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if request.get? # EDIT
 
               if @model_config.asynchronous_persistence
@@ -83,7 +81,6 @@ module RailsAdmin
               end
 
             end
-
           end
         end
       end

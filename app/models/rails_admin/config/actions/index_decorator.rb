@@ -2,7 +2,6 @@ module RailsAdmin
   module Config
     module Actions
       Index.class_eval do
-
         register_instance_option :listing? do
           true
         end

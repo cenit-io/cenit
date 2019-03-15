@@ -3,7 +3,6 @@ module RailsAdmin
 
     def show_mongoid_tracer_trace
       respond_to do |format|
-
         format.json do
           render json: @object
         end

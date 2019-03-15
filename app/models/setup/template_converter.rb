@@ -6,9 +6,7 @@ module Setup
     include SnippetCodeTransformation
 
     included do
-
       validates_presence_of :target_data_type
-
     end
 
     def code_extension

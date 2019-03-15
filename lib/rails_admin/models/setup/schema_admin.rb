@@ -62,7 +62,6 @@ module RailsAdmin
               #field :creator
               field :updated_at
               #field :updater
-
             end
 
             fields :namespace, :uri, :schema_data_type, :updated_at

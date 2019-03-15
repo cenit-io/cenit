@@ -3,7 +3,6 @@ module RailsAdmin
     module Fields
       module Types
         Enum.class_eval do
-
           register_instance_option :enum_for_select do
             enum
           end

@@ -4,7 +4,6 @@ module ObserverTenantLookup
   include EventLookup
 
   included do
-
     before_save do
       @_changed_before_save = changed?
       true

@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-
       field :identifier, type: String
       field :secret, type: String
 

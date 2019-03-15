@@ -3,7 +3,6 @@ module RailsAdmin
     module Fields
       module Types
         FileUpload.class_eval do
-
           register_instance_option :pretty_value do
             if value.presence
               v = bindings[:view]

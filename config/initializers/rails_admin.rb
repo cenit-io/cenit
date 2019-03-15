@@ -257,7 +257,6 @@ module RailsAdmin
 end
 
 RailsAdmin.config do |config|
-
   config.parent_controller = '::ApplicationController'
 
   config.total_columns_width = 900

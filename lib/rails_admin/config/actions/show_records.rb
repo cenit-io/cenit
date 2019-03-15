@@ -14,10 +14,8 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             redirect_to rails_admin.index_path(model_name: @object.data_type.records_model.to_s.underscore.gsub('/', '~'),
                                                algorithm_output: @object.id.to_s)
-
           end
         end
 

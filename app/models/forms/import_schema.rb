@@ -12,7 +12,6 @@ module Forms
       visible false
       register_instance_option(:discard_submit_buttons) { true }
       edit do
-
         field :namespace, :enum_edit do
           enum do
             Setup::Namespace.all.collect(&:name)

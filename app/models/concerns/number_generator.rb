@@ -6,7 +6,6 @@ module NumberGenerator
   NUMBER_PREFIX = 'N'
 
   included do
-
     field :number, as: :key, type: String
 
     before_validation :generate_number

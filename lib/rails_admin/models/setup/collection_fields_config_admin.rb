@@ -8,7 +8,6 @@ module RailsAdmin
         end
 
         FIELDS_CONFIG = proc do
-
           if abstract_model.model == ::Setup::CrossSharedCollection
             configure :readme, :html_erb
             configure :pull_data, :json_value

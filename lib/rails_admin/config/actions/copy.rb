@@ -13,7 +13,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             model = abstract_model.model rescue nil
             if model
               hash = @object.is_a?(::Mongoff::Record) ? @object.share_hash : @object.copy_hash
@@ -23,7 +22,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

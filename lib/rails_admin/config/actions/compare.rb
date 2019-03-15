@@ -18,7 +18,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             model = @abstract_model.model
             @touched = false
 

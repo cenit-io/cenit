@@ -21,7 +21,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::SchedulerSelector.collection.drop
             if @object.can_schedule?
               done = false
@@ -49,7 +48,6 @@ module RailsAdmin
               flash[:error] = "Can not schedule #{@object}"
               redirect_to back_or_index
             end
-
           end
         end
 

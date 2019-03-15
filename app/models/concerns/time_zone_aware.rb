@@ -2,7 +2,6 @@ module TimeZoneAware
   extend ActiveSupport::Concern
 
   included do
-
     field :time_zone, type: String, default: -> { default_time_zone }
   end
 

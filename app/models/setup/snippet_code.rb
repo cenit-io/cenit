@@ -5,7 +5,6 @@ module Setup
     include ShareWithBindings
 
     included do
-
       build_in_data_type.and(
         properties: {
           code: {

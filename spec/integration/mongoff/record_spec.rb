@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Mongoff::Record do
-
   TEST_NAMESPACE = 'Mongoff Test'
 
   B_JSON_SAMPLE = {
@@ -163,7 +162,6 @@ describe Mongoff::Record do
   end
 
   context 'when initialized' do
-
     it 'sets new_record flag to true when initialized' do
       a = new_record_a
       expect(a.new_record?).to eq(true)
@@ -266,7 +264,6 @@ describe Mongoff::Record do
   end
 
   context 'when persisted' do
-
     it 'sets new_record flag to false when persisted' do
       a = new_record_a
       a.save
@@ -303,7 +300,6 @@ describe Mongoff::Record do
   end
 
   context 'when created' do
-
     it 'sets new_record flag to false when created' do
       a = create_record_a
       expect(a.new_record?).to eq(false)
@@ -340,7 +336,6 @@ describe Mongoff::Record do
   end
 
   context 'when loaded' do
-
     it 'sets new_record flag to false when loaded' do
       a = load_record_a
       expect(a.new_record?).to eq(false)

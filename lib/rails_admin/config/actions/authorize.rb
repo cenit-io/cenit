@@ -19,7 +19,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             errors = nil
             if @object.check
               if @object.is_a?(Setup::CallbackAuthorization)

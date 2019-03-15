@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             form_config = RailsAdmin::Config.model(Forms::SharedCollectionSelector)
             done = false
             if (data = params[form_config.abstract_model.param_key]) && data.permit! &&

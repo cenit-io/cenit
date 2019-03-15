@@ -5,7 +5,6 @@ require 'rails_admin/lib/mongoff_abstract_model'
 
 module RailsAdmin
   Config.module_eval do
-
     class << self
 
       def model(entity, &block)
@@ -38,6 +37,5 @@ module RailsAdmin
         @namespace_modules ||= [Setup, Cenit, Forms, Mongoid::Tracer]
       end
     end
-
   end
 end

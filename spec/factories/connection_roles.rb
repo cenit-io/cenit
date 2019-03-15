@@ -5,6 +5,5 @@ FactoryGirl.define do
   end
 
   factory :role_buyer_connection, class: Setup::ConnectionRole do
-
   end
 end

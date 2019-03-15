@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             render_form = true
             model = @abstract_model.model rescue nil
             data = {}
@@ -86,7 +85,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

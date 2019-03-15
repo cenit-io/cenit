@@ -26,7 +26,6 @@ module RailsAdmin
                 html_attributes do
                   { rows: '1' }
                 end
-
               end
             end
 

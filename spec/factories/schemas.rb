@@ -13,6 +13,5 @@ FactoryGirl.define do
         data_type.create_default_events
       end
     end
-
   end
 end

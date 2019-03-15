@@ -6,7 +6,6 @@ module RailsAdmin
 
         included do
           rails_admin do
-
             navigation_label 'Definitions'
             weight 112
             label 'File Type'

@@ -19,10 +19,8 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             @object.reinstall
             redirect_to back_or_index
-
           end
         end
 

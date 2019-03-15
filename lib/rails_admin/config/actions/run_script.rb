@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if params[:_run]
               begin
                 if params[:background].present?

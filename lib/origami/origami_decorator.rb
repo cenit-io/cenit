@@ -101,7 +101,6 @@ Origami.module_eval do
 
       [page, annotation]
     end
-
   end
 
   def self.create_cert_and_keys(options={})
