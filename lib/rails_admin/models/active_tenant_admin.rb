@@ -12,7 +12,6 @@ module RailsAdmin
           fields :tenant, :tasks
         end
       end
-
     end
   end
 end

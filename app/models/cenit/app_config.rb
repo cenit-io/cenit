@@ -5,7 +5,6 @@ module Cenit
     BANED_PARAMETER_NAMES = %w(authentication_method logo redirect_uris)
 
     included do
-
       belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
 
       embeds_many :application_parameters, class_name: Cenit::ApplicationParameter.to_s, inverse_of: :application
@@ -40,7 +39,6 @@ module Cenit
       after_save { application_id.save if application_id.new_record? }
 
       after_destroy { application_id && application_id.destroy }
-
     end
 
     def validates_configuration
@@ -109,7 +107,6 @@ module Cenit
     end
 
     module ClassMethods
-
       def before_validates_configuration(&block)
         block && configuration_callbacks << block
       end

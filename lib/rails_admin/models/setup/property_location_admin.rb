@@ -12,7 +12,6 @@ module RailsAdmin
             fields :property_name, :location
           end
         end
-
       end
     end
   end

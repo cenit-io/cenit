@@ -44,7 +44,6 @@ module RailsAdmin
           end
         end
       end
-
     end
   end
 end

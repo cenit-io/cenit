@@ -5,7 +5,6 @@ module Forms
     include Mongoid::Document
 
     included do
-
       field :file
       field :decompress_content, type: Boolean
       field :data, type: String

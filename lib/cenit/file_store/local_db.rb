@@ -87,7 +87,6 @@ module Cenit
         n = -1
 
         reading(readable) do |io|
-
           chunking(io, file[:chunkSize]) do |buf|
             md5 << buf
             length += buf.size

@@ -15,7 +15,6 @@ module RailsAdmin
             fields :provider, :name, :description, :updated_at
           end
         end
-
       end
     end
   end

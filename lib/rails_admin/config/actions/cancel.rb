@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if request.get? # Ask
 
               respond_to do |format|

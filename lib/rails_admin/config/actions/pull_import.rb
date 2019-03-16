@@ -24,7 +24,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             form_config = RailsAdmin::Config.model(Forms::JsonDataImport)
             view = :form
             model = @abstract_model.model rescue nil
@@ -62,7 +61,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Authorize < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -19,7 +18,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             errors = nil
             if @object.check
               if @object.is_a?(Setup::CallbackAuthorization)
@@ -55,7 +53,6 @@ module RailsAdmin
           false
         end
       end
-
     end
   end
 end

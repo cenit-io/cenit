@@ -1,6 +1,5 @@
 module Setup
   module WithSourceOptions
-
     def base_execution_options(options)
       opts = super
       opts.merge!(source_options(options))

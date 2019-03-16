@@ -1,6 +1,5 @@
 module Setup
   module CommonParser
-
     def regist_creation_listener(listener)
       (@creation_listeners ||= []) << listener
     end
@@ -77,6 +76,5 @@ module Setup
       end
       record
     end
-
   end
 end

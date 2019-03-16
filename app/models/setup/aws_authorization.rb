@@ -99,7 +99,7 @@ module Setup
       def normalize_val(value)
         uri_escape(value.respond_to?(:iso8601) ? value.iso8601 : value.to_s)
       end
-      
+
     end
 
   end

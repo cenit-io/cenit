@@ -191,7 +191,6 @@ module RailsAdmin
             field :sign_in_count
             field :created_at
           end
-
         end
       end
     end

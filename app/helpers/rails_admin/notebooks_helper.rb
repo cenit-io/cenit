@@ -2,7 +2,6 @@ module RailsAdmin
   ###
   # Features to admin and process the notebooks.
   module NotebooksHelper
-
     include RailsAdmin::RestApi::Notebooks
 
     def notebooks_jupyter_url(notebook=nil)
@@ -33,7 +32,6 @@ module RailsAdmin
     def new_setup_notebook
       redirect_to rails_admin.index_path(model_name: 'notebook')
     end
-
   end
 end
 

@@ -222,6 +222,5 @@ module RailsAdmin
         redirect_to back_or_index, flash: flash
       end
     end
-
   end
 end

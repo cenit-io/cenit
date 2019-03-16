@@ -1,5 +1,4 @@
 Capataz.config do
-
   disable ENV['CAPATAZ_DISABLE']
 
   maximum_iterations ENV['CAPATAZ_MAXIMUM_ITERATIONS'] || 3000

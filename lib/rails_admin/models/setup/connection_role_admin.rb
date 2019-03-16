@@ -55,7 +55,6 @@ module RailsAdmin
             fields :namespace, :name, :webhooks, :connections, :updated_at
           end
         end
-
       end
     end
   end

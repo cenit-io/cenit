@@ -37,7 +37,6 @@ module RailsAdmin
             filter_fields :namespace, :name, :authorized, :_type, :metadata, :updated_at
           end
         end
-
       end
     end
   end

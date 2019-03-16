@@ -13,7 +13,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             create_selector_token = false
             scope =
               if @object

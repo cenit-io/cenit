@@ -79,7 +79,6 @@ module RailsAdmin
             fields :name, :active, :data_type, :observers, :http_method, :url, :updated_at
           end
         end
-
       end
     end
   end

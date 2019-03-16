@@ -258,7 +258,6 @@ module RailsAdmin
       menu = menu.concat(tenants)
       menu.join.html_safe
     end
-
   end
 end
 

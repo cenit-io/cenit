@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-
       field :slug, type: String
 
       validates_length_of :slug, maximum: 255
@@ -62,6 +61,5 @@ module Setup
     def slug_taken?(slug)
       self.class.where(slug: slug, :id.nin => [id]).present?
     end
-
   end
 end

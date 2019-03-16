@@ -5,7 +5,6 @@ module RailsAdmin
   module Adapters
     module Mongoid
       StatementBuilder.class_eval do
-
         def build_statement_for_type
           case @type
           when :boolean

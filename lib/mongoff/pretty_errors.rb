@@ -1,6 +1,5 @@
 module Mongoff
   module PrettyErrors
-
     def pretty_errors(record)
       return {} unless record
       errors = record.errors.messages.dup.with_indifferent_access

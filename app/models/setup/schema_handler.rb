@@ -1,6 +1,5 @@
 module Setup
   module SchemaHandler
-
     def schema
       fail NotImplementedError
     end
@@ -238,6 +237,5 @@ module Setup
       end if options[:recursive] || (options[:until_merge] && !merged)
       schema
     end
-
   end
 end

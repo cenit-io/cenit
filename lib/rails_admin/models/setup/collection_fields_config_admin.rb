@@ -2,13 +2,11 @@ module RailsAdmin
   module Models
     module Setup
       module CollectionFieldsConfigAdmin
-
         SHARING_INVISIBLE = Proc.new do
           visible { !bindings[:object].instance_variable_get(:@sharing) }
         end
 
         FIELDS_CONFIG = proc do
-
           if abstract_model.model == ::Setup::CrossSharedCollection
             configure :readme, :html_erb
             configure :pull_data, :json_value

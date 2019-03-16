@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   AbstractModel.class_eval do
-
     def model_class
       @model_name.constantize
     end

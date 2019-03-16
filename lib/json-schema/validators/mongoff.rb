@@ -6,7 +6,6 @@ require 'json-schema/attributes/formats/uint_format'
 require 'json-schema/schema/reader'
 
 module JSON
-
   class Validator
 
     class << self

@@ -54,7 +54,6 @@ module RailsAdmin
             fields :namespace, :name, :type, :description, :code, :updated_at
           end
         end
-
       end
     end
   end

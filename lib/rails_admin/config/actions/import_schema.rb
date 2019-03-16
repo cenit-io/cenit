@@ -19,7 +19,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             form_config = RailsAdmin::Config.model(Forms::ImportSchema)
             if params[:_save] && (message = params[form_config.abstract_model.param_key])
               do_flash_process_result Setup::SchemasImport.process(message)
@@ -29,7 +28,6 @@ module RailsAdmin
               @model_config = form_config
               render :form
             end
-
           end
         end
 

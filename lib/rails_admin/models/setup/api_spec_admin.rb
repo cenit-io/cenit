@@ -28,7 +28,6 @@ module RailsAdmin
             fields :title, :url, :specification
           end
         end
-
       end
     end
   end

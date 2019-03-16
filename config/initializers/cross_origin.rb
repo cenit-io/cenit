@@ -9,7 +9,6 @@ module CrossOrigin
     end
 
     module ClassMethods
-
       def cross_origins
         if @origins
           @origins.collect do |origin|

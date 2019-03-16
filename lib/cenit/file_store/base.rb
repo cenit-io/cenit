@@ -42,11 +42,9 @@ module Cenit
       end
 
       def set_public_read(file, status)
-
       end
 
       def public_url(file)
-
       end
 
       def stored?(file)

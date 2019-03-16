@@ -22,7 +22,6 @@ module RailsAdmin
             fields :name, :type, :many, :group, :description
           end
         end
-
       end
     end
   end

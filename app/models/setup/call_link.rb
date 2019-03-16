@@ -24,6 +24,6 @@ module Setup
       end if link.blank?
       link
     end
-    
+
   end
 end

@@ -39,7 +39,6 @@ module RailsAdmin
             fields :data, :pull_request, :pulled_request, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
-
       end
     end
   end

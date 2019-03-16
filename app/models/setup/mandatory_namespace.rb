@@ -7,6 +7,5 @@ module Setup
     included do
       validates_presence_of :namespace
     end
-    
   end
 end

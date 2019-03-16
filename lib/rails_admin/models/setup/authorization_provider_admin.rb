@@ -30,7 +30,6 @@ module RailsAdmin
             fields :namespace, :name, :_type, :authorization_endpoint
           end
         end
-
       end
     end
   end

@@ -1,6 +1,5 @@
 module RailsAdmin
   module OverrideActionsHelper
-
     def self.included(base)
       RailsAdmin::Config::Actions.all.each do |action|
         base.class_eval <<-EOS, __FILE__, __LINE__ + 1
@@ -22,7 +21,6 @@ module RailsAdmin
         EOS
       end
     end
-
   end
 end
 

@@ -35,7 +35,6 @@ module RailsAdmin
             fields :namespace, :name, :slug, :identifier, :secret_token, :registered, :actions, :application_parameters
           end
         end
-
       end
     end
   end

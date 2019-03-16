@@ -1,7 +1,5 @@
 module CanCan
-
   module Ability
-
     def get_relevant_rules_for_query(action, subject)
       relevant_rules_for_query(action, subject)
     end

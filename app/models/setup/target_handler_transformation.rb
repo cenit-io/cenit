@@ -1,6 +1,5 @@
 module Setup
   module TargetHandlerTransformation
-
     def after_execute(options)
       super
       return unless (target = options[:target])

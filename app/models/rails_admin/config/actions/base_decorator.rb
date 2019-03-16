@@ -2,7 +2,6 @@ module RailsAdmin
   module Config
     module Actions
       Base.class_eval do
-
         register_instance_option :admin_tail_link? do
           false
         end

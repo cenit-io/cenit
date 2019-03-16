@@ -20,7 +20,6 @@ module RailsAdmin
 
           fields :name, :metadata, :users
         end
-
       end
     end
   end

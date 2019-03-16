@@ -60,7 +60,6 @@ module RailsAdmin
             fields :namespace, :name, :target_data_type, :code, :updated_at
           end
         end
-
       end
     end
   end

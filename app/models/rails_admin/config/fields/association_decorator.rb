@@ -4,7 +4,6 @@ module RailsAdmin
   module Config
     module Fields
       Association.class_eval do
-
         register_instance_option :nested_form_safe? do
           false
         end

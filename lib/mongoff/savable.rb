@@ -1,6 +1,5 @@
 module Mongoff
   module Savable
-
     def save(options = {})
       errors.clear
       if destroyed?
@@ -31,6 +30,5 @@ module Mongoff
       end if orm_model.persistable? && errors.blank?
       errors.blank?
     end
-
   end
 end

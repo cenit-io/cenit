@@ -26,7 +26,6 @@ module RailsAdmin
             fields :namespace, :name, :authorization_endpoint
           end
         end
-
       end
     end
   end

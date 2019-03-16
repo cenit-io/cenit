@@ -21,7 +21,6 @@ module RailsAdmin
             fields :_id, :title, :description, :updated_at
           end
         end
-
       end
     end
   end

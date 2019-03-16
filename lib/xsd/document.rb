@@ -1,5 +1,4 @@
 module Xsd
-
   BUILD_IN_TYPES =
     {
       'type:http://www.w3.org/2001/XMLSchema:decimal' => { 'type' => 'number' },

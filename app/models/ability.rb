@@ -8,7 +8,6 @@ class Ability
   attr_reader :deferred_abilities
 
   def initialize(user)
-
     @deferred_abilities = []
 
     can :access, :rails_admin

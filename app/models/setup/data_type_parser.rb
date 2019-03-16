@@ -28,6 +28,5 @@ module Setup
       Cenit::Utility.bind_references(record, if: EDI_PARSED_RECORD)
       record
     end
-    
   end
 end

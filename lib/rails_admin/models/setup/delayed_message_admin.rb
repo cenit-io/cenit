@@ -11,7 +11,6 @@ module RailsAdmin
             visible { ::User.current_super_admin? }
           end
         end
-
       end
     end
   end

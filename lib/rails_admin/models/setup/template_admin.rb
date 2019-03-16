@@ -17,7 +17,6 @@ module RailsAdmin
             fields :namespace, :name, :source_data_type, :mime_type, :file_extension, :updated_at
           end
         end
-
       end
     end
   end

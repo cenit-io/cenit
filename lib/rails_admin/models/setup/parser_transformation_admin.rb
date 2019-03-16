@@ -20,7 +20,6 @@ module RailsAdmin
             fields :namespace, :name, :target_data_type, :updated_at
           end
         end
-
       end
     end
   end

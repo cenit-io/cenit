@@ -80,7 +80,6 @@ module Cenit
         lazy_models = [Setup::MappingConverter]
 
         while_modifying references do
-
           while_modifying references do
             references.each do |obj_waiting, to_bind|
               next if lazy_models.include?(obj_waiting.class)

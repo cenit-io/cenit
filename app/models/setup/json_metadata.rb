@@ -7,6 +7,5 @@ module Setup
     included do
       hash_field :metadata
     end
-
   end
 end

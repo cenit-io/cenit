@@ -23,7 +23,6 @@ module Setup
     end
 
     module ClassMethods
-
       def parameters_relations_names
         @parameters_relations_names || (superclass < Parameters && superclass.parameters_relations_names) || []
       end
@@ -58,8 +57,6 @@ module Setup
           end
         end
       end
-
     end
-    
   end
 end

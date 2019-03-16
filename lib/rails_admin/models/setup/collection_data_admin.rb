@@ -10,7 +10,6 @@ module RailsAdmin
             object_label_method { :label }
           end
         end
-
       end
     end
   end

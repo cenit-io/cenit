@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if params[:delete] # DELETE
               redirect_path = nil
               if @auditing_adapter

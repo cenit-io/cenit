@@ -3,7 +3,6 @@ module RailsAdmin
     module Fields
       module Types
         Datetime.class_eval do
-
           register_instance_option :formatted_value do
             if (time = value)
               if (current_account = Account.current)

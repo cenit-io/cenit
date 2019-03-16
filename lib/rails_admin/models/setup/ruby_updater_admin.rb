@@ -64,7 +64,6 @@ module RailsAdmin
             fields :namespace, :name, :target_data_type, :discard_events, :code, :updated_at
           end
         end
-
       end
     end
   end

@@ -63,5 +63,5 @@ class String
   def to_boolean
     self == 'true'
   end
-  
+
 end

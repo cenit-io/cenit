@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   ApplicationHelper.module_eval do
-
     def format_name(name)
       max_name_length = 30
       if name.length > max_name_length
@@ -640,7 +639,6 @@ module RailsAdmin
             rc.html_safe
           end
         end
-
       end
 
       show_all_link =
@@ -734,7 +732,6 @@ module RailsAdmin
                   </div>
                   </div>'
         end
-
       end
       html.html_safe
     end
@@ -788,7 +785,6 @@ module RailsAdmin
           end
           html += '</ul></li>'
         end
-
       end
       html += '</ul>'
       html.html_safe

@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Translate < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
@@ -22,7 +21,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::TransformationSelector.collection.drop
             translation_config = RailsAdmin::Config.model(Forms::TransformationSelector)
             translator_type = @action.class.translator_type
@@ -68,7 +66,6 @@ module RailsAdmin
               @form_object.save(validate: false)
               render :form, locals: { bulk_alert: true }
             end
-
           end
         end
 

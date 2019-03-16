@@ -22,7 +22,6 @@ module RailsAdmin
             fields :created_at, :application_id, :scope
           end
         end
-
       end
     end
   end

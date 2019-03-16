@@ -598,7 +598,6 @@ module Api::V3
 end
 
 module Setup
-
   class DataType
 
     def handle_get_digest(controller)

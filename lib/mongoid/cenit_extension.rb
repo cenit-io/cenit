@@ -2,13 +2,11 @@ require 'cenit/liquidfier'
 
 module Mongoid
   module Config
-
     def unregist_model(klass)
       LOCK.synchronize do
         models.delete(klass)
       end
     end
-
   end
 
   module CenitDocument
@@ -33,7 +31,6 @@ module Mongoid
     include Cenit::Liquidfier
 
     module ClassMethods
-
       include Mongoff::MetadataAccess
       include Mongoff::PrettyErrors
 

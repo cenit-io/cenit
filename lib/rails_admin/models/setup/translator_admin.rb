@@ -16,7 +16,6 @@ module RailsAdmin
             fields :namespace, :name, :type, :updated_at
           end
         end
-
       end
     end
   end

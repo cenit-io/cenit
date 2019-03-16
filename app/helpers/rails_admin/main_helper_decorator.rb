@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   MainHelper.class_eval do
-
     alias_method :ra_rails_admin_form_for, :rails_admin_form_for
 
     def rails_admin_form_for(*args, &block)

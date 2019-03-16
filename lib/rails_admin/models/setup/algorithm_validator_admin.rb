@@ -22,7 +22,6 @@ module RailsAdmin
             fields :namespace, :name, :algorithm, :updated_at
           end
         end
-
       end
     end
   end

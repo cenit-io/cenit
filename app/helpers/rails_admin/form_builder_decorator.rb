@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   FormBuilder.class_eval do
-
     alias_method :rails_admin_generate, :generate
 
     def generate(options = {})

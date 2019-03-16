@@ -14,7 +14,6 @@ module RailsAdmin
             fields :method, :path, :algorithm
           end
         end
-
       end
     end
   end

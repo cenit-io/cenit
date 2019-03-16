@@ -1,7 +1,6 @@
 module DateTimeCharts
   extend ActiveSupport::Concern
   module ClassMethods
-
     def data_by(set, base_calc, date_field, calculation, acumulate = nil)
       set = set.group_by { |o| acumulate.present? ? o.send(date_field).send(acumulate) : o.send(date_field) }
       met = simple_properties_schemas.key?(base_calc.to_s) ? "map(&:#{base_calc})" : "send(:#{base_calc})" # TODO: Check aggregation calculation when base_calc is a relation
