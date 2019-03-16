@@ -6,38 +6,6 @@ require 'rspec/rails'
 require 'ffaker'
 require 'factory_girl_rails'
 require 'database_cleaner'
-require 'simplecov'
-require 'coveralls'
-
-require 'capybara/poltergeist'
-
-Capybara.javascript_driver = :poltergeist
-
-# Increase default wait time from 2 seconds as needed.
-Capybara.default_wait_time = 6
-
-# Set an explicit server_port so we can use it later to set the URL for multi-tenancy testing
-Capybara.server_port = "8200"
-
-# Configure selenium/chrome for testing via capybara
-Capybara.register_driver :chrome do |app|
-  Capybara::Selenium::Driver.new(app, browser: :chrome)
-end
-
-# Set RAILS_TEST_BROWSER to selenium or firefox for firefox,
-# chrome (or nothing) for chrome, or webkit for webkit
-browser = ENV['RAILS_TEST_BROWSER'] || 'chrome'
-Capybara.default_driver = Capybara.javascript_driver = browser.to_sym
-
-SimpleCov.formatters = [
-  SimpleCov::Formatter::HTMLFormatter,
-  Coveralls::SimpleCov::Formatter]
-
-SimpleCov.start do
-  add_filter '/spec/'
-  add_filter '/vendor/bundle/'
-  minimum_coverage(91.65)
-end
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
@@ -69,8 +37,6 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.include Warden::Test::Helpers
-
-  config.include Capybara::DSL, type: :request
 
   # ## Mock Framework
   #

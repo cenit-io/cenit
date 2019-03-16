@@ -32,9 +32,6 @@ config/deploy.rb
 .rvmrc
 
 *~
-.ruby-gemset
-.ruby-version
 .idea
 .rbenv*
 custom_Gemfile
-
