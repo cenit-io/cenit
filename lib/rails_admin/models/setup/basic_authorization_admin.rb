@@ -55,7 +55,6 @@ module RailsAdmin
             fields :namespace, :name, :status, :username, :password, :updated_at
           end
         end
-
       end
     end
   end

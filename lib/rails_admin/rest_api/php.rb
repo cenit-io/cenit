@@ -39,7 +39,6 @@ module RailsAdmin
       def api_php_vars(vars)
         vars.map { |k, v| "$#{k} = '#{vars.is_a?(Hash) ? v : "..."}';" }
       end
-
     end
   end
 end

@@ -33,7 +33,6 @@ module Setup
     end
 
     module ClassMethods
-
       def parse_options(options)
         options = options.to_s.strip
         options = "{#{options}" unless options.start_with?('{')
@@ -79,7 +78,6 @@ module Setup
           end
         end
       end
-      
     end
   end
 end

@@ -91,7 +91,6 @@ module RailsAdmin
             filter_query_fields :namespace, :name
           end
         end
-
       end
     end
   end

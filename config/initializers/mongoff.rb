@@ -1,7 +1,6 @@
 require 'mongoff/model'
 
 Mongoff::Model.config do
-
   base_schema do
     {
       type: 'object',

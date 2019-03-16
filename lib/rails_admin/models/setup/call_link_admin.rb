@@ -25,7 +25,6 @@ module RailsAdmin
             fields :name, :link
           end
         end
-
       end
     end
   end

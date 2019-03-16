@@ -1,7 +1,6 @@
 module Mongoff
   module GridFs
     module FileFormatter
-
       def to_hash(options = {})
         if (json = native_hash_format(options, :to_hash)).is_a?(String)
           json = JSON.parse(json)

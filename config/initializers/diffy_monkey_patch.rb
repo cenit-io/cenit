@@ -86,8 +86,6 @@ module Diffy
           lines.join("\n")
         ]
       end
-
-
     end
 
   end

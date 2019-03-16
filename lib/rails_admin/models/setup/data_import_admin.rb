@@ -34,7 +34,6 @@ module RailsAdmin
             fields :translator, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
-
       end
     end
   end

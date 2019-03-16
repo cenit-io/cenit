@@ -2,14 +2,12 @@ module RailsAdmin
   module Config
     module Actions
       New.class_eval do
-
         register_instance_option :http_methods do
           [:get, :post, :patch] # NEW / CREATE / COPY
         end
 
         register_instance_option :controller do
           proc do
-
             #Patch
             if request.get? || params[:_restart] # NEW
 

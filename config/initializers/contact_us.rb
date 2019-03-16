@@ -1,7 +1,6 @@
 require 'cenit/contact_us'
 # Use this hook to configure contact mailer.
 ContactUs.config do |config|
-
   # ==> Mailer Configuration
 
   # Configure the e-mail address which email notifications should be sent from.  If emails must be sent from a verified email address you may set it here.
@@ -31,5 +30,4 @@ ContactUs.config do |config|
   # Configure the parent action mailer
   # Example:
   # config.parent_mailer = "ActionMailer::Base"
-
 end

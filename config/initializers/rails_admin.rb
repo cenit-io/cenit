@@ -111,9 +111,7 @@ RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkE
 require 'rails_admin/config/fields/factories/tag'
 
 module RailsAdmin
-
   module Config
-
     class << self
 
       def navigation(label, options)
@@ -257,7 +255,6 @@ module RailsAdmin
 end
 
 RailsAdmin.config do |config|
-
   config.parent_controller = '::ApplicationController'
 
   config.total_columns_width = 900

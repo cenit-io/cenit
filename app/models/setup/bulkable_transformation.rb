@@ -5,7 +5,6 @@ module Setup
     include WithSourceOptions
 
     included do
-
       field :bulk_source, type: Boolean
 
       before_save do

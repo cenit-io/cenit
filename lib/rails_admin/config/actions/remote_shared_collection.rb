@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class RemoteSharedCollection < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
@@ -111,7 +110,6 @@ module RailsAdmin
           'fa fa-cube'
         end
       end
-
     end
   end
 end

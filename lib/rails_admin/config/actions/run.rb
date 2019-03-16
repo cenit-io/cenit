@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             mongoff_model = @object.configuration_model
 
             @model_config = RailsAdmin::Config.model(mongoff_model)

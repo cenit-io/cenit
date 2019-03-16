@@ -13,7 +13,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             model = @abstract_model.model rescue nil
             if model
               scope = list_entries(@abstract_model.config, :destroy)

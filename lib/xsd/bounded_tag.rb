@@ -1,6 +1,5 @@
 module Xsd
   module BoundedTag
-
     attr_reader :max_occurs
     attr_reader :min_occurs
 
@@ -20,6 +19,5 @@ module Xsd
           1
         end
     end
-
   end
 end

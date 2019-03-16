@@ -37,7 +37,6 @@ module RailsAdmin
             fields :target_model, :target, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
-
       end
     end
   end

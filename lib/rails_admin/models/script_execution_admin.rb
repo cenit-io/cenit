@@ -32,7 +32,6 @@ module RailsAdmin
 
           fields :script, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications
         end
-
       end
     end
   end

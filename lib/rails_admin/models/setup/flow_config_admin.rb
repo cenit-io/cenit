@@ -35,7 +35,6 @@ module RailsAdmin
             show_in_dashboard false
           end
         end
-
       end
     end
   end

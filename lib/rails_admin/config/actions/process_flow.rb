@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if ProcessFlow.processable(@object)
               begin
                 do_flash_process_result(@object.process)

@@ -40,7 +40,6 @@ module RailsAdmin
             fields :namespace, :name, :address, :port, :domain, :enable_starttls_auto
           end
         end
-
       end
     end
   end

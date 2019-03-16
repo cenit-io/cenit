@@ -15,7 +15,6 @@ module RailsAdmin
             fields :namespace, :name, :send_flow, :updated_at
           end
         end
-
       end
     end
   end

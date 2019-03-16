@@ -4,7 +4,6 @@ module Cenit
     class << self
 
       def pull_request(shared_collection, options = {})
-
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
         unless options[:ignore_missing_parameters]

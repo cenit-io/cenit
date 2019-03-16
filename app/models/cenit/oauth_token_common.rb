@@ -5,7 +5,6 @@ module Cenit
     include Cenit::TenantToken
 
     included do
-
       field :user_id
 
       token_length 60

@@ -22,7 +22,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             errors = []
             begin
               if @object.class.try(:data_type).is_a?(Setup::FileDataType)
@@ -40,7 +39,6 @@ module RailsAdmin
               do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), errors)
               redirect_to back_or_index
             end
-
           end
         end
 

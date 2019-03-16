@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Pull < RailsAdmin::Config::Actions::Base
 
         register_instance_option :pjax? do
@@ -22,7 +21,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if (pull_parameters = params[:pull_parameters])
               pull_parameters.permit!
               RailsAdmin::Config.model(@object.pull_model).edit.fields.each { |field| field.parse_input(pull_parameters) }
@@ -89,7 +87,6 @@ module RailsAdmin
           'icon-arrow-down'
         end
       end
-
     end
   end
 end

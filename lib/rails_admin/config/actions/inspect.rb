@@ -22,7 +22,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             if (current_account = Account.current) &&
               (current_user = User.current) &&
               (current_user.super_admin? || current_user.member?(@object))
@@ -67,7 +66,6 @@ module RailsAdmin
         end
 
       end
-
     end
   end
 end

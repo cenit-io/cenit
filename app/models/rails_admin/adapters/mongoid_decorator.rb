@@ -4,7 +4,6 @@ require 'rails_admin/adapters/mongoid'
 module RailsAdmin
   module Adapters
     Mongoid.module_eval do
-
       ALIAS_METHODS = proc do
         alias_method_chain :count, :wrapper
       end

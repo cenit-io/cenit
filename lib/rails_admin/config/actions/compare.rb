@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Compare < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
@@ -18,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             model = @abstract_model.model
             @touched = false
 

@@ -126,6 +126,5 @@ module RailsAdmin
         render text: 'Success!'
       end
     end
-
   end
 end

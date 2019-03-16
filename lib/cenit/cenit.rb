@@ -1,7 +1,6 @@
 require 'cenit/core_ext'
 
 module Cenit
-
   default_options service_url: '/service',
                   reserved_namespaces: %w(cenit default),
                   rabbit_mq_queue: lambda { Mongoid.default_client.database.name }

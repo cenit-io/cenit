@@ -25,7 +25,6 @@ module RailsAdmin
             fields :namespace, :name, :schema_data_type, :content_type, :updated_at
           end
         end
-
       end
     end
   end

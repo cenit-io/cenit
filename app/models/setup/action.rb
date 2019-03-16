@@ -81,6 +81,6 @@ module Setup
     def to_s
       "#{method} '#{path}'"
     end
-    
+
   end
 end

@@ -1,6 +1,5 @@
 module Setup
   module BuildIn
-
     def tracing?
       origin != :cenit
     end

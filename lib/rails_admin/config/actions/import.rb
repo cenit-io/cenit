@@ -29,7 +29,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::ImportTranslatorSelector.collection.drop
             selector_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
             render_form = true
@@ -81,7 +80,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

@@ -359,7 +359,6 @@ module RailsAdmin
             fields :namespace, :name, :description, :active, :event, :translator, :updated_at
           end
         end
-
       end
     end
   end

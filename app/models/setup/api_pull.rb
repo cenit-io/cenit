@@ -26,6 +26,6 @@ module Setup
       fail 'No API to pull' unless api
       super
     end
-    
+
   end
 end

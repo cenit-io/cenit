@@ -182,7 +182,6 @@ module RailsAdmin
             fields :namespace, :name, :type, :style, :code, :source_data_type, :target_data_type, :updated_at
           end
         end
-
       end
     end
   end

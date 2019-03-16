@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::FlowSelector.collection.drop
             model = process_bulk_scope
             selector_config = RailsAdmin::Config.model(Forms::FlowSelector)

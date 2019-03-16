@@ -13,6 +13,5 @@ module Setup
     def new_from_xml(data, options={})
       Edi::Parser.parse_xml(data_type, data, options)
     end
-    
   end
 end

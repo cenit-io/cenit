@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class OpenApiDirectory < RailsAdmin::Config::Actions::Base
 
         register_instance_option :pjax? do
@@ -52,7 +51,6 @@ module RailsAdmin
           'fa fa-cube'
         end
       end
-
     end
   end
 end

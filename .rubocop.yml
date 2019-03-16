@@ -12,3 +12,15 @@ Style/AlignHash:
 
 Style/HashSyntax:
   Enabled: true
+
+Style/TrailingWhitespace:
+  Enabled: true
+
+Style/EmptyLinesAroundBlockBody:
+  Enabled: true
+
+Style/EmptyLinesAroundMethodBody:
+  Enabled: true
+
+Style/EmptyLinesAroundModuleBody:
+  Enabled: true

@@ -107,7 +107,6 @@ module RailsAdmin
             fields :namespace, :name, :url, :number, :token, :authorization, :updated_at
           end
         end
-
       end
     end
   end

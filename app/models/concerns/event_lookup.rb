@@ -8,5 +8,4 @@ module EventLookup
 
     after_save Mongoff::Model.after_save
   end
-
 end

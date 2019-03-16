@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             render_form = true
             mongoff_model = @object.configuration_model
             @model_config = RailsAdmin::Config.model(mongoff_model)
@@ -44,7 +43,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

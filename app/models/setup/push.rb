@@ -52,6 +52,6 @@ module Setup
         fail "Collection with id #{source_collection_id} not found"
       end
     end
-    
+
   end
 end

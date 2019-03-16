@@ -1,6 +1,5 @@
 module Setup
   module FormatValidator
-
     def data_format
       fail NotImplementedError
     end
@@ -57,6 +56,5 @@ module Setup
         fail "Can not format to #{format} (schema data type is not configured)"
       end
     end
-    
   end
 end

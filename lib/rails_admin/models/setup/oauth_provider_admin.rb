@@ -36,7 +36,6 @@ module RailsAdmin
             fields :namespace, :name, :response_type, :authorization_endpoint, :token_endpoint, :token_method, :request_token_endpoint,  :updated_at
           end
         end
-
       end
     end
   end

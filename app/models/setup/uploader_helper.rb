@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-
       before_save do
         self.class.before_store_callbacks.each do |callback|
           instance_eval(&callback)
@@ -42,7 +41,6 @@ module Setup
     end
 
     module ClassMethods
-
       def before_store(&block)
         before_store_callbacks << block
       end
@@ -85,6 +83,5 @@ module Setup
     def readables
       @temp_files ||= []
     end
-    
   end
 end

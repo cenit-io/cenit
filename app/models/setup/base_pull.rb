@@ -75,6 +75,6 @@ module Setup
     rescue Exception => ex
       raise "Invalid JSON #{uploader.mounted_as}: #{ex.message}"
     end
-    
+
   end
 end
