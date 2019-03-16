@@ -44,11 +44,6 @@ end
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
-  gem 'capybara'
-  gem 'selenium-webdriver'
-  gem 'simplecov'
-  gem 'coveralls'
-  gem 'poltergeist'
 end
 
 group :production do
