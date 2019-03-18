@@ -1,18 +1,41 @@
 require 'rails_helper'
 RSpec.describe Api::V2::ApiController, type: :request do
+
   describe "POST /api/v2/setup/user" do
+
     it "success user creation" do
+
       data = { email: 'ada@mail.com' }
+
+      # The user does not exists
+      user = User.where(email: data[:email]).first
+      expect(user).not_to be
+
+      # User creation request success
       post api_v2_setup_user_path, data
       expect(response).to have_http_status(:ok)
 
+      # Resolve captcha token
       body_hash = JSON.parse(response.body)
       expect(body_hash).to include('token')
-      expect(body_hash).not_to include('id', 'number')
+      captcha_token = ::CaptchaToken.where(token: body_hash['token']).first
+      expect(captcha_token).to be
+
+      # Confirm captcha token
+      post api_v2_setup_user_path, token: captcha_token.token, code: captcha_token.code
+      expect(response).to have_http_status(:ok)
+
+      # User creation process success
+      body_hash = JSON.parse(response.body)
+      expect(body_hash).to include('id', 'number')
+
+      # The created user exists
+      user = User.where(email: data[:email]).first
+      expect(user).to be
     end
 
     it "fail email or token missing" do
-      data = { }
+      data = {}
       post api_v2_setup_user_path, data
       expect(response).to have_http_status(:bad_request)
 
@@ -92,7 +115,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
     it "fail token that miss info from data" do
       data = { email: 'dom@mail.com' }
       captcha_token = CaptchaToken.create!(
-        email: data[:email], data: { email: 'wrong@mail.com'})
+        email: data[:email], data: { email: 'wrong@mail.com' })
       data.merge!(token: captcha_token.token, code: captcha_token.code)
 
       post api_v2_setup_user_path, data
