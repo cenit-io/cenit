@@ -61,7 +61,7 @@ gem 'chartkick'
 gem 'descriptive_statistics'
 
 gem 'httparty'
-gem 'bunny'
+gem 'bunny', '~> 2.6'
 gem 'json-schema'
 gem 'nokogiri'
 gem 'cancan'
