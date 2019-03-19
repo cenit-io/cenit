@@ -114,7 +114,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     addressable (2.3.8)
-    amq-protocol (2.0.0)
+    amq-protocol (2.3.0)
     arel (6.0.4)
     ast (2.3.0)
     autoprefixer-rails (8.5.0)
@@ -136,8 +136,8 @@ GEM
     bson (3.2.6)
     bson_ext (1.5.1)
     builder (3.2.3)
-    bunny (2.2.1)
-      amq-protocol (>= 2.0.0)
+    bunny (2.14.1)
+      amq-protocol (~> 2.3, >= 2.3.0)
     cancan (1.6.10)
     capistrano (3.4.0)
       i18n
@@ -533,7 +533,7 @@ DEPENDENCIES
   bootstrap-wysihtml5-rails (> 0.3.1.24)
   bson_ext
   builder
-  bunny
+  bunny (~> 2.6)
   cancan
   capataz!
   capistrano
