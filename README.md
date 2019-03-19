@@ -275,7 +275,7 @@ reboot
 sudo apt install mongodb rabbitmq-server zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev nodejs git imagemagick libmagickwand-dev
 ```
 
-### Install Ruby 2.3.0 with rbenv  (alternative RVM)
+### Install Ruby 2.4.5 with rbenv  (alternative RVM)
 
 ```
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
@@ -285,8 +285,8 @@ exec $SHELL
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
 exec $SHELL
-rbenv install 2.3.0
-rbenv global 2.3.0
+rbenv install 2.4.5
+rbenv global 2.4.5
 exec $SHELL
 ```
 
