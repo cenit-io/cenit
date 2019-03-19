@@ -26,9 +26,9 @@ class OauthController < ApplicationController
     end
     if request.post? || skip_consent
       if (token = Cenit::Token.where(token: @token).first) &&
-        token.data.is_a?(Hash) &&
-        (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
-        (scope = token.data['scope'])
+         token.data.is_a?(Hash) &&
+         (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
+         (scope = token.data['scope'])
         token.destroy
         params = {}
         if (state = token.data['state'])
@@ -69,7 +69,7 @@ class OauthController < ApplicationController
       token.set_current_tenant!
       token.destroy unless token.long_term?
       if (app_id = Cenit::ApplicationId.where(identifier: params[:client_id]).first) &&
-        app_id.app.secret_token == params[:client_secret]
+         app_id.app.secret_token == params[:client_secret]
         if grant_type == 'authorization_code'
           errors += 'Invalid redirect_uri. ' unless app_id.nil? || app_id.redirect_uris.include?(params[:redirect_uri])
         end
@@ -94,16 +94,16 @@ class OauthController < ApplicationController
     redirect_uri = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-      cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
+       cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
       begin
         authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_uri =
           if (app = cenit_token.app_id) && (app = app.app)
             callback_authorization_id = authorization.metadata[:callback_authorization_id] ||
-              authorization.metadata['callback_authorization_id'] ||
-              authorization.id
+                                        authorization.metadata['callback_authorization_id'] ||
+                                        authorization.id
             callback_params = authorization.metadata[:callback_authorization_params] ||
-              authorization.metadata['callback_authorization_params']
+                              authorization.metadata['callback_authorization_params']
             unless callback_params.is_a?(Hash)
               callback_params = {}
             end

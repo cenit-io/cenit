@@ -112,7 +112,7 @@ module Cenit
       scope = clone
       scope.each_criteria do |method, criteria|
         unless criteria.size == 1 && (id_cond = criteria['_id']).is_a?(Hash) &&
-          id_cond.size == 1 && id_cond['$in'].is_a?(Array)
+               id_cond.size == 1 && id_cond['$in'].is_a?(Array)
           ids = Setup::DataType.where(criteria).collect(&:id).collect(&:to_s)
           scope.instance_variable_get(:@access)[method] = [{ '_id' => { '$in' => ids } }]
         end
@@ -204,10 +204,10 @@ module Cenit
     def >(other_scope)
       other_scope = Cenit::OauthScope.new(other_scope.to_s) unless other_scope.is_a?(Cenit::OauthScope)
       return false if (other_scope.auth? && !auth?) ||
-        (other_scope.offline_access? && !offline_access?) ||
-        (other_scope.multi_tenant? && !multi_tenant?) ||
-        !other_scope.openid_set.subset?(openid_set) ||
-        !other_scope.super_methods_set.subset?(super_methods_set)
+                      (other_scope.offline_access? && !offline_access?) ||
+                      (other_scope.multi_tenant? && !multi_tenant?) ||
+                      !other_scope.openid_set.subset?(openid_set) ||
+                      !other_scope.super_methods_set.subset?(super_methods_set)
       other_scope.each_criteria { |method, _| return false unless criteria_for(method) }
       access_by_ids.each_criteria do |method, criteria|
         next unless (other_criteria = other_scope.criteria_for(method))

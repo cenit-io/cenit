@@ -45,8 +45,8 @@ class AppController < ApplicationController
   def find_app
     found = false
     if (@id_routing && (app = @app)) ||
-      ((ns = Setup::Namespace.where(slug: params[:id_or_ns]).first) &&
-        (app = Setup::Application.where(namespace: ns.name, slug: params[:app_slug]).first))
+       ((ns = Setup::Namespace.where(slug: params[:id_or_ns]).first) &&
+         (app = Setup::Application.where(namespace: ns.name, slug: params[:app_slug]).first))
       if @app.nil? || app == @app
         @app ||= app
         if @authentication_method.nil? || @app.authentication_method == @authentication_method

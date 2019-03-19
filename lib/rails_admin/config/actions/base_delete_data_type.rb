@@ -22,7 +22,7 @@ module RailsAdmin
               else
                 create_selector_token = true
                 if (selector_token = ::Cenit::Token.where(token: params[:selector_token]).first) &&
-                  (selector = selector_token.data).is_a?(Hash)
+                   (selector = selector_token.data).is_a?(Hash)
                   selector_token.destroy
                   Setup::DataType.where(selector)
                 else

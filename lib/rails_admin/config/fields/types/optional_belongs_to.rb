@@ -8,10 +8,10 @@ module RailsAdmin
             if (obj = bindings[:object])
               selected =
                 (controller = bindings[:controller]) &&
-                  (params = controller.params) &&
-                  !params.has_key?(:_restart) &&
-                  (params = params[controller.abstract_model.param_key]) &&
-                  params.has_key?(foreign_key)
+                (params = controller.params) &&
+                !params.has_key?(:_restart) &&
+                (params = params[controller.abstract_model.param_key]) &&
+                params.has_key?(foreign_key)
               obj.define_singleton_method(:"#{name}_selected?") do
                 selected
               end
@@ -24,8 +24,8 @@ module RailsAdmin
 
           register_instance_option :partial do
             if (obj = bindings[:object]).send("selecting_#{name}?") ||
-              (required? && value.blank?) ||
-              obj.errors[name].present?
+               (required? && value.blank?) ||
+               obj.errors[name].present?
               :form_filtering_select
             else
               :selected_field

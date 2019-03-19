@@ -75,7 +75,7 @@ module Setup
         if event.present?
           unless translator.type == :Import || requires(:data_type_scope)
             if scope_symbol == :event_source &&
-              !(event.is_a?(Setup::Observer) && event.data_type == data_type)
+               !(event.is_a?(Setup::Observer) && event.data_type == data_type)
               errors.add(:event, 'not compatible with data type scope')
             end
           end
@@ -259,7 +259,7 @@ module Setup
           flow_execution = current_thread_cache
           flow_execution << (message[:execution_graph] || {}).merge('trigger_flow_id' => id.to_s)
           data_type = Setup::BuildInDataType[message[:data_type_id]] ||
-            Setup::DataType.where(id: message[:data_type_id]).first
+                      Setup::DataType.where(id: message[:data_type_id]).first
           using_data_type(data_type) if data_type
           send("translate_#{translator.type.to_s.downcase}", message, &block)
           after_process_callbacks.each do |callback|
@@ -543,7 +543,7 @@ module Setup
               evaluation.distinct(:_id).flatten
             end
           elsif ((model = data_type.records_model).is_a?(Class) || evaluation.is_a?(Mongoff::Record)) &&
-            evaluation.is_a?(model)
+                evaluation.is_a?(model)
             [evaluation.id]
           elsif evaluation.is_a?(Array)
             evaluation.collect(&:id)

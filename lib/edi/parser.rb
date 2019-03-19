@@ -150,7 +150,7 @@ module Edi
             property_schema = model.property_schema(property)
             next unless property_schema.key?('xml') && property_schema['xml']['attribute']
             next if options[:ignore].include?(property.to_sym) ||
-              (updating && ((property == '_id' || primary_field.include?(attr.name.to_sym)) && !record.send(property).nil?))
+                    (updating && ((property == '_id' || primary_field.include?(attr.name.to_sym)) && !record.send(property).nil?))
             value =
               if model.property_model(property).schema['type'] == 'array'
                 attr.value.split(' ')
@@ -176,7 +176,7 @@ module Edi
             if (property = model.property_for(qualify_name(sub_element)))
               property_schema = model.property_schema(property)
               next if property_schema.key?('xml') && property_schema['xml']['attribute'] ||
-                options[:ignore].include?(property.to_sym)
+                      options[:ignore].include?(property.to_sym)
               property_model = model.property_model(property)
               if property_model.modelable?
                 persist = property_model.persistable?
@@ -204,7 +204,7 @@ module Edi
                   end
                   items_schema = property_model.schema
                   if (sub_record = do_parse_xml(data_type, property_model, sub_element, options, items_schema, nil, nil, property, association, property_schema)) &&
-                    (sub_values || association).exclude?(sub_record)
+                     (sub_values || association).exclude?(sub_record)
                     (sub_values || association) << sub_record
                   end
                 else # type 'object'
@@ -253,8 +253,8 @@ module Edi
           if model && model.modelable?
             record = find_record(model, container, container_schema) do |criteria|
               if json.is_a?(Hash) &&
-                options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
-                (criterion = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
+                 options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+                 (criterion = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
                 criteria.merge!(criterion)
               end
             end
@@ -362,11 +362,11 @@ module Edi
           end
 
           if (sub_model = json['_type']) &&
-            sub_model.is_a?(String) &&
-            (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
-            (data_type = data_type.find_data_type(sub_model)) &&
-            (sub_model = data_type.records_model) &&
-            !sub_model.eql?(model)
+             sub_model.is_a?(String) &&
+             (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
+             (data_type = data_type.find_data_type(sub_model)) &&
+             (sub_model = data_type.records_model) &&
+             !sub_model.eql?(model)
             sub_record = record.becomes(sub_model)
             record = do_parse_json(data_type, sub_model, json, options, data_type.merged_schema, sub_record)
           end
@@ -442,11 +442,11 @@ module Edi
         segment_sep ||= report[:segment_separator]
         json_schema = data_type.merge_schema(json_schema)
         seg_id = (edi_options = json_schema['edi'] || {})['segment'] ||
-          if (record_data_type = record.orm_model.data_type) != data_type
-            record_data_type.name
-          else
-            options[:enclosed_property] || data_type.name
-          end
+                 if (record_data_type = record.orm_model.data_type) != data_type
+                   record_data_type.name
+                 else
+                   options[:enclosed_property] || data_type.name
+                 end
         if !edi_options['virtual']
           return [nil, start, nil] unless start < content.length && content[start, seg_id.length] == seg_id
           if (fields_count = model.properties_schemas.count { |property, schema| !model.property_model?(property) && (!schema['edi'] || !schema['edi']['discard']) }).zero?
@@ -567,11 +567,11 @@ module Edi
         end
 
         if (sub_model = json['_type']) &&
-          sub_model.is_a?(String) &&
-          (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
-          (data_type = data_type.find_data_type(sub_model)) &&
-          (sub_model = data_type.records_model) &&
-          !sub_model.eql?(model)
+           sub_model.is_a?(String) &&
+           (sub_model = sub_model.start_with?('self[') ? (json.send(:eval, sub_model) rescue nil) : sub_model) &&
+           (data_type = data_type.find_data_type(sub_model)) &&
+           (sub_model = data_type.records_model) &&
+           !sub_model.eql?(model)
           sub_record = record.becomes(sub_model)
           json, start, record = do_parse_edi(data_type, sub_model, content, data_type.merged_schema, start, field_sep, segment_sep, report, record: sub_record, json: json, fields: fields, segment: segment)
         end

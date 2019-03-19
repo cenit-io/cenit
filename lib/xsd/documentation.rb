@@ -64,9 +64,9 @@ module Xsd
         html = content.delete(:characters).to_s
         unless content.empty?
           html = "#{html}\n<ul>\n" +
-            content.collect do |key, value|
-              "<li>\n<strong>#{key}:</strong> " + to_html(value) + "\n</li>"
-            end.join("\n") + '</ul>'
+                 content.collect do |key, value|
+                   "<li>\n<strong>#{key}:</strong> " + to_html(value) + "\n</li>"
+                 end.join("\n") + '</ul>'
         end
         html
       else

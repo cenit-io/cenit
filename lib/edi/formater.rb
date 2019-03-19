@@ -230,9 +230,9 @@ module Edi
           next unless (property_model || inspecting.include?(name.to_sym))
         else
           next if property_schema['virtual'] ||
-            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
-            options[:ignore].include?(name.to_sym) ||
-            (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
+                  ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards])) ||
+                  options[:ignore].include?(name.to_sym) ||
+                  (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
         end
         case property_schema['type']
         when 'array'
@@ -369,10 +369,10 @@ module Edi
           end
         else
           if property_schema['virtual'] ||
-            ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name.to_sym))) ||
-            (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
-            options[:ignore].include?(name.to_sym) ||
-            (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)
+             ((property_schema['edi'] || {})['discard'] && !(included_anyway = options[:including_discards] || options[:including].include?(property_name.to_sym))) ||
+             (can_be_referenced && referenced && !key_properties.include?(property_name)) ||
+             options[:ignore].include?(name.to_sym) ||
+             (options[:only].present? && options[:only].exclude?(name.to_sym) && !included_anyway)
             key_properties.delete(property_name)
             next
           end

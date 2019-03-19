@@ -43,10 +43,10 @@ module Setup
         conditions.each do |condition|
           if %w(_change _presence_change).include?(condition['o'])
             r &&= !(condition['o'] == '_presence_change' && obj_before.nil?) &&
-              field_changed(obj_now, obj_before, field_name)
+                  field_changed(obj_now, obj_before, field_name)
           else
             r &&= condition_apply(obj_now, obj_before, field_name, condition) &&
-              (obj_before.nil? || !condition_apply(obj_before, obj_now, field_name, condition))
+                  (obj_before.nil? || !condition_apply(obj_before, obj_now, field_name, condition))
           end
         end
       end

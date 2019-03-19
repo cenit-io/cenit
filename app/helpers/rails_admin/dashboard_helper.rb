@@ -66,7 +66,7 @@ module RailsAdmin
       categories.each do |cat|
         message = "<span><em>Setup::CrossSharedCollection</em> with category <em>#{cat.title}</em></span>"
         filter_token = Cenit::Token.where('data.category_id' => cat.id).first ||
-          Cenit::Token.create(data: { criteria: Setup::CrossSharedCollection.where(category_ids: cat.id).selector, message: message, category_id: cat.id })
+                       Cenit::Token.create(data: { criteria: Setup::CrossSharedCollection.where(category_ids: cat.id).selector, message: message, category_id: cat.id })
         sub_link_url = index_path(model_name: Setup::CrossSharedCollection.to_s.underscore.gsub('/', '~'), filter_token: filter_token.token)
         list +=
           content_tag :li do

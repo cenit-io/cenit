@@ -6,7 +6,7 @@ module RailsAdmin
 
           def with(bindings)
             if (controller = bindings[:controller]) &&
-              (obj = bindings[:object]) && (context_id = controller.get_context_id(association.klass))
+               (obj = bindings[:object]) && (context_id = controller.get_context_id(association.klass))
               if obj.new_record?
                 obj.send("#{foreign_key}=", context_id)
               end
