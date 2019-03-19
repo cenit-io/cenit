@@ -151,6 +151,9 @@ module RailsAdmin
             end
             help 'Required'
           end
+          field :filename do
+            required false
+          end
           field :data
           field :metadata
         end
