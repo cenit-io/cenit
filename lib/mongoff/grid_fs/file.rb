@@ -134,7 +134,7 @@ module Mongoff
           value = super
           case field
           when :filename
-            @custom_filename = value
+            @custom_filename = value.to_s.strip.presence
           when :contentType
             @custom_content_type = value
           end
