@@ -41,8 +41,8 @@ module RailsAdmin
               @form_object.instance_variable_set(:@sharing, true)
               @model_config = shared_collection_config
               if params[:_save] &&
-                (((@form_object.errors.present? && (msgs = @form_object.errors.full_messages))) ||
-                  (@object.warnings.present? && (msgs = @object.warnings)))
+                 (((@form_object.errors.present? && (msgs = @form_object.errors.full_messages))) ||
+                   (@object.warnings.present? && (msgs = @object.warnings)))
                 do_flash(:error, t('admin.flash.error', name: @model_config.label, action: t("admin.actions.#{@action.key}.done").html_safe), msgs)
               end
               render :form

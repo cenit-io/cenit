@@ -156,7 +156,8 @@ module Cenit
       def bundled_javascript_code(algorithm)
         arguments_param = false
         i = -1
-        params_initializer = "arguments = {}\n" +
+        params_initializer =
+          "arguments = {}\n" +
           algorithm.parameters.collect do |p|
             arguments_param ||= p.name == 'arguments'
             i += 1

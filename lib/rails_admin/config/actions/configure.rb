@@ -61,7 +61,7 @@ module RailsAdmin
               end
             end
             if (content_type = object['content_type']).present? &&
-              !(params.has_key?('headers') && params['headers'].has_key?('Content-Type'))
+               !(params.has_key?('headers') && params['headers'].has_key?('Content-Type'))
               params['headers']['Content-Type'] = content_type
             end
             params

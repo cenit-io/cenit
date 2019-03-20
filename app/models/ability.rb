@@ -18,20 +18,20 @@ class Ability
         can :sudo, User, id: user.id
 
         deferred_abilities <<
-          if user.super_admin?
-            SuperUser
-          else
-            can [:index, :show, :edit], User, id: user.id
+        if user.super_admin?
+          SuperUser
+        else
+          can [:index, :show, :edit], User, id: user.id
 
-            can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
-            can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
-            can [:index, :show, :edit, :inspect, :clean_up], Account, { '$or' => [
-              { 'owner_id' => user.id },
-              { '_id' => { '$in' => user.member_account_ids || [] } }
-            ] }
-            can [:destroy, :clean_up], Account, :id.in => user.account_ids - [user.account_id]
-            StandardUser
-          end
+          can [:edit, :destroy], Setup::CrossSharedCollection, owner_id: user.id
+          can :reinstall, Setup::CrossSharedCollection, owner_id: user.id, installed: true
+          can [:index, :show, :edit, :inspect, :clean_up], Account, { '$or' => [
+            { 'owner_id' => user.id },
+            { '_id' => { '$in' => user.member_account_ids || [] } }
+          ] }
+          can [:destroy, :clean_up], Account, :id.in => user.account_ids - [user.account_id]
+          StandardUser
+        end
 
         if user.roles.any? { |role| Cenit.file_stores_roles.include?(role.name) }
           can :edit, Setup::FileStoreConfig
@@ -69,10 +69,10 @@ class Ability
       Setup::Snippet,
       Setup::ApiSpec
     ] +
-      Setup::Translator.class_hierarchy +
-      Setup::AuthorizationProvider.class_hierarchy +
-      Setup::DataType.class_hierarchy +
-      Setup::Validator.class_hierarchy
+    Setup::Translator.class_hierarchy +
+    Setup::AuthorizationProvider.class_hierarchy +
+    Setup::DataType.class_hierarchy +
+    Setup::Validator.class_hierarchy
 
   CROSSING_MODELS = CROSSING_MODELS_WITH_ORIGIN + CROSSING_MODELS_NO_ORIGIN
 
@@ -85,7 +85,7 @@ class Ability
     if action == :json_edit
       subject.is_a?(Mongoff::Record) && !subject.is_a?(Mongoff::GridFs::File)
     elsif (action == :simple_cross && crossing_models.exclude?(subject.is_a?(Class) ? subject : subject.class)) ||
-      (subject == ScriptExecution && (user.nil? || !user.super_admin?))
+          (subject == ScriptExecution && (user.nil? || !user.super_admin?))
       false
     else
       super || deferred_abilities.any? { |ability| ability.can?(action, subject, *extra_args) }
@@ -295,16 +295,16 @@ class Ability
     can [:dashboard, :shared_collection_index, :ecommerce_index, :notebooks_root, :open_api_directory]
     can [:index, :show, :pull, :simple_export], Setup::CrossSharedCollection
     can [:index, :show], Setup::Models.all.to_a -
-      [
-        User,
-        Account,
-        Setup::Namespace,
-        Setup::DataTypeConfig,
-        Setup::FlowConfig,
-        Setup::ConnectionConfig,
-        Setup::Pin,
-        Setup::Binding,
-        Setup::Parameter
-      ]
+                         [
+                           User,
+                           Account,
+                           Setup::Namespace,
+                           Setup::DataTypeConfig,
+                           Setup::FlowConfig,
+                           Setup::ConnectionConfig,
+                           Setup::Pin,
+                           Setup::Binding,
+                           Setup::Parameter
+                         ]
   end
 end

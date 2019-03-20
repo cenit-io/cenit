@@ -13,7 +13,7 @@ module NestedForm
       model_object = options.delete(:model_object) do
         #Patch
         reflection = object.try(:reflect_on_association, association) ||
-          object.class.reflect_on_association(association)
+                     object.class.reflect_on_association(association)
         obj = reflection.klass.new
         obj.instance_variable_set(:@_nested_form_dummy_object, true)
         obj

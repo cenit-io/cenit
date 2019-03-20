@@ -28,8 +28,8 @@ class SessionsController < Devise::SessionsController
       end
       id_token = nil
       if token && (id_token = token.params['id_token']) &&
-        (id_token = JWT.decode(id_token, nil, false, verfify_expiration: false)[0]) &&
-        id_token['email'].present? && id_token['email_verified']
+         (id_token = JWT.decode(id_token, nil, false, verfify_expiration: false)[0]) &&
+         id_token['email'].present? && id_token['email_verified']
         resource = resource_class.find_or_create_by(email: id_token['email'])
         resource.confirmed_at ||= Time.now
         unless resource.encrypted_password.present?
@@ -82,9 +82,9 @@ class SessionsController < Devise::SessionsController
 
   def inspect_auth_token
     if (token = params[:token]) &&
-      (token = ::Cenit::AuthToken.where(token: token).first) &&
-      (data = token.data).is_a?(Hash) &&
-      (@auth_token_user = ::User.where(email: (email = data['email'])).first)
+       (token = ::Cenit::AuthToken.where(token: token).first) &&
+       (data = token.data).is_a?(Hash) &&
+       (@auth_token_user = ::User.where(email: (email = data['email'])).first)
       sign_in(@auth_token_user)
       ::TourTrack.where(user_email: email).delete_all
     end

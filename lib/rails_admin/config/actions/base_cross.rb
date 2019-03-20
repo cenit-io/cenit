@@ -13,7 +13,7 @@ module RailsAdmin
             model = process_bulk_scope
             origin_config = RailsAdmin::Config.model(Forms::CrossOriginSelector)
             if (origin_data = params[origin_config.abstract_model.param_key]) && origin_data.permit! &&
-              (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
+               (@form_object = Forms::CrossOriginSelector.new(origin_data)).valid?
               do_flash_process_result Setup::Crossing.process(origin: @form_object.origin,
                                                               object_ids: @bulk_ids && @bulk_ids.collect(&:to_s),
                                                               data_type_id: model.data_type.id)

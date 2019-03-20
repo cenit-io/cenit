@@ -15,8 +15,8 @@ module Cenit
           if data.is_a?(String)
             ext =
               if (content_type = options[:content_type] || file.contentType) &&
-                (types = MIME::Types[content_type]).present? &&
-                (type = types.detect { |t| t.extensions.present? })
+                 (types = MIME::Types[content_type]).present? &&
+                 (type = types.detect { |t| t.extensions.present? })
                 type.extensions.first
               else
                 ''

@@ -29,7 +29,7 @@ module RailsAdmin
             model = @abstract_model.model rescue nil
             if model
               if (data = params[form_config.abstract_model.param_key]) &&
-                (@form_object = Forms::JsonDataImport.new(file: (file = data[:file]), data: (data = data[:data]))).valid?
+                 (@form_object = Forms::JsonDataImport.new(file: (file = data[:file]), data: (data = data[:data]))).valid?
                 begin
                   if model == Setup::Collection
                     if (data = @form_object.json_data).length == 1

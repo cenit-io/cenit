@@ -80,8 +80,8 @@ module Cenit
     end
 
     if Rails.env.production? &&
-      (notifier_email = ENV['NOTIFIER_EMAIL']) &&
-      (exception_recipients = ENV['EXCEPTION_RECIPIENTS'])
+       (notifier_email = ENV['NOTIFIER_EMAIL']) &&
+       (exception_recipients = ENV['EXCEPTION_RECIPIENTS'])
       Rails.application.config.middleware.use ExceptionNotification::Rack,
                                               email: {
                                                 email_prefix: "[Cenit Error #{Rails.env}] ",

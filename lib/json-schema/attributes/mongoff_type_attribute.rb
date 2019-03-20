@@ -11,8 +11,8 @@ module JSON
           types = current_schema.schema['type']
 
           return if types == 'string' &&
-            DATE_FORMATS.include?(format = current_schema.schema['format']) &&
-            DATE_CLASSES.any? { |klass| data.is_a?(klass) }
+                    DATE_FORMATS.include?(format = current_schema.schema['format']) &&
+                    DATE_CLASSES.any? { |klass| data.is_a?(klass) }
 
           if !types.is_a?(Array)
             types = [types]

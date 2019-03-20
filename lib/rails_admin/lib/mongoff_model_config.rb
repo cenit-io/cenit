@@ -151,6 +151,9 @@ module RailsAdmin
             end
             help 'Required'
           end
+          field :filename do
+            required false
+          end
           field :data
           field :metadata
         end
@@ -177,7 +180,7 @@ module RailsAdmin
         edit do
           parent.target.properties.each do |property|
             next if (property == '_id' && !parent.target.property_schema('_id').key?('type')) ||
-              Mongoff::Model[:base_schema]['properties'].key?(property)
+                    Mongoff::Model[:base_schema]['properties'].key?(property)
             field property.to_sym
           end
         end

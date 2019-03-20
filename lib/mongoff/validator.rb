@@ -28,13 +28,13 @@ module Mongoff
     # Instance Validation Keywords
     INSTANCE_VALIDATION_KEYWORDS =
       ANY_TYPE_KEYWORDS +
-        NUMERIC_KEYWORDS +
-        STRING_KEYWORDS +
-        ARRAY_KEYWORDS +
-        OBJECT_KEYWORDS +
-        LOGIC_KEYWORDS +
-        FORMAT_KEYWORDS +
-        [DEFAULT_KEYWORD]
+      NUMERIC_KEYWORDS +
+      STRING_KEYWORDS +
+      ARRAY_KEYWORDS +
+      OBJECT_KEYWORDS +
+      LOGIC_KEYWORDS +
+      FORMAT_KEYWORDS +
+      [DEFAULT_KEYWORD]
 
     def soft_validates(instance, options = {})
       validate_instance(instance, options)

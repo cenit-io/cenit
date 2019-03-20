@@ -28,7 +28,7 @@ module RailsAdmin
             form_config = RailsAdmin::Config.model(Forms::SharedCollectionSelector)
             done = false
             if (data = params[form_config.abstract_model.param_key]) && data.permit! &&
-              (@form_object = Forms::SharedCollectionSelector.new(data)).valid?
+               (@form_object = Forms::SharedCollectionSelector.new(data)).valid?
               begin
                 do_flash_process_result Setup::Push.process(
                   source_collection_id: @object.id,

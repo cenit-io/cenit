@@ -20,9 +20,9 @@ module JSON
             property = property.to_s
 
             if !data.key?(property) &&
-              options[:insert_defaults] &&
-              property_schema['default'] &&
-              !property_schema['readonly']
+               options[:insert_defaults] &&
+               property_schema['default'] &&
+               !property_schema['readonly']
               default = property_schema['default']
               data[property] = default.is_a?(Hash) ? default.clone : default
             end

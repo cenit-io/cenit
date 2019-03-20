@@ -171,7 +171,7 @@ module Mongoff
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       field_metadata_2 = {}
       attribute_assigning = !orm_model.property?(attribute_key) && attribute_key == field &&
-        (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
+                            (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
       field =
         if field
           field_metadata = field_metadata_2 if field_metadata.blank?

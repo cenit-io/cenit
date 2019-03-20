@@ -354,8 +354,8 @@ module Setup
 
     def method_missing(symbol, *args)
       if (match = /\Adata_(.+)\Z/.match(symbol.to_s)) &&
-        COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
-        ((args.length.zero? && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
+         COLLECTING_PROPERTIES.include?(relation_name = match[1].to_sym) &&
+         ((args.length.zero? && (options = {})) || args.length == 1 && (options = args[0]).is_a?(Hash))
         if (items = send(relation_name)).present?
           items
         else
