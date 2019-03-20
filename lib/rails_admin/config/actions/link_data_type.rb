@@ -17,7 +17,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             data_type = nil
             Forms::DataTypeSelector.collection.drop
             selector_config = RailsAdmin::Config.model(Forms::DataTypeSelector)

@@ -34,7 +34,6 @@ module RailsAdmin
             fields :provider, :name, :identifier, :secret, :tenant, :template_parameters, :updated_at
           end
         end
-
       end
     end
   end

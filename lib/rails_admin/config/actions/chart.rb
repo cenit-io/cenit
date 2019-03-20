@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             model = abstract_model.model rescue nil
             if model && (data_type = model.data_type)
               if data_type.records_model.modelable?
@@ -44,7 +43,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
         register_instance_option :i18n_key do

@@ -53,7 +53,6 @@ module RailsAdmin
             fields :provider, :user_name, :authentication, :from
           end
         end
-
       end
     end
   end

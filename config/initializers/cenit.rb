@@ -3,7 +3,6 @@
 require 'cenit/cenit'
 
 Cenit.config do
-
   share_on_github false
 
   github_shared_collections_home ENV['GITHUB_SHARED_COLLECTIONS_HOME']
@@ -109,4 +108,6 @@ Cenit.config do
   default_info_notifications_span 1.hour
 
   slack_link ENV['SLACK_INVITATION']
+
+  tenant_creation_disabled (ENV['TENANT_CREATION_DISABLED'] || 'false').to_b
 end

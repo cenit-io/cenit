@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Translate < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
@@ -22,7 +21,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::TransformationSelector.collection.drop
             translation_config = RailsAdmin::Config.model(Forms::TransformationSelector)
             translator_type = @action.class.translator_type
@@ -33,13 +31,15 @@ module RailsAdmin
             if model && (data_type = model.try(:data_type))
               if (data = params[translation_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
-                if (@form_object = Forms::TransformationSelector.new(translator_type: translator_type,
+                if (@form_object = Forms::TransformationSelector.new(
+                  translator_type: translator_type,
                   bulk_source: bulk_source,
                   data_type: data_type,
                   translator: translator,
                   options: data[:options])).valid?
                   begin
-                    do_flash_process_result Setup::Translation.process(translator_id: translator.id,
+                    do_flash_process_result Setup::Translation.process(
+                      translator_id: translator.id,
                       bulk_ids: @bulk_ids,
                       data_type_id: data_type.id,
                       skip_notification_level: true,
@@ -55,7 +55,8 @@ module RailsAdmin
               redirect_to back_or_index
             else
               @model_config = translation_config
-              @form_object ||= Forms::TransformationSelector.new(translator_type: translator_type,
+              @form_object ||= Forms::TransformationSelector.new(
+                translator_type: translator_type,
                 bulk_source: bulk_source,
                 data_type: data_type,
                 translator: translator)
@@ -65,7 +66,6 @@ module RailsAdmin
               @form_object.save(validate: false)
               render :form, locals: { bulk_alert: true }
             end
-
           end
         end
 

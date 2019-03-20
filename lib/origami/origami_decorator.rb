@@ -52,20 +52,20 @@ Origami.module_eval do
       page.add_font(:TimesRoman, Origami::Font::Type1::Standard::TimesRoman.new.pre_build)
       write_box = { x: box[:x] + stamp_avatar_options[:width] + 5, y: stamp_avatar_options[:y] + stamp_avatar_options[:height] - 5 }
       contents.write(text, {
-        :x => write_box[:x],
-        :y => write_box[:y],
-        :rendering => Origami::Text::Rendering::FILL,
-        :size => 8,
-        :leading => 8,
-        :font => :TimesRoman,
-        :stroke_color => Origami::ContentStream::DEFAULT_STROKE_COLOR
+        x: write_box[:x],
+        y: write_box[:y],
+        rendering: Origami::Text::Rendering::FILL,
+        size: 8,
+        leading: 8,
+        font: :TimesRoman,
+        stroke_color: Origami::ContentStream::DEFAULT_STROKE_COLOR
       })
 
       # Load stamp sign and add reference to the page
       if options[:annot_stamp][:sign]
         stamp_sign_options = {
-          :x => write_box[:x],
-          :y => stamp_avatar_options[:y],
+          x: write_box[:x],
+          y: stamp_avatar_options[:y],
           width: 50,
           height: 34
         }
@@ -90,10 +90,10 @@ Origami.module_eval do
       # Create the signature annotaion over the content area box
       annotation = Origami::Annotation::Widget::Signature.new
       annotation.Rect = Origami::Rectangle[
-        :llx => box[:x],
-        :lly => box[:y] + box[:height],
-        :urx => box[:x] + box[:width],
-        :ury => box[:y]
+        llx: box[:x],
+        lly: box[:y] + box[:height],
+        urx: box[:x] + box[:width],
+        ury: box[:y]
       ]
 
       # Add the signature annotation to the page
@@ -101,7 +101,6 @@ Origami.module_eval do
 
       [page, annotation]
     end
-
   end
 
   def self.create_cert_and_keys(options={})
@@ -161,12 +160,12 @@ Origami.module_eval do
 
     # Sign the PDF with the specified keys
     pdf.sign(cert, key,
-      :method => 'adbe.pkcs7.sha1',
-      :annotation => annotation,
-      :location => options[:cert][:location],
-      :contact => options[:annot][:contact],
-      :reason => options[:cert][:reason],
-      :issuer => options[:cert][:issuer],
+      method: 'adbe.pkcs7.sha1',
+      annotation: annotation,
+      location: options[:cert][:location],
+      contact: options[:annot][:contact],
+      reason: options[:cert][:reason],
+      issuer: options[:cert][:issuer],
     )
     [pdf.to_blob, output_filename]
   end

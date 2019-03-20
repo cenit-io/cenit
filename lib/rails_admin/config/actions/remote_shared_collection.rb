@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class RemoteSharedCollection < RailsAdmin::Config::Actions::Base
 
         register_instance_option :visible? do
@@ -63,7 +62,7 @@ module RailsAdmin
                         i += 1
                         new_name = "#{@response['name']}_remote_pull_#{i}"
                       end
-                      if i > 0
+                      if i.positive?
                         flash[:warning] = t('admin.actions.remote_shared_collection.pull_rename', model: @model_config.label, name: @response['name'], new_name: new_name)
                         @response['name'] = new_name
                       end
@@ -111,7 +110,6 @@ module RailsAdmin
           'fa fa-cube'
         end
       end
-
     end
   end
 end

@@ -3,7 +3,6 @@ module RailsAdmin
     module Fields
       module Types
         BelongsToAssociation.class_eval do
-
           def with(bindings)
             if (obj = bindings[:object]) &&
                obj.new_record? &&

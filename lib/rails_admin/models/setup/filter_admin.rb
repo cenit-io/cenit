@@ -17,8 +17,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.filter.wizard.start.label'),
-                      :description => I18n.t('admin.config.filter.wizard.start.description')
+                      label: I18n.t('admin.config.filter.wizard.start.label'),
+                      description: I18n.t('admin.config.filter.wizard.start.description')
                     },
                   end:
                     {
@@ -96,7 +96,6 @@ module RailsAdmin
             fields :namespace, :name, :data_type, :segment, :triggers, :updated_at
           end
         end
-
       end
     end
   end

@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   ApplicationController.class_eval do
-
     attr_reader :context_abstract_model
 
     def to_model_name(param_model_name)

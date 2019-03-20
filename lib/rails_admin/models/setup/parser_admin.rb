@@ -18,8 +18,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.parser.wizard.start.label'),
-                      :description => I18n.t('admin.config.parser.wizard.start.description')
+                      label: I18n.t('admin.config.parser.wizard.start.label'),
+                      description: I18n.t('admin.config.parser.wizard.start.description')
                     },
                   end:
                     {
@@ -108,7 +108,6 @@ module RailsAdmin
             filter_query_fields :namespace, :name
           end
         end
-
       end
     end
   end

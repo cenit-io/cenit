@@ -29,7 +29,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::ImportTranslatorSelector.collection.drop
             selector_config = RailsAdmin::Config.model(Forms::ImportTranslatorSelector)
             render_form = true
@@ -39,7 +38,8 @@ module RailsAdmin
               if (data = params[selector_config.abstract_model.param_key])
                 translator = Setup::Translator.where(id: data[:translator_id]).first
                 decompress = data[:decompress_content].to_b
-                if (@form_object = Forms::ImportTranslatorSelector.new(translator: translator,
+                if (@form_object = Forms::ImportTranslatorSelector.new(
+                  translator: translator,
                   data_type: data_type_selector,
                   options: data[:options],
                   file: (file = data[:file]),
@@ -80,7 +80,6 @@ module RailsAdmin
             else
               redirect_to back_or_index
             end
-
           end
         end
 

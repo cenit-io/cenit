@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     module ClassMethods
-
       def pulling(field, options)
         if @pulling_field
           fail "Pulling field already configured: #{@pulling_field}"
@@ -36,8 +35,6 @@ module Setup
         end
         super
       end
-
     end
-    
   end
 end

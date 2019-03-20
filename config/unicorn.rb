@@ -22,7 +22,7 @@ GC.respond_to?(:copy_on_write_friendly=) and GC.copy_on_write_friendly = true
 working_directory app_dir
 
 # Set up socket location
-listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", :backlog => 64
+listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", backlog: 64
 
 # Loging
 stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"
@@ -47,11 +47,10 @@ before_fork do |server, worker|
 end
 
 after_fork do |server, worker|
-
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
-  if worker.nr == 0
+  if worker.nr.zero?
     Cenit::Rabbit.start_scheduler
     Tenant.all.each do |tenant|
       tenant.switch do

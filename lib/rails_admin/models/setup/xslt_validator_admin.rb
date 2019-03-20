@@ -39,7 +39,6 @@ module RailsAdmin
             fields :namespace, :name, :code_warnings, :code, :updated_at
           end
         end
-
       end
     end
   end

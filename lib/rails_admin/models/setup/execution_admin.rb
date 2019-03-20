@@ -54,7 +54,6 @@ module RailsAdmin
             fields :created_at, :started_at, :time_span, :status, :attachment, :task, :notifications
           end
         end
-
       end
     end
   end

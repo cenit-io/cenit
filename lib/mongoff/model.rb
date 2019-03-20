@@ -419,9 +419,9 @@ module Mongoff
       end
 
       def method_missing(symbol, *args)
-        if !symbol.to_s.end_with?('=') && ((args.length == 0 && block_given?) || args.length == 1 && !block_given?)
+        if !symbol.to_s.end_with?('=') && ((args.length.zero? && block_given?) || args.length == 1 && !block_given?)
           self[symbol] = block_given? ? yield : args[0]
-        elsif args.length == 0 && !block_given?
+        elsif args.length.zero? && !block_given?
           self[symbol]
         else
           super

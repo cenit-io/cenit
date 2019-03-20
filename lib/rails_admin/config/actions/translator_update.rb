@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class TranslatorUpdate < RailsAdmin::Config::Actions::Translate
 
         register_instance_option :collection do

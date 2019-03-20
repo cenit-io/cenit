@@ -3,7 +3,6 @@ require 'rmagick'
 
 IMGKit.class_eval do
   def self.image_from_html(url, options = {})
-
     image = new(url)
     image_converted = ''
 
@@ -19,7 +18,7 @@ IMGKit.class_eval do
     if options[:logo]
       content_img = Magick::Image.from_blob(image_converted).first
 
-      logo = Cenit.namespace(options[:namespace]).data_type('images').where(:filename => options[:logo]).first.data
+      logo = Cenit.namespace(options[:namespace]).data_type('images').where(filename: options[:logo]).first.data
       logo = Magick::Image.from_blob(logo) do
         self.format = 'PNG'
         self.background_color = 'White'

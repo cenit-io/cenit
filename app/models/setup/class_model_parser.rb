@@ -5,6 +5,5 @@ module Setup
     module ClassMethods
       include InstanceModelParser
     end
-    
   end
 end

@@ -50,6 +50,6 @@ module Setup
     def respond_to?(*args)
       super || Setup::Collection::COLLECTING_PROPERTIES.any? { |name| name.to_s.singularize == args.first.to_s }
     end
-    
+
   end
 end

@@ -37,7 +37,6 @@ module Cenit
     end
 
     config.after_initialize do
-
       Thread.current[:cenit_initializing] = true
 
       puts 'Clearing LOCKS'

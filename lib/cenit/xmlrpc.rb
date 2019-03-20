@@ -8,8 +8,8 @@ module Cenit
 
     def method_missing(symbol, *args)
       body_request = {
-        :methodCall => {
-          :methodName => symbol
+        methodCall: {
+          methodName: symbol
         }
       }
       body_request[:methodCall][:params] = args.collect { |p| { param: Encoder.hash_encode(p) } } unless args.empty?
@@ -29,7 +29,7 @@ module Cenit
         [false, parsing_xml['fault']]
       else
         # is a normal return value
-        fail 'Missing return value!' if parsing_xml['params'].length == 0
+        fail 'Missing return value!' if parsing_xml['params'].length.zero?
         fail 'Too many return values. Only one allowed!' if parsing_xml['params'].length > 1
         [true, parsing_xml['params']['param']]
       end

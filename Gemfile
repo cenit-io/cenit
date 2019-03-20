@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.2.1'
+ruby '2.3.0'
 gem 'rails'
 gem 'sass-rails'
 gem 'uglifier'
@@ -38,17 +38,12 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'rails_layout'
   gem 'ffaker'
-#  gem 'rubocop', '0.49.0'
+  gem 'rubocop', require: false
 end
 
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
-  gem 'capybara'
-  gem 'selenium-webdriver'
-  gem 'simplecov'
-  gem 'coveralls'
-  gem 'poltergeist'
 end
 
 group :production do

@@ -58,7 +58,6 @@ module RailsAdmin
             fields :parent_model, :parent, :key, :value, :description, :metadata, :updated_at
           end
         end
-
       end
     end
   end

@@ -26,7 +26,6 @@ module RailsAdmin
                 html_attributes do
                   { rows: '1' }
                 end
-
               end
             end
 
@@ -53,7 +52,6 @@ module RailsAdmin
             fields :namespace, :name, :expression, :activated, :updated_at
           end
         end
-
       end
     end
   end

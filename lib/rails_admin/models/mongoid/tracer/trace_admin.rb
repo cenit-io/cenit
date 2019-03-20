@@ -87,7 +87,6 @@ module RailsAdmin
               filter_fields :target_id, :action, :attributes_trace, :created_at
             end
           end
-
         end
       end
     end

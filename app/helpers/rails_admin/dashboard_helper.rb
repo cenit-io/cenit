@@ -1,7 +1,7 @@
 module RailsAdmin
   module DashboardHelper
     def percent(count = 0, max)
-      count > 0 ? (max <= 1 ? count : ((Math.log(count+1) * 100.0) / Math.log(max+1)).to_i) : -1
+      count.positive? ? (max <= 1 ? count : ((Math.log(count+1) * 100.0) / Math.log(max+1)).to_i) : -1
     end
 
     def animate_length(percent)
@@ -112,25 +112,25 @@ module RailsAdmin
 
     def task_monitor_data tasks
       _, am, _ = linking(Setup::Task)
-      if (value = tasks[:failed]) > 0
+      if (value = tasks[:failed]).positive?
         value = number_to_human(value)
         label = 'failed'
-      elsif (value = tasks[:broken]) > 0
+      elsif (value = tasks[:broken]).positive?
         value = number_to_human(value)
         label = 'broken'
-      elsif (value = tasks[:unscheduled]) > 0
+      elsif (value = tasks[:unscheduled]).positive?
         value = number_to_human(value)
         label = 'unscheduled'
-      elsif (value = tasks[:pending]) > 0
+      elsif (value = tasks[:pending]).positive?
         value = number_to_human(value)
         label = 'pending'
-      elsif (value = tasks[:retrying]) > 0
+      elsif (value = tasks[:retrying]).positive?
         value = number_to_human(value)
         label = 'retrying'
-      elsif (value = tasks[:paused]) > 0
+      elsif (value = tasks[:paused]).positive?
         value = number_to_human(value)
         label = 'paused'
-      elsif (value = tasks[:running]) > 0
+      elsif (value = tasks[:running]).positive?
         value = number_to_human(value)
         label = 'running'
       else
@@ -161,7 +161,7 @@ module RailsAdmin
 
     def auth_monitor_data auth
       _, am, _ = linking(Setup::Authorization)
-      if (value = auth[:unauthorized]) == 0
+      if (value = auth[:unauthorized]).zero?
         value = auth[:total]
         label = 'total'
       else
@@ -186,16 +186,16 @@ module RailsAdmin
 
     def notif_monitor_data notif
       _, am, _ = linking(Setup::SystemNotification)
-      if (value = notif[:error]) > 0
+      if (value = notif[:error]).positive?
         value = number_to_human(value)
         label = 'errors'
-      elsif (value = notif[:warning]) > 0
+      elsif (value = notif[:warning]).positive?
         value = number_to_human(value)
         label = 'warnings'
-      elsif (value = notif[:notice]) > 0
+      elsif (value = notif[:notice]).positive?
         value = number_to_human(value)
         label = 'notice'
-      elsif (value = notif[:info]) > 0
+      elsif (value = notif[:info]).positive?
         value = number_to_human(value)
         label = 'info'
       else
@@ -258,7 +258,6 @@ module RailsAdmin
       menu = menu.concat(tenants)
       menu.join.html_safe
     end
-
   end
 end
 

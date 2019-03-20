@@ -3,11 +3,11 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
 
   protect_from_forgery with: :null_session,
-    if: Proc.new { |c| c.request.format =~ %r{application/json} }
+                       if: Proc.new { |c| c.request.format =~ %r{application/json} }
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     if _current_user
-      redirect_to main_app.root_path, :alert => exception.message
+      redirect_to main_app.root_path, alert: exception.message
     else
       redirect_to new_session_path(User)
     end
@@ -35,8 +35,7 @@ class ApplicationController < ActionController::Base
     Account.current = nil
     clean_thread_cache
     if current_user && current_user.account.nil?
-      current_user.add_role(:admin) unless current_user.has_role?(:admin)
-      current_user.account = current_user.accounts.first || Account.create_with_owner(owner: current_user)
+      current_user.account = current_user.accounts.first || Account.new_for_create(owner: current_user)
       current_user.save(validate: false)
     end
     Account.current = current_user.account.target if signed_in?

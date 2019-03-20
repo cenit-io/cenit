@@ -3,3 +3,24 @@ Metrics/LineLength:
 
 Style/EmptyLinesAroundClassBody:
   EnforcedStyle: false
+
+Style/NumericPredicate:
+  AutoCorrect: true
+
+Style/AlignHash:
+  Enabled: true
+
+Style/HashSyntax:
+  Enabled: true
+
+Style/TrailingWhitespace:
+  Enabled: true
+
+Style/EmptyLinesAroundBlockBody:
+  Enabled: true
+
+Style/EmptyLinesAroundMethodBody:
+  Enabled: true
+
+Style/EmptyLinesAroundModuleBody:
+  Enabled: true

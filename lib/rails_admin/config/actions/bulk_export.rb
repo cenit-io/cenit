@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class BulkExport < RailsAdmin::Config::Actions::BaseExport
 
         register_instance_option :collection do
@@ -20,7 +19,6 @@ module RailsAdmin
           :export
         end
       end
-
     end
   end
 end

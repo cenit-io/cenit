@@ -2,7 +2,6 @@ module TimeZoneAware
   extend ActiveSupport::Concern
 
   included do
-
     field :time_zone, type: String, default: -> { default_time_zone }
   end
 
@@ -33,7 +32,6 @@ module TimeZoneAware
   end
 
   module ClassMethods
-
     def time_zone_enum
       ActiveSupport::TimeZone.all.collect { |e| "#{e.name} | #{e.formatted_offset}" }
     end

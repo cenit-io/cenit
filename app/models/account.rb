@@ -64,9 +64,18 @@ class Account
     errors.blank?
   end
 
+  before_create :check_creation_enabled
+
   before_save :init_heroku_db, :validates_configuration
 
   after_destroy { clean_up }
+
+  def check_creation_enabled
+    unless @skip_creation_disabled
+      errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.current_super_admin?
+    end
+    errors.blank?
+  end
 
   def api_account
     self
@@ -218,12 +227,9 @@ class Account
       (current && current.token) || 'XXXXXXXXXXXXXXXX'
     end
 
-    def create_with_owner(params = {})
+    def new_for_create(params = {})
       account = new(params)
-      if (owner = account.owner)
-        owner.roles << ::Role.find_or_create_by(name: :admin) unless owner.roles.any? { |role| role.name.to_s == :admin.to_s }
-        account.save
-      end
+      account.instance_variable_set(:@skip_creation_disabled, true)
       account
     end
 

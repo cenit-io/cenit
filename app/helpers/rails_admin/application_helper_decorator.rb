@@ -1,7 +1,6 @@
 # rails_admin-1.0 ready
 module RailsAdmin
   ApplicationHelper.module_eval do
-
     def format_name(name)
       max_name_length = 30
       if name.length > max_name_length
@@ -17,7 +16,7 @@ module RailsAdmin
       if parent == :root
         limit = 0
       end
-      if (limited = limit > 0)
+      if (limited = limit.positive?)
         count_links = 0
         more_actions_links = []
         current_action = nil
@@ -131,7 +130,7 @@ module RailsAdmin
         "<i class='icon-check' title='#{abstract_model.config.label_plural}' rel='tooltip'></i>".html_safe
       end.html_safe
       all_links << auth_link
-      if (unauthorized_count = Setup::Authorization.where(authorized: false).count) > 0
+      if (unauthorized_count = Setup::Authorization.where(authorized: false).count).positive?
         a = index_path(model_name: abstract_model.to_param, 'utf8' => '✓', 'f' => { 'authorized' => { '60852' => { 'v' => 'false' } } })
         counter_link = link_to a, class: 'pjax', title: "#{unauthorized_count} #{'unauthorized'.pluralize(unauthorized_count)}" do
           ('<b class="label rounded label-xs up counter red">' + unauthorized_count.to_s + '</b>').html_safe
@@ -153,13 +152,13 @@ module RailsAdmin
       counters = Hash.new { |h, k| h[k] = 0 }
       Setup::SystemNotification.type_enum.each do |type|
         scope = Setup::SystemNotification.where(type: type)
-        if (scope.count > 0)
+        if (scope.count.positive?)
           meta = account.meta
           if meta.present? && (from_date = meta["#{type.to_s}_notifications_listed_at"])
             scope = scope.where(:created_at.gte => from_date)
           end
           count = scope.count
-          if (count > 0)
+          if (count.positive?)
             counters[type] = count
           end
         end
@@ -334,7 +333,7 @@ module RailsAdmin
       nav_groups.each do |navigation_label, nav_nodes|
         ecoindex -= 1
         nav_nodes.group_by do |node|
-          if ecoindex == 0
+          if ecoindex.zero?
             Setup::CrossSharedCollection
           else
             ((data_type = node.abstract_model.model.try(:data_type)) && data_type.class) || Setup::CenitDataType
@@ -371,8 +370,8 @@ module RailsAdmin
               end
             end
           end
-          just_li = ecoindex == 0 || (@dashboard_group && @dashboard_group[:label] == label)
-          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex > 0
+          just_li = ecoindex.zero? || (@dashboard_group && @dashboard_group[:label] == label)
+          nodes = nodes.select { |n| n.parent.nil? || !n.parent.to_s.in?(node_model_names) } if ecoindex.positive?
           li_stack = navigation(nodes_stack, nodes, collapse_id, just_li: just_li, before_lis: before_lis, after_lis: after_lis)
 
           html_id = "main-#{label.underscore.gsub(' ', '-')}"
@@ -515,7 +514,7 @@ module RailsAdmin
             end
           Setup::Category.all.each do |cat|
             count = (values = Setup::CrossSharedCollection.where(category_ids: cat.id)).count
-            if count > 0
+            if count.positive?
               category_count += count
               message = "<span><em>#{node.label_plural}</em> with category <em>#{cat.title}</em></span>"
               filter_token = Cenit::Token.where('data.category_id' => cat.id).first || Cenit::Token.create(data: { criteria: values.selector, message: message, category_id: cat.id })
@@ -523,7 +522,7 @@ module RailsAdmin
                 sub_link_url = index_path(model_name: node.abstract_model.to_param, filter_token: filter_token.token)
                 link_to sub_link_url, class: 'pjax' do
                   rc = ''
-                  if model_count > 0
+                  if model_count.positive?
                     rc += "<span class='nav-amount active'>#{count}</span>"
                   end
                   rc += "<span class='text'>#{cat.title}</span>"
@@ -640,7 +639,6 @@ module RailsAdmin
             rc.html_safe
           end
         end
-
       end
 
       show_all_link =
@@ -734,7 +732,6 @@ module RailsAdmin
                   </div>
                   </div>'
         end
-
       end
       html.html_safe
     end
@@ -788,7 +785,6 @@ module RailsAdmin
           end
           html += '</ul></li>'
         end
-
       end
       html += '</ul>'
       html.html_safe
@@ -874,7 +870,7 @@ module RailsAdmin
     def public_apis_collection_view(c)
       has_image = c.image.present?
       css_class = 'img-responsive ' + (has_image ? '' : 'no-image')
-      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, style: 'width: 80%'
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', class: css_class, alt: c.name, style: 'width: 80%'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-md-2 col-sm-3">
         <a href="' + url_show + '" title="' + c.name + '">
@@ -921,7 +917,7 @@ module RailsAdmin
     def dashboard_collection_view(c)
       has_image = c.image.present?
       css_class = 'img-responsive ' + (has_image ? '' : 'no-image')
-      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', :class => css_class, :alt => c.name, width: '80%', max_height: '80%', margin: '12px'
+      image = image_tag has_image ? c.image.versions[:thumb] : 'missing.png', class: css_class, alt: c.name, width: '80%', max_height: '80%', margin: '12px'
       url_show = rails_admin.show_path(model_name: c.model_name.to_s.underscore.gsub('/', '~'), id: c.name)
       '<div class="col-xs-6 col-sm-4 col-md-2">
         <a href="' + url_show + '" title="' + c.name + '">
@@ -1126,7 +1122,7 @@ module RailsAdmin
           fail "invalid JSON content on #{file_name} (#{ex.message})"
         end
       else
-        if (list = count_apis)[:total] > 0
+        if ((list = count_apis)[:total]).positive?
           File.open(file_name, 'w') { |file| file.write(list.to_json) }
         end
         list
@@ -1158,7 +1154,7 @@ module RailsAdmin
       categories_count = []
       categories_list.each do |cat|
         count = apis.count { |c| c['categories'].include?(cat) }
-        if count > 0
+        if count.positive?
           cat['count'] = count
           categories_count << cat
         end

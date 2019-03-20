@@ -13,7 +13,6 @@ module RailsAdmin
           fields :ip, :user_email, :updated_at
         end
       end
-
     end
   end
 end

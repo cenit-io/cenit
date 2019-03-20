@@ -8,7 +8,6 @@ class Ability
   attr_reader :deferred_abilities
 
   def initialize(user)
-
     @deferred_abilities = []
 
     can :access, :rails_admin
@@ -240,7 +239,7 @@ class Ability
     can :index, Setup::CrossSharedCollection
     can :pull, Setup::CrossSharedCollection, installed: true
 
-    can :new, Account
+    can :new, Account unless Cenit.tenant_creation_disabled
 
     can :simple_cross, CROSSING_MODELS_NO_ORIGIN
     can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]

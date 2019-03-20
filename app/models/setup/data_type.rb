@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Setup
   class DataType
     include SharedConfigurable
@@ -51,7 +52,7 @@ module Setup
         by_name = Hash.new { |h, k| h[k] = 0 }
         send(methods).each do |method|
           by_name[method.name] += 1
-          if method.parameters.size == 0
+          if method.parameters.size.zero?
             errors.add(methods, "contains algorithm taking no parameter: #{method.custom_title} (at less one parameter is required)")
           end
         end
@@ -102,7 +103,9 @@ module Setup
     end
 
     def model
-      data_type_name.constantize rescue nil
+      data_type_name.constantize
+    rescue
+      nil
     end
 
     def data_type_name

@@ -17,8 +17,8 @@ module RailsAdmin
                 {
                   start:
                     {
-                      :label => I18n.t('admin.config.observer.wizard.start.label'),
-                      :description => I18n.t('admin.config.observer.wizard.start.description')
+                      label: I18n.t('admin.config.observer.wizard.start.label'),
+                      description: I18n.t('admin.config.observer.wizard.start.description')
                     },
                   end:
                     {
@@ -92,7 +92,6 @@ module RailsAdmin
             fields :namespace, :name, :data_type, :triggers, :trigger_evaluator, :updated_at
           end
         end
-
       end
     end
   end

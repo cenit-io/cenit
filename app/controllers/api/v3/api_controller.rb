@@ -8,7 +8,7 @@ module Api::V3
     before_action :find_item, only: [:update, :show, :destroy, :digest]
     before_action :authorize_action, except: [:new_user, :cors_check]
 
-    rescue_from Exception, :with => :exception_handler
+    rescue_from Exception, with: :exception_handler
 
     respond_to :json
 
@@ -52,7 +52,7 @@ module Api::V3
       template_options[:max_entries] =
         if (max_entries = template_options[:max_entries])
           max_entries = max_entries.to_i
-          if max_entries == 0 || max_entries > maximum_entries
+          if max_entries.zero? || max_entries > maximum_entries
             maximum_entries
           else
             max_entries
@@ -62,7 +62,7 @@ module Api::V3
         end
       items = select_items
       items_data =
-        if get_limit == 0
+        if get_limit.zero?
           []
         else
           items.map do |item|
@@ -80,7 +80,7 @@ module Api::V3
           (template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
         }
       }
-      if get_limit > 0
+      if get_limit.positive?
         json[:total_pages] = (count * 1.0 / get_limit).ceil
       end
       render json: json
@@ -336,7 +336,7 @@ module Api::V3
         begin
           limit_option = query_options.delete(:limit)
           limit = (query_selector.delete(:limit) || limit_option || Kaminari.config.default_per_page).to_i
-          if limit < 0
+          if limit.negative?
             Kaminari.config.default_per_page
           else
             [Kaminari.config.default_per_page, limit].min
@@ -598,7 +598,6 @@ module Api::V3
 end
 
 module Setup
-
   class DataType
 
     def handle_get_digest(controller)

@@ -4,7 +4,6 @@ module Cenit
     class << self
 
       def pull_request(shared_collection, options = {})
-
         pull_parameters = options[:pull_parameters] || {}
         missing_parameters = []
         unless options[:ignore_missing_parameters]
@@ -180,9 +179,11 @@ module Cenit
             begin
               collection.name = BSON::ObjectId.new.to_s
             end while Setup::Collection.where(name: collection.name).present?
-            unless Cenit::Utility.save(collection, bind_references: { if: ->(r) { r.instance_variable_get(:@_edi_parsed) } },
-                                       create_collector: (create_collector = Set.new),
-                                       saved_collector: (saved = Set.new))
+            unless Cenit::Utility.save(collection,
+              bind_references: { if: ->(r) { r.instance_variable_get(:@_edi_parsed) } },
+              create_collector: (create_collector = Set.new),
+              saved_collector: (saved = Set.new))
+
               collection.errors.full_messages.each { |msg| errors << msg }
               collection.errors.clear
               if Cenit::Utility.save(collection, { create_collector: create_collector })

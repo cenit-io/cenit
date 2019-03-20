@@ -1,7 +1,5 @@
 module CanCan
-
   module Ability
-
     def get_relevant_rules_for_query(action, subject)
       relevant_rules_for_query(action, subject)
     end
@@ -11,8 +9,8 @@ module CanCan
     class MongoidAdapter
 
       def database_records
-        if @rules.size == 0
-          @model_class.where(:_id => {'$exists' => false, '$type' => 7})
+        if @rules.size.zero?
+          @model_class.where(_id: {'$exists' => false, '$type' => 7})
         elsif @rules.size == 1 && @rules[0].conditions.is_a?(Mongoid::Criteria)
           @rules[0].conditions
         else

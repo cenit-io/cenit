@@ -20,6 +20,6 @@ module Setup
       end
       @shared_collection
     end
-    
+
   end
 end

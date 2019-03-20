@@ -389,11 +389,11 @@ module Setup
           before_submit.run([options, message[:task]])
         end
       end
-      connection = (
-      (connection_id = message[:connection_id]) && Setup::Connection.where(id: connection_id).first
+      connection = options[:connection] || (
+      (connection_id = options[:connection_id] || message[:connection_id]) && Setup::Connection.where(id: connection_id).first
       ) || self.connection_role
-      authorization = (
-      (authorization_id = message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
+      authorization = options[:authorization] || (
+      (authorization_id = options[:authorization_id] || message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
         webhook.target.with(connection).and(authorization).submit(options) do |response, template_parameters|
@@ -403,6 +403,7 @@ module Setup
                          parameters: template_parameters,
                          headers: response.headers.to_hash,
                          statusCode: response.code,
+                         response_code: response.code,
                          task: message[:task])
         end
       if auto_retry == :automatic

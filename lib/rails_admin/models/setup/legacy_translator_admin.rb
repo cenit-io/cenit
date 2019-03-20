@@ -9,7 +9,7 @@ module RailsAdmin
             navigation_label 'Transforms'
             label 'Legacy Translator'
             visible do
-              group_visible && ::Setup::LegacyTranslator.count > 0
+              group_visible && ::Setup::LegacyTranslator.count.positive?
             end
             weight 414
             object_label_method { :custom_title }
@@ -182,7 +182,6 @@ module RailsAdmin
             fields :namespace, :name, :type, :style, :code, :source_data_type, :target_data_type, :updated_at
           end
         end
-
       end
     end
   end

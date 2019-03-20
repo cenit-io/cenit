@@ -1,6 +1,5 @@
 module Mongoff
   module GridFs
-
     class FileModel < Mongoff::Model
 
       MINIMUM_CHUNK_SIZE = 2 ** 18

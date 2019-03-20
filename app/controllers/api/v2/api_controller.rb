@@ -6,7 +6,7 @@ module Api::V2
     before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
     before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry, :authorize]
 
-    rescue_from Exception, :with => :exception_handler
+    rescue_from Exception, with: :exception_handler
 
     respond_to :json
 
@@ -40,7 +40,7 @@ module Api::V2
           @render_options[:max_entries] =
             if (max_entries = @render_options[:max_entries])
               max_entries = max_entries.to_i
-              if max_entries == 0 || max_entries > maximum_entries
+              if max_entries.zero? || max_entries > maximum_entries
                 maximum_entries
               else
                 max_entries

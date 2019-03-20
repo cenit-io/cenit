@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             data_type_config_model = RailsAdmin.config(Setup::DataTypeConfig).abstract_model
 
             if @object.config.new_record?
@@ -36,7 +35,6 @@ module RailsAdmin
             else
               redirect_to rails_admin.show_path(model_name: data_type_config_model.to_param, id: @object.config.id)
             end
-
           end
         end
 

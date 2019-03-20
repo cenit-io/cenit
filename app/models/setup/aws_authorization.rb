@@ -21,7 +21,7 @@ module Setup
     validates_inclusion_of :signature_method, in: ->(a) { a.signature_method_enum }
     validates_inclusion_of :signature_version, in: ->(a) { a.signature_version_enum }
 
-    auth_headers :'Content-MD5' => ->(auth, template_parameters) { auth.body_do_sign(template_parameters[:body]) }
+    auth_headers 'Content-MD5': ->(auth, template_parameters) { auth.body_do_sign(template_parameters[:body]) }
 
     auth_parameters Timestamp: ->(auth, template_parameters) { auth.timestamp },
                     SignatureMethod: :signature_method,
@@ -99,7 +99,7 @@ module Setup
       def normalize_val(value)
         uri_escape(value.respond_to?(:iso8601) ? value.iso8601 : value.to_s)
       end
-      
+
     end
 
   end

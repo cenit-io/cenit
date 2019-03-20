@@ -1,7 +1,6 @@
 require 'cenit/core_ext'
 
 module Cenit
-
   default_options service_url: '/service',
                   reserved_namespaces: %w(cenit default),
                   rabbit_mq_queue: lambda { Mongoid.default_client.database.name }
@@ -29,7 +28,7 @@ module Cenit
     end
 
     def excluded_actions(*args)
-      if args.length == 0
+      if args.length.zero?
         options[:excluded_actions]
       else
         self[:excluded_actions] = args.flatten.collect(&:to_s).join(' ').split(' ').collect(&:to_sym)
@@ -37,7 +36,7 @@ module Cenit
     end
 
     def reserved_namespaces(*args)
-      if args.length == 0
+      if args.length.zero?
         options[:reserved_namespaces]
       else
         self[:reserved_namespaces] = (options[:reserved_namespaces] + args[0].flatten.collect(&:to_s).collect(&:downcase)).uniq
@@ -49,7 +48,7 @@ module Cenit
     end
 
     def default_file_store(*args)
-      if args.length == 0
+      if args.length.zero?
         options[:default_file_store] || file_stores.first
       else
         default_file_store =
@@ -70,7 +69,7 @@ module Cenit
     end
 
     def file_stores(*args)
-      if args.length == 0
+      if args.length.zero?
         options[:file_stores] || [options.key?(:default_file_store) ? default_file_store : Cenit::FileStore::LocalDb]
       else
         args = args.flatten
@@ -83,7 +82,7 @@ module Cenit
     end
 
     def file_stores_roles(*args)
-      if args.length == 0
+      if args.length.zero?
         options[:file_stores_roles]
       else
         self[:file_stores_roles] = args.flatten.collect(&:to_s)

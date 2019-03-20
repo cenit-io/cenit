@@ -25,7 +25,6 @@ module RailsAdmin
 
         register_instance_option :controller do
           proc do
-
             Forms::FlowSelector.collection.drop
             model = process_bulk_scope
             selector_config = RailsAdmin::Config.model(Forms::FlowSelector)
@@ -34,10 +33,12 @@ module RailsAdmin
               data_type = model.data_type
               if (select_data = params[selector_config.abstract_model.param_key])
                 flow = Setup::Flow.where(id: select_data[:flow_id]).first
-                if (@form_object = Forms::FlowSelector.new(flow: flow,
+                if (@form_object = Forms::FlowSelector.new(
+                  flow: flow,
                   data_type: data_type)).valid?
                   begin
-                    do_flash_process_result flow.process(object_ids: @bulk_ids,
+                    do_flash_process_result flow.process(
+                      object_ids: @bulk_ids,
                       data_type_id: data_type.id.to_s)
                     render_form = false
                   rescue Exception => ex

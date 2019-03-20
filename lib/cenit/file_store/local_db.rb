@@ -48,7 +48,8 @@ module Cenit
         end
         chunks_left = ((len - chunk_chunk) / chunk_size.to_f).ceil
         data = ''
-        chunks(file).ascending(:n).where(:n.gte => current_chunk,
+        chunks(file).ascending(:n).where(
+          :n.gte => current_chunk,
           :n.lte => current_chunk + chunks_left).each do |chunk|
           data += chunk.data.data[chunk_start, chunk_chunk]
           if (chunk_chunk = len - data.length) > chunk_size
@@ -72,7 +73,7 @@ module Cenit
       end
 
       def stored?(file)
-        chunks(file).count > 0
+        chunks(file).count.positive?
       end
 
       private
@@ -86,7 +87,6 @@ module Cenit
         n = -1
 
         reading(readable) do |io|
-
           chunking(io, file[:chunkSize]) do |buf|
             md5 << buf
             length += buf.size
@@ -109,7 +109,7 @@ module Cenit
       end
 
       def chunking(io, chunk_size, &block)
-        if io.method(:read).arity == 0
+        if io.method(:read).arity.zero?
           data = io.read
           i = 0
           loop do
@@ -123,7 +123,7 @@ module Cenit
             i += 1
           end
         else
-          while (buf = io.read(chunk_size)) && buf.size > 0
+          while (buf = io.read(chunk_size)) && buf.size.positive?
             block.call(buf)
           end
         end

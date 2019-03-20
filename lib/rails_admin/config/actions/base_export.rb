@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class BaseExport < RailsAdmin::Config::Actions::Translate
 
         class << self
@@ -20,7 +19,6 @@ module RailsAdmin
         end
 
       end
-
     end
   end
 end

@@ -10,7 +10,6 @@ module RailsAdmin
             fields :name, :type, :many, :required, :default
           end
         end
-
       end
     end
   end

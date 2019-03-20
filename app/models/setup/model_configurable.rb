@@ -35,7 +35,6 @@ module Setup
     end
 
     module ClassMethods
-
       attr_reader :config_model, :relation_name, :foreign_key
 
       def inherited(subclass)
@@ -105,7 +104,6 @@ module Setup
         super
         config_model.with(tenant).where(foreign_key.in => ids).delete_all
       end
-
     end
   end
 end

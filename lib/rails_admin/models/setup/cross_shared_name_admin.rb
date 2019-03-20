@@ -13,7 +13,6 @@ module RailsAdmin
             fields :name, :owners, :updated_at
           end
         end
-
       end
     end
   end

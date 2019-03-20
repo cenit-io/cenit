@@ -33,7 +33,6 @@ module RailsAdmin
             fields :base_uri, :data, :description, :scheduler, :attempts_succeded, :retries, :progress, :status, :executions, :notifications, :updated_at
           end
         end
-
       end
     end
   end

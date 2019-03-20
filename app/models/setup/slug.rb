@@ -3,7 +3,6 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-
       field :slug, type: String
 
       validates_length_of :slug, maximum: 255
@@ -21,7 +20,7 @@ module Setup
             candidate.squeeze(' ').tr(' ', '_')
           end
         i = candidate.length - 1
-        while candidate.length > 0 && i == candidate.length - 1
+        while candidate.length.positive? && i == candidate.length - 1
           i -= 1 while i >= 0 && candidate[i] =~ /\A\.|[a-z]|[A-Z]|\d|_\Z/
           if i == candidate.length - 1
             candidate = candidate.to(i - 1)
@@ -62,6 +61,5 @@ module Setup
     def slug_taken?(slug)
       self.class.where(slug: slug, :id.nin => [id]).present?
     end
-
   end
 end

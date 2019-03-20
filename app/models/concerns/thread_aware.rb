@@ -6,7 +6,6 @@ module ThreadAware
   end
 
   module ClassMethods
-
     def thread_key
       "[cenit]#{to_s}"
     end

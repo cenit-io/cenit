@@ -15,12 +15,12 @@ module Diffy
             unchanged_lines << l
           else
             if unchanged_lines.length > min_count_collapse
-              first = (all_lines.length == 0)
+              first = (all_lines.length.zero?)
               last = (idx +1 == lines.length)
               all_lines.concat(wrapped_collapse(unchanged_lines, first, last))
               unchanged_lines= []
             else
-              if unchanged_lines.length > 0
+              if unchanged_lines.length.positive?
                 all_lines.concat(unchanged_lines)
                 unchanged_lines= []
               end
@@ -28,7 +28,7 @@ module Diffy
             all_lines << l
           end
         end
-        if (unchained_count = unchanged_lines.length) > 0
+        if (unchained_count = unchanged_lines.length).positive?
           if unchained_count > min_count_collapse
             first = false
             last = true
@@ -86,8 +86,6 @@ module Diffy
           lines.join("\n")
         ]
       end
-
-
     end
 
   end

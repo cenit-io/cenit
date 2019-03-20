@@ -16,7 +16,6 @@ module ClassHierarchyAware
     end
 
     module ClassMethods
-
       def class_hierarchy
         ([self] + descendants.collect(&:class_hierarchy)).flatten.uniq
       end
@@ -26,7 +25,7 @@ module ClassHierarchyAware
       end
 
       def abstract_class(*args)
-        @abstract_class = args[0].present? if args.length > 0
+        @abstract_class = args[0].present? if args.length.positive?
         @abstract_class
       end
 
@@ -37,8 +36,6 @@ module ClassHierarchyAware
       def concrete?
         !abstract?
       end
-
     end
-    
   end
 end

@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     module Actions
-
       class Convert < RailsAdmin::Config::Actions::Translate
 
         register_instance_option :collection do

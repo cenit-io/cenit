@@ -8,7 +8,6 @@ require 'oauth2/authenticator'
 
 module OAuth2
   Authenticator.class_eval do
-
     alias_method :oauth2_apply, :apply
 
     def apply(params)

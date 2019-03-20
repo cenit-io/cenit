@@ -1,6 +1,5 @@
 module Mongoff
   module Savable
-
     def save(options = {})
       errors.clear
       if destroyed?
@@ -13,7 +12,7 @@ module Mongoff
         run_callbacks_and do
           if new_record?
             orm_model.collection.insert_one(attributes)
-            @new_record = false
+            set_not_new_record
           else
             query = orm_model.collection.find(_id: id)
             set = attributes
@@ -31,6 +30,5 @@ module Mongoff
       end if orm_model.persistable? && errors.blank?
       errors.blank?
     end
-
   end
 end

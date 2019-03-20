@@ -2,7 +2,6 @@ module RailsAdmin
   ###
   # Generate sdk code for api service.
   module RestApiHelper
-
     include RailsAdmin::RestApi::Curl
     include RailsAdmin::RestApi::Php
     include RailsAdmin::RestApi::Ruby
@@ -12,12 +11,12 @@ module RailsAdmin
 
     def api_langs
       [
-        { id: 'curl', label: 'Curl', hljs: 'bash', :runnable => true },
-        { id: 'php', label: 'Php', hljs: 'php', :runnable => false },
-        { id: 'ruby', label: 'Ruby', hljs: 'ruby', :runnable => true },
-        { id: 'python', label: 'Python', hljs: 'python', :runnable => true },
-        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript', :runnable => true },
-        { id: 'jquery', label: 'JQuery', hljs: 'javascript', :runnable => false },
+        { id: 'curl', label: 'Curl', hljs: 'bash', runnable: true },
+        { id: 'php', label: 'Php', hljs: 'php', runnable: false },
+        { id: 'ruby', label: 'Ruby', hljs: 'ruby', runnable: true },
+        { id: 'python', label: 'Python', hljs: 'python', runnable: true },
+        { id: 'nodejs', label: 'Nodejs', hljs: 'javascript', runnable: true },
+        { id: 'jquery', label: 'JQuery', hljs: 'javascript', runnable: false },
       ]
     end
 

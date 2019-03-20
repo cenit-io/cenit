@@ -1,6 +1,5 @@
 module Setup
   module XsltTemplateCommon
-
     def output_method(xml_doc = code)
       xml_doc ||= code
       xml_doc = Nokogiri::XML(xml_doc) unless xml_doc.is_a?(Nokogiri::XML::Document)

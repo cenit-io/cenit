@@ -2,7 +2,6 @@ module DynamicValidators
   extend ActiveSupport::Concern
 
   module ClassMethods
-
     def validates_association_length_of(*args)
       args[1][:wrong_length] ||= 'should be of size %{count}'
       args[1][:too_long] ||= 'maximum size %{count} exceeded'

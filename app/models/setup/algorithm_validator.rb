@@ -27,6 +27,6 @@ module Setup
     rescue Exception => ex
       [ex.message]
     end
-    
+
   end
 end

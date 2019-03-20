@@ -1,6 +1,5 @@
 module RailsAdmin
   module MongoffAttributeCommon
-
     def hash_schema
       if schema.is_a?(Hash)
         schema

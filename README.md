@@ -275,7 +275,7 @@ reboot
 sudo apt install mongodb rabbitmq-server zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev nodejs git imagemagick libmagickwand-dev
 ```
 
-### Install Ruby 2.2.1 with rbenv
+### Install Ruby 2.3.0 with rbenv  (alternative RVM)
 
 ```
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
@@ -285,8 +285,8 @@ exec $SHELL
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
 exec $SHELL
-rbenv install 2.2.1
-rbenv global 2.2.1
+rbenv install 2.3.0
+rbenv global 2.3.0
 exec $SHELL
 ```
 
@@ -415,5 +415,5 @@ Thank you for your contributions:
 [apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]: 
-https://join.slack.com/t/cenitio/shared_invite/enQtNTE2NzI0NDQ3MjAzLTEwMjJjNDMxZDIwZDAyMjlhYmM2MjQ3M2YzY2RjYjA3ZmY5MTA4YmY1OGMxNDc0OTU0NDlkMzI4MGM4MDc3MmQ
+[join-slack-link]:
+https://join.slack.com/t/cenitio/shared_invite/enQtNTc3ODgyNDM4NDU1LThhMDIwMWE3YTllYmFhOTE1NjU4OGM5ZmYwNDFjZTI3OTQ5YzZiMjQ4OTM4ODhhOTliMTFjZDg2ZTg3OGNiMjA

@@ -28,6 +28,6 @@ module Setup
     def value
       name
     end
-    
+
   end
 end

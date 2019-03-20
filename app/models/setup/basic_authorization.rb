@@ -27,6 +27,6 @@ module Setup
     def authorized?
       username.present? && password.present?
     end
-    
+
   end
 end

@@ -1,9 +1,7 @@
 require 'liquid/drop'
 
 module Cenit
-
   module Liquidfier
-
     def to_liquid
       @cenit_liquid_drop ||= Cenit::Liquidfier::Drop.new(self)
     end

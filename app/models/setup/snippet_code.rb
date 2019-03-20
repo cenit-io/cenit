@@ -5,7 +5,6 @@ module Setup
     include ShareWithBindings
 
     included do
-
       build_in_data_type.and(
         properties: {
           code: {
@@ -131,7 +130,6 @@ module Setup
     end
 
     module ClassMethods
-
       def instantiate(attrs = nil, selected_fields = nil)
         record = super
         if record.snippet.nil? && (legacy_code = record.attributes[legacy_code_attribute])
@@ -145,7 +143,7 @@ module Setup
       end
 
       def legacy_code_attribute(*args)
-        if args.length == 0
+        if args.length.zero?
           @legacy_code_attribute
         else
           @legacy_code_attribute = args[0].to_s

@@ -26,7 +26,6 @@ module Setup
     end
 
     module ClassMethods
-
       def configuring_fields
         @configuring_fields ||= Set.new
       end
@@ -34,8 +33,6 @@ module Setup
       def shared_configurable(*args)
         configuring_fields.merge(args.collect(&:to_s).select(&:present?))
       end
-
     end
-
   end
 end

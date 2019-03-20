@@ -53,7 +53,6 @@ module RailsAdmin
             fields :created_at, :name, :registered, :tenant_id, :identifier, :created_at, :updated_at
           end
         end
-
       end
     end
   end

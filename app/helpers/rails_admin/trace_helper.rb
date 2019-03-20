@@ -1,9 +1,7 @@
 module RailsAdmin
   module TraceHelper
-
     def show_mongoid_tracer_trace
       respond_to do |format|
-
         format.json do
           render json: @object
         end
@@ -44,7 +42,7 @@ module RailsAdmin
     def diffstat(additions, deletions, resume = false)
       blocks = ''
       added, deleted =
-        if (total = additions + deletions) > 0
+        if (total = additions + deletions).positive?
           if total <= 5
             [additions, deletions]
           else
@@ -54,22 +52,22 @@ module RailsAdmin
           [0, 0]
         end
       neutral = 5-(added + deleted)
-      while added > 0
+      while added.positive?
         blocks += '<span class="block-diff-added"></span>'
         added = added -1
       end
-      while deleted > 0
+      while deleted.positive?
         blocks += '<span class="block-diff-deleted"></span>'
         deleted = deleted -1
       end
-      while neutral > 0
+      while neutral.positive?
         blocks += '<span class="block-diff-neutral"></span>'
         neutral = neutral -1
       end
       title, prefix =
         if resume
-          additions_resume = additions > 0 ? %(<span class="additions">+ #{additions} </span>) : ''
-          deletions_resume = deletions > 0 ? %(<span class="deletions">- #{deletions} </span>) : ''
+          additions_resume = additions.positive? ? %(<span class="additions">+ #{additions} </span>) : ''
+          deletions_resume = deletions.positive? ? %(<span class="deletions">- #{deletions} </span>) : ''
           ["#{additions + deletions} changes", %(#{additions_resume}#{deletions_resume})]
         else
           ["#{additions} additions &amp; #{deletions} deletions", additions+deletions]
@@ -135,7 +133,7 @@ module RailsAdmin
                     deletions += diff[:deletions]
                     diff[:html]
                   end
-                tab_pane = "<div class='tab-pane#{index == 0 ? ' active' : ''}' id='unique_id_#{id}'>#{content}</div>"
+                tab_pane = "<div class='tab-pane#{index.zero? ? ' active' : ''}' id='unique_id_#{id}'>#{content}</div>"
                 tab_pane
               end.join
               first = true
@@ -178,7 +176,7 @@ module RailsAdmin
             {
               additions: additions,
               deletions: deletions,
-              html: additions + deletions > 0 ? diff.to_s(:html) : %(#{diffstat(0, 0)}<label class="label label-default">Unchanged<label>)
+              html: (additions + deletions).positive? ? diff.to_s(:html) : %(#{diffstat(0, 0)}<label class="label label-default">Unchanged<label>)
             }
           end
       end

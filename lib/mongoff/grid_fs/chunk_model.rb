@@ -1,6 +1,5 @@
 module Mongoff
   module GridFs
-
     class ChunkModel < Model
 
       SCHEMA = Cenit::Utility.stringfy({

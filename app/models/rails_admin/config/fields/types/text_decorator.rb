@@ -3,7 +3,6 @@ module RailsAdmin
     module Fields
       module Types
         Text.class_eval do
-
           def parse_input(params)
             case (value = params[name])
             when Hash, Array

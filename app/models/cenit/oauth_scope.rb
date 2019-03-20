@@ -53,7 +53,7 @@ module Cenit
             openid_expected = false
             i = 1
             stack = 1
-            while stack > 0 && i < scope.length
+            while stack.positive? && i < scope.length
               case scope[i]
               when '{'
                 stack += 1

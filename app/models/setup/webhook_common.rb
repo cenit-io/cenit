@@ -212,9 +212,10 @@ module Setup
           attachment = nil
         end
         notification_model.create_with(
-          message: JSON.pretty_generate(method: method,
-          url: url,
-          headers: headers),
+          message: JSON.pretty_generate(
+            method: method,
+            url: url,
+            headers: headers),
           type: :notice,
           attachment: attachment,
           skip_notification_level: options[:skip_notification_level] || options[:notify_request]
@@ -478,7 +479,6 @@ module Setup
     SYM_METHODS = METHODS.map(&:downcase).map(&:to_sym)
 
     module ClassMethods
-
       def method_enum
         SYM_METHODS
       end

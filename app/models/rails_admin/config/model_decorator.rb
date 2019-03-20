@@ -1,7 +1,6 @@
 module RailsAdmin
   module Config
     Model.class_eval do
-
       register_instance_option :asynchronous_persistence do
         false
       end
@@ -34,7 +33,7 @@ module RailsAdmin
       end
 
       def filter_fields(*args)
-        if args.length == 0
+        if args.length.zero?
           if (names = filter_fields_names)
             _fields.select { |f| names.include?(f.name) }
           else
@@ -52,7 +51,7 @@ module RailsAdmin
       end
 
       def filter_query_fields(*args)
-        if args.length == 0
+        if args.length.zero?
           if (names = filter_query_fields_names)
             fields.select { |f| names.include?(f.name) }
           else

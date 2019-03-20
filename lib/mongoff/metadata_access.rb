@@ -1,7 +1,5 @@
 module Mongoff
   module MetadataAccess
-
-
     def property_for(name)
       @properties_by_name ||= {}
       unless @properties_by_name.key?(name)
@@ -90,7 +88,7 @@ module Mongoff
         default: String,
         format: {
           date: Date,
-          :'date-time' => DateTime,
+          'date-time': DateTime,
           time: Time
         }
       },

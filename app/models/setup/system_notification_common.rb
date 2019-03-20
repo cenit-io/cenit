@@ -9,7 +9,6 @@ module Setup
     end
 
     module ClassMethods
-
       def create_from(exception, header = nil)
         header ||= "#{exception.class.to_s.split('::').collect(&:to_title).join('. ')}: #{exception.message}"
         create_with(message: "#{header}: #{exception.message}",
@@ -31,8 +30,6 @@ module Setup
       ensure
         temporary_file.close if temporary_file
       end
-
     end
-    
   end
 end

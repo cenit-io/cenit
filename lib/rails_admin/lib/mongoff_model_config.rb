@@ -1,5 +1,4 @@
 module RailsAdmin
-
   class MongoffModelConfig < RailsAdmin::Config::Model
 
     include ThreadAware
@@ -151,6 +150,9 @@ module RailsAdmin
                 o.key?('type')
             end
             help 'Required'
+          end
+          field :filename do
+            required false
           end
           field :data
           field :metadata

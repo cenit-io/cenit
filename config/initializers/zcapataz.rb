@@ -1,5 +1,4 @@
 Capataz.config do
-
   disable ENV['CAPATAZ_DISABLE']
 
   maximum_iterations ENV['CAPATAZ_MAXIMUM_ITERATIONS'] || 3000
@@ -31,7 +30,7 @@ Capataz.config do
 
   allow_on [Account, Tenant], [:find_where, :find_all, :switch, :notify, :data_type, :current]
 
-  allow_for [Account, Tenant], [:id, :name, :key, :token, :notification_level, :switch, :nil?, :get_owner, :owner]
+  allow_for [Account, Tenant], [:id, :name, :key, :token, :notification_level, :switch, :nil?, :get_owner, :owner, :errors]
 
   allow_on Cenit, [:homepage, :namespace, :slack_link, :fail]
 

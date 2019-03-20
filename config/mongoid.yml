@@ -65,7 +65,7 @@ development:
 test:
   clients:
     default:
-      database: cenithub_test
+      database: <%= ENV['DB_TEST'] || 'cenit_test' %>
       hosts:
         - localhost:27017
       options:
