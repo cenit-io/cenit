@@ -133,7 +133,7 @@ module Setup
     def apply?(cond, old_value, new_value)
       if cond.is_a?(Hash)
         cond.each do |op, constraint|
-          if (match = op.match(/\A\$(.+)/))
+          if (match = op.to_s.match(/\A\$(.+)/))
             begin
               return false unless send("apply_#{match[1]}_operator?", old_value, new_value, constraint)
             rescue Exception => ex
