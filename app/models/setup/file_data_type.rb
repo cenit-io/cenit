@@ -41,8 +41,8 @@ module Setup
         validators.each { |validator| validators_classes[validator.class] << validator }
         validators_classes.delete(Setup::AlgorithmValidator)
         if validators_classes.size == 1 &&
-          (validators = validators_classes.values.first).size == 1 &&
-          validators[0].is_a?(Setup::EdiValidator)
+           (validators = validators_classes.values.first).size == 1 &&
+           validators[0].is_a?(Setup::EdiValidator)
           self.schema_data_type = validators[0].first.schema_data_type
         else
           if schema_data_type.present?

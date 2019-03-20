@@ -64,8 +64,8 @@ module Setup
           connections << connection
         end
         @connections_cache = connections unless @connection_role_options &&
-          @connection_role_options.key?(:cache) &&
-          !@connection_role_options[:cache]
+                                                @connection_role_options.key?(:cache) &&
+                                                !@connection_role_options[:cache]
         connections
       end
     end

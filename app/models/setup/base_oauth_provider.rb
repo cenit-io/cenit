@@ -73,7 +73,7 @@ module Setup
 
     def default_refresh_token(authorization)
       if (refresh_token = authorization.refresh_token) &&
-        (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) < Time.now - 60))
+         (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) < Time.now - 60))
         fail 'Missing client configuration' unless (client = authorization.client)
         http_response = HTTMultiParty.post(
           authorization.token_endpoint,
@@ -145,7 +145,7 @@ module Setup
                                                                        http_proxy_port: Cenit.http_proxy_port)
       xml_doc = Nokogiri::XML(response)
       if (oauth_token = xml_doc.root.element_children.detect { |e| e.name == 'OAuthToken' }) &&
-        (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
+         (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
         authorization.access_token = oauth_token.content
         authorization.access_token_secret = oauth_token_secret.content
         authorization.save

@@ -36,7 +36,7 @@ module RailsAdmin
           scope = scope.and(criteria)
         end
       elsif (output = Setup::AlgorithmOutput.where(id: params[:algorithm_output]).first) &&
-        output.data_type == model.data_type
+            output.data_type == model.data_type
         scope = scope.any_in(id: output.output_ids)
       end
       # Contextual record

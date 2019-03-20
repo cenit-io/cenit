@@ -180,8 +180,8 @@ describe Mongoff::Record do
           a.b_nested.a_nested.new_record?,
           a.b_ref.a_nested.new_record?
         ] +
-          a.b_nested_many.collect { |b| b.a_nested.new_record? } +
-          a.b_ref_many.collect { |b| b.loaded || b.a_nested.new_record? }
+        a.b_nested_many.collect { |b| b.a_nested.new_record? } +
+        a.b_ref_many.collect { |b| b.loaded || b.a_nested.new_record? }
 
       expect(flags).to all(eq true)
     end
@@ -197,9 +197,9 @@ describe Mongoff::Record do
 
       flags =
         a.b_nested.a_nested_many.collect(&:new_record?) +
-          a.b_ref.a_nested_many.collect(&:new_record?) +
-          a.b_nested_many.collect { |b| b.a_nested_many.collect(&:new_record?) }.flatten +
-          a.b_ref_many.collect { |b| b.loaded || b.a_nested_many.collect(&:new_record?) }.flatten
+        a.b_ref.a_nested_many.collect(&:new_record?) +
+        a.b_nested_many.collect { |b| b.a_nested_many.collect(&:new_record?) }.flatten +
+        a.b_ref_many.collect { |b| b.loaded || b.a_nested_many.collect(&:new_record?) }.flatten
 
       expect(flags).to all(eq true)
     end
@@ -217,8 +217,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref.new_record?,
           a.b_ref.a_ref.new_record?
         ] +
-          a.b_nested_many.collect { |b| b.a_ref.new_record? } +
-          a.b_ref_many.collect { |b| b.loaded || b.a_ref.new_record? }
+        a.b_nested_many.collect { |b| b.a_ref.new_record? } +
+        a.b_ref_many.collect { |b| b.loaded || b.a_ref.new_record? }
 
       expect(flags).to all(eq true)
     end
@@ -236,8 +236,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref_loaded.new_record?,
           a.b_ref.a_ref_loaded.new_record?
         ] +
-          a.b_nested_many.collect { |b| b.a_ref_loaded.new_record? } +
-          a.b_ref_many.collect { |b| b.a_ref_loaded.new_record? }
+        a.b_nested_many.collect { |b| b.a_ref_loaded.new_record? } +
+        a.b_ref_many.collect { |b| b.a_ref_loaded.new_record? }
 
       expect(flags).to all(eq false)
     end
@@ -256,8 +256,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref_many.detect(&:loaded).new_record?,
           a.b_ref.a_ref_many.detect(&:loaded).new_record?
         ] +
-          a.b_nested_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? } +
-          a.b_ref_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? }
+        a.b_nested_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? } +
+        a.b_ref_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? }
 
       expect(flags).to all(eq false)
     end

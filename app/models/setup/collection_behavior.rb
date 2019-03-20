@@ -118,8 +118,8 @@ module Setup
       applications.each do |app|
         app.application_parameters.each do |app_parameter|
           next unless (param_model = app.configuration_model.property_model(app_parameter.name)) &&
-            (relation = collecting_models[param_model]) &&
-            (items = app.configuration[app_parameter.name])
+                      (relation = collecting_models[param_model]) &&
+                      (items = app.configuration[app_parameter.name])
           items = [items] unless items.is_a?(Enumerable)
           items.each do |item|
             dependencies[relation.name] << item if scan_dependencies_on(item,
@@ -146,8 +146,8 @@ module Setup
                                     visited: visited)
               dependencies[transformations_relation.name] << t
               if processed.exclude?(t) &&
-                t.is_a?(Setup::Converter) &&
-                t.style == 'mapping'
+                 t.is_a?(Setup::Converter) &&
+                 t.style == 'mapping'
                 pending << t
               end
             end

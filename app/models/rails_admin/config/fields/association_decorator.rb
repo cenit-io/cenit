@@ -62,7 +62,7 @@ module RailsAdmin
           action = v.instance_variable_get(:@action)
           values, total = show_values(limit = 40)
           if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) &&
-            !v.instance_variable_get(:@showing)
+             !v.instance_variable_get(:@showing)
             amc = RailsAdmin.config(association.klass)
             am = amc.abstract_model
             count = 0
@@ -113,7 +113,8 @@ module RailsAdmin
             HTML
             v.instance_variable_set(:@showing, false)
             if multiple?
-              table += "<div class=\"clearfix total-count\">" +
+              table +=
+                "<div class=\"clearfix total-count\">" +
                 if total > count
                   if values.is_a?(Mongoid::Criteria) && !am.embedded? && (v.action(:index, am))
                     all_associated_link(values, am, "#{total} #{amc.label_plural}")

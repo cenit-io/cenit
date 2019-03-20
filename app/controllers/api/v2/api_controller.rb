@@ -486,7 +486,7 @@ module Api::V2
             @_action_name.to_sym
           end
         unless @ability.can?(action_symbol, @item || klass) &&
-          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
+               (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
           success = false
           unless options[:skip_response]
             responder = Cenit::Responder.new(@request_id, :unauthorized)

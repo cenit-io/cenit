@@ -11,11 +11,11 @@ class FileController < ApplicationController
       end
     end
     if model &&
-      (record = model.where(id: params[:id]).first)
+       (record = model.where(id: params[:id]).first)
       if authorization_adapter.can?(:show, record) || (model == User && params[:field] == 'picture') #TODO remove when authorize to view users profile
         if (uploader = record.try(params[:field])).is_a?(CarrierWave::Uploader::Base) &&
-          (params[:file].nil? || (uploader = find_version(uploader, file_path))) &&
-          (content = uploader.read)
+           (params[:file].nil? || (uploader = find_version(uploader, file_path))) &&
+           (content = uploader.read)
           send_data content, type: uploader.file.content_type, disposition: 'inline'
         else
           not_found

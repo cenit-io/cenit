@@ -178,14 +178,14 @@ module Setup
                 end
               fail I18n.t('cenit.api_spec.swagger_parser.error.authorization_url_missing') unless (auth_url = security['authorizationUrl'])
               provider = oauth_providers[auth_url] ||
-                provider_model.where(authorization_endpoint: auth_url).first ||
-                (oauth_providers_config.key?(auth_url) && provider_model.new_from_json(oauth_providers_config[auth_url]))
+                         provider_model.where(authorization_endpoint: auth_url).first ||
+                         (oauth_providers_config.key?(auth_url) && provider_model.new_from_json(oauth_providers_config[auth_url]))
               provider.authorization_endpoint = auth_url
               provider.namespace ||= 'Cenit'
               if provider
                 client = oauth_clients[auth_url] ||
-                  Setup::RemoteOauthClient.where(provider: provider).first ||
-                  Setup::RemoteOauthClient.new(provider: provider, name: 'Client')
+                         Setup::RemoteOauthClient.where(provider: provider).first ||
+                         Setup::RemoteOauthClient.new(provider: provider, name: 'Client')
                 oauth_clients[auth_url] = client
                 oauth_providers[auth_url] = provider
                 unless namespaces.key?(provider.namespace)
@@ -515,7 +515,7 @@ module Setup
             child_params = {}
             child[:metadata].delete(params).each do |p|
               if keys.exclude?(key = p[:key]) ||
-                (p = parent_params[key].difference(p)).present?
+                 (p = parent_params[key].difference(p)).present?
                 child_params[key] = p
               end
             end

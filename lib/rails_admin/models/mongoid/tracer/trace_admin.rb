@@ -27,16 +27,16 @@ module RailsAdmin
                         case attr
                         when 'model_label'
                           (target_model = trace.target_model_name) &&
-                            RailsAdmin.config(target_model).label
+                          RailsAdmin.config(target_model).label
                         when 'target_show_url'
                           (tracer_model_config = RailsAdmin.config(trace.target_model_name)) &&
-                            (tracer_abstract_model = tracer_model_config.abstract_model) &&
-                            (target = trace.target)&&
-                            "/#{tracer_abstract_model.to_param}/#{target.id}"
+                          (tracer_abstract_model = tracer_model_config.abstract_model) &&
+                          (target = trace.target)&&
+                          "/#{tracer_abstract_model.to_param}/#{target.id}"
                         when 'object_name'
                           (tracer_model_config = RailsAdmin.config(trace.target_model_name)) &&
-                            (tracer_abstract_model = tracer_model_config.abstract_model) &&
-                            ((target = trace.target).nil? ? trace.target_id : target.send(tracer_model_config.object_label_method))
+                          (tracer_abstract_model = tracer_model_config.abstract_model) &&
+                          ((target = trace.target).nil? ? trace.target_id : target.send(tracer_model_config.object_label_method))
                         when 'author_data'
                           if (author = User.where(id: trace.author_id).first)
                             { picture: author.picture_url, email: author.email }

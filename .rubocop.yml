@@ -24,3 +24,6 @@ Style/EmptyLinesAroundMethodBody:
 
 Style/EmptyLinesAroundModuleBody:
   Enabled: true
+
+Layout/MultilineOperationIndentation:
+  Enabled: true

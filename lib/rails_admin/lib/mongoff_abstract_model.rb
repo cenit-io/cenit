@@ -66,7 +66,7 @@ module RailsAdmin
             false
           elsif abstract_model.model.properties.any? do |property|
             abstract_model.model.property_model(property).eql?(model) &&
-              ((referenced = abstract_model.model.property_schema(property)['referenced']).nil? || !referenced)
+            ((referenced = abstract_model.model.property_schema(property)['referenced']).nil? || !referenced)
           end
             @embeddors << abstract_model
             true

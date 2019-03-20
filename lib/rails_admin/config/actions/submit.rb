@@ -101,7 +101,7 @@ module RailsAdmin
             params[group][key.to_s] = object[property]
           end
           if (content_type = object['content_type']).present? &&
-            !(params.has_key?('headers') && params['headers'].has_key?('Content-Type'))
+             !(params.has_key?('headers') && params['headers'].has_key?('Content-Type'))
             params['headers']['Content-Type'] = content_type
           end
           params
@@ -131,7 +131,7 @@ module RailsAdmin
                 params_hash
               end
               if (metadata = entity.try(:metadata)).is_a?(Hash) &&
-                (params_metadata = metadata[params_group]).is_a?(Hash)
+                 (params_metadata = metadata[params_group]).is_a?(Hash)
                 params_metadata.each do |key, param_hash|
                   if (property_name = property_names[params_group][key])
                     h.merge!(property_name => param_hash)

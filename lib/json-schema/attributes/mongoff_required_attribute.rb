@@ -13,7 +13,8 @@ module JSON
               property = property_schema['type'] == 'array' ? "#{property}_ids" : "#{property}_id"
             end
             next if data.has_key?(property.to_s)
-            prop_defaults = options[:insert_defaults] &&
+            prop_defaults =
+              options[:insert_defaults] &&
               defined_properties &&
               defined_properties[property] &&
               !defined_properties[property]['default'].nil? &&

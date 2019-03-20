@@ -28,8 +28,8 @@ module RailsAdmin
             c.configure :agent_id do
               pretty_value do
                 if (agent_id = value) &&
-                  (task = bindings[:object].task) &&
-                  (agent = task.agent_model.where(id: agent_id).first)
+                   (task = bindings[:object].task) &&
+                   (agent = task.agent_model.where(id: agent_id).first)
 
                   v = bindings[:view]
                   amc = RailsAdmin.config(task.agent_model)

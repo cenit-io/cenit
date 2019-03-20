@@ -100,7 +100,7 @@ module Setup
           end
         run_transformation(transformation, sub_map_source_data_type, sub_map_source, options) do |result, opts|
           unless target_model.nil? || (target_model.is_a?(Class) && result.is_a?(target_association.klass)) ||
-            (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
+                 (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
             opts = opts.merge(discard_events: true).with_indifferent_access
             if transformation.type == :Export && target_model.data_type.is_a?(Setup::FileDataType)
               opts[:contentType] ||= transformation.mime_type
@@ -123,7 +123,7 @@ module Setup
     def run_transformation(transformation, source_data_type, source, options)
       source = [source] unless source.is_a?(Enumerable)
       if (transformation.type == :Export && transformation.bulk_source) ||
-        (transformation.type == :Conversion && transformation.source_handler)
+         (transformation.type == :Conversion && transformation.source_handler)
         r = transformation.run(source_data_type: source_data_type, objects: source, save_result: false, options: options)
         yield r, options if block_given?
       else
@@ -225,8 +225,8 @@ module Setup
           if sub_map.errors.blank?
             target_association = target_data_type.records_model.associations[name]
             if source_association && source_association.many? &&
-              (target_association.nil? || !target_association.many?) && # target_association is nil for file mappings
-              !transformation.bulk_source
+               (target_association.nil? || !target_association.many?) && # target_association is nil for file mappings
+               !transformation.bulk_source
               sub_map.errors.add(:source, "is a many association and can not be mapped to #{target_data_type.custom_title} | #{schema['title'] || name.to_title} (which is not many) with the non bulk transformation #{transformation.custom_title}")
             end
             if (t_data_type = transformation.data_type).nil? || t_data_type == source_dt

@@ -115,7 +115,7 @@ module Cenit
           Setup::SystemReport.create(message: message_token)
         elsif message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant
           msg = "Trying to execute on tenant #{Cenit::MultiTenancy.tenant_model.current.label}" +
-            " but token tenant is #{tenant ? tenant.label : '<anonymous>'} (token: #{message_token}, message: #{message})"
+                " but token tenant is #{tenant ? tenant.label : '<anonymous>'} (token: #{message_token}, message: #{message})"
           Setup::SystemReport.create(message: msg)
           Setup::SystemReport.create(message: message_token)
         else
@@ -147,8 +147,8 @@ module Cenit
             rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
           end
           if task && !task.resuming_manually? &&
-            (task.resuming_later? ||
-              ((scheduler = task.scheduler) && scheduler.activated?))
+             (task.resuming_later? ||
+               ((scheduler = task.scheduler) && scheduler.activated?))
             message[:task] = task
             if (resume_interval = task.resume_interval)
               message[:publish_at] = Time.now + resume_interval
