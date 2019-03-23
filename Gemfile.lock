@@ -582,7 +582,7 @@ DEPENDENCIES
   mongoid-tracer!
   net-scp
   net-sftp
-  nokogiri (= 1.7.0)
+  nokogiri
   oauth
   oauth2
   origami!
