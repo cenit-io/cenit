@@ -42,7 +42,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/capataz.git
-  revision: b7464ea4c3448980daebb19a1ee0ca88da59743f
+  revision: efc1e6fbf61eb7899d71d9e9843f730f8aae4554
   specs:
     capataz (0.0.1)
       parser
@@ -231,10 +231,10 @@ GEM
       activesupport (>= 4.2.0)
     haml (4.0.7)
       tilt
-    haml-rails (0.9.0)
+    haml-rails (1.0.0)
       actionpack (>= 4.0.1)
       activesupport (>= 4.0.1)
-      haml (>= 4.0.6, < 5.0)
+      haml (>= 4.0.6, < 6.0)
       html2haml (>= 1.0.1)
       railties (>= 4.0.1)
     handlebars (0.5.0)
@@ -242,10 +242,10 @@ GEM
       handlebars-source (~> 1.0.12)
       therubyracer (~> 0.12.0)
     handlebars-source (1.0.12)
-    html2haml (2.0.0)
+    html2haml (2.2.0)
       erubis (~> 2.7.0)
-      haml (~> 4.0.0)
-      nokogiri (~> 1.6.0)
+      haml (>= 4.0, < 6)
+      nokogiri (>= 1.6.0)
       ruby_parser (~> 3.5)
     httmultiparty (0.3.16)
       httparty (>= 0.7.3)
@@ -458,8 +458,8 @@ GEM
     ruby-ole (1.2.12)
     ruby-progressbar (1.10.0)
     ruby-rc4 (0.1.5)
-    ruby_parser (3.7.2)
-      sexp_processor (~> 4.1)
+    ruby_parser (3.13.0)
+      sexp_processor (~> 4.9)
     rubyzip (1.2.1)
     rufus-scheduler (3.1.9)
     safe_shell (1.1.0)
@@ -477,7 +477,7 @@ GEM
     sdoc (0.4.1)
       json (~> 1.7, >= 1.7.7)
       rdoc (~> 4.0)
-    sexp_processor (4.6.0)
+    sexp_processor (4.12.0)
     spreadsheet (1.1.1)
       ruby-ole (>= 1.0)
     sprockets (3.7.2)
