@@ -52,6 +52,7 @@ group :production do
 end
 
 gem 'mongoid'
+gem 'mongo', '2.3.1'
 gem 'bson_ext'
 gem 'rails_admin', '~> 1.0.0'
 
@@ -97,7 +98,7 @@ gem 'identicon'
 gem 'language_sniffer'
 
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
-gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git', branch: 'mongo_gem_2_3_1'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
 gem 'cenit-home', git: 'https://github.com/cenit-io/cenit-home.git'
