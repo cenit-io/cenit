@@ -10,7 +10,7 @@ gem 'bootstrap-sass'
 #gem 'turbolinks'
 gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
-gem 'devise'
+gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -53,7 +53,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.0.0'
+gem 'rails_admin', '~> 1.1.1'
 
 # charts
 gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
