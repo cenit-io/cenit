@@ -13,7 +13,8 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 93300d9a2f8b6528ce08e2484604d6be37db1209
+  revision: 11d2a2ee6b247e0eb732f1a1cf46095b89b4627a
+  branch: mongo_gem_2_3_1
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -133,7 +134,7 @@ GEM
       sass (>= 3.3.4)
     bootstrap-wysihtml5-rails (0.3.3.7)
       railties (>= 3.0)
-    bson (3.2.6)
+    bson (4.4.2)
     bson_ext (1.5.1)
     builder (3.2.3)
     bunny (2.14.1)
@@ -296,8 +297,8 @@ GEM
     mini_mime (1.0.1)
     mini_portile2 (2.1.0)
     minitest (5.11.3)
-    mongo (2.1.2)
-      bson (~> 3.0)
+    mongo (2.3.1)
+      bson (~> 4.1)
     mongoid (5.0.1)
       activemodel (~> 4.0)
       mongo (~> 2.1)
@@ -577,6 +578,7 @@ DEPENDENCIES
   lodash-rails
   mime
   mini_magick
+  mongo (= 2.3.1)
   mongoid
   mongoid-rspec
   mongoid-tracer!
