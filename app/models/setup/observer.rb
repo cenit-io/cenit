@@ -73,6 +73,8 @@ module Setup
           else
             conditions.push({'$eq' => value})
           end
+        else
+          errors.add(:triggers, "have an invalid operator #{operator}.")
         end
       conditions
     end
@@ -85,12 +87,13 @@ module Setup
           value.each do |cond|
             conditions[field] = [] unless conditions[field]
             new_conds = legacy_operator_to_conditions(cond['o'], cond['v'])
+            break unless new_conds.size > 0
             conditions[field] += new_conds
           end
         end
-        self.conditions = conditions
+        self.conditions = conditions if errors.blank?
       end
-      errors.blank? # Consider to add some errors if the migration is not possible
+      errors.blank?
     end
 
     def triggers_apply_to?(obj_now, obj_before = nil)
