@@ -42,15 +42,13 @@ module Setup
                 unless field == '$elemMatch' && validate_conditions(cond)
                   errors.add(:conditions, "have invalid condition #{cond} for operator #{field}.")
                 end
-              else
-                # ?
               end
             end
           else
             errors.add(:conditions, "have an invalid operator #{field} in a field.")
           end
         else
-          errors.add(:conditions, '?')
+          errors.add(:conditions, 'have an invalid operator #{field} in a field.')
         end
         break unless errors.blank?
       end
@@ -62,59 +60,59 @@ module Setup
         conditions.each do |field, cond|
           if field == '$or' || field == '$and' || field == '$nor'
             if cond.is_a?(Array) && cond.size > 1
-              return false unless cond.all? { |c| validate_conditions(c) }
+              break unless cond.all? { |c| validate_conditions(c) }
             else
               errors.add(:conditions, "have no arguments for #{field} clause.")
-              return false
+              break
             end
           elsif field == '$not'
             if cond.is_a?(Array)
               if cond.size > 0
-                return false unless cond.all? { |c| validate_conditions(c) }
+                break unless cond.all? { |c| validate_conditions(c) }
               else
                 errors.add(:conditions, "have no arguments for #{field} clause.")
-                return false
+                break
               end
             else
-              return false unless validate_conditions(cond)
+              break unless validate_conditions(cond)
             end
           else
             if field.match(/\A\$(.+)/)
               errors.add(:conditions, "contains #{field} operator non associated to fields.")
-              return false
+              break
             end
             if cond.is_a?(Hash)
-              return false unless validate_field_condition(cond)
+              break unless validate_field_condition(cond)
             end
           end
         end
       else
         errors.add(:conditions, "is invalid one.")
-        return false
       end
-      return true
+      errors.blank?
     end
 
     def conditions_apply_to?(object_now, object_before = nil, conditions = self.conditions)
       if conditions.present?
         conditions.each do |field, cond|
           partial_eval = false
-          if field == '$or'
+          case field
+          when '$or'
             partial_eval = cond.any? { |c| conditions_apply_to?(object_now, object_before, c) }
-          elsif field == '$and'
+          when '$and'
             partial_eval = cond.all? { |c| conditions_apply_to?(object_now, object_before, c) }
-          elsif field == '$not'
+          when '$not'
             partial_eval = !conditions_apply_to?(object_now, object_before, cond)
-          elsif field == '$nor'
+          when '$nor'
             partial_eval = cond.all? { |c| !conditions_apply_to?(object_now, object_before, c) }
           else
             values = [object_before && object_before[field], object_now && object_now[field]]
             partial_eval = values && apply?(cond, *values)
           end
-          return false unless partial_eval
+          break unless partial_eval
         end
       end
-      true
+      errors.blank?
     end
 
     # Determines if a condition applies to a given pair of old-new values. If the condition
