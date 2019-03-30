@@ -44,6 +44,8 @@ end
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
+  gem 'capybara'
+  gem 'poltergeist'
 end
 
 group :production do
