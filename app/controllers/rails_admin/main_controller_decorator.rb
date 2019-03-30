@@ -7,6 +7,8 @@ module RailsAdmin
     include NotebooksHelper
     include TraceHelper
 
+    skip_before_action :verify_authenticity_token
+
     before_action :process_context
 
     alias_method :rails_admin_list_entries, :list_entries
