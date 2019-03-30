@@ -3,8 +3,7 @@ module RailsAdmin
   ApplicationController.class_eval do
     attr_reader :context_abstract_model
 
-    protect_from_forgery with: :null_session,
-                         if: Proc.new { |c| c.request.format =~ %r{application/json} }
+    protect_from_forgery with: :null_session, if: -> { request.format.json? }
 
     def to_model_name(param_model_name)
       model_name = param_model_name.split('~').collect(&:camelize).join('::')

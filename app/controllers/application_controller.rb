@@ -2,8 +2,7 @@ class ApplicationController < ActionController::Base
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
 
-  protect_from_forgery with: :null_session,
-                       if: Proc.new { |c| c.request.format =~ %r{application/json} }
+  protect_from_forgery with: :null_session, if: -> { request.format.json? }
 
   rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
     if _current_user
