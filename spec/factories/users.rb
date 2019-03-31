@@ -1,6 +1,7 @@
-# Read about factories at https://github.com/thoughtbot/factory_girl
-
-FactoryGirl.define do
+FactoryGirl.define do  
   factory :user do
+    email                 { FFaker::Internet.email }
+    password              { 'secret1234' }
+    password_confirmation { password }
   end
 end
