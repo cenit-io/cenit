@@ -1,6 +1,7 @@
 module Setup
   class Observer < Event
     include TriggersFormatter
+    include ObserverConditions
     include RailsAdmin::Models::Setup::ObserverAdmin
     # = Observer
     #
@@ -16,6 +17,10 @@ module Setup
     before_validation :verify_triggers
 
     before_save :format_triggers, :check_name
+
+    def check_before_save
+      legacy_triggers_to_conditions && validate_conditions && super
+    end
 
     def verify_triggers
       if changed_attributes.key?('triggers')
@@ -38,8 +43,63 @@ module Setup
       name ? name : super
     end
 
+    def legacy_operator_to_conditions (operator, value)
+      conditions = []
+        case operator
+        when "starts_with"
+          conditions.push({'$regex' => '\A'.concat(value)})
+        when "ends_with"
+          conditions.push({'$regex' => value.concat('\Z')})
+        when "like"
+          conditions.push({'$regex' => value})
+        when "between"
+          conditions.push({'$gte' => value [1]})
+          conditions.push({'$lte' => value [2]})
+        when "is", "default"
+          conditions.push({'$eq' => value})
+        when nil # consider use else
+          case value
+          when "_not_null"
+            conditions.push({'$ne' => nil})
+          when "_null"
+            conditions.push({'$eq' => nil})
+          when "_change"
+            conditions.push({'$change' => true})
+          when "_presence_change"
+            conditions.push({'$ne' => nil})
+            conditions.push({'$change' => true})
+          when Array
+            conditions.push({'$in' => value})
+          else
+            conditions.push({'$eq' => value})
+          end
+        else
+          errors.add(:triggers, "have an invalid operator #{operator}.")
+        end
+      conditions
+    end
+
+    def legacy_triggers_to_conditions(triggers = self.triggers)
+      if conditions.blank?
+        conditions = {}
+        triggers = JSON.parse(triggers) if triggers.is_a? (String)
+        triggers.each do |field, value|
+          value.each do |cond|
+            conditions[field] = [] unless conditions[field]
+            new_conds = legacy_operator_to_conditions(cond['o'], cond['v'])
+            break unless new_conds.size > 0
+            conditions[field] += new_conds
+          end
+        end
+        self.conditions = conditions if errors.blank?
+      end
+      errors.blank?
+    end
+
     def triggers_apply_to?(obj_now, obj_before = nil)
-      if triggers
+      if conditions.present?
+        conditions_apply_to?(obj_now, obj_before)
+      elsif triggers
         field_triggers_apply_to?(:triggers, obj_now, obj_before)
       elsif trigger_evaluator.parameters.count == 1
         trigger_evaluator.run(obj_now).present?
