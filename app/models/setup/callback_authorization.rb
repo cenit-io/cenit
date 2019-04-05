@@ -49,7 +49,7 @@ module Setup
     end
 
     def callback_params
-      { callback_key => callback_url }
+      { callback_key.to_s => callback_url }
     end
 
     def authorize_params(params = {}, template_parameters = {})

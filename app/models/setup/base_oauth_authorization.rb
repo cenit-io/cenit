@@ -27,7 +27,7 @@ module Setup
     end
 
     def token_method
-      provider && provider.token_method
+      provider&.token_method
     end
 
     def fresh_access_token
@@ -40,7 +40,7 @@ module Setup
 
     def token_headers(headers = {}, template_parameters = {})
       client.conformed_request_token_headers(template_parameters).each do |key, value|
-        key = key.to_sym
+        key = key.to_s
         headers[key] ||= value
       end
       headers
@@ -48,7 +48,7 @@ module Setup
 
     def token_params(params = {}, template_parameters = {})
       client.conformed_request_token_parameters(template_parameters).each do |key, value|
-        key = key.to_sym
+        key = key.to_s
         params[key] ||= value
       end
       callback_params.merge(params)
