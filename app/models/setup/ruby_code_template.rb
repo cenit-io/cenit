@@ -28,7 +28,7 @@ module Setup
         Cenit::BundlerInterpreter.run_code(preprocess_code(options[:code]), options, self_linker: self)
       rescue Exception => ex
         ex.backtrace.unshift("In template #{namespace}::#{name}")
-        fail(ex)
+        raise ex
       end
     end
 

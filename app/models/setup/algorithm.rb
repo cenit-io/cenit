@@ -204,7 +204,7 @@ module Setup
         rc = Cenit::BundlerInterpreter.run(self, *input)
       rescue Exception => ex
         ex.backtrace.unshift("In algorithm #{namespace}::#{name}")
-        fail(ex)
+        raise ex
       end
 
       if rc
