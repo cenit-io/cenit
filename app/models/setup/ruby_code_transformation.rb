@@ -23,7 +23,12 @@ module Setup
 
     def execute(options)
       options.merge!(additional_local_variables)
-      Cenit::BundlerInterpreter.run_code(preprocess_code(options[:code]), options, self_linker: self)
+      begin
+        Cenit::BundlerInterpreter.run_code(preprocess_code(options[:code]), options, self_linker: self)
+      rescue Exception => ex
+        ex.backtrace.unshift("In template #{namespace}::#{name}")
+        raise ex
+      end
     end
 
     def code_extension
