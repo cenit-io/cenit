@@ -1,22 +1,43 @@
-cenit:
-  environment:
-    - DB_PORT=mongodb
-    - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
-  build: .
-  command: /usr/bin/mongod
-  command: rails server -p 3000 -b '0.0.0.0'
-  ports:
-    - "3000:3000"
-  links:
-    - mongodb
-    - rabbitmq
+version: '3.7'
 
-rabbitmq:
-  image: rabbitmq
-  environment:
-      RABBITMQ_DEFAULT_PASS: cenit_rabbit
-      RABBITMQ_DEFAULT_USER: cenit_rabbit
-      RABBITMQ_DEFAULT_VHOST: cenit_rabbit_vhost
+volumes:
+  # We'll define a volume that will store the data from the mongo databases:
+  mongodb-data:
+    driver: local
+  # The rabbitmq data store volume
+  rabbitmq-data:
+    driver: local
 
-mongodb:
-  image: mongo:3.0.2
+services:
+  cenit:
+    environment:
+      - ENABLE_RERECAPTCHA=false
+      - DB_PORT=mongodb
+      - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+    build: .
+    command: rails server -p 3000 -b '0.0.0.0'
+    ports:
+      - "3000:3000" # Bind our host's port 3000 to the app port 3000:
+    depends_on:
+      - mongodb
+      - rabbitmq
+    volumes:
+      # Mount our app code directory (".") into our app containers at the
+      # "/usr/src/app" folder:
+      - .:/usr/src/app
+
+  rabbitmq:
+    image: rabbitmq
+    volumes:
+      # We'll mount the 'rabbitmq-data' volume into the location mongodb stores it's data:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+        RABBITMQ_DEFAULT_PASS: cenit_rabbit
+        RABBITMQ_DEFAULT_USER: cenit_rabbit
+        RABBITMQ_DEFAULT_VHOST: cenit_rabbit_vhost
+
+  mongodb:
+    image: mongo:3.0.2
+    volumes:
+      # We'll mount the 'mongodb-data' volume into the location mongodb stores it's data:
+      - mongodb-data:/var/lib/mongodb
