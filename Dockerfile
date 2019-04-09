@@ -1,4 +1,4 @@
-FROM ruby:2.2.1
+FROM ruby:2.5.5
 
 # 1. Install dependencies
 RUN set -x; \
@@ -10,12 +10,9 @@ RUN set -x; \
         libssl-dev \
         libreadline-dev \
         libyaml-dev \
-        libsqlite3-dev \
-        sqlite3 \
         libxml2-dev \
         libxslt1-dev \
         libcurl4-openssl-dev \
-        python-software-properties \
         libffi-dev \
         nodejs \
         git \
