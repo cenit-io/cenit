@@ -8,7 +8,6 @@ gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
 #gem 'turbolinks'
-gem 'therubyracer', platforms: :ruby
 gem 'jbuilder'
 gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
 gem 'rabl'
