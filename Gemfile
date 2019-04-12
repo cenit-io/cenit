@@ -39,6 +39,9 @@ group :development, :test do
   gem 'rails_layout'
   gem 'ffaker'
   gem 'rubocop', require: false
+  gem 'pry-rails'
+  gem 'pry-byebug'
+  gem 'pry-doc'
 end
 
 group :test do
