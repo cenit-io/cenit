@@ -659,7 +659,6 @@ DEPENDENCIES
   sass-rails
   sdoc
   spreadsheet
-  therubyracer
   thin
   uglifier
   unicorn (= 4.9.0)
