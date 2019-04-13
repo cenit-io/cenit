@@ -7,7 +7,6 @@ gem 'uglifier'
 gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
-#gem 'turbolinks'
 gem 'jbuilder'
 gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
 gem 'rabl'
@@ -21,15 +20,6 @@ gem 'peddler'
 
 group :doc do
   gem 'sdoc', require: false
-end
-
-group :development do
-  gem 'capistrano'
-  gem 'capistrano-unicorn-nginx'
-  gem 'capistrano-bundler'
-  gem 'capistrano-rails'
-  gem 'capistrano-rails-console'
-  gem 'capistrano-rvm'
 end
 
 group :development, :test do
