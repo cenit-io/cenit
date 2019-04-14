@@ -2,11 +2,7 @@ version: '3.7'
 
 volumes:
   # We'll define a volume that will store the data from the mongo databases:
-  mongodb-data:
-    driver: local
-  # The rabbitmq data store volume
-  rabbitmq-data:
-    driver: local
+  mongodb-data: {}
 
 services:
   cenit:
@@ -14,30 +10,30 @@ services:
       - ENABLE_RERECAPTCHA=false
       - DB_PORT=mongodb
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+      - UNICORN_WORKERS=5
+      - MAXIMUM_UNICORN_CONSUMERS=3
     build: .
-    command: rails server -p 3000 -b '0.0.0.0'
+    command: bundle exec unicorn_rails -E production -c config/unicorn.rb
     ports:
-      - "3000:3000" # Bind our host's port 3000 to the app port 3000:
+      - "8080:8080"
     depends_on:
       - mongodb
       - rabbitmq
-    volumes:
-      # Mount our app code directory (".") into our app containers at the
-      # "/usr/src/app" folder:
-      - .:/usr/src/app
 
   rabbitmq:
     image: rabbitmq
-    volumes:
-      # We'll mount the 'rabbitmq-data' volume into the location mongodb stores it's data:
-      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
     environment:
-        RABBITMQ_DEFAULT_PASS: cenit_rabbit
-        RABBITMQ_DEFAULT_USER: cenit_rabbit
-        RABBITMQ_DEFAULT_VHOST: cenit_rabbit_vhost
+      RABBITMQ_DEFAULT_PASS: cenit_rabbit
+      RABBITMQ_DEFAULT_USER: cenit_rabbit
+      RABBITMQ_DEFAULT_VHOST: cenit_rabbit_vhost
+    labels:
+        NAME: "rabbitmq-server"
 
   mongodb:
-    image: mongo:3.0.2
+    image: mongo:3.2
     volumes:
       # We'll mount the 'mongodb-data' volume into the location mongodb stores it's data:
-      - mongodb-data:/var/lib/mongodb
+      - mongodb-data:/data/db
