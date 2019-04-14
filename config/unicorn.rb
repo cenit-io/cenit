@@ -12,6 +12,7 @@ config =
   rescue
     {}
   end
+listen 8080  
 worker_processes config['UNICORN_WORKERS'] || 5
 preload_app config.key?('UNICORN_PRELOAD') ? config['UNICORN_PRELOAD'].to_b : true
 timeout config['UNICORN_TIMEOUT'] || 240
