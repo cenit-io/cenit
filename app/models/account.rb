@@ -71,7 +71,7 @@ class Account
   after_destroy { clean_up }
 
   def check_creation_enabled
-    unless @skip_creation_disabled
+    unless @for_create
       errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.current_super_admin?
     end
     errors.blank?
@@ -192,6 +192,10 @@ class Account
     owner
   end
 
+  def for_create?
+    @for_create || false
+  end
+
   class << self
 
     def find_where(expression)
@@ -216,20 +220,20 @@ class Account
     end
 
     def current_id
-      current && current.id
+      current&.id
     end
 
     def current_key
-      (current && current.number) || 'XXXXXXX'
+      (current&.number) || 'XXXXXXX'
     end
 
     def current_token
-      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+      (current&.token) || 'XXXXXXXXXXXXXXXX'
     end
 
     def new_for_create(params = {})
       account = new(params)
-      account.instance_variable_set(:@skip_creation_disabled, true)
+      account.instance_variable_set(:@for_create, true)
       account
     end
 
