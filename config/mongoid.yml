@@ -79,4 +79,4 @@ production:
     default:
       database: <%= ENV['DB_PROD'] || 'cenit_prod' %>
       hosts:
-        - localhost:27017
+        - <%= ENV['DB_PORT'] || 'localhost:27017' %>
