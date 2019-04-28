@@ -11,7 +11,7 @@
       %span.cenit-logo
         =image_tag 'cenit-logo.png'
       %span.cenit-hub
-        = "Cenit IO"
+        = ENV['COMPANY_NAME'] || "Cenit IO"
     - group = dashboard_root_group
     #subdomain-toggle.hidden-xs
       %span.subdomain_link

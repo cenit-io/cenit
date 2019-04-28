@@ -5,7 +5,7 @@
         = link_to root_path do
           %span.cenit-logo
             =image_tag 'logo_cenitsaas_web.png'
-          %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+          %span.cenit-hub{style: 'color: black;'}= ENV['COMPANY_NAME'] || 'Cenit IO'
       .panel-body
         .form-top
           =t('admin.session.new_title')

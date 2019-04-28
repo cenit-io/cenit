@@ -4,7 +4,7 @@
       .panel-heading.text-center
         %span.cenit-logo
           =image_tag 'logo_cenitsaas_web.png'
-        %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+        %span.cenit-hub{style: 'color: black;'}= ENV['COMPANY_NAME'] || 'Cenit IO'
       .panel-body
         .col-xs-12.actions.bad
           .action-title
