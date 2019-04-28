@@ -46,8 +46,8 @@ module Mongoff
       unless @unique_properties
         @unique_properties = []
         properties.each do |property|
-          next if property == '_id'
           sch = property_schema(property)
+          next if sch['referenced']
           @unique_properties << property if sch['unique']
           if sch['type'] == 'object' && (embedded_properties = sch['properties']).is_a?(Hash)
             embedded_properties.each do |embedded_property, embedded_schema|

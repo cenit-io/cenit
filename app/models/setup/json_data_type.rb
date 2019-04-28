@@ -101,8 +101,12 @@ module Setup
       errors.blank?
     end
 
+    def unique_properties
+      records_model.unique_properties
+    end
+
     def build_indices
-      unique_properties = records_model.unique_properties
+      unique_properties = self.unique_properties
       indexed_properties = []
       begin
         records_model.collection.indexes.each do |index|
@@ -110,7 +114,11 @@ module Setup
           if unique_properties.detect { |p| p == indexed_property }
             indexed_properties << indexed_property
           else
-            records_model.collection.indexes.drop_one(index['name'])
+            begin
+              records_model.collection.indexes.drop_one(index['name'])
+            rescue Exception => ex
+              errors.add(:schema, "with error dropping index #{indexed_property}: #{ex.message}")
+            end
           end
         end
       rescue
