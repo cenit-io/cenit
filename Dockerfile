@@ -4,8 +4,8 @@ FROM ruby:2.5.5
 #   - build-essential: To ensure certain gems can be compiled
 #   - nodejs: Compile assets
 RUN set -x; \
-  apt-get update \
-  && apt-get install -y --no-install-recommends \
+  apt update \
+  && apt install -y --no-install-recommends \
   openssh-server \
   zlib1g-dev \
   build-essential \
@@ -22,12 +22,13 @@ RUN set -x; \
   libmagickwand-dev
 
 # Set an environment variable where the Rails app is installed to inside of Docker image
-ENV RAILS_ROOT /var/www/cenit
+ENV DIR_ROOT /var/www
+ENV RAILS_ROOT $DIR_ROOT/cenit
 RUN mkdir -p $RAILS_ROOT
 
-RUN mkdir -p /var/www/shared/log
-RUN mkdir -p /var/www/shared/pids
-RUN mkdir -p /var/www/shared/sockets
+RUN mkdir -p $DIR_ROOT/shared/log
+RUN mkdir -p $DIR_ROOT/shared/pids
+RUN mkdir -p $DIR_ROOT/shared/sockets
 
 # Set working directory
 WORKDIR $RAILS_ROOT
@@ -45,9 +46,11 @@ RUN bundle install --jobs 20 --retry 5 --without development test
 # Adding project files
 COPY . .
 
+ENV SKIP_MONGO_CLIENT='true'
+
 RUN set -x; \
-  SKIP_MONGO_CLIENT='true' bundle exec rake assets:precompile
+   bundle exec rake assets:precompile
 
 EXPOSE 8080
 
-CMD bundle exec unicorn -c config/unicorn.rb
+CMD ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
