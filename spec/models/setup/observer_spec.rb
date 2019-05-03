@@ -6,19 +6,19 @@ describe Setup::Observer do
 
   A_JSON_SAMPLE = {
     id: 1,
-    name: 'A',
+    name: 'AP',
     number: 10,
-    svalues: ["betty", "mary", "rose"],
+    svalues: ['betty', 'mary', 'rose'],
     ovalues: [
         {
-            "a": 1,
-            "b": 1,
-            "c": 2
+            a: 1,
+            b: 1,
+            c: 2
         },
         {
-            "a": 3,
-            "b": 12,
-            "c": 25
+            a: 3,
+            b: 12,
+            c: 25
         }
     ]
   }
@@ -26,7 +26,7 @@ describe Setup::Observer do
   before :all do
     data_type_a = Setup::JsonDataType.create(
       namespace: TEST_NAMESPACE,
-      name: 'A',
+      name: 'AP',
       schema: {
         type: 'object',
         properties: {
@@ -39,27 +39,37 @@ describe Setup::Observer do
           number: {
               type: 'integer'
           },
-          "svalues": {
-              "type": "array",
-              "items": {
-                  "type": "string"
+          svalues: {
+              type: 'array',
+              items: {
+                  type: 'string'
               }
           },
-          "ovalues": {
-              "type": "array",
-              "items": {
-                  "type": "object"
+          ovalues: {
+              type: 'array',
+              items: {
+                  type: 'object',
+                  properties: {
+                      a: {
+                          type: 'integer'
+                      },
+                      b: {
+                          type: 'integer'
+                      },
+                      c: {
+                          type: 'integer'
+                      }
+                  }
               }
           }
         }
       }
     )
-
     data_type_a.create_from(A_JSON_SAMPLE)
   end
 
   let! :data_type_a do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'A').first
+    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'AP').first
   end
 
   let :record_a do
@@ -210,7 +220,7 @@ describe Setup::Observer do
               '$all': ["betty", "mary", "rose"]
           }
       }
-      record_a.name = ["betty", "mary"]
+      record_a.svalues = ["betty", "mary"]
       expect(subject.triggers_apply_to?(record_a)).to be(false)
     end
   end
@@ -403,7 +413,7 @@ describe Setup::Observer do
     it 'applies' do
       subject.conditions = {
           number: {
-              '$in': [10, 15, 21]
+              '$nin': [10, 15, 21]
           }
       }
       record_a.number = 12
@@ -413,7 +423,7 @@ describe Setup::Observer do
     it 'does not apply' do
       subject.conditions = {
           number: {
-              '$in': [10, 15, 21]
+              '$nin': [10, 15, 21]
           }
       }
       record_a.number = 10

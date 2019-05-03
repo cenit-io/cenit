@@ -94,6 +94,7 @@ module Setup
 
     def conditions_apply_to?(object_now, object_before = nil, conditions = self.conditions)
       if conditions.present?
+        result = true
         conditions.each do |field, cond|
           partial_eval = false
           case field
@@ -109,10 +110,10 @@ module Setup
             values = [object_before && object_before[field], object_now && object_now[field]]
             partial_eval = values && apply?(cond, *values)
           end
-          break unless partial_eval
+          break unless result = partial_eval
         end
       end
-      errors.blank?
+      result
     end
 
     # Determines if a condition applies to a given pair of old-new values. If the condition
