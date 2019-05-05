@@ -12,8 +12,8 @@ services:
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - UNICORN_WORKERS=5
       - MAXIMUM_UNICORN_CONSUMERS=3
+      - SKIP_MONGO_CLIENT='false'
     build: .
-    command: bundle exec unicorn_rails -E production -c config/unicorn.rb
     ports:
       - "8080:8080"
     depends_on:
@@ -21,7 +21,7 @@ services:
       - rabbitmq
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:management
     ports:
       - "15672:15672"
       - "5672:5672"
