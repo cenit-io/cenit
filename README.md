@@ -318,7 +318,7 @@ Update development branch
 git pull origin develop
 ```
 
-### Install Cenit requirements
+### Install Ceniti - requirements
 
 ```
 bundle install
