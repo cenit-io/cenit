@@ -94,7 +94,6 @@ gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
 gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
-gem 'cenit-home', git: 'https://github.com/cenit-io/cenit-home.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
