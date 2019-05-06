@@ -29,6 +29,7 @@ module RailsAdmin
                 h.delete(m)
                 break if m == current_metric
               end
+              scaled_v = 0
               h.each do |m, scale|
                 if (scaled_v = v / scale).positive?
                   str = "#{v % scale}#{current_metric} #{str}"
@@ -38,6 +39,9 @@ module RailsAdmin
                   str = "#{v}#{current_metric} #{str}"
                   break
                 end
+              end
+              if scaled_v.positive?
+                str = "#{v}#{current_metric} #{str}"
               end
               str
             end
