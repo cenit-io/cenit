@@ -104,7 +104,7 @@ An example of integration data flow (Fancy <=> Shipstation):
 * Deploy it with: `git push heroku master`
 * Open in the browser: `heroku open`
 
-###  With Docker compose.
+###  With Docker compose
 
 After [install docker compose](https://docs.docker.com/compose/install)
 
