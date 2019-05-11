@@ -21,6 +21,7 @@ en:
       forgotten: 'Forgot your password?'
     registration:
       new: "try it free"
+      now: "Register now!"
       new_title: 'Continue with'
       sign: 'Already have a user?'
       submit: 'Sign up'

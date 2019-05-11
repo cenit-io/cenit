@@ -5,13 +5,6 @@ GIT
     cenit-config (0.0.1)
 
 GIT
-  remote: https://github.com/cenit-io/cenit-home.git
-  revision: da700ec01d0d430e533d3be86f956431f8e21d32
-  specs:
-    cenit-home (0.0.1.alpha)
-      bootstrap-sass
-
-GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
   revision: 93300d9a2f8b6528ce08e2484604d6be37db1209
   specs:
@@ -562,7 +555,6 @@ DEPENDENCIES
   capybara
   carrierwave-mongoid
   cenit-config!
-  cenit-home!
   cenit-multi_tenancy!
   cenit-service!
   cenit-token!
