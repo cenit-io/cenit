@@ -62,8 +62,6 @@ gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
 gem 'rubyzip'
-gem 'prawn-rails', '0.1.1'
-gem 'prawn-qrcode', '0.2.2.1'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
@@ -101,12 +99,6 @@ gem 'rkelly-remix'
 
 gem 'write_xlsx'
 gem 'handlebars'
-gem 'wicked_pdf'
-gem 'wkhtmltopdf-binary'
-gem 'rmagick', '2.15.4'
-gem 'pdfkit', '0.8.2'
-gem 'imgkit', '1.6.1'
-gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
 
 gem 'aws-sdk', '~> 2.10.13'
 
@@ -115,9 +107,6 @@ gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
-
-gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
-gem 'combine_pdf', '1.0.4'
 
 custom_gemfile_name = 'custom_Gemfile'
 
