@@ -18,11 +18,17 @@ gem 'xmldsig'
 gem 'spreadsheet'
 gem 'peddler'
 
+group :dev_enterprise, :prod_enterprise do
+  gem 'cenit-trial', git: 'https://gitlab.com/cenit-io/cenit-trial'
+  gem 'cenit-stripe', git: 'https://gitlab.com/cenit-io/cenit-stripe', branch: 'fix_issue_with_ruby_2_5'
+  gem 'cenit-home', git: 'https://github.com/cenit-io/cenit-home.git'
+end
+
 group :doc do
   gem 'sdoc', require: false
 end
 
-group :development, :test do
+group :development, :dev_enterprise, :test do
   gem 'factory_girl_rails'
   gem 'rspec-rails'
   gem 'rails_layout'
