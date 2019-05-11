@@ -260,6 +260,3 @@ module RailsAdmin
     end
   end
 end
-
-
-
