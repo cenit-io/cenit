@@ -29,6 +29,19 @@ RSpec.describe Api::V2::ApiController, type: :request do
       # Verifying the captcha token
       expect(response.body).to eq({token: captchatoken.token}.to_json)
     end
+
+    it "fail email and token missing V2" do
+      data = {}
+      post api_v2_setup_user_path, data
+      expect(response).to have_http_status(:bad_request)
+
+      # Verifying the captcha token
+      expect(response.body).to eq({token: ['is missing'], email: ['is missing']}.to_json)
+      #body_hash = JSON.parse(response.body)
+      #expect(body_hash['email']).to eq(["is missing"])
+      #expect(body_hash['token']).to eq(["is missing"])
+    end
+
     it "success user creation" do
 
       data = { email: 'ada@mail.com' }
