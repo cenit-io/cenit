@@ -265,14 +265,15 @@ module Api::V2
     end
 
     def auth
+      response = { status: 'Error Auth' }
+      status = 401
       authorize_account
       if Account.current
-        self.cors_header
-        render json: { status: 'Sucess Auth' }, status: 200
-      else
-        self.cors_header
-        render json: { status: 'Error Auth' }, status: 401
+        response = { status: 'Sucess Auth' }
+        status = 200
       end
+      self.cors_header
+      render json: response, status: status
     end
 
     USER_MODEL_FIELDS = %w(name email password password_confirmation)
