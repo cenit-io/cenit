@@ -3,6 +3,32 @@ RSpec.describe Api::V2::ApiController, type: :request do
 
   describe "POST /api/v2/setup/user" do
 
+    let(:user_email) { 'email@email.com' }
+    let(:user_name) { 'Name' }
+    let(:usernew) { double('User', :name => "Name") }
+    let(:captchatoken) { double('captchatoken', :token => "hARd5P3zCeeuLfysyPvp") }
+    
+    it "success user creation V2" do
+      data = { email: user_email }
+      captchatokenE = ""
+
+      # I don't verify if the user exists because I'm considering his absence.
+
+      # Verifying the calls of each external functions
+      allow(Devise).to receive(:friendly_token).and_return("eizpd6p3EDxykvh9LxFH")
+      allow(User).to receive(:new).and_return(usernew)
+      allow(usernew).to receive(:valid?).with(context: :create).and_return(true)
+      allow(CaptchaToken).to receive(:create).and_return(captchatoken)
+      allow(captchatoken).to receive(:errors).and_return(captchatokenE)
+      allow(captchatokenE).to receive(:blank?).and_return(true)
+
+      # User creation request success
+      post api_v2_setup_user_path, data
+      expect(response).to have_http_status(:ok)
+
+      # Verifying the captcha token
+      expect(response.body).to eq({token: captchatoken.token}.to_json)
+    end
     it "success user creation" do
 
       data = { email: 'ada@mail.com' }
