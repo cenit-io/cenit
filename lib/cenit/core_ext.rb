@@ -265,12 +265,6 @@ end
   MIME::Application => :new_app,
   MIME::Image => :new_img,
   MIME::DiscreteMedia => :new_media,
-  WickedPdf => :new_wickedpdf,
-  PDFKit => :new_pdfkit,
-  Tempfile => :new_tempfile,
-  PdfForms => :new_pdfform,
-  PdfForms::Fdf => :new_pdf,
-  CombinePDF => :new_pdf,
   MWS::Feeds::Client => :new_feed,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
@@ -336,15 +330,6 @@ module MIME
         super
       end
     end
-  end
-end
-
-require 'wicked_pdf'
-
-class WickedPdf
-
-  def self.pdf_from_url(url, options = {})
-    new.pdf_from_url(url, options)
   end
 end
 
