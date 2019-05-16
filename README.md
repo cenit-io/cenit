@@ -416,4 +416,4 @@ Thank you for your contributions:
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
 [join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/enQtNTk1OTY5ODQ3MDQzLWNhMDgwMDZiMmQ4MzVmNGU0Mzc0MWY3MjExYzIwNmViYTNhZGI1ZjQ3N2RhMGJlZTc4NjQzNmY4ZDhmMWQwMDU
+https://join.slack.com/t/cenitio/shared_invite/enQtNjI1NjgwMzczNTM4LWNjMDgwMDAwM2MyMzA4YTQyYzBlZTA3MTg1NzczYzMzNTE4MWFmNGE4NmJjZThlM2NlYTk5ODEzMjFlY2NmNjA
