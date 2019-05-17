@@ -21,7 +21,6 @@
 -#for Charts
 - klass = @context_abstract_model.model
 - data_type = klass.try(:data_type)
-- available_chart = data_type && data_type.chart_rendering
 
 = content_for :contextual_tabs do
   = bulk_menu
@@ -68,7 +67,6 @@
             %i.icon-white.icon-remove
       .filters-buttons
         = found_menu
-        %input{name: 'enable_chart', value: false, type: 'hidden'}
         -# Patch
         - if (model = @context_abstract_model.model).is_a?(Class) && (model.include?(CrossOrigin::CenitDocument) || model == Mongoid::Tracer::Trace) && (origins = model.cross_origins).present?
           %span{style: 'float:right'}
@@ -80,9 +78,6 @@
               %button.btn.toggle-origin{class: origin}
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}
-  -if available_chart
-    .graphics
-      = render partial: 'cenit/chart', locals: {data_type: data_type, klass: klass, controller: @_controller}
   - unless @model_config.list.scopes.empty?
     %ul.nav.nav-tabs#scope_selector
       - @model_config.list.scopes.each_with_index do |scope, index|

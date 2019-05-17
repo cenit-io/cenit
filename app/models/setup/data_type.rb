@@ -18,7 +18,7 @@ module Setup
 
     build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
 
-    deny :delete, :new, :switch_navigation, :render_chart, :copy
+    deny :delete, :new, :switch_navigation, :copy
 
     config_with Setup::DataTypeConfig, only: :slug
 

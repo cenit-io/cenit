@@ -83,8 +83,6 @@ Cenit.config do
 
   jupyter_notebooks_url ENV['JUPYTER_NOTEBOOKS_URL'] || 'http://127.0.0.1:8888'
 
-  chart_data_request_interval 3000
-
   file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3Default, Cenit::FileStore::AwsS3
 
   default_file_store ENV['DEFAULT_FILE_STORE']
