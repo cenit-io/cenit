@@ -7,7 +7,6 @@ module Mongoff
     include MetadataAccess
     include PrettyErrors
     include ThreadAware
-    include DateTimeCharts::ClassMethods
 
     EMPTY_SCHEMA = {}.freeze
 

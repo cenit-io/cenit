@@ -12,7 +12,6 @@ module Setup
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
 
     field :navigation_link, type: Boolean
-    field :chart_rendering, type: Boolean
     field :trace_on_default, type: Boolean
 
     attr_readonly :data_type
@@ -49,7 +48,7 @@ module Setup
 
     class << self
       def config_fields
-        %w(slug navigation_link chart_rendering trace_on_default)
+        %w(slug navigation_link trace_on_default)
       end
     end
 
