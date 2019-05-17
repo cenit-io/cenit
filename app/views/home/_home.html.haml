@@ -1,0 +1,12 @@
+= render partial: 'home/header'
+
+%main#home_content
+  %section
+    .container
+      .row
+        %br
+      .row
+        %br
+      .row
+        .col-sm-4.col-sm-offset-3
+          =link_to t('admin.registration.now'), new_registration_path(User), id: 'sign-basic-link', class: 'btn btn-primary'

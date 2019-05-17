@@ -20,7 +20,7 @@
   - dashboard_root =  @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && params[:group].blank?
   - if (dashboard_root) &&  current_user.nil?
     %body#home_page
-      = render(partial: 'cenit/home/home') rescue nil
+      = render(partial: 'home/home') rescue nil
   -else
     %body.topnav-fixed.rails_admin
       = render 'layouts/rails_admin/default_layout'

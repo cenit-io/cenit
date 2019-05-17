@@ -13,11 +13,12 @@
           - if (return_to = params[:return_to])
             - f.hidden_field :return_to, value: return_to
           = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-          = render partial: 'devise/social_buttons', locals: {form: f}
-
-        - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+          - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'] || false).to_b
+            = render partial: 'devise/social_buttons', locals: { form: f }
+        - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'].to_b && !ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b)
           .form-option
             =t('admin.misc.or')
+        - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
           = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
             .field.text-justify
               = f.label :email
