@@ -22,7 +22,6 @@ module RailsAdmin
 
             configure :trace_on_default, :toggle_boolean
             configure :navigation_link, :toggle_boolean
-            configure :chart_rendering, :toggle_boolean
 
             edit do
               field :data_type
@@ -37,7 +36,6 @@ module RailsAdmin
                   (obj = bindings[:object]).data_type.nil? || !obj.data_type.is_a?(::Setup::CenitDataType)
                 end
               end
-              field :chart_rendering
             end
 
             show do
@@ -49,10 +47,9 @@ module RailsAdmin
                 end
               end
               field :navigation_link
-              field :chart_rendering
             end
 
-            fields :data_type, :slug, :trace_on_default, :navigation_link, :chart_rendering, :updated_at
+            fields :data_type, :slug, :trace_on_default, :navigation_link, :updated_at
 
             show_in_dashboard false
           end
