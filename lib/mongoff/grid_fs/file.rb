@@ -31,7 +31,7 @@ module Mongoff
       end
 
       def read(*args)
-        file_store.read(self, *args) unless self.new_record?
+        file_store.read(self, *args)
       end
 
       def path
