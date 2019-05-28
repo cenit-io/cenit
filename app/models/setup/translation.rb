@@ -1,7 +1,6 @@
 module Setup
   class Translation < Setup::Task
     include Setup::TranslationCommon
-    include RailsAdmin::Models::Setup::TranslationAdmin
 
     agent_field :translator
 

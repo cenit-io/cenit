@@ -2,7 +2,6 @@ module Setup
   class ApiSpecImport < Setup::Task
     include Setup::DataUploader
     include Setup::DataIterator
-    include RailsAdmin::Models::Setup::ApiSpecImportAdmin
 
     build_in_data_type
 

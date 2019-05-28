@@ -45,6 +45,10 @@ group :production do
   gem 'rails_12factor'
 end
 
+path "components" do
+  gem "cenit-admin"
+end
+
 gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin', '~> 1.1.1'

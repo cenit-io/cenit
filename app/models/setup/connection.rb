@@ -5,7 +5,6 @@ module Setup
     include WithTemplateParameters
     include AuthorizationHandler
     include ModelConfigurable
-    include RailsAdmin::Models::Setup::ConnectionAdmin
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
     build_in_data_type.and(

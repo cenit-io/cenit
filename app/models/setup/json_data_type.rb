@@ -1,7 +1,6 @@
 module Setup
   class JsonDataType < DataType
     include Setup::SnippetCode
-    include RailsAdmin::Models::Setup::JsonDataTypeAdmin
 
     validates_presence_of :namespace
 

@@ -1,7 +1,6 @@
 module Setup
   class ApiSpec
     include SharedEditable
-    include RailsAdmin::Models::Setup::ApiSpecAdmin
 
     build_in_data_type.referenced_by(:name)
 

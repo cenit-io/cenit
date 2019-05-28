@@ -1,7 +1,5 @@
 module Setup
   class BaseOauthProvider < AuthorizationProvider
-    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin
-
     abstract_class true
 
     build_in_data_type.referenced_by(:namespace, :name)

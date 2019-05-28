@@ -1,7 +1,6 @@
 module Setup
   class CallLink
     include CenitScoped
-    include RailsAdmin::Models::Setup::CallLinkAdmin
 
     build_in_data_type.referenced_by(:name)
 

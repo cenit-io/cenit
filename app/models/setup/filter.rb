@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
     include CustomTitle
-    include RailsAdmin::Models::Setup::FilterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

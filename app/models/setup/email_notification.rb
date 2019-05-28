@@ -1,6 +1,5 @@
 module Setup
   class EmailNotification < Setup::Notification
-    include RailsAdmin::Models::Setup::EmailNotificationAdmin
 
     transformation_types Setup::Template.concrete_class_hierarchy, Setup::ConverterTransformation.concrete_class_hierarchy
 

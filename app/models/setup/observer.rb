@@ -1,7 +1,6 @@
 module Setup
   class Observer < Event
     include TriggersFormatter
-    include RailsAdmin::Models::Setup::ObserverAdmin
     # = Observer
     #
     # Creation of new objects or changes in objects will result in events.

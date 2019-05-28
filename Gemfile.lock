@@ -67,6 +67,13 @@ GIT
       thread_safe (~> 0.1)
       warden (~> 1.2.3)
 
+PATH
+  remote: components
+  specs:
+    cenit-admin (0.0.1)
+      cenit-multi_tenancy
+      mongoid (>= 5.0.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -510,6 +517,7 @@ DEPENDENCIES
   captcha
   capybara
   carrierwave-mongoid
+  cenit-admin!
   cenit-config!
   cenit-multi_tenancy!
   cenit-service!

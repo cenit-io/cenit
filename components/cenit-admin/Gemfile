@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+
+gemspec
+
+gem 'mongoid', '>= 5.0.1'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
+gem 'cenit-stripe', git: 'https://gitlab.com/cenit-io/cenit-stripe'
+
+

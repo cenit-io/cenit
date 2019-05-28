@@ -2,7 +2,6 @@ module Setup
   class SystemReport
     include CenitUnscoped
     include Setup::SystemNotificationCommon
-    include RailsAdmin::Models::Setup::SystemReportAdmin
 
     store_in collection: :setup_system_notifications
 

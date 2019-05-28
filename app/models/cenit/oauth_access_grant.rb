@@ -2,7 +2,6 @@ module Cenit
   class OauthAccessGrant
     include Setup::CenitScoped
     include CrossOrigin::Document
-    include RailsAdmin::Models::Cenit::OauthAccessGrantAdmin
 
     # TODO Include App information field
     build_in_data_type.with(:scope)

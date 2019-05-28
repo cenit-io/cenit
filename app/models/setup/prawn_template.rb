@@ -1,7 +1,6 @@
 module Setup
   class PrawnTemplate < Template
     include RubyCodeTemplate
-    include RailsAdmin::Models::Setup::PrawnTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

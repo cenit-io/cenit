@@ -75,7 +75,7 @@ module Cenit
         end
       end
 
-      Cenit::Notebooks.startup if Cenit.jupyter_notebooks
+      # Cenit::Notebooks.startup if Cenit.jupyter_notebooks
 
       Thread.current[:cenit_initializing] = nil
     end

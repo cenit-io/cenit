@@ -1,7 +1,5 @@
 module Setup
   class DataTypeGeneration < Setup::Task
-    include RailsAdmin::Models::Setup::DataTypeGenerationAdmin
-
     build_in_data_type
 
     deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all

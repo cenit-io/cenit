@@ -4,7 +4,6 @@ module Setup
     include MandatoryNamespace
     include ClassHierarchyAware
     include BuildIn
-    include RailsAdmin::Models::Setup::AuthorizationProviderAdmin
 
     origins origins_config, :cenit
 

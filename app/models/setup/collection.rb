@@ -3,7 +3,6 @@ module Setup
     include CenitScoped
     include CollectionBehavior
     include Taggable
-    include RailsAdmin::Models::Setup::CollectionAdmin
 
     image_with AccountImageUploader
 

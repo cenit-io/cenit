@@ -1,7 +1,6 @@
 module Setup
   class HandlebarsConverter < ConverterTransformation
     include TemplateConverter
-    include RailsAdmin::Models::Setup::HandlebarsConverterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

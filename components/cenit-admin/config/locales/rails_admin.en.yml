@@ -1,0 +1,11 @@
+en:
+  admin:
+    actions:
+      lock:
+        title: "Lock"
+        menu: "Lock"
+        breadcrumb: "Lock"
+      unlock:
+        title: "Unlock"
+        menu: "Unlock"
+        breadcrumb: "Unlock"

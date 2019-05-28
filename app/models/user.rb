@@ -10,7 +10,6 @@ class User
   include FieldsInspection
   include TimeZoneAware
   include ObserverTenantLookup
-  include RailsAdmin::Models::UserAdmin
 
 
   inspect_fields :name, :given_name, :family_name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
