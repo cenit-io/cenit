@@ -265,6 +265,7 @@ end
   MIME::Application => :new_app,
   MIME::Image => :new_img,
   MIME::DiscreteMedia => :new_media,
+  CombinePDF => :new_pdf,
   MWS::Feeds::Client => :new_feed,
 }.each do |entity, method|
   entity.class_eval("def self.#{method}(*args)
