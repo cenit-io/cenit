@@ -113,7 +113,7 @@ describe Mongoff::GridFs::File do
           file_data_type.create_from(small_data),
           file_data_type.create_from(long_data),
           file_data_type.create_from(very_long_data)
-         ].map(&:read)
+      ].map(&:read)
 
       data = [
           small_data,
@@ -138,6 +138,37 @@ describe Mongoff::GridFs::File do
           file_data_type.create_from(long_data),
           file_data_type.create_from(very_long_data)
       ].map(&:id)
+
+      files_data = ids.map do |id|
+        file_data_type.where(id: id).first
+      end.map(&:read)
+
+      data = [
+          small_data,
+          long_data,
+          very_long_data
+      ]
+
+      expect(files_data).to match_array(data)
+    end
+
+    it 'correctly updates data' do
+      ids = [
+          file_data_type.create_from(small_data),
+          file_data_type.create_from(long_data),
+          file_data_type.create_from(very_long_data)
+      ].map(&:id)
+
+      files = ids.map do |id|
+        file_data_type.where(id: id).first
+      end
+
+      data = [long_data, very_long_data, small_data];
+
+      data.each_with_index do |data, index|
+        files[index].data = data
+        files[index].save
+      end
 
       files_data = ids.map do |id|
         file_data_type.where(id: id).first
