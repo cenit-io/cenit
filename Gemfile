@@ -102,6 +102,7 @@ gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
+gem 'combine_pdf', '1.0.4'
 
 custom_gemfile_name = 'custom_Gemfile'
 
