@@ -49,11 +49,6 @@ gem 'mongoid'
 gem 'bson_ext'
 gem 'rails_admin', '~> 1.1.1'
 
-# charts
-gem 'rails_admin_dynamic_charts', git: 'https://github.com/openjaf/rails_admin_dynamic_charts.git'
-gem 'chartkick'
-gem 'descriptive_statistics'
-
 gem 'httparty'
 gem 'bunny', '~> 2.6'
 gem 'json-schema'
@@ -62,8 +57,6 @@ gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
 gem 'rubyzip'
-gem 'prawn-rails', '0.1.1'
-gem 'prawn-qrcode', '0.2.2.1'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
@@ -94,7 +87,6 @@ gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
 gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
-gem 'cenit-home', git: 'https://github.com/cenit-io/cenit-home.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
@@ -102,12 +94,6 @@ gem 'rkelly-remix'
 
 gem 'write_xlsx'
 gem 'handlebars'
-gem 'wicked_pdf'
-gem 'wkhtmltopdf-binary'
-gem 'rmagick', '2.15.4'
-gem 'pdfkit', '0.8.2'
-gem 'imgkit', '1.6.1'
-gem 'origami', git: 'https://github.com/mobmewireless/origami-pdf.git'
 
 gem 'aws-sdk', '~> 2.10.13'
 
@@ -116,8 +102,6 @@ gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
-
-gem 'pdf-forms', '~> 1.1', '>= 1.1.1'
 gem 'combine_pdf', '1.0.4'
 
 custom_gemfile_name = 'custom_Gemfile'

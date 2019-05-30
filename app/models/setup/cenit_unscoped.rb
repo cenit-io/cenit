@@ -7,7 +7,6 @@ module Setup
     include Mongoid::CenitDocument
     include Mongoid::Timestamps
     include Mongoid::CenitExtension
-    include DateTimeCharts
 
     included do
       Setup::Models.regist(self)

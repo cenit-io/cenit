@@ -24,7 +24,10 @@
       = render partial: 'layouts/rails_admin/google_analytic'
   - if (dashboard_root) &&  current_user.nil?
     %body#home_page
-      = render(partial: 'cenit/home/home') rescue nil
+      - begin
+        = render partial: 'cenit/home/home'
+      - rescue
+        = render partial: 'home/home'
   -else
     %body.topnav-fixed.rails_admin
       = render partial: 'layouts/rails_admin/default_layout'
