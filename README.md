@@ -17,7 +17,7 @@
 * [Wiki](https://github.com/cenit-io/cenit/wiki)
 * support@cenit.io
 
-[Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
+[Cenit](https://cenit.io) is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
 
 **Why**
 
@@ -56,9 +56,9 @@ Cenit makes possible that benefits of a modern iPaaS should be accessible to the
 
 **Capabilities**
 
-* **Backendless**: After create a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.
+* **Backendless**: After creating a new Data Type using a JSON Schema is generated on the fly a complete REST API and a CRUD UI to manage the data. Useful for mobile backend and API services.
 
-* **Routing and orchestration**: Integration flow development, monitoring and lifecycle management tools. Enables multi-step integration flows by compose atomic functionality (such as connection, transformation, data event, schedule, webhook).
+* **Routing and orchestration**: Integration flow development, monitoring, and lifecycle management tools. Enables multi-step integration flows by compose atomic functionality (such as connection, transformation, data event, schedule, webhook).
 
 * **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
 
@@ -190,7 +190,7 @@ If RabbitMQ is correctly installed when you run the rails server you should see:
  [*] Waiting for messages. To exit press CTRL+C
 ```
 
-It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of them to run in production environment
+It uses Figaro gem to manage app configuration using ENV. Any of this variable is required to run a local server but maybe you consider some of them to run in the production environment
 
 Then add to `config/application.yml` app configuration as reference review `config/application.example.yml`  
 
@@ -356,7 +356,7 @@ Now you can import collections using the translator you have already created.
 
 Example: Importing Basic collections
 
-1. Export Basic collection. In Cenit.io search Basic cross collection and select Export option. In translator select JSON Portable Exporter [Shared].
+1. Export Basic collection. In Cenit.io search Basic cross collection and select the Export option. In translator select JSON Portable Exporter [Shared].
 
 2. Import Basic collection. In your local Cenit, go to Collections/Shared Collections/All and select Import option. There select the translator you have just created and import the collection. You can see it on Collections/Shared Collections/All.
 
