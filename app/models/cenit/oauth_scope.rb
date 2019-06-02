@@ -3,6 +3,8 @@ module Cenit
 
     AUTH_TOKEN = :auth
 
+    SESSION_ACCESS_TOKEN = :session_access
+
     OFFLINE_ACCESS_TOKEN = :offline_access
 
     MULTI_TENANT_TOKEN = :multi_tenant
@@ -27,9 +29,9 @@ module Cenit
 
     ACCESS_TOKENS = [CREATE_TOKEN, READ_TOKEN, UPDATE_TOKEN, DELETE_TOKEN, DIGEST_TOKEN].freeze
 
-    TOKENS = ([AUTH_TOKEN, OFFLINE_ACCESS_TOKEN, MULTI_TENANT_TOKEN] + OPENID_TOKENS + ACCESS_TOKENS).freeze
+    TOKENS = ([AUTH_TOKEN, SESSION_ACCESS_TOKEN, OFFLINE_ACCESS_TOKEN, MULTI_TENANT_TOKEN] + OPENID_TOKENS + ACCESS_TOKENS).freeze
 
-    NON_ACCESS_TOKENS = ([AUTH_TOKEN, OFFLINE_ACCESS_TOKEN, MULTI_TENANT_TOKEN] + OPENID_TOKENS).freeze
+    NON_ACCESS_TOKENS = ([AUTH_TOKEN, SESSION_ACCESS_TOKEN, OFFLINE_ACCESS_TOKEN, MULTI_TENANT_TOKEN] + OPENID_TOKENS).freeze
 
     def initialize(scope = '')
       @openid = Set.new
@@ -40,6 +42,7 @@ module Cenit
       while scope.present?
         openid, scope = split(scope, NON_ACCESS_TOKENS)
         fail if openid.empty? && openid_expected
+        @session_access ||= openid.delete(SESSION_ACCESS_TOKEN)
         @offline_access ||= openid.delete(OFFLINE_ACCESS_TOKEN)
         @auth ||= openid.delete(AUTH_TOKEN)
         @multi_tenant ||= openid.delete(MULTI_TENANT_TOKEN)
@@ -121,7 +124,7 @@ module Cenit
     end
 
     def valid?
-      auth? || offline_access? || multi_tenant? || openid.present? || access.present? || super_methods.present?
+      auth? || session_access? || offline_access? || multi_tenant? || openid.present? || access.present? || super_methods.present?
     end
 
     def to_s
@@ -170,6 +173,10 @@ module Cenit
       openid.include?(OPENID_PROFILE_TOKEN)
     end
 
+    def session_access?
+      session_access.present?
+    end
+
     def offline_access?
       offline_access.present?
     end
@@ -186,6 +193,7 @@ module Cenit
       other_scope = self.class.new(other_scope.to_s) unless other_scope.is_a?(self.class)
       merge = self.class.new
       merge.instance_variable_set(:@auth, auth || other_scope.instance_variable_get(:@auth))
+      merge.instance_variable_set(:@session_access, session_access || other_scope.instance_variable_get(:@session_access))
       merge.instance_variable_set(:@offline_access, offline_access || other_scope.instance_variable_get(:@offline_access))
       merge.instance_variable_set(:@multi_tenant, multi_tenant || other_scope.instance_variable_get(:@multi_tenant))
       merge.instance_variable_set(:@openid, (openid + other_scope.instance_variable_get(:@openid)))
@@ -204,10 +212,11 @@ module Cenit
     def >(other_scope)
       other_scope = Cenit::OauthScope.new(other_scope.to_s) unless other_scope.is_a?(Cenit::OauthScope)
       return false if (other_scope.auth? && !auth?) ||
-                      (other_scope.offline_access? && !offline_access?) ||
-                      (other_scope.multi_tenant? && !multi_tenant?) ||
-                      !other_scope.openid_set.subset?(openid_set) ||
-                      !other_scope.super_methods_set.subset?(super_methods_set)
+        (other_scope.session_access? && !session_access?) ||
+        (other_scope.offline_access? && !offline_access?) ||
+        (other_scope.multi_tenant? && !multi_tenant?) ||
+        !other_scope.openid_set.subset?(openid_set) ||
+        !other_scope.super_methods_set.subset?(super_methods_set)
       other_scope.each_criteria { |method, _| return false unless criteria_for(method) }
       access_by_ids.each_criteria do |method, criteria|
         next unless (other_criteria = other_scope.criteria_for(method))
@@ -222,6 +231,9 @@ module Cenit
       diff = self.class.new
       if auth? && !other_scope.auth?
         diff.instance_variable_set(:@auth, true)
+      end
+      if session_access? && !other_scope.session_access?
+        diff.instance_variable_set(:@session_access, true)
       end
       if offline_access? && !other_scope.offline_access?
         diff.instance_variable_set(:@offline_access, true)
@@ -286,7 +298,7 @@ module Cenit
 
     protected
 
-    attr_reader :auth, :offline_access, :openid, :access, :super_methods, :multi_tenant
+    attr_reader :auth, :session_access, :offline_access, :openid, :access, :super_methods, :multi_tenant
 
     def space(str)
       str.index(' ') ? "'#{str}'" : str
@@ -314,6 +326,7 @@ module Cenit
 
     def access_less_scope
       ((auth? ? "#{AUTH_TOKEN} " : '') +
+        (session_access? ? "#{SESSION_ACCESS_TOKEN} " : '') +
         (offline_access? ? "#{OFFLINE_ACCESS_TOKEN} " : '') +
         (multi_tenant? ? "#{MULTI_TENANT_TOKEN} " : '') +
         (openid? ? openid.to_a.join(' ') + ' ' : '')).strip

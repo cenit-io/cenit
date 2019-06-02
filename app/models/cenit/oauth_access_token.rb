@@ -26,10 +26,15 @@ module Cenit
           end
         scope = Cenit::OauthScope.new(scope) unless scope.is_a?(Cenit::OauthScope)
         access_grant = tenant.switch { Cenit::OauthAccessGrant.where(application_id: app_id).first } ||
-                       tenant.switch { Cenit::OauthAccessGrant.new(application_id: app_id) }
+          tenant.switch { Cenit::OauthAccessGrant.new(application_id: app_id) }
         access_grant.scope = Cenit::OauthScope.new(access_grant.scope).merge(scope).to_s
         access_grant.save
-        token = create(tenant: tenant, application_id: app_id, user_id: user.id)
+        token =
+          if scope.session_access?
+            Cenit::OauthSessionAccessToken
+          else
+            self
+          end.create(tenant: tenant, application_id: app_id, user_id: user.id)
         access =
           {
             access_token: token.token,
@@ -38,7 +43,7 @@ module Cenit
             expires_in: token.token_span
           }
         if scope.offline_access? &&
-           Cenit::OauthRefreshToken.where(tenant: tenant, application_id: app_id, user_id: user.id).blank?
+          Cenit::OauthRefreshToken.where(tenant: tenant, application_id: app_id, user_id: user.id).blank?
           refresh_token = Cenit::OauthRefreshToken.create(tenant: tenant, application_id: app_id, user_id: user.id)
           access[:refresh_token] = refresh_token.token
         end

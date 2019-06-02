@@ -10,15 +10,10 @@ module Setup
       .referenced_by(:_type, :provider, :namespace, :name)
 
     def create_authorization!(auth_data = {})
-      auth_class =
-        if provider.class == Setup::OauthProvider
-          Setup::OauthAuthorization
-        else
-          Setup::Oauth2Authorization
-        end
+      auth_class = self.class.preferred_authorization_class(provider)
       auth = auth_class.new(namespace: auth_data[:namespace], client_id: id, metadata: auth_data[:metadata])
       auth.name = auth_data[:name] || "#{provider.name.to_title} #{auth_class.to_s.split('::').last.to_title} #{auth.id}"
-      if auth_class == Setup::Oauth2Authorization
+      if auth_class <= Setup::Oauth2Authorization
         scope_names = auth_data[:scopes] || []
         if scope_names.is_a?(Array)
           scopes = Setup::Oauth2Scope.where(provider: provider).any_in(name: scope_names)
@@ -48,5 +43,14 @@ module Setup
       auth
     end
 
+    class << self
+      def preferred_authorization_class(provider)
+        if provider.class == Setup::OauthProvider
+          Setup::OauthAuthorization
+        else
+          Setup::Oauth2Authorization
+        end
+      end
+    end
   end
 end
