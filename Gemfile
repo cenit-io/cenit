@@ -68,7 +68,7 @@ gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
-gem 'httmultiparty'
+gem 'httmultiparty', git: 'https://github.com/jwagener-soundcloud/httmultiparty.git'
 
 gem 'oauth2'
 gem 'exception_notification'
