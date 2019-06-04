@@ -90,6 +90,11 @@ module Setup
     end
 
     class << self
+
+      def preferred_authorization_class(_provider)
+        Setup::AppAuthorization
+      end
+
       def share_options
         options = super
         ignore = options[:ignore] || []

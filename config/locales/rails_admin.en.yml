@@ -769,6 +769,8 @@ en:
         digest: '<strong>Digest</strong> with records of the following data types'
       auth: '<strong>Authorize</strong> other applications'
       auth_desc: 'The application will be able to authorize other applications with its same grants'
+      session_access: 'Get <strong>session</strong> access'
+      session_access_desc: 'The application access span will be automatically extended until it expires'
       offline_access: 'Acts <strong>in your behalf</strong>'
       offline_access_desc: 'The application will no longer requires your presence to enjoy its grants'
       multi_tenant: '<strong>Switch</strong> across your tenants'

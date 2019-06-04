@@ -6,7 +6,7 @@
       methods[method] = Setup::DataType.where(criteria)
     end
     basic = Hash.new
-    if !cenit_oauth_scope.openid_set.empty?
+    unless cenit_oauth_scope.openid_set.empty?
       basic[:openid]= cenit_oauth_scope.openid_set.to_a
       basic[:openid].map! do |d|
         case d
@@ -20,7 +20,7 @@
       end
       basic[:openid].delete_if { |a| a == Cenit::OauthScope::OPENID_TOKEN }
     end
-    if !cenit_oauth_scope.super_methods_set.empty?
+    unless cenit_oauth_scope.super_methods_set.empty?
       basic['super_methods_set']= cenit_oauth_scope.super_methods_set.to_a
       basic['super_methods_set'].map! do |d|
         case d
@@ -41,6 +41,9 @@
     end
     if cenit_oauth_scope.auth?
       basic[Cenit::OauthScope::AUTH_TOKEN]= true
+    end
+    if cenit_oauth_scope.session_access?
+      basic[Cenit::OauthScope::SESSION_ACCESS_TOKEN]= true
     end
     if cenit_oauth_scope.offline_access?
       basic[Cenit::OauthScope::OFFLINE_ACCESS_TOKEN]= true
@@ -64,6 +67,10 @@
           when Cenit::OauthScope::AUTH_TOKEN
             auth_description = t('admin.oauth.auth_desc')
             key = I18n.t('admin.oauth.auth')+'<a href="#" data-toggle="tooltip" title="'+ auth_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
+            when Cenit::OauthScope::OFFLINE_ACCESS_TOKEN
+          when Cenit::OauthScope::SESSION_ACCESS_TOKEN
+           session_access_description = t('admin.oauth.session_access_desc')
+            key = I18n.t('admin.oauth.session_access')+'<a href="#" data-toggle="tooltip" title="'+ session_access_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
           when Cenit::OauthScope::OFFLINE_ACCESS_TOKEN
            offline_access_description = t('admin.oauth.offline_access_desc')
             key = I18n.t('admin.oauth.offline_access')+'<a href="#" data-toggle="tooltip" title="'+ offline_access_description+'"><i class="fa fa-info-circle" aria-hidden="true"></i></a>'
@@ -83,7 +90,7 @@
             i = 0
             first_links = []
             value.each do |dt|
-              if (i < max_data_type_to_show)
+              if i < max_data_type_to_show
                 label = dt.send(config.object_label_method)
                 link = link_to(label, rails_admin.show_path(model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), id: dt.id),target: '_blank')
                 first_links.push(link)
