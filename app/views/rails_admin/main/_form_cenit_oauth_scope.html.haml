@@ -3,6 +3,8 @@
 - current_action = params[:action].in?(['create', 'new']) ? 'create' : 'update'
 - cenit_oauth_scope = field.cenit_oauth_scope
 - basic_scopes = cenit_oauth_scope.super_methods_set + cenit_oauth_scope.openid_set
+- if cenit_oauth_scope.session_access?
+  - basic_scopes.add(Cenit::OauthScope::SESSION_ACCESS_TOKEN)
 - if cenit_oauth_scope.offline_access?
   - basic_scopes.add(Cenit::OauthScope::OFFLINE_ACCESS_TOKEN)
 - if cenit_oauth_scope.multi_tenant?

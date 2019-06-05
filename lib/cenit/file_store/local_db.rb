@@ -12,23 +12,23 @@ module Cenit
         file[:chunkSize] = [[file[:chunkSize] || 0, Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE].max, Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE].min
         temporary_file = nil
         readable =
-          if data.is_a?(String)
-            ext =
-              if (content_type = options[:content_type] || file.contentType) &&
-                 (types = MIME::Types[content_type]).present? &&
-                 (type = types.detect { |t| t.extensions.present? })
-                type.extensions.first
-              else
-                ''
-              end
-            temporary_file = Tempfile.new(['file_', ".#{ext}"])
-            temporary_file.binmode
-            temporary_file.write(file.decode(data))
-            temporary_file.rewind
-            Cenit::Utility::Proxy.new(temporary_file, original_filename: file.filename || options[:filename] || options[:default_filename])
-          else
-            data
-          end
+            if data.is_a?(String)
+              ext =
+                  if (content_type = options[:content_type] || file.contentType) &&
+                      (types = MIME::Types[content_type]).present? &&
+                      (type = types.detect { |t| t.extensions.present? })
+                    type.extensions.first
+                  else
+                    ''
+                  end
+              temporary_file = Tempfile.new(['file_', ".#{ext}"])
+              temporary_file.binmode
+              temporary_file.write(file.decode(data))
+              temporary_file.rewind
+              Cenit::Utility::Proxy.new(temporary_file, original_filename: file.filename || options[:filename] || options[:default_filename])
+            else
+              data
+            end
         new_chunks_ids = create_temporary_chunks(file, readable)
         temporary_file.close if temporary_file
         file.seek(0)
@@ -48,14 +48,19 @@ module Cenit
         end
         chunks_left = ((len - chunk_chunk) / chunk_size.to_f).ceil
         data = ''
-        chunks(file).ascending(:n).where(
-          :n.gte => current_chunk,
-          :n.lte => current_chunk + chunks_left).each do |chunk|
-          data += chunk.data.data[chunk_start, chunk_chunk]
-          if (chunk_chunk = len - data.length) > chunk_size
-            chunk_chunk = chunk_size
+        n = 0
+        chunks_hash = {}
+        chunks(file).all.each do |chunk|
+          next if chunk.n < current_chunk || chunk.n > current_chunk + chunks_left
+          chunks_hash[chunk.n] = chunk
+          while (chunk = chunks_hash[n])
+            data += chunk.data.data[chunk_start, chunk_chunk]
+            if (chunk_chunk = len - data.length) > chunk_size
+              chunk_chunk = chunk_size
+            end
+            chunk_start = 0
+            n += 1
           end
-          chunk_start = 0
         end
         data
       end
