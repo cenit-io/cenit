@@ -12,7 +12,7 @@ module Cenit
 
     validates_length_of :oauth_name, within: 6..20, allow_nil: true
     validates_length_of :slug, maximum: 255
-    validates_format_of :slug, with: /\A([a-z]([_-])?)*\Z/
+    validates_format_of :slug, with: /\A([a-z][a-z0-9]*([_-][a-z0-9]+)?)?\Z/
 
     validate do
       [:oauth_name, :slug].each do |field|
