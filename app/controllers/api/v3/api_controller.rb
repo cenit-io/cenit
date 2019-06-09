@@ -446,7 +446,7 @@ module Api::V3
             @_action_name.to_sym
           end
         if @ability.can?(action_symbol, @item || klass) &&
-           (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
+          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
           @access_token.hit if @access_token
         else
           success = false
@@ -518,7 +518,8 @@ module Api::V3
             end
             if @ns_name
               Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
-                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
+                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first ||
+                Setup::DataType.where(namespace: @ns_name.camelize, name: slug.camelize).first
             else
               nil
             end
