@@ -11,7 +11,7 @@ module RailsAdmin
             weight -402
             object_label_method { :to_s }
 
-            fields :method, :path, :algorithm
+            fields :method, :path, :algorithm, :priority
           end
         end
       end
