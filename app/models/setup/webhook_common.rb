@@ -159,7 +159,6 @@ module Setup
       template_parameters[:method] ||= method
       conformed_url = template_parameters[:url]
       conformed_path = template_parameters[:path]
-      body = template_parameters[:body]
       parameters = connection.conformed_parameters(template_parameters)
                      .merge(conformed_parameters(template_parameters))
                      .merge!(options[:parameters] || {})
@@ -173,6 +172,7 @@ module Setup
         auth.sign_params(parameters, template_parameters)
       end
 
+      body = template_parameters[:body]
       query = parameters.plain_query(skip_encoding: template_parameters['skip_query_encoding'].to_b)
       template_parameters[:query] = query
 
