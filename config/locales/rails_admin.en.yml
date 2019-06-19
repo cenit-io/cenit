@@ -566,6 +566,10 @@ en:
         menu: "Compare"
         breadcrumb: "Compare"
         done: "merged"
+      trust:
+        menu: 'Trust'
+      untrust:
+        menu: 'Untrust'
     form:
       flow:
         source_data_type: 'Source data type'

@@ -70,7 +70,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::DataTypeConfig,
   RailsAdmin::Config::Actions::JsonEdit,
   RailsAdmin::Config::Actions::Sudo,
-  RailsAdmin::Config::Actions::Compare
+  RailsAdmin::Config::Actions::Compare,
+  RailsAdmin::Config::Actions::Trust
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -648,6 +649,7 @@ RailsAdmin.config do |config|
     sudo
     cancel
     regist
+    trust
     reinstall
     simple_delete_data_type
     bulk_delete_data_type

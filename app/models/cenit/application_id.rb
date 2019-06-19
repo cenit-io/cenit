@@ -9,6 +9,7 @@ module Cenit
     field :identifier, type: String
     field :oauth_name, type: String
     field :slug, type: String, default: ''
+    field :trusted, type: Boolean
 
     validates_length_of :oauth_name, within: 6..20, allow_nil: true
     validates_length_of :slug, maximum: 255
@@ -47,6 +48,10 @@ module Cenit
       else
         true
       end
+    end
+
+    def trusted?
+      trusted
     end
 
     def tenant
