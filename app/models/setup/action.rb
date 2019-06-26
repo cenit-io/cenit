@@ -12,6 +12,7 @@ module Setup
 
     field :method, type: Symbol
     field :path, type: String, default: '/'
+    field :priority, type: Integer, default: 0
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 

@@ -482,7 +482,7 @@ cenit = function ($) {
                         },
                         search_tenants = function (val, $widget) {
                             var params = {
-                                c: '{"owner_id":"' + owner_id + '"}',
+                                c: '{"$or":[{"owner_id":"' + owner_id + '"}, {"user_ids": "$elemMatch":{"$eq":"' + owner_id +'"}}]}',
                                 query: val
                             }, ajax_url = configMap.host + '/account.json?' + $.param(params);
                             $.ajax({
@@ -535,8 +535,8 @@ cenit = function ($) {
                 };
             if (owner_id.length > 0) {
                 params = {
-                    c: '{"owner_id":"' + owner_id + '"}'
-                }
+                    c: '{"$or":[{"owner_id":"' + owner_id + '"}, {"user_ids": "$elemMatch":{"$eq":"' + owner_id +'"}}]}'
+                };
                 ajax_url += $.param(params);
             }
             $.ajax({
