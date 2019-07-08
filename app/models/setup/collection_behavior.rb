@@ -251,7 +251,7 @@ module Setup
     protected
 
     def scan_dependencies_on(record, opts)
-      return false if opts[:visited].include?(record)
+      return false if opts[:visited].include?(record) || record.is_a?(Setup::CenitDataType)
       opts[:visited] << record
       record.class.reflect_on_all_associations(:embeds_one,
                                                :embeds_many,
