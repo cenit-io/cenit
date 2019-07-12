@@ -380,13 +380,23 @@ module Setup
 
     def process_ftp(opts)
       result = nil
+      path = URI.decode(opts[:path])
       username, password = check(opts[:template_parameters], :username, :password)
+
       Net::FTP.open(opts[:host], username, password) do |ftp|
         if (body = opts[:body])
           begin
-            tempfile = Tempfile.new('ftp')
+            # Checking the path
+            folders = path.split('/')
+            folders[0, folders.size - 1].each do |folder|
+              ftp.mkdir(folder) if !ftp.list(ftp.pwd).any? { |dir| dir.match(/\s#{folder}$/) }
+              ftp.chdir(folder)
+            end
+            # Uploading file
+            tempfile = Tempfile.new('ftp', :encoding => body.encoding)
             tempfile.write(body)
-            ftp.putbinaryfile(tempfile, opts[:path])
+            tempfile.close
+            ftp.putbinaryfile(tempfile, folders.last)
           ensure
             begin
               tempfile.close
@@ -394,7 +404,7 @@ module Setup
             end
           end
         else
-          result = ftp.getbinaryfile(opts[:path], nil)
+          result = ftp.getbinaryfile(path, nil)
         end
       end
       result
