@@ -386,13 +386,13 @@ module Setup
       Net::FTP.open(opts[:host], username, password) do |ftp|
         if (body = opts[:body])
           begin
-            #Checking the path
+            # Checking the path
             folders = path.split('/')
             folders[0, folders.size - 1].each do |folder|
               ftp.mkdir(folder) if !ftp.list(ftp.pwd).any? { |dir| dir.match(/\s#{folder}$/) }
               ftp.chdir(folder)
             end
-
+            # Uploading file
             tempfile = Tempfile.new('ftp', :encoding => body.encoding)
             tempfile.write(body)
             tempfile.close
