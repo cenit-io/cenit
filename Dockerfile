@@ -19,7 +19,8 @@ RUN set -x; \
   nodejs \
   git \
   imagemagick \
-  libmagickwand-dev
+  libmagickwand-dev \
+  nginx
 
 # Set an environment variable where the Rails app is installed to inside of Docker image
 ENV DIR_ROOT /var/www
@@ -43,6 +44,8 @@ COPY Gemfile.lock Gemfile.lock
 
 RUN bundle install --jobs 20 --retry 5 --without development test
 
+RUN gem install foreman
+
 # Adding project files
 COPY . .
 
@@ -51,6 +54,12 @@ ENV SKIP_MONGO_CLIENT='true'
 RUN set -x; \
    bundle exec rake assets:precompile
 
-EXPOSE 8080
+RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
+RUN chown -R www-data:www-data /var/lib/nginx
 
-CMD ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+COPY server_config/cenit /etc/nginx/sites-enabled/cenit
+RUN rm /etc/nginx/sites-enabled/default
+
+EXPOSE 80
+
+CMD ["foreman", "start", "-f", "Procfile"]
