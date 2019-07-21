@@ -18,6 +18,18 @@ describe Cenit::ActiveTenant do
     active_tenant.clean_all
   end
 
+  context "when Redis client is present", if: Cenit::Redis.client? do
+    it 'uses the Redis adapter' do
+      expect(active_tenant.adapter).to be Cenit::ActiveTenant::RedisAdapter
+    end
+  end
+
+  context "when Redis client is not present", unless: Cenit::Redis.client? do
+    it 'uses the Mongoid adapter' do
+      expect(active_tenant.adapter).to be Cenit::ActiveTenant::MongoidAdapter
+    end
+  end
+
   context "with adapter independent behavior" do
 
     it 'it clean all active tenants' do
@@ -109,18 +121,6 @@ describe Cenit::ActiveTenant do
       active_tenant.set_tasks(1, second_tenant)
       active_tenant.clean_all
       expect(active_tenant.total_count).to be 0
-    end
-  end
-
-  context "when Redis client is present", if: Cenit::Redis.client? do
-    it 'uses the Redis adapter' do
-      expect(active_tenant.adapter).to be Cenit::ActiveTenant::RedisAdapter
-    end
-  end
-
-  context "when Redis client is not present", unless: Cenit::Redis.client? do
-    it 'uses the Mongoid adapter' do
-      expect(active_tenant.adapter).to be Cenit::ActiveTenant::MongoidAdapter
     end
   end
 end
