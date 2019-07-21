@@ -262,7 +262,7 @@ class Ability
           Setup::Operation,
           Setup::Category,
           TourTrack,
-          ActiveTenant
+          Cenit::ActiveTenant
         ]
     can [:index, :show, :edit], Setup::Configuration
     can :destroy, [Setup::Storage, Setup::CrossSharedCollection]

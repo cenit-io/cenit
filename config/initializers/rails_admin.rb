@@ -580,7 +580,7 @@ RailsAdmin.config do |config|
 
   Setup::SystemReport
 
-  ActiveTenant
+  Cenit::ActiveTenant
 
   RabbitConsumer
 
