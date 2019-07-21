@@ -7,7 +7,7 @@ class ActiveTenant
   field :tasks, type: Integer, default: 0
 
   module MongoidAdapter
-    extends self
+    extend self
 
     def active_count
       ActiveTenant.where(:tasks.gt => 0).count
@@ -39,12 +39,24 @@ class ActiveTenant
     def clean
       ActiveTenant.where(:tasks.lte => 0).delete_all
     end
+
+    def clean_all
+      ActiveTenant.collection.drop
+    end
+
+    def to_hash
+      ActiveTenant.all.map { |tenant| [tenant.id.to_s, tenant.tasks] }.to_h
+    end
   end
 
   module RedisAdapter
-    extends self
+    extend self
 
     ACTIVE_TENANT_PREFIX = 'active_tenant_'
+
+    def get(key)
+      Cenit::Redis.get(key).to_i
+    end
 
     def key_for(tenant)
       ACTIVE_TENANT_PREFIX + tenant.id
@@ -60,12 +72,12 @@ class ActiveTenant
 
     def active_count
       all_keys.inject(0) do |sum, key|
-        sum + (Cenit::Redis.get(key) > 0 ? 1 : 0)
+        sum + (get(key) > 0 ? 1 : 0)
       end
     end
 
     def tasks_for(tenant = Tenant.current)
-      (tenant && Cenit::Redis.get(key_for(tenant))) || 0
+      (tenant && get(key_for(tenant))) || 0
     end
 
     def inc_tasks_for(tenant = Tenant.current)
@@ -73,36 +85,55 @@ class ActiveTenant
     end
 
     def dec_tasks_for(tenant = Tenant.current)
-      tenant && Cenit::Redis.decr(key_for(tenant))
+      tenant &&
+        (Cenit::Redis.decr(key = key_for(tenant)) <= 0) &&
+        Cenit::Redis.del(key)
     end
 
     def each(&block)
       all_keys.each do |key|
-        tasks = Cenit::Redis.get(key)
+        tasks = get(key)
         next unless tasks > 0
         block.call(tenant_id: tenant_id_from(key), tasks: tasks)
       end
     end
 
     def clean
-      Cenit::Redis.del *(all_keys.select { |key| Cenit::Redis.get(key) <= 0 })
+      keys = all_keys.select { |key| get(key) <= 0 }
+      Cenit::Redis.del *keys if keys.length > 0
+    end
+
+    def clean_all
+      keys = all_keys
+      Cenit::Redis.del *keys if keys.length > 0
+    end
+
+    def to_hash
+      all_keys.map { |key| [key, get(key)] }.to_h
     end
   end
 
   class << self
 
-    @adapter =
-      if Cenit::Redis.client?
-        RedisAdapter
-      else
-        MongoidAdapter
-      end
-
     def adapter
-      @adapter
+      @adapter ||=
+        if Cenit::Redis.client?
+          RedisAdapter
+        else
+          MongoidAdapter
+        end
     end
 
-    delegate :active_count, :tasks_for, :inc_tasks_for, :dec_tasks_for, :each, :clean, to: :adapter
+    delegate :active_count,
+             :tasks_for,
+             :inc_tasks_for,
+             :dec_tasks_for,
+             :each,
+             :clean,
+             :clean_all,
+             :to_hash,
+
+             to: :adapter
 
     def tasks_for_current
       tasks_for
