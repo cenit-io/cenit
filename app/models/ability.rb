@@ -261,9 +261,9 @@ class Ability
           Setup::SystemReport,
           Setup::Operation,
           Setup::Category,
-          TourTrack,
-          Cenit::ActiveTenant
+          TourTrack
         ]
+    can [:index, :new, :do_clean, :clean_all], Cenit::ActiveTenant
     can [:index, :show, :edit], Setup::Configuration
     can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
     can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit

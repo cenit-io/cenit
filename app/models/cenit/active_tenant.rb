@@ -7,6 +7,12 @@ module Cenit
 
     field :tasks, type: Integer, default: 0
 
+    def save(options = {})
+      return super(options) if self.class.adapter == MongoidAdapter
+      self.class.set_tasks(tasks, tenant)
+      true
+    end
+
     module MongoidAdapter
       extend self
 
