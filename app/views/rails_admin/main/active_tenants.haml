@@ -1,0 +1,19 @@
+- hash = Cenit::ActiveTenant.to_hash
+%h1=Cenit::ActiveTenant.adapter.to_s.split('::').last.to_title
+%table.table.table-condensed.table-striped
+  %thead
+    %tr
+      %th{class: "header pjax", rel: "tooltip", title: 'Tenant'}= 'Tenant'
+      %th{class: "header pjax", rel: "tooltip", title: 'Tasks'}= 'Tasks'
+  %tbody
+    - hash.each do |tenant_id, tasks|
+      %tr{class: 'active_tenant_row'}
+        - tenant = ::Tenant.where(id: tenant_id).first
+        - amc = RailsAdmin::Config.model(Tenant)
+        - am = amc.abstract_model
+        - wording = tenant&.send(amc.object_label_method) || '-'
+        - if tenant
+          - wording = link_to(wording, url_for(action: :show, model_name: am.to_param, id: tenant_id), class: 'pjax')
+        %td{title: 'Tenant'}= wording
+        %td{title: 'Tenant'}= tasks
+.clearfix.total-count= "#{hash.size} active tenants"
