@@ -32,7 +32,7 @@ describe Cenit::ActiveTenant do
 
   context "with adapter independent behavior" do
 
-    it 'it clean all active tenants' do
+    it 'clean all active tenants' do
       expect(active_tenant.total_count).to be 0
       active_tenant.inc_tasks_for_current
       expect(active_tenant.total_count).to be > 0
