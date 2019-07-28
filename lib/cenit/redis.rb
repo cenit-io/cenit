@@ -25,6 +25,10 @@ module Cenit
         instance_variable_get(:@redis_client)
       end
 
+      def pipelined
+        yield client if client && block_given?
+      end
+
       def method_missing(symbol, *args, &block)
         if client&.respond_to?(symbol)
           client.send(symbol, *args, &block)

@@ -265,44 +265,44 @@ module Cenit
           end
           quota = opts[:quota] || tasks_quota(tenant_tasks.size)
 
-          delayed_message_digester = proc do |delayed_message|
-            if (tenant = delayed_message.tenant)
-              if (tenant_tasks[tenant.id] || 0) > quota
-                delayed_message.update(publish_at: Time.now + 2 * Cenit.scheduler_lookup_interval)
-              else
-                publish_options = { routing_key: queue.name }
-                publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
-                channel.default_exchange.publish(delayed_message.message, publish_options)
-                Cenit::ActiveTenant.inc_tasks_for(tenant)
-                tenant_tasks[tenant.id] ||= 0
-                tenant_tasks[tenant.id] += 1
-                dispatched_ids << delayed_message.id
-              end
+          process = proc do |delayed_message|
+            tenant_id = delayed_message[:tenant_id]
+            if (tenant_tasks[tenant_id] || 0) > quota
+              Setup::DelayedMessage.reschedule(delayed_message, Time.now + 2 * Cenit.scheduler_lookup_interval)
             else
-              delayed_message.delete
-              Setup::SystemReport.create(message: "Delayed message #{delayed_message.message} with no associated tenant was deleted.", type: :warning)
+              publish_options = { routing_key: queue.name }
+              publish_options[:headers] = { unscheduled: true } if delayed_message[:unscheduled]
+              channel.default_exchange.publish(delayed_message[:message], publish_options)
+              Cenit::ActiveTenant.inc_tasks_for(tenant_id)
+              tenant_tasks[tenant_id] ||= 0
+              tenant_tasks[tenant_id] += 1
+              dispatched_ids << delayed_message[:id]
             end
           end
 
-          on_messages_ready = Setup::DelayedMessage
-                                .all
-                                .limit(2 * maximum_active_tasks)
-                                .or(:publish_at.lte => Time.now)
           penalty_factor = 0.75
           penalty_quota = penalty_factor * quota
-          penalized_ids = tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota }
+          penalized_ids = Set.new(tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota })
+          count = tenant_tasks.values.reduce(&:+)
+          penalized_messages = []
 
-          on_messages_ready.and(:tenant_id.nin => penalized_ids).each do |delayed_message|
-            delayed_message_digester.call(delayed_message)
-          end
-          if (dispatched_ids.size + (tenant_tasks.values.reduce(&:+) || 0)) < maximum_active_tasks * penalty_factor
-            on_messages_ready.and(:tenant_id.in => penalized_ids)
-              .limit(2 * (1 - penalty_factor) * maximum_active_tasks).each do |delayed_message|
-              delayed_message_digester.call(delayed_message)
+          Setup::DelayedMessage.for_each_ready(limit: 2 * maximum_active_tasks) do |delayed_message|
+            break unless count < maximum_active_tasks
+            if penalized_ids.include?(delayed_message[:id])
+              penalized_messages << delayed_message
+            elsif process.call(delayed_message)
+              count += 1
             end
           end
+
+          while count < maximum_active_tasks && penalized_messages.count > 0
+            process.call(penalized_messages.shift)
+          end
+
           begin
-            Setup::DelayedMessage.where(:id.in => dispatched_ids).destroy_all
+            Setup::DelayedMessage.where(
+              :id.in => dispatched_ids.map { |id| BSON::ObjectId.from_string(id) }
+            ).destroy_all
           rescue Exception => ex
             Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
           end unless dispatched_ids.empty?

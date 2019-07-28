@@ -89,7 +89,9 @@ module Setup
     end
 
     def stop
-      delayed_messages.update_all(unscheduled: true)
+      delayed_messages.each do |delayed_message|
+        delayed_message.update(unscheduled: true)
+      end
     end
 
     def activate
