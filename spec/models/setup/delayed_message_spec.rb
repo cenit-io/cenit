@@ -64,7 +64,7 @@ describe Setup::DelayedMessage do
     it 'set ready created delayed messages' do
       delayed_message.create(message: 'abc')
       record = nil
-      delayed_message.for_each_ready(at: Time.now + 1.minute) do |delayed_message|
+      delayed_message.for_each_ready(at: delayed_message.default_publish_at + 5.seconds) do |delayed_message|
         record = delayed_message
       end
       expect(record[:message]).to eq 'abc'

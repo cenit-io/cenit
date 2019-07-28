@@ -26,7 +26,7 @@ module Setup
             if scheduler
               nil
             else
-              Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
+              self.class.default_publish_at
             end
           end
       end
@@ -192,6 +192,10 @@ module Setup
         adapter.load_on_start do
           all.each(&:send_to_adapter)
         end
+      end
+
+      def default_publish_at
+        Time.now + (Cenit.default_delay || Cenit.scheduler_lookup_interval || 0)
       end
     end
   end
