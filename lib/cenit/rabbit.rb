@@ -283,7 +283,7 @@ module Cenit
           penalty_factor = 0.75
           penalty_quota = penalty_factor * quota
           penalized_ids = Set.new(tenant_tasks.keys.select { |id| tenant_tasks[id] > penalty_quota })
-          count = tenant_tasks.values.reduce(&:+)
+          count = tenant_tasks.values.reduce(&:+) || 0
           penalized_messages = []
 
           Setup::DelayedMessage.for_each_ready(limit: 2 * maximum_active_tasks) do |delayed_message|

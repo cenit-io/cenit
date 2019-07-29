@@ -75,7 +75,8 @@ module Cenit
       end
 
       def key_for(tenant)
-        ACTIVE_TENANT_PREFIX + tenant.id
+        tenant_id = tenant.is_a?(String) ? tenant : tenant.id
+        ACTIVE_TENANT_PREFIX + tenant_id
       end
 
       def tenant_id_from(key)

@@ -159,7 +159,7 @@ module Setup
         now = opts[:at] || Time.now
         opts =
           if (limit = opts[:limit])
-            { limit: limit }
+            { limit: [0, limit] }
           else
             {}
           end
@@ -190,7 +190,12 @@ module Setup
 
       def load_on_start
         adapter.load_on_start do
-          all.each(&:send_to_adapter)
+          count = 0
+          all.each do |delayed_message|
+            count += 1
+            delayed_message.send_to_adapter
+          end
+          puts "#{count} delayed messages loaded"
         end
       end
 
