@@ -61,13 +61,65 @@ describe Setup::DelayedMessage do
       expect(delayed_message.load_on_start?).to be false
     end
 
-    it 'set ready created delayed messages' do
+    it 'sets created delayed messages ready' do
       delayed_message.create(message: 'abc')
       record = nil
       delayed_message.for_each_ready(at: delayed_message.default_publish_at + 5.seconds) do |delayed_message|
         record = delayed_message
       end
       expect(record[:message]).to eq 'abc'
+    end
+
+    it 'retrieves ready messages sorted' do
+      10.times do
+        publish_at = Time.now + rand(100).seconds
+        delayed_message.create(
+          message: publish_at.to_i,
+          publish_at: publish_at
+        )
+      end
+      before = nil
+      delayed_message.for_each_ready(at: Time.now + 100.seconds) do |delayed_message|
+        if before
+          expect(before[:message]).to be <= delayed_message[:message]
+        end
+        before = delayed_message
+      end
+    end
+
+    it 'changes delayed messages order when updated' do
+      now = Time.now
+      delayed_message.create(message: 'first', publish_at: now + 10.seconds)
+      second = delayed_message.create(message: 'second', publish_at: now + 20.seconds)
+      second.update(publish_at: now)
+      messages = []
+      delayed_message.for_each_ready(at: now + 20.seconds) do |delayed_message|
+        messages << delayed_message[:message]
+      end
+      expect(messages).to eq %w(second first)
+    end
+
+    it 'does not include delayed messages when retrieving readies' do
+      now = Time.now
+      delayed_message.create(message: 'first', publish_at: now)
+      delayed_message.create(message: 'second', publish_at: now + 20.seconds)
+      messages = []
+      delayed_message.for_each_ready(at: now) do |delayed_message|
+        messages << delayed_message[:message]
+      end
+      expect(messages).to eq %w(first)
+    end
+
+    it 'remove messages when destroyed' do
+      now = Time.now
+      first = delayed_message.create(message: 'first', publish_at: now)
+      delayed_message.create(message: 'second', publish_at: now)
+      first.destroy
+      messages = []
+      delayed_message.for_each_ready(at: now + 5.seconds) do |delayed_message|
+        messages << delayed_message[:message]
+      end
+      expect(messages).to eq %w(second)
     end
   end
 end
