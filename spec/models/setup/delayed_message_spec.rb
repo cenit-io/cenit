@@ -70,16 +70,17 @@ describe Setup::DelayedMessage do
       expect(record[:message]).to eq 'abc'
     end
 
-    it 'retrieves ready messages sorted' do
+    it 'sorts ready messages' do
+      now = Time.now
       10.times do
-        publish_at = Time.now + rand(100).seconds
+        publish_at = now + rand(100).seconds
         delayed_message.create(
           message: publish_at.to_i,
           publish_at: publish_at
         )
       end
       before = nil
-      delayed_message.for_each_ready(at: Time.now + 100.seconds) do |delayed_message|
+      delayed_message.for_each_ready(at: now + 100.seconds) do |delayed_message|
         if before
           expect(before[:message]).to be <= delayed_message[:message]
         end
@@ -99,7 +100,7 @@ describe Setup::DelayedMessage do
       expect(messages).to eq %w(second first)
     end
 
-    it 'does not include delayed messages when retrieving readies' do
+    it 'does not include not ready delayed messages' do
       now = Time.now
       delayed_message.create(message: 'first', publish_at: now)
       delayed_message.create(message: 'second', publish_at: now + 20.seconds)
