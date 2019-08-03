@@ -10,7 +10,11 @@ module RailsAdmin
             navigation_label 'Administration'
             visible { ::User.current_super_admin? }
 
-            configure :live_publish_at, :datetime
+            configure :live_publish_at, :datetime do
+              label do
+                "On #{::Setup::DelayedMessage.adapter.to_s.split('::').last.to_title}"
+              end
+            end
 
             edit do
               field :message
