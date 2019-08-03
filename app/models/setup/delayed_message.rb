@@ -45,6 +45,10 @@ module Setup
       self.class.adapter.remove(self)
     end
 
+    def live_publish_at
+      self.class.publish_time(self)
+    end
+
     module MongoidAdapter
       extend self
 
@@ -78,6 +82,10 @@ module Setup
           query = query.limit(limit)
         end
         query.each(&block) if block
+      end
+
+      def publish_time(delayed_message)
+        delayed_message.publish_at
       end
     end
 
@@ -168,6 +176,11 @@ module Setup
           delayed_message && block.call(delayed_message)
         end
       end
+
+      def publish_time(delayed_message)
+        seconds = Cenit::Redis.zscore(SET_KEY, key_for(delayed_message))
+        seconds && Time.at(seconds.to_i).to_datetime
+      end
     end
 
     class << self
@@ -185,6 +198,7 @@ module Setup
                :load_on_start?,
                :reschedule,
                :for_each_ready,
+               :publish_time,
 
                to: :adapter
 
