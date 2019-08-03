@@ -68,14 +68,22 @@ module Cenit
     module RedisAdapter
       extend self
 
-      ACTIVE_TENANT_PREFIX = 'active_tenant_'
+      ACTIVE_TENANT_PREFIX = 'active_tenant#'
 
       def get(key)
         Cenit::Redis.get(key).to_i
       end
 
-      def key_for(tenant)
-        tenant_id = tenant.is_a?(String) ? tenant : tenant.id
+      def key_for(tenant_or_id)
+        tenant_id =
+          case tenant_or_id
+          when String
+            tenant_or_id
+          when BSON::ObjectId
+            tenant_or_id.to_s
+          else
+            tenant_or_id[:id].to_s
+          end
         ACTIVE_TENANT_PREFIX + tenant_id
       end
 
@@ -103,8 +111,7 @@ module Cenit
 
       def dec_tasks_for(tenant = Tenant.current)
         tenant &&
-          (Cenit::Redis.decr(key = key_for(tenant)) <= 0) &&
-          Cenit::Redis.del(key)
+          (Cenit::Redis.decr(key = key_for(tenant)) <= 0)
       end
 
       def set_tasks(tasks, tenant = Tenant.current)
