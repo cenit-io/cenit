@@ -85,7 +85,7 @@ module Setup
       end
 
       def publish_time(delayed_message)
-        delayed_message.publish_at
+        delayed_message[:publish_at]
       end
     end
 
