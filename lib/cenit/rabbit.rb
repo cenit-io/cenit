@@ -242,11 +242,13 @@ module Cenit
       end
 
       def start_scheduler
-        if init
+        if ENV['LOOKUP_SCHEDULER_OFF'].to_b || !init
+          puts 'Lookup scheduler NOT STARTED'
+        else
           @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
             lookup_messages
           end
-          puts 'RABBIT SCHEDULER STARTED'
+          puts 'Lookup scheduler STARTED'
         end
       end
 
