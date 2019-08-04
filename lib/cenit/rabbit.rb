@@ -92,68 +92,63 @@ module Cenit
               { token: message }
             end
         end
-        tenant = token = nil
         message = message.with_indifferent_access
         if (message_token = message.delete(:token))
           if (token = TaskToken.where(token: message_token).first)
-            tenant = token.set_current_tenant!
-            unless (Cenit::MultiTenancy.user_model.current = token.user)
-              if tenant
-                Cenit::MultiTenancy.user_model.current = tenant.owner
-                Setup::SystemReport.create(message: "No token user, using tenant #{tenant.label} owner (task ##{token.task_id})", type: :warning)
+            token.destroy
+            tenant = token.get_tenant
+            if tenant
+              Cenit::ActiveTenant.dec_tasks_for(tenant)
+              message = JSON.parse(token.data).with_indifferent_access if token.data
+              rabbit_consumer = task = nil
+              tenant.switch do
+                unless (Cenit::MultiTenancy.user_model.current = token.user)
+                  if tenant
+                    Cenit::MultiTenancy.user_model.current = tenant.owner
+                    Setup::SystemReport.create(message: "No token user, using tenant #{tenant.label} owner (task ##{token.task_id})", type: :warning)
+                  end
+                end
+                begin
+                  task_class, task, report = detask(message)
+                  execution_id = message.delete(:execution_id)
+                  if options[:unscheduled.to_s]
+                    task&.unschedule
+                  else
+                    task ||= task_class && task_class.create(message: message)
+                    if task
+                      if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
+                        rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
+                      end
+                      task.execute(execution_id: execution_id)
+                    else
+                      Setup::SystemNotification.create(message: report)
+                    end
+                  end
+                rescue Exception => ex
+                  if task
+                    task.notify(ex)
+                  else
+                    Setup::SystemNotification.create(message: "Can not execute task for message: #{message}")
+                  end
+                ensure
+                  rabbit_consumer&.update(executor_id: nil, task_id: nil)
+                end
+                if task && !task.resuming_manually? &&
+                  (task.resuming_later? ||
+                    ((scheduler = task.scheduler) && scheduler.activated?))
+                  message[:task] = task
+                  if (resume_interval = task.resume_interval)
+                    message[:publish_at] = Time.now + resume_interval
+                  end
+                  enqueue(message)
+                end
               end
+            else
+              Setup::SystemReport.create(message: "Can not determine tenant for message: #{message} (token #{message_token})")
+              Setup::SystemReport.create(message: message_token)
             end
-            Cenit::ActiveTenant.dec_tasks_for(tenant)
-            message = JSON.parse(token.data).with_indifferent_access if token.data
           else
             Setup::SystemReport.create(message: "No task token for #{message_token}")
-            tenant = nil
-          end
-        end
-        if Cenit::MultiTenancy.tenant_model.current.nil?
-          Setup::SystemReport.create(message: "Can not determine tenant for message: #{message} (token #{message_token})")
-          Setup::SystemReport.create(message: message_token)
-        elsif message_token.present? && Cenit::MultiTenancy.tenant_model.current != tenant
-          msg = "Trying to execute on tenant #{Cenit::MultiTenancy.tenant_model.current.label}" +
-                " but token tenant is #{tenant ? tenant.label : '<anonymous>'} (token: #{message_token}, message: #{message})"
-          Setup::SystemReport.create(message: msg)
-          Setup::SystemReport.create(message: message_token)
-        else
-          begin
-            token.destroy if token
-            rabbit_consumer = nil
-            task_class, task, report = detask(message)
-            execution_id = message.delete(:execution_id)
-            if options[:unscheduled.to_s]
-              task.unschedule if task
-            else
-              task ||= task_class && task_class.create(message: message)
-              if task
-                if (rabbit_consumer = options[:rabbit_consumer] || RabbitConsumer.where(tag: options[:consumer_tag]).first)
-                  rabbit_consumer.update(executor_id: tenant.id, task_id: task.id)
-                end
-                task.execute(execution_id: execution_id)
-              else
-                Setup::SystemNotification.create(message: report)
-              end
-            end
-          rescue Exception => ex
-            if task
-              task.notify(ex)
-            else
-              Setup::SystemNotification.create(message: "Can not execute task for message: #{message}")
-            end
-          ensure
-            rabbit_consumer.update(executor_id: nil, task_id: nil) if rabbit_consumer
-          end
-          if task && !task.resuming_manually? &&
-             (task.resuming_later? ||
-               ((scheduler = task.scheduler) && scheduler.activated?))
-            message[:task] = task
-            if (resume_interval = task.resume_interval)
-              message[:publish_at] = Time.now + resume_interval
-            end
-            enqueue(message)
           end
         end
       rescue Exception => ex
@@ -235,7 +230,7 @@ module Cenit
             end
             begin
               channel_mutex.lock #channel might be closed
-              consumer.cancel if rabbit_consumer && rabbit_consumer.cancelled?
+              consumer.cancel if rabbit_consumer&.cancelled?
             ensure
               channel_mutex.unlock
             end
