@@ -52,16 +52,17 @@ module Setup
     module MongoidAdapter
       extend self
 
-      def set_load_on_start(_flag = true)
-        # Already done!
+      def set_load_on_start(flag = true)
+        @load_on_start = flag
       end
 
       def load_on_start?
-        false
+        @load_on_start
       end
 
       def load_on_start
-        # Already done!
+        yield if block_given? && load_on_start?
+        set_load_on_start(false)
       end
 
       def digest(_delayed_message)
@@ -77,7 +78,7 @@ module Setup
       end
 
       def for_each_ready(opts = {}, &block)
-        query = DelayedMessage.where(:publish_at.lte => Time.now)
+        query = DelayedMessage.where(:publish_at.lte => opts[:at] || Time.now)
         if (limit = opts[:limit])
           query = query.limit(limit)
         end

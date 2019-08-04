@@ -23,7 +23,7 @@ describe Setup::DelayedMessage do
     end
   end
 
-  context "when adapter is NOT default Mongoid", unless: Setup::DelayedMessage.adapter == Setup::DelayedMessage::MongoidAdapter do
+  context "with adapter independent behavior" do
 
     it 'sets the load_on_start flag' do
       delayed_message.set_load_on_start(false)
@@ -62,42 +62,12 @@ describe Setup::DelayedMessage do
     end
 
     it 'sets created delayed messages ready' do
-      delayed_message.create(message: 'abc')
+      msg = delayed_message.create(message: 'abc')
       record = nil
-      delayed_message.for_each_ready(at: delayed_message.default_publish_at + 5.seconds) do |delayed_message|
+      delayed_message.for_each_ready(at: msg.publish_at + 5.seconds) do |delayed_message|
         record = delayed_message
       end
       expect(record[:message]).to eq 'abc'
-    end
-
-    it 'sorts ready messages' do
-      now = Time.now
-      10.times do
-        publish_at = now + rand(100).seconds
-        delayed_message.create(
-          message: publish_at.to_i,
-          publish_at: publish_at
-        )
-      end
-      before = nil
-      delayed_message.for_each_ready(at: now + 100.seconds) do |delayed_message|
-        if before
-          expect(before[:message]).to be <= delayed_message[:message]
-        end
-        before = delayed_message
-      end
-    end
-
-    it 'changes delayed messages order when updated' do
-      now = Time.now
-      delayed_message.create(message: 'first', publish_at: now + 10.seconds)
-      second = delayed_message.create(message: 'second', publish_at: now + 20.seconds)
-      second.update(publish_at: now)
-      messages = []
-      delayed_message.for_each_ready(at: now + 20.seconds) do |delayed_message|
-        messages << delayed_message[:message]
-      end
-      expect(messages).to eq %w(second first)
     end
 
     it 'does not include not ready delayed messages' do
