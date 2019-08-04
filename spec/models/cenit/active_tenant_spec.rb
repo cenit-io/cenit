@@ -59,7 +59,28 @@ describe Cenit::ActiveTenant do
       expect(active_tenant.tasks_for(first_tenant)).to be n
     end
 
+    it 'increments tenant tasks using the tenant ID' do
+      n = 10
+      counter = 0
+      n.times do
+        expect(active_tenant.tasks_for(first_tenant.id)).to be counter
+        active_tenant.inc_tasks_for(first_tenant)
+        counter += 1
+      end
+      expect(active_tenant.tasks_for(first_tenant)).to be n
+    end
+
     it 'decrements tenant tasks' do
+      n = 10
+      n.times { active_tenant.inc_tasks_for(first_tenant) }
+      while n > 0
+        active_tenant.dec_tasks_for(first_tenant)
+        n -= 1
+        expect(active_tenant.tasks_for(first_tenant)).to be n
+      end
+    end
+
+    it 'decrements tenant tasks using the thenant ID' do
       n = 10
       n.times { active_tenant.inc_tasks_for(first_tenant) }
       while n > 0
@@ -94,6 +115,12 @@ describe Cenit::ActiveTenant do
     it 'sets custom tenant tasks counter' do
       tasks = 1 + rand(9);
       active_tenant.set_tasks(tasks, first_tenant)
+      expect(active_tenant.tasks_for(first_tenant)).to be tasks
+    end
+
+    it 'sets custom tenant tasks counter using the tenant ID' do
+      tasks = 1 + rand(9);
+      active_tenant.set_tasks(tasks, first_tenant.id)
       expect(active_tenant.tasks_for(first_tenant)).to be tasks
     end
 

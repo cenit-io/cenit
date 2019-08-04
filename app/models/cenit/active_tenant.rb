@@ -16,12 +16,23 @@ module Cenit
     module MongoidAdapter
       extend self
 
+      def id_for(tenant_or_id)
+        case tenant_or_id
+        when String
+          tenant_or_id
+        when BSON::ObjectId
+          tenant_or_id.to_s
+        else
+          tenant_or_id[:id]
+        end
+      end
+
       def active_count
         ActiveTenant.where(:tasks.gt => 0).count
       end
 
       def tasks_for(tenant = Tenant.current)
-        if tenant && (record = ActiveTenant.where(tenant_id: tenant.id).first)
+        if tenant && (record = ActiveTenant.where(tenant_id: id_for(tenant)).first)
           record.tasks
         else
           0
@@ -29,19 +40,21 @@ module Cenit
       end
 
       def inc_tasks_for(tenant = Tenant.current)
-        return unless tenant
-        ActiveTenant.find_or_create_by(tenant_id: tenant.id)
-        ActiveTenant.collection.find(tenant_id: tenant.id).update_one('$inc' => { tasks: 1 })
+        if (tenant_id = id_for(tenant))
+          ActiveTenant.find_or_create_by(tenant_id: tenant_id)
+          ActiveTenant.collection.find(tenant_id: tenant_id).update_one('$inc' => { tasks: 1 })
+        end
       end
 
       def dec_tasks_for(tenant = Tenant.current)
-        return unless tenant
-        ActiveTenant.collection.find(tenant_id: tenant.id).update_one('$inc' => { tasks: -1 })
+        if (tenant_id = id_for(tenant))
+          ActiveTenant.collection.find(tenant_id: tenant_id).update_one('$inc' => { tasks: -1 })
+        end
       end
 
       def set_tasks(tasks, tenant = Tenant.current)
         tenant &&
-          ActiveTenant.find_or_create_by(tenant_id: tenant.id).update(tasks: tasks)
+          ActiveTenant.find_or_create_by(tenant_id: id_for(tenant)).update(tasks: tasks)
       end
 
       def each(&block)
@@ -105,13 +118,13 @@ module Cenit
         (tenant && get(key_for(tenant))) || 0
       end
 
-      def inc_tasks_for(tenant = Tenant.current)
-        tenant && Cenit::Redis.incr(key_for(tenant))
+      def inc_tasks_for(tenant_or_id = Tenant.current)
+        tenant_or_id && Cenit::Redis.incr(key_for(tenant_or_id))
       end
 
-      def dec_tasks_for(tenant = Tenant.current)
-        tenant &&
-          (Cenit::Redis.decr(key = key_for(tenant)) <= 0)
+      def dec_tasks_for(tenant_or_id = Tenant.current)
+        tenant_or_id &&
+          (Cenit::Redis.decr(key = key_for(tenant_or_id)) <= 0)
       end
 
       def set_tasks(tasks, tenant = Tenant.current)
