@@ -71,7 +71,10 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::JsonEdit,
   RailsAdmin::Config::Actions::Sudo,
   RailsAdmin::Config::Actions::Compare,
-  RailsAdmin::Config::Actions::Trust
+  RailsAdmin::Config::Actions::Trust,
+  RailsAdmin::Config::Actions::Compare,
+  RailsAdmin::Config::Actions::DoClean,
+  RailsAdmin::Config::Actions::CleanAll
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -581,7 +584,7 @@ RailsAdmin.config do |config|
 
   Setup::SystemReport
 
-  ActiveTenant
+  Cenit::ActiveTenant
 
   RabbitConsumer
 
@@ -659,6 +662,8 @@ RailsAdmin.config do |config|
     trash
     notebooks_root if Cenit.jupyter_notebooks
     clean_up
+    do_clean
+    clean_all
     #show_in_app
     send_to_flow
     delete_all

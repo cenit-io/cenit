@@ -104,6 +104,8 @@ gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
 gem 'combine_pdf', '1.0.4'
 
+gem 'redis'
+
 custom_gemfile_name = 'custom_Gemfile'
 
 if File.exist?(custom_gemfile_name)

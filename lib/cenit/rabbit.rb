@@ -12,7 +12,7 @@ module Cenit
       end
 
       def tasks_quota(active_tenants = nil)
-        active_tenants ||= ActiveTenant.where(:tasks.gt => 0).count
+        active_tenants ||= Cenit::ActiveTenant.active_count
         quota = maximum_active_tasks / (active_tenants > 0 ? active_tenants : 1)
         quota < 1 ? 1 : quota
       end
@@ -56,7 +56,7 @@ module Cenit
                   user: Cenit::MultiTenancy.user_model.current
                 )
                 message = token.token
-                if (scheduler && scheduler.activated?) || (publish_at && publish_at > Time.now) || ActiveTenant.tasks_for > tasks_quota
+                if scheduler&.activated? || (publish_at && publish_at > Time.now) || Cenit::ActiveTenant.tasks_for_current > tasks_quota
                   Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
                 else
                   begin
@@ -64,7 +64,7 @@ module Cenit
                     if channel.nil? || channel.closed?
                       Setup::DelayedMessage.create(message: message)
                     else
-                      ActiveTenant.inc_tasks_for
+                      Cenit::ActiveTenant.inc_tasks_for_current
                       channel.default_exchange.publish(message, routing_key: queue.name)
                     end
                   ensure
@@ -103,7 +103,7 @@ module Cenit
                 Setup::SystemReport.create(message: "No token user, using tenant #{tenant.label} owner (task ##{token.task_id})", type: :warning)
               end
             end
-            ActiveTenant.dec_tasks_for(tenant)
+            Cenit::ActiveTenant.dec_tasks_for(tenant)
             message = JSON.parse(token.data).with_indifferent_access if token.data
           else
             Setup::SystemReport.create(message: "No task token for #{message_token}")
@@ -260,8 +260,8 @@ module Cenit
         unless channel.closed?
           dispatched_ids = []
           tenant_tasks = {}
-          ActiveTenant.where(:tasks.gt => 0).each do |active_tenant|
-            tenant_tasks[active_tenant.tenant_id] = active_tenant.tasks
+          Cenit::ActiveTenant.each do |active_tenant|
+            tenant_tasks[active_tenant[:tenant_id]] = active_tenant[:tasks]
           end
           quota = opts[:quota] || tasks_quota(tenant_tasks.size)
 
@@ -273,7 +273,7 @@ module Cenit
                 publish_options = { routing_key: queue.name }
                 publish_options[:headers] = { unscheduled: true } if delayed_message.unscheduled
                 channel.default_exchange.publish(delayed_message.message, publish_options)
-                ActiveTenant.inc_tasks_for(tenant)
+                Cenit::ActiveTenant.inc_tasks_for(tenant)
                 tenant_tasks[tenant.id] ||= 0
                 tenant_tasks[tenant.id] += 1
                 dispatched_ids << delayed_message.id
@@ -306,7 +306,7 @@ module Cenit
           rescue Exception => ex
             Setup::SystemNotification.create_with(message: "Error deleting delayed messages: #{ex.message}")
           end unless dispatched_ids.empty?
-          ActiveTenant.where(:tasks.lte => 0).delete_all
+          Cenit::ActiveTenant.clean
         end
       ensure
         channel_mutex.unlock

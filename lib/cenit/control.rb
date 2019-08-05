@@ -193,7 +193,7 @@ module Cenit
     def application_title
       alg = algorithm(:application_title, false)
       result = alg ? alg.run(self) : false
-      result === false ? @app.name : result
+      result == false ? @app.name : result
     end
 
     def render_template(name, layout = nil, locals = {})
@@ -230,9 +230,9 @@ module Cenit
     end
 
     def current_user
+      current_user = @controller.current_user
       alg = algorithm(:current_user, false)
-      result = alg ? alg.run(self) : false
-      result === false ? @controller.current_user : result
+      alg ? alg.run(control, current_user) : current_user
     end
 
     def app_url(path = nil, params = nil)
@@ -247,17 +247,17 @@ module Cenit
     def sign_in_url(return_to = nil)
       return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
       return_to ||= app_url(@action.path) if @action.http_method == :get
+      sign_in_url = @controller.new_user_session_url(return_to: return_to)
       alg = algorithm(:sign_in_url, false)
-      result = alg ? alg.run(self) : false
-      result === false ? @controller.new_user_session_url(return_to: return_to) : result
+      alg ? alg.run(self, sign_in_url) : sign_in_url
     end
 
     def sign_out_url(return_to = nil)
       return_to = app_url(return_to) if return_to && URI.parse(return_to).relative?
       return_to ||= app_url(@action.path) if @action.http_method == :get
+      sign_out_url = @controller.destroy_user_session_url(return_to: return_to)
       alg = algorithm(:sign_out_url, false)
-      result = alg ? alg.run(self) : false
-      result === false ? @controller.destroy_user_session_url(return_to: return_to) : result
+      alg ? alg.run(self, sign_out_url) : sign_out_url
     end
 
     def get_resource(type, name, throw = true)

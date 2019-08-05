@@ -528,6 +528,14 @@ en:
         menu: "Clean Up"
         breadcrumb: "Clean Up"
         warn: "All your data will be destroyed"
+      do_clean:
+        title: "Clean"
+        menu: "Clean"
+        breadcrumb: "Clean"
+      clean_all:
+        title: "Clean All"
+        menu: "Clean All"
+        breadcrumb: "Clean All"
       documentation:
         title: "Docs"
         menu: "Docs"
