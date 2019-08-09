@@ -9,6 +9,8 @@ module RailsAdmin
           navigation_label 'Administration'
           visible { ::User.current_super_admin? }
 
+          index_template_name :active_tenants
+
           fields :tenant, :tasks
         end
       end
