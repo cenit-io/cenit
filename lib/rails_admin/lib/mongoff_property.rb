@@ -109,10 +109,15 @@ module RailsAdmin
           :text
         end
       #Empty Test
+      not_empty_pattern =
+        begin
+          (pattern = hash_schema['pattern']) && !''.match(pattern)
+        rescue
+          false
+        end
       if !required? &&
-         ((((min = hash_schema['minLength']) && (min.positive? || (min.zero? && hash_schema['exclusiveMaximum']))) ||
-           ((pattern = hash_schema['pattern']) && !''.match(pattern))))
-
+        ((((min = hash_schema['minLength']) && (min.positive? || (min.zero? && hash_schema['exclusiveMaximum']))) ||
+          not_empty_pattern))
         type = "non_empty_#{type}"
       end
       type
