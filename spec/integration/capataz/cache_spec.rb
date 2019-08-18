@@ -31,6 +31,15 @@ describe Capataz::Cache do
       expect(cache.size).to eq(count)
     end
 
+    it 'cleans specified codes only' do
+      count = 1 + rand(10)
+      1.upto(count).each do |i|
+        cache.rewrite("'Test #{i}'", code_key: "test_#{i}")
+      end
+      cache.clean('test_1')
+      expect(cache.size).to eq(count - 1)
+    end
+
     it 'does not clean stored codes with the never clean strategy' do
       cache.clean_strategy = Capataz::Cache::NEVER_CLEAN
       count = 2 * ::Cenit::Rabbit.maximum_active_tasks + 1 + rand(10)
