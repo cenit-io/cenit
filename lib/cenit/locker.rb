@@ -56,11 +56,11 @@ module Cenit
       end
 
       def key_locked?(key)
-        collection.find(_id: key).present?
+        collection.find(_id: key).count > 0
       end
 
       def unlock_key(key)
-        if (query = collection.find(_id: key)).present?
+        if (query = collection.find(_id: key)).count > 0
           query.delete_one
           true
         else
