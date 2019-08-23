@@ -295,7 +295,13 @@ module RailsAdmin
     def main_navigation
       #Patch
       nodes_stack = RailsAdmin::Config.visible_models(controller: controller) + # TODO Include mongoff models configs only if needed
-        Setup::DataType.where(navigation_link: true).collect { |data_type| RailsAdmin.config(data_type.records_model) }
+        Setup::DataType.where(navigation_link: true).collect do |data_type|
+          begin
+            RailsAdmin.config(data_type.records_model)
+          rescue
+            nil
+          end
+        end.compact
       node_model_names = nodes_stack.collect { |c| c.abstract_model.model_name }
       if @model_configs
         nodes_stack.each_with_index do |node, index|
