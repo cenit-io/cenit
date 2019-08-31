@@ -40,8 +40,7 @@ module Cenit
       next if ENV['SKIP_MONGO_CLIENT'].to_b
       Thread.current[:cenit_initializing] = true
 
-      Setup::DelayedMessage.load_on_start
-      Setup::DelayedMessage.set_load_on_start(ENV['LOAD_DELAYED_MESSAGES_ON_START'].to_b)
+      Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
       puts 'Clearing LOCKS'
       Cenit::Locker.clear
