@@ -16,6 +16,12 @@ module Cenit
 
     before_save :ensure_token
 
+    after_save :setup_on_adapter
+
+    def setup_on_adapter
+      self.class.adapter.setup_hook(self)
+    end
+
     def ensure_token
       generate_token if token.blank?
       true
@@ -38,15 +44,22 @@ module Cenit
 
       delegate :digest,
                :start,
-               :setup,
 
                to: :adapter
+
+      def setup_tenant(tenant)
+        tenant.switch do
+          Hook.all.each do |hook|
+            adapter.setup_hook(hook, tenant)
+          end
+        end
+      end
     end
 
     module MongoidAdapter
       extend self
 
-      def setup(tenant)
+      def setup_hook(_hook, _tenant = Tenant.current)
 
       end
 
@@ -66,15 +79,12 @@ module Cenit
         "hook_#{token}"
       end
 
-      def setup(tenant)
-        tenant.switch do
-          Hook.all.each do |hook|
-            Cenit::Redis.set(hook_key(hook.token), {
-              tenant_id: tenant.id.to_s,
-              hook_id: hook.id.to_s
-            }.to_json)
-          end
-        end
+      def setup_hook(hook, tenant = Tenant.current)
+        #TODO Update hook token
+        Cenit::Redis.set(hook_key(hook.token), {
+          tenant_id: tenant.id.to_s,
+          hook_id: hook.id.to_s
+        }.to_json)
       end
 
       def start

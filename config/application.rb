@@ -56,7 +56,7 @@ module Cenit
 
           Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
 
-          Cenit::Hook.setup(tenant)
+          Cenit::Hook.setup_tenant(tenant)
         end
       end
 
