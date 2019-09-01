@@ -75,13 +75,26 @@ module Cenit
     module RedisAdapter
       extend self
 
+      HOOK_PREFIX = 'hook_'
+
       def hook_key(token)
-        "hook_#{token}"
+        "#{HOOK_PREFIX}#{token}"
+      end
+
+      def hook_token_key(tenant)
+        "#{HOOK_PREFIX}token_#{tenant[:id]}"
       end
 
       def setup_hook(hook, tenant = Tenant.current)
-        #TODO Update hook token
-        Cenit::Redis.set(hook_key(hook.token), {
+        hook_token_key = self.hook_token_key(tenant)
+        registered_token = Cenit::Redis.get(hook_token_key)
+        hook_key = self.hook_key(registered_token)
+        unless registered_token == hook.token
+          Cenit::Redis.del(hook_key)
+          Cenit::Redis.set(hook_token_key, hook.token)
+          hook_key = self.hook_key(hook.token)
+        end
+        Cenit::Redis.set(hook_key, {
           tenant_id: tenant.id.to_s,
           hook_id: hook.id.to_s
         }.to_json)
