@@ -3,7 +3,7 @@ class HookController < ActionController::Base
   MAX_SIZE = 100 * 1024
 
   def digest
-    status = :ok
+    status = :accepted
     json = {}
     if request.body.length > MAX_SIZE
       status = :bad_request
@@ -18,7 +18,7 @@ class HookController < ActionController::Base
       if token
         begin
           if Cenit::Hook.digest(token, params[:slug], request.body.read, request.content_type)
-            json[:status] = :ok
+            json[:status] = :accepted
           else
             json[:error] = "Hook token is invalid"
             status = :unauthorized
