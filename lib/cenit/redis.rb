@@ -4,6 +4,10 @@ module Cenit
   module Redis
     class << self
 
+      def new
+        client? && ::Redis.new
+      end
+
       def client?
         !client.nil?
       end

@@ -10,5 +10,7 @@ unless ENV['UNICORN_CENIT_SERVER'].to_b
     end
     Cenit::Rabbit.start_consumer
     Cenit::Rabbit.start_scheduler
+
+    Cenit::Hook.start
   end
 end

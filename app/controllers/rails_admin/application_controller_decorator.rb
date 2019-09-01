@@ -23,6 +23,8 @@ module RailsAdmin
       # TODO Change to cross shared collection after model renaming
       if @model_name == 'Setup::SharedCollection'
         @model_name = Setup::CrossSharedCollection.to_s
+      elsif @model_name == 'HookConfig'
+        @model_name = Cenit::Hook.to_s
       end
       @data_type = nil
       unless (@abstract_model = RailsAdmin::AbstractModel.new(@model_name))

@@ -155,7 +155,7 @@ module RailsAdmin
               param: 'workflows',
               label: 'Workflows',
               icon: 'fa fa-cogs',
-              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer Setup::Scheduler)
+              sublinks: %w(Setup::Notification Setup::Flow Setup::EmailChannel Setup::Observer Setup::Scheduler Cenit::Hook)
             },
             {
               param: 'transforms',
@@ -483,6 +483,8 @@ RailsAdmin.config do |config|
   Setup::Observer
 
   Setup::Scheduler
+
+  Cenit::Hook
 
   #Monitors
 

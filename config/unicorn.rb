@@ -58,6 +58,7 @@ after_fork do |server, worker|
         Setup::Scheduler.activated.each(&:start)
       end
     end
+    Cenit::Hook.start
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
     Cenit::Rabbit.start_consumer
   end

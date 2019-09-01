@@ -31,7 +31,8 @@ module RailsAdmin
 
     def to_param
       #Patch
-      @model_name.split('::').last.underscore
+      param = @model_name.split('::').last.underscore
+      param == 'hook' ? 'hook_config' : param
     end
 
     def api_path
