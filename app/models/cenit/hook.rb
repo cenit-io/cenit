@@ -69,7 +69,10 @@ module Cenit
       def setup(tenant)
         tenant.switch do
           Hook.all.each do |hook|
-            Cenit::Redis.set(hook_key(hook.token), tenant.id.to_s)
+            Cenit::Redis.set(hook_key(hook.token), {
+              tenant_id: tenant.id.to_s,
+              hook_id: hook.id.to_s
+            }.to_json)
           end
         end
       end
@@ -82,7 +85,6 @@ module Cenit
             end
 
             on.message do |_channel, message|
-              sleep 3
               message =
                 begin
                   JSON.parse(message)
@@ -90,53 +92,16 @@ module Cenit
                   {}
                 end
               token = message['token']
-              if (tenant = Tenant.where(id: Cenit::Redis.get(hook_key(token))).first)
+              metadata =
+                begin
+                  JSON.parse(Cenit::Redis.get(hook_key(token)))
+                rescue
+                  {}
+                end
+              if (tenant = Tenant.where(id: metadata['tenant_id']).first)
+                message[:hook_id] = metadata['hook_id']
                 tenant.owner_switch do
-                  if (hook = Hook.where(token: token).first)
-                    slug = message['slug']
-                    if (hook_channel = hook.channels.where(slug: slug).first)
-                      if (data_type = hook_channel.data_type)
-                        data = message['data']
-                        attachment = {
-                          filename: 'data',
-                          body: data,
-                          contentType: message['content_type']
-                        }
-                        begin
-                          record = data_type.new_from(data)
-                          if record
-                            if record.save
-                              tenant.notify(
-                                type: :notice,
-                                message: "Record created on hook channel #{hook_channel.label}",
-                                attachment: attachment
-                              )
-                            else
-                              tenant.notify(
-                                type: :error,
-                                message: "Error creating record on hook channel #{hook_channel.label}: #{record.errors.full_messages.to_sentence}",
-                                attachment: attachment
-                              )
-                            end
-                          else
-                            fail "Unable to parse data"
-                          end
-                        rescue Exception => ex
-                          tenant.notify(
-                            type: :error,
-                            message: "Error creating record on hook channel #{hook_channel.label}: #{ex.message}",
-                            attachment: attachment
-                          )
-                        end
-                      else
-                        tenant.notify(type: :error, message: "No data type defined at channel with slug #{slug}} in hook #{hook.custom_title}")
-                      end
-                    else
-                      tenant.notify(type: :error, message: "Channel with slug #{slug} not found in hook #{hook.custom_title}")
-                    end
-                  else
-                    tenant.notify(type: :error, message: "Hook token #{token} not found")
-                  end
+                  Setup::HookDataProcessing.process(message)
                 end
               end
             end
