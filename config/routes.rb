@@ -48,6 +48,7 @@ Cenit::Application.routes.draw do
   get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'
 
   post 'hook/:slug', to: 'hook#digest'
+  post 'hook/:slug/:access_token', to: 'hook#digest'
 
   namespace :api do
     namespace :v1 do
