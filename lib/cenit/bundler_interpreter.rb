@@ -144,6 +144,7 @@ module Cenit
           params_initializer = "#{args}=args;" + params_initializer.gsub('=args[', "=#{args}[")
         end
         params_initializer + Capataz.rewrite(algorithm.code,
+                                             code_key: algorithm.code_key,
                                              locals: locals,
                                              self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
                                              self_send_prefixer: self,
