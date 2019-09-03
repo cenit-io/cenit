@@ -42,7 +42,7 @@ module Setup
       end
       rb_src = rb.join("\n")
       lcls = options.keys.to_a + marks
-      rw = Capataz.rewrite(rb_src, locals: lcls)
+      rw = Capataz.rewrite(rb_src, locals: lcls, code_key: code_key)
       rw = rw.split(/\n/)[(lcls.length)..-1]
 
       marks.to_enum.with_index.reverse_each do |mark, i|

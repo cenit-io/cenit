@@ -52,24 +52,15 @@ module Setup
     module MongoidAdapter
       extend self
 
-      def set_load_on_start(flag = true)
-        @load_on_start = flag
-      end
-
-      def load_on_start?
-        @load_on_start
-      end
-
-      def load_on_start
-        yield if block_given? && load_on_start?
-        set_load_on_start(false)
-      end
-
       def digest(_delayed_message)
         # Already done!
       end
 
       def remove(_delayed_message)
+        # Already done!
+      end
+
+      def clean_up
         # Already done!
       end
 
@@ -95,7 +86,6 @@ module Setup
 
       SET_KEY = 'delayed_messages'
       DELAYED_MESSAGE_PREFIX = 'delayed_message#'
-      LOAD_ON_START_KEY = 'delayed_message_load_on_start'
 
       def get(key)
         JSON.parse(Cenit::Redis.get(key)).with_indifferent_access
@@ -115,23 +105,6 @@ module Setup
         Cenit::Redis.keys("#{DELAYED_MESSAGE_PREFIX}*")
       end
 
-      def set_load_on_start(flag = true)
-        if flag
-          Cenit::Redis.set(LOAD_ON_START_KEY, 'true')
-        else
-          Cenit::Redis.del(LOAD_ON_START_KEY)
-        end
-      end
-
-      def load_on_start?
-        Cenit::Redis.exists(LOAD_ON_START_KEY)
-      end
-
-      def load_on_start
-        Cenit::Redis.del SET_KEY, *all_keys
-        yield if Cenit::Redis.del(LOAD_ON_START_KEY) > 0 && block_given?
-      end
-
       def digest(delayed_message)
         score = (delayed_message[:publish_at] || Time.now).to_i
         key = key_for(delayed_message)
@@ -147,6 +120,10 @@ module Setup
           redis.del key
           redis.zrem(SET_KEY, key)
         end
+      end
+
+      def clean_up
+        Cenit::Redis.del SET_KEY, *all_keys
       end
 
       def hash_for(delayed_message)
@@ -195,23 +172,19 @@ module Setup
           end
       end
 
-      delegate :set_load_on_start,
-               :load_on_start?,
-               :reschedule,
+      delegate :reschedule,
                :for_each_ready,
                :publish_time,
 
                to: :adapter
 
-      def load_on_start
-        adapter.load_on_start do
-          count = 0
-          all.each do |delayed_message|
-            count += 1
-            delayed_message.send_to_adapter
-          end
-          puts "#{count} delayed messages loaded"
+      def do_load
+        count = 0
+        all.each do |delayed_message|
+          count += 1
+          delayed_message.send_to_adapter
         end
+        puts "#{count} delayed messages loaded"
       end
 
       def default_publish_at

@@ -2,9 +2,12 @@ require 'rails_helper'
 
 describe Setup::DelayedMessage do
 
+  before :all do
+    Setup::DelayedMessage.adapter.clean_up
+  end
+
   before :each do
-    Setup::DelayedMessage.delete_all
-    Setup::DelayedMessage.load_on_start
+    Setup::DelayedMessage.destroy_all
   end
 
   let! :delayed_message do
@@ -24,42 +27,6 @@ describe Setup::DelayedMessage do
   end
 
   context "with adapter independent behavior" do
-
-    it 'sets the load_on_start flag' do
-      delayed_message.set_load_on_start(false)
-      delayed_message.set_load_on_start(true)
-      expect(delayed_message.load_on_start?).to be true
-    end
-
-    it 'removes load_on_start flag' do
-      delayed_message.set_load_on_start(true)
-      delayed_message.set_load_on_start(false)
-      expect(delayed_message.load_on_start?).to be false
-    end
-
-    it 'executes the load_on_start block' do
-      delayed_message.set_load_on_start(true)
-      loaded = false
-      delayed_message.adapter.load_on_start do
-        loaded = true
-      end
-      expect(loaded).to be true
-    end
-
-    it 'does not execute the load_on_start block' do
-      delayed_message.set_load_on_start(false)
-      loaded = false
-      delayed_message.adapter.load_on_start do
-        loaded = true
-      end
-      expect(loaded).to be false
-    end
-
-    it 'remove the load_on_start flag when loading on start' do
-      delayed_message.set_load_on_start(true)
-      delayed_message.adapter.load_on_start
-      expect(delayed_message.load_on_start?).to be false
-    end
 
     it 'sets created delayed messages ready' do
       msg = delayed_message.create(message: 'abc')
