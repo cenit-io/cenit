@@ -21,25 +21,10 @@ module Setup
       trace_ignore :snippet_id
 
       before_save :check_snippet
-
-      after_save :clean_code_cache
-    end
-
-    def clean_code_cache
-      Capataz::Cache.clean(code_key)
     end
 
     def code_key
-      prefix =
-        case origin
-        when :default
-          Tenant.current&.id
-        when :owner
-          Tenant.current&.owner&.id
-        else
-          origin
-        end
-      "#{prefix}##{snippet_ref&.id.to_s}"
+      "#{snippet_ref&.code_key}"
     end
 
     def default_snippet_id

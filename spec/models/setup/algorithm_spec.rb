@@ -31,5 +31,12 @@ describe Setup::Algorithm do
       test_algorithm.update(code: "'Updated'")
       expect(Capataz::Cache.size).to eq(0)
     end
+
+    it 'cleans stored rewritten code when snippet is updated' do
+      Capataz::Cache.clean
+      test_algorithm.run
+      test_algorithm.snippet.update(code: "'Updated (again)'")
+      expect(Capataz::Cache.size).to eq(0)
+    end
   end
 end
