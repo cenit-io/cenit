@@ -56,19 +56,49 @@ module Cenit
       end
     end
 
-    module MongoidAdapter
-      extend self
+    class MongoidAdapter
+      include Mongoid::Document
 
-      def setup_hook(_hook, _tenant = Tenant.current)
+      field :_id, type: String
+      field :hook_id
+      belongs_to :tenant, class_name: Tenant.name, inverse_of: nil
 
-      end
+      class << self
 
-      def start
+        def setup_hook(hook, tenant = Tenant.current)
+          if (record = where(hook_id: hook.id, tenant_id: tenant.id).first)
+            unless record.id == hook.token
+              record.delete
+              record = nil
+            end
+          end
+          create(id: hook.token, hook_id: hook.id, tenant_id: tenant.id) unless record
+        end
 
-      end
+        def start
+        end
 
-      def digest(token, slug, data, content_type)
-
+        def digest(token, slug, data, content_type)
+          if (tenant = where(id: token)&.first&.tenant)
+            tenant.owner_switch do
+              if (hook = Hook.where(token: token).first)
+                message = {
+                  hook_id: hook.id,
+                  token: token,
+                  slug: slug,
+                  data: data,
+                  content_type: content_type
+                }
+                Setup::HookDataProcessing.process(message)
+                true
+              else
+                false
+              end
+            end
+          else
+            false
+          end
+        end
       end
     end
 
@@ -101,6 +131,7 @@ module Cenit
       end
 
       def start
+        Cenit::Redis.del("#{HOOK_PREFIX}*")
         Thread.new do
           Cenit::Redis.new.subscribe(:hook) do |on|
             on.subscribe do |channel, subscriptions|
