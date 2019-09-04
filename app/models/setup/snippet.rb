@@ -33,6 +33,25 @@ module Setup
       errors.blank?
     end
 
+    after_save :clean_code_cache
+
+    def clean_code_cache
+      Capataz::Cache.clean(code_key)
+    end
+
+    def code_key
+      prefix =
+        case origin
+        when :default
+          Tenant.current&.id
+        when :owner
+          Tenant.current&.owner&.id
+        else
+          origin
+        end
+      "#{prefix}##{id}"
+    end
+
     def type_enum
       {
         'Auto detect': :auto,

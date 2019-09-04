@@ -42,5 +42,14 @@ describe Setup::ErbTemplate do
       expect(Capataz::Cache.size).to eq(0)
       test_template.update(code: code)
     end
+
+    it 'cleans stored rewritten code when snippet is updated' do
+      Capataz::Cache.clean
+      test_template.run(value: 'Test')
+      code = test_template.code
+      test_template.snippet.update(code: "'Updated'")
+      expect(Capataz::Cache.size).to eq(0)
+      test_template.snippet.update(code: code)
+    end
   end
 end
