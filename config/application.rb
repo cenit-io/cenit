@@ -58,6 +58,8 @@ module Cenit
         end
       end
 
+      Capataz::Cache.clean
+
       Setup::CenitDataType.init!
 
       require 'mongoff/model'
