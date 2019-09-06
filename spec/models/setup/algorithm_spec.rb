@@ -19,24 +19,27 @@ describe Setup::Algorithm do
 
   context "when Redis client is present", if: Cenit::Redis.client? do
 
-    it 'stores rewritten code in cache when executed' do
-      Capataz::Cache.clean
-      test_algorithm.run
-      expect(Capataz::Cache.size). to eq(1)
-    end
+    context "when using capataz cache", if: ENV['CAPATAZ_CODE_CACHE'].to_b do
 
-    it 'cleans stored rewritten code when updated' do
-      Capataz::Cache.clean
-      test_algorithm.run
-      test_algorithm.update(code: "'Updated'")
-      expect(Capataz::Cache.size).to eq(0)
-    end
+      it 'stores rewritten code in cache when executed' do
+        Capataz::Cache.clean
+        test_algorithm.run
+        expect(Capataz::Cache.size).to eq(1)
+      end
 
-    it 'cleans stored rewritten code when snippet is updated' do
-      Capataz::Cache.clean
-      test_algorithm.run
-      test_algorithm.snippet.update(code: "'Updated (again)'")
-      expect(Capataz::Cache.size).to eq(0)
+      it 'cleans stored rewritten code when updated' do
+        Capataz::Cache.clean
+        test_algorithm.run
+        test_algorithm.update(code: "'Updated'")
+        expect(Capataz::Cache.size).to eq(0)
+      end
+
+      it 'cleans stored rewritten code when snippet is updated' do
+        Capataz::Cache.clean
+        test_algorithm.run
+        test_algorithm.snippet.update(code: "'Updated (again)'")
+        expect(Capataz::Cache.size).to eq(0)
+      end
     end
   end
 end

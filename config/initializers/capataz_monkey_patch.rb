@@ -14,8 +14,10 @@ module Capataz
 
     alias_method :native_rewrite, :rewrite
 
-    def rewrite(code, options = {})
-      Cache.rewrite(code, options)
+    if ENV['CAPATAZ_CODE_CACHE'].to_b
+      def rewrite(code, options = {})
+        Cache.rewrite(code, options)
+      end
     end
   end
 
