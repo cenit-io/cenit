@@ -34,13 +34,28 @@ module Capataz
     def rewrite(code, options)
       if Cenit::Redis.client? && (code_key = options[:code_key])
         cache_key = cache_key_for(code_key)
-        unless (code_cache = Cenit::Redis.get(cache_key))
+        if (code_cache = Cenit::Redis.get(cache_key))
+          code_cache = JSON.parse(code_cache)
+          if (links = options[:links])
+            algorithms = Setup::Algorithm.where(:id.in => code_cache['links'].values).map { |alg| [alg.id.to_s, alg] }.to_h
+            code_cache['links'].each do |key, alg_id|
+              links[key] = algorithms[alg_id]
+            end
+          end
+          code_cache['code']
+        else
           clean_strategy.call
-          code_cache = Capataz.native_rewrite(code, options)
-          Cenit::Redis.set(cache_key, code_cache)
+          unless (links = options[:links])
+            links = options[:links] = {}
+          end
+          code_cache = {
+            code: code = Capataz.native_rewrite(code, options),
+            links: links.map { |key, alg| [key, alg.id.to_s] }.to_h
+          }
+          Cenit::Redis.set(cache_key, code_cache.to_json)
           Cenit::Redis.zincrby(ZCODES_KEY, 1, code_key)
+          code
         end
-        code_cache
       else
         Capataz.native_rewrite(code, options)
       end
