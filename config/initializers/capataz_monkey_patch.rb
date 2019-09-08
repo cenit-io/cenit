@@ -36,7 +36,7 @@ module Capataz
         cache_key = cache_key_for(code_key)
         if (code_cache = Cenit::Redis.get(cache_key))
           code_cache = JSON.parse(code_cache)
-          if (links = options[:links])
+          if (links = options[:links]) && links.length > 0
             algorithms = Setup::Algorithm.where(:id.in => code_cache['links'].values).map { |alg| [alg.id.to_s, alg] }.to_h
             code_cache['links'].each do |key, alg_id|
               links[key] = algorithms[alg_id]
