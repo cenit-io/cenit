@@ -19,17 +19,41 @@ describe Setup::Algorithm do
 
   context "regardless configuration options" do
 
-    it "link calls to other algorithms" do
+    it "link calls to other algorithms in the same namespace" do
       n = 5 + rand(5)
+      ns = "#{TEST_NAMESPACE} SAME"
       alg = Setup::Algorithm.create(
-        namespace: TEST_NAMESPACE,
+        namespace: ns,
         name: 'alg_0',
         language: :ruby,
         code: "0"
       )
       1.upto(n) do |i|
         alg = Setup::Algorithm.create(
-          namespace: "#{TEST_NAMESPACE} #{i}",
+          namespace: ns,
+          name: "alg_#{i}",
+          language: :ruby,
+          code: "alg_#{i - 1}"
+        )
+      end
+      n.times do
+        result = alg.run
+        expect(result).to eq(0)
+      end
+    end
+
+    it "link calls to other algorithms with different namespaces" do
+      n = 5 + rand(5)
+      ns = "#{TEST_NAMESPACE} X"
+      alg = Setup::Algorithm.create(
+        namespace: ns,
+        name: 'alg_0',
+        language: :ruby,
+        code: "0"
+      )
+      1.upto(n) do |i|
+        alg = Setup::Algorithm.create(
+          namespace: "#{ns} #{i}",
           name: "alg_#{i}",
           language: :ruby,
           code: "alg_#{i - 1}"
