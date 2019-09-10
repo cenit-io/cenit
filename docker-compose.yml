@@ -13,12 +13,13 @@ services:
       - UNICORN_WORKERS=5
       - MAXIMUM_UNICORN_CONSUMERS=3
       - DB_PROD='cenit_prod'
-    image: cenit:local_database
+    build: .
     ports:
-      - "80:80"
+      - "3000:3000"
     depends_on:
       - mongodb
       - rabbitmq
+    command: ["foreman", "start", "-f", "Procfile"]
 
   rabbitmq:
     image: rabbitmq:management
