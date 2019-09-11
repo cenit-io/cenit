@@ -12,13 +12,14 @@ services:
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - UNICORN_WORKERS=5
       - MAXIMUM_UNICORN_CONSUMERS=3
-      - SKIP_MONGO_CLIENT='false'
+      - DB_PROD='cenit_prod'
     build: .
     ports:
-      - "8080:8080"
+      - "3000:3000"
     depends_on:
       - mongodb
       - rabbitmq
+    command: ["foreman", "start", "-f", "Procfile"]
 
   rabbitmq:
     image: rabbitmq:management
