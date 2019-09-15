@@ -5,6 +5,10 @@
     %span.caret
   %ul#help-menu.dropdown-menu
     %li
+      =link_to 'https://cenit-io.github.io/docs', target: '_blank' do
+        %i.fa.fa-fw.fa-file{title: 'docs'}
+        %span='docs'  
+    %li
       =link_to (ENV['SLACK_INVITATION'] || 'http://cenit-slack.herokuapp.com'), target: '_blank' do
         %i.fa.fa-fw.fa-slack{title: 'join our slack'}
         %span='join our slack'
