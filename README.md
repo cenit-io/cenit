@@ -17,7 +17,7 @@
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * support@cenit.io
 
-# [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
+# Cenit IO [(https://cenit.io)](https://cenit.io)
 
 Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
 
