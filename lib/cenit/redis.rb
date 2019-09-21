@@ -10,7 +10,7 @@ module Cenit
 
       def client
         unless instance_variable_defined?(:@redis_client)
-          client = ::Redis.new
+          client = ::Redis.new(host: ENV["REDIS_HOST"], port: 6379, db: 15)
           client =
             begin
               client.ping
