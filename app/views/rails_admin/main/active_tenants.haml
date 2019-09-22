@@ -3,11 +3,11 @@
 %table.table.table-condensed.table-striped
   %thead
     %tr
-      %th{class: "header pjax", rel: "tooltip", title: 'Tenant'}= 'Tenant'
-      %th{class: "header pjax", rel: "tooltip", title: 'Tasks'}= 'Tasks'
+      %th.string_type{title: 'Tenant'}= 'Tenant'
+      %th.string_type{title: 'Tasks'}= 'Tasks'
   %tbody
     - hash.each do |tenant_id, tasks|
-      %tr{class: 'active_tenant_row'}
+      %tr.active_tenant_row
         - tenant = ::Tenant.where(id: tenant_id).first
         - amc = RailsAdmin::Config.model(Tenant)
         - am = amc.abstract_model

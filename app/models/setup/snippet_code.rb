@@ -23,6 +23,10 @@ module Setup
       before_save :check_snippet
     end
 
+    def code_key
+      "#{snippet_ref&.code_key}"
+    end
+
     def default_snippet_id
       instance_variable_get(:@_binding_shadow_snippet_id)
     end

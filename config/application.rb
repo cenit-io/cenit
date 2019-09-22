@@ -40,6 +40,8 @@ module Cenit
       next if ENV['SKIP_MONGO_CLIENT'].to_b
       Thread.current[:cenit_initializing] = true
 
+      Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
+
       puts 'Clearing LOCKS'
       Cenit::Locker.clear
 
@@ -55,6 +57,8 @@ module Cenit
           Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
         end
       end
+
+      Capataz::Cache.clean
 
       Setup::CenitDataType.init!
 
