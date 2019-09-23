@@ -11,7 +11,8 @@ module Cenit
       def client
         unless instance_variable_defined?(:@redis_client)
           client =
-            if (redis_url = ENV['REDIS_URL'])
+            if ( ENV['REDIS_URL'] )
+              redis_url = ENV['REDIS_URL']
               # specify a connection option as a redis:// URL
               # e.g "redis://:p4ssw0rd@10.0.1.1:6380/15"
               ::Redis.new(url: redis_url)
