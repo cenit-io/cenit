@@ -17,7 +17,7 @@
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * support@cenit.io
 
-# [Cenit IO](https://cenit.io)  [(https://cenit.io)](https://cenit.io)
+# Cenit IO [(https://cenit.io)](https://cenit.io)
 
 Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support wide range of integration use cases. Is particular valuable to embrace a pervasive integration approach.
 
@@ -126,4 +126,4 @@ We encourage the community to join the initiative and contribute to the dissemin
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
 [join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/enQtNzI4MDUxMTM0NzUzLTJjMWRlNmRkMzUwYTQ1NTVhOTIyZTZjODI5MGFjZjU2NTA2ZDUzOWExMjY4NDUzOTA0OGUwM2JhMTNlNWQ0ZjU
+https://join.slack.com/t/cenitio/shared_invite/enQtNzY4NjI2NzQyNTQ0LWExN2RjMDAyYzhmNjQyYjk4MDJmMzgwNmI2MWVlNzE4MWY0MGY4ZmEyNGVmOWNiNDhlMGIyMDBlNmY0NWM5OWM
