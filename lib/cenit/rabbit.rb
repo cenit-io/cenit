@@ -149,6 +149,11 @@ module Cenit
             end
           else
             Setup::SystemReport.create(message: "No task token for #{message_token}")
+            if Setup::DelayedMessage.purge_message(message_token)
+              Setup::SystemReport.create(type: :info, message: "Message purged: #{message_token}")
+            else
+              Setup::SystemReport.create(type: :warning, message: "Message #{message_token} could not be purged")
+            end
           end
         end
       rescue Exception => ex
