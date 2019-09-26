@@ -59,5 +59,29 @@ describe Setup::DelayedMessage do
       end
       expect(messages).to eq %w(second)
     end
+
+    it 'purges and keeps messages' do
+      now = Time.now
+      delayed_message.create(message: 'first', publish_at: now)
+      second = delayed_message.create(message: 'second', publish_at: now)
+      delayed_message.purge_message(second.message)
+      messages = []
+      delayed_message.for_each_ready(at: now + 5.seconds) do |delayed_message|
+        messages << delayed_message[:message]
+      end
+      expect(messages).to eq %w(first)
+    end
+
+    it 'returns true when message is purged' do
+      delayed_message.create(message: 'message')
+      purged = delayed_message.purge_message('message')
+      expect(purged).to be true
+    end
+
+    it 'returns false when purging non existing messages' do
+      delayed_message.create(message: 'message')
+      purged = delayed_message.purge_message('does not exists')
+      expect(purged).to be false
+    end
   end
 end
