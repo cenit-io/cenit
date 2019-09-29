@@ -12,7 +12,7 @@ config =
   rescue
     {}
   end
-listen 8080  
+listen 8080
 worker_processes config['UNICORN_WORKERS'] || 5
 preload_app config.key?('UNICORN_PRELOAD') ? config['UNICORN_PRELOAD'].to_b : true
 timeout config['UNICORN_TIMEOUT'] || 240
@@ -52,12 +52,14 @@ after_fork do |server, worker|
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
   if worker.nr.zero?
-    Cenit::Rabbit.start_scheduler
-    Tenant.all.each do |tenant|
-      tenant.switch do
-        Setup::Scheduler.activated.each(&:start)
+    unless ENV['SKIP_DB_INITIALIZATION']
+      Tenant.all.each do |tenant|
+        tenant.switch do
+          Setup::Scheduler.activated.each(&:start)
+        end
       end
     end
+    Cenit::Rabbit.start_scheduler
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
     Cenit::Rabbit.start_consumer
   end
