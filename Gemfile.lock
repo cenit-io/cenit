@@ -434,7 +434,7 @@ GEM
     ruby-rc4 (0.1.5)
     ruby_parser (3.13.0)
       sexp_processor (~> 4.9)
-    rubyzip (1.2.2)
+    rubyzip (2.0.0)
     rufus-scheduler (3.1.9)
     sass (3.7.2)
       sass-listen (~> 4.0.0)
