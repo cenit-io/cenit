@@ -47,7 +47,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.1.1'
+gem 'rails_admin', '~> 1.2.0'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
@@ -103,6 +103,7 @@ gem 'net-sftp'
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
 gem 'combine_pdf', '1.0.4'
+gem 'kaminari-mongoid'
 
 gem 'redis'
 
