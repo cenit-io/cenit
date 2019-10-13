@@ -8,7 +8,7 @@ gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
 gem 'jbuilder'
-gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
+gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '4-0-stable'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -45,9 +45,10 @@ group :production do
   gem 'rails_12factor'
 end
 
+gem 'mongo', '~> 2.3.1'
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.2.0'
+gem 'rails_admin', '~> 2.0.0'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
@@ -74,7 +75,7 @@ gem 'oauth2'
 gem 'exception_notification'
 
 gem 'mime'
-gem 'deface'
+# //gem 'deface', git: 'https://github.com/spree/deface.git'
 
 gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
 
@@ -84,9 +85,9 @@ gem 'identicon'
 gem 'language_sniffer'
 
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
-gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git', branch: 'mongo_gem_2_3_1'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
-gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
+# gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
