@@ -23,14 +23,6 @@ GIT
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/cenit-io/cross_origin.git
-  revision: baaaada84989131faf0779608526324772f69354
-  branch: temp_change
-  specs:
-    cross_origin (0.0.3)
-      mongoid (>= 5.0.1)
-
-GIT
   remote: https://github.com/macarci/capataz.git
   revision: a07fed2134fb16a51ddf5f46dad5cce95703fa46
   specs:
@@ -55,6 +47,12 @@ GIT
       railties (>= 4.1.0, < 5.1)
       responders
       warden (~> 1.2.3)
+
+PATH
+  remote: ../cross_origin
+  specs:
+    cross_origin (0.0.3)
+      mongoid (>= 5.0.1)
 
 GEM
   remote: https://rubygems.org/
