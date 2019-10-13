@@ -77,7 +77,8 @@ gem 'exception_notification'
 gem 'mime'
 # //gem 'deface', git: 'https://github.com/spree/deface.git'
 
-gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+# TODO temporal branch, review the change
+gem 'cross_origin', git: 'https://github.com/cenit-io/cross_origin.git', branch: 'temp_change'
 
 gem 'lodash-rails'
 gem 'identicon'

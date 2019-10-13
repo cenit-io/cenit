@@ -1,7 +1,7 @@
 module Mongoff
   class Criteria
     include Enumerable
-    include Origin::Queryable
+    include Mongoid::Criteria::Queryable
 
     attr_reader :model
 

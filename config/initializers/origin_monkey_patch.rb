@@ -1,5 +1,5 @@
 
-require 'origin/extensions/symbol'
+require 'mongoid/extensions/symbol'
 
 module Origin
   module Extensions

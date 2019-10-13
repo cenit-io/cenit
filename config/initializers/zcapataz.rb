@@ -154,7 +154,7 @@ Capataz.config do
       :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
     ] + Setup::Webhook.method_enum
 
-  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :blank?, :limit, :skip, :where, :distinct]
+  allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Mongoid::Criteria::Queryable.instance_methods(false) + [:each, :blank?, :limit, :skip, :where, :distinct]
 
   allow_for Setup::Task, [:status, :scheduler, :state, :resume_in, :run_again, :progress, :progress=, :update, :destroy, :notifications, :notify, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :id, :current_execution, :sources, :description, :agent, :join]
 
