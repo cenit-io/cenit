@@ -277,7 +277,7 @@ GEM
     mime (0.4.3)
     mime-types (2.99.3)
     mimemagic (0.3.0)
-    mini_magick (4.3.6)
+    mini_magick (4.9.5)
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
