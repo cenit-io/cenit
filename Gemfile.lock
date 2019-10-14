@@ -195,8 +195,8 @@ GEM
     ffi (1.9.25)
     figaro (1.1.1)
       thor (~> 0.14)
-    font-awesome-rails (4.7.0.4)
-      railties (>= 3.2, < 6.0)
+    font-awesome-rails (4.7.0.5)
+      railties (>= 3.2, < 6.1)
     glebtv_mongoid_userstamp (0.6.2)
       mongoid (>= 4.0.0, < 6.1)
       request_store
@@ -247,9 +247,21 @@ GEM
     json-schema (2.5.1)
       addressable (~> 2.3.7)
     jwt (2.1.0)
-    kaminari (0.17.0)
-      actionpack (>= 3.0.0)
-      activesupport (>= 3.0.0)
+    kaminari (1.1.1)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.1.1)
+      kaminari-activerecord (= 1.1.1)
+      kaminari-core (= 1.1.1)
+    kaminari-actionview (1.1.1)
+      actionview
+      kaminari-core (= 1.1.1)
+    kaminari-activerecord (1.1.1)
+      activerecord
+      kaminari-core (= 1.1.1)
+    kaminari-core (1.1.1)
+    kaminari-mongoid (1.0.1)
+      kaminari-core (~> 1.0)
+      mongoid
     kgio (2.10.0)
     language_sniffer (1.0.2)
     libv8 (3.16.14.19)
@@ -358,14 +370,14 @@ GEM
     rails_12factor (0.0.3)
       rails_serve_static_assets
       rails_stdout_logging
-    rails_admin (1.1.1)
+    rails_admin (1.2.0)
       builder (~> 3.1)
       coffee-rails (~> 4.0)
       font-awesome-rails (>= 3.0, < 5)
-      haml (~> 4.0)
+      haml (>= 4.0, < 6)
       jquery-rails (>= 3.0, < 5)
       jquery-ui-rails (~> 5.0)
-      kaminari (~> 0.14)
+      kaminari (>= 0.14, < 2.0)
       nested_form (~> 0.3)
       rack-pjax (>= 0.7)
       rails (>= 4.0, < 6)
@@ -392,7 +404,7 @@ GEM
     redis (4.1.2)
     ref (2.0.0)
     regexp_parser (1.3.0)
-    remotipart (1.4.2)
+    remotipart (1.4.3)
     request_store (1.4.1)
       rack (>= 1.4)
     responders (2.4.1)
@@ -538,6 +550,7 @@ DEPENDENCIES
   jbuilder
   jquery-rails
   json-schema
+  kaminari-mongoid
   language_sniffer
   liquid
   lodash-rails
@@ -560,7 +573,7 @@ DEPENDENCIES
   rabl
   rails
   rails_12factor
-  rails_admin (~> 1.1.1)
+  rails_admin (~> 1.2.0)
   rails_layout
   recaptcha
   redis
