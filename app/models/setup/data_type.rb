@@ -104,7 +104,7 @@ module Setup
 
     def model
       data_type_name.constantize
-    rescue
+    rescue Exception => _
       nil
     end
 

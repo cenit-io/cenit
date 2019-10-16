@@ -40,27 +40,31 @@ module Cenit
       next if ENV['SKIP_MONGO_CLIENT'].to_b
       Thread.current[:cenit_initializing] = true
 
-      Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
+      unless ENV['SKIP_DB_INITIALIZATION']
+        Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
-      puts 'Clearing LOCKS'
-      Cenit::Locker.clear
+        puts 'Clearing LOCKS'
+        Cenit::Locker.clear
 
-      puts 'DELETING OLD Consumers'
-      RabbitConsumer.delete_all
+        puts 'DELETING OLD Consumers'
+        RabbitConsumer.delete_all
 
-      Tenant.all.each do |tenant|
-        tenant.switch do
-          ThreadToken.destroy_all
-          Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
-          Setup::Execution.where(:status.nin => Setup::Task::FINISHED_STATUS).update_all(status: :broken, completed_at: Time.now)
+        Tenant.all.each do |tenant|
+          tenant.switch do
+            ThreadToken.destroy_all
+            Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
+            Setup::Execution.where(:status.nin => Setup::Task::FINISHED_STATUS).update_all(status: :broken, completed_at: Time.now)
 
-          Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
+            Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
+          end
         end
+
+        Capataz::Cache.clean
+
+        Setup::CenitDataType.init!
+
+        Cenit::Notebooks.startup if Cenit.jupyter_notebooks
       end
-
-      Capataz::Cache.clean
-
-      Setup::CenitDataType.init!
 
       require 'mongoff/model'
       require 'mongoff/record'
@@ -79,14 +83,12 @@ module Cenit
         end
       end
 
-      Cenit::Notebooks.startup if Cenit.jupyter_notebooks
-
       Thread.current[:cenit_initializing] = nil
     end
 
     if Rails.env.production? &&
-       (notifier_email = ENV['NOTIFIER_EMAIL']) &&
-       (exception_recipients = ENV['EXCEPTION_RECIPIENTS'])
+      (notifier_email = ENV['NOTIFIER_EMAIL']) &&
+      (exception_recipients = ENV['EXCEPTION_RECIPIENTS'])
       Rails.application.config.middleware.use ExceptionNotification::Rack,
                                               email: {
                                                 email_prefix: "[Cenit Error #{Rails.env}] ",

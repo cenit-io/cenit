@@ -3,6 +3,7 @@ version: '3.7'
 volumes:
   # We'll define a volume that will store the data from the mongo databases:
   mongodb-data: {}
+  redis-data: {}
 
 services:
   cenit:
@@ -12,13 +13,16 @@ services:
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - UNICORN_WORKERS=5
       - MAXIMUM_UNICORN_CONSUMERS=3
-      - SKIP_MONGO_CLIENT='false'
+      - DB_PROD='cenit_prod'
+      - REDIS_HOST=redis
     build: .
     ports:
-      - "8080:8080"
+      - "3000:3000"
     depends_on:
       - mongodb
       - rabbitmq
+      - redis
+    command: ["foreman", "start", "-f", "Procfile"]
 
   rabbitmq:
     image: rabbitmq:management
@@ -37,3 +41,9 @@ services:
     volumes:
       # We'll mount the 'mongodb-data' volume into the location mongodb stores it's data:
       - mongodb-data:/data/db
+
+  redis:
+    image: redis
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]

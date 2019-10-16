@@ -79,6 +79,10 @@ module Setup
       def publish_time(delayed_message)
         delayed_message[:publish_at]
       end
+
+      def purge_message(message)
+        DelayedMessage.where(message: message).delete_all
+      end
     end
 
     module RedisAdapter
@@ -115,7 +119,10 @@ module Setup
       end
 
       def remove(delayed_message)
-        key = key_for(delayed_message)
+        remove_key(key_for(delayed_message))
+      end
+
+      def remove_key(key)
         Cenit::Redis.pipelined do |redis|
           redis.del key
           redis.zrem(SET_KEY, key)
@@ -159,6 +166,22 @@ module Setup
         seconds = Cenit::Redis.zscore(SET_KEY, key_for(delayed_message))
         seconds && Time.at(seconds.to_i).to_datetime
       end
+
+      def purge_message(message)
+        purged = false
+        all_keys.each do |key|
+          if (delayed_message = get(key))
+            if delayed_message[:message] == message
+              remove(delayed_message)
+              purged = true
+            end
+          else
+            remove_key(key)
+            purged = true
+          end
+        end
+        purged
+      end
     end
 
     class << self
@@ -175,6 +198,7 @@ module Setup
       delegate :reschedule,
                :for_each_ready,
                :publish_time,
+               :purge_message,
 
                to: :adapter
 
