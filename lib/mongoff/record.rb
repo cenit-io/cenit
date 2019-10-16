@@ -92,9 +92,7 @@ module Mongoff
       unless @validated
         # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
-        orm_model.fully_validate_against_schema(attributes).each do |error|
-          errors.add(:base, error[:message])
-        end
+        Mongoff::Validator.soft_validates(self, skip_nulls: true)
         @validated = true
       end
     end

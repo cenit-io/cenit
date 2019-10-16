@@ -578,6 +578,10 @@ RailsAdmin.config do |config|
 
   Cenit::BasicTenantToken
 
+  Cenit::OauthAccessToken
+
+  Cenit::OauthSessionAccessToken
+
   Setup::TaskToken
 
   Setup::DelayedMessage

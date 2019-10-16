@@ -28,22 +28,30 @@ module Mongoff
     # Instance Validation Keywords
     INSTANCE_VALIDATION_KEYWORDS =
       ANY_TYPE_KEYWORDS +
-      NUMERIC_KEYWORDS +
-      STRING_KEYWORDS +
-      ARRAY_KEYWORDS +
-      OBJECT_KEYWORDS +
-      LOGIC_KEYWORDS +
-      FORMAT_KEYWORDS +
-      [DEFAULT_KEYWORD]
+        NUMERIC_KEYWORDS +
+        STRING_KEYWORDS +
+        ARRAY_KEYWORDS +
+        OBJECT_KEYWORDS +
+        LOGIC_KEYWORDS +
+        FORMAT_KEYWORDS +
+        [DEFAULT_KEYWORD]
 
     def soft_validates(instance, options = {})
       validate_instance(instance, options)
-    rescue SoftError => err
-      if instance.errors.blank?
-        instance.errors.add(:base, err.message.capitalize)
-      end
     rescue Exception => ex
-      instance.errors.add(:base, ex.message.capitalize)
+      _handle_error(instance, ex)
+    ensure
+      _check_soft_errors(instance)
+    end
+
+    def _check_soft_errors(instance)
+      if instance&.instance_variable_defined?(:@__soft_errors) &&
+         (soft_errors = instance.remove_instance_variable(:@__soft_errors)) &&
+         instance.errors.blank?
+        soft_errors.each do |property, msg|
+          instance.errors.add(:base, "property #{property} #{msg}")
+        end
+      end
     end
 
     def validate_instance(instance, *args)
@@ -79,6 +87,8 @@ module Mongoff
           end
         end
       end
+    ensure
+      _check_soft_errors(instance)
     end
 
     def validate(schema)
@@ -233,7 +243,7 @@ module Mongoff
           begin
             validate_instance(item, items_schema, data_type, options)
           rescue RuntimeError => ex
-            item.errors.add(:base, ex.message)
+            _handle_error(item, ex)
           end
           has_errors ||= item.errors.present?
         end
@@ -305,6 +315,35 @@ module Mongoff
 
     # Validation Keywords for Objects
 
+    def check_schema_required(value)
+      _check_type(:properties, value, Array)
+      value.each do |property_name|
+        _check_type('property name', property_name, String)
+      end
+    end
+
+    def check_required(properties, instance)
+      return unless instance
+      has_errors = false
+      if instance.is_a?(Mongoff::Record)
+        stored_properties = instance.orm_model.stored_properties_on(instance)
+        properties.each do |property|
+          unless stored_properties.include?(property)
+            has_errors = true
+            instance.errors.add(property, "is required")
+          end
+        end
+      elsif instance.is_a?(Hash)
+        properties.each do |property|
+          unless instance.key?(property)
+            has_errors = true
+            instance.errors.add(property, "is required")
+          end
+        end
+      end
+      raise SoftError, 'has errors' if has_errors
+    end
+
     def check_schema_properties(value)
       _check_type(:properties, value, Hash)
       value.each do |property, schema|
@@ -325,6 +364,7 @@ module Mongoff
           instance.errors.clear
           state[:instance_clear]
         end
+        report_error = false
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
@@ -339,11 +379,12 @@ module Mongoff
                 end
               validate_instance(instance[property], model.property_schema(property), property_data_type, options)
             rescue RuntimeError => ex
-              instance.errors.add(property, ex.message)
+              _handle_error(instance, ex, property)
+              report_error = true
             end
           end
         end
-        raise SoftError, 'has errors' if instance.errors.present?
+        raise SoftError, 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
           next unless properties.key?(property)
@@ -400,6 +441,7 @@ module Mongoff
           instance.errors.clear
           state[:instance_clear]
         end
+        report_error = false
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
@@ -418,11 +460,14 @@ module Mongoff
               end
               validate_instance(instance[property], schema, property_data_type, options)
             rescue RuntimeError => ex
-              instance.errors.add(property, "#{ex.message} (against additional property pattern #{pattern})")
+              report_error = true
+              _handle_error(instance, ex, property) do |msg|
+                "#{msg} (against additional property pattern #{pattern})"
+              end
             end
           end
         end
-        raise SoftError, 'has errors' if instance.errors.present?
+        raise SoftError, 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
           pattern = patterns.keys.detect { |regex| regex.match(property) }
@@ -434,7 +479,9 @@ module Mongoff
           begin
             validate_instance(value, schema, data_type, options)
           rescue RuntimeError => ex
-            "#{ex.message} (against additional property pattern #{pattern})"
+            _handle_error(instance, ex, property) do |msg|
+              "#{msg} (against additional property pattern #{pattern})"
+            end
           end
         end
       end
@@ -454,6 +501,7 @@ module Mongoff
           instance.errors.clear
           state[:instance_clear]
         end
+        report_error = false
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
@@ -467,11 +515,14 @@ module Mongoff
                 end
               validate_instance(instance[property], schema, property_data_type, options)
             rescue RuntimeError => ex
-              instance.errors.add(property, "#{ex.message} (against additional properties schema)")
+              report_error = true
+              _handle_error(instance, ex, property) do |msg|
+                "#{msg} (against additional properties schema)"
+              end
             end
           end
         end
-        raise SoftError, 'has errors' if instance.errors.present?
+        raise SoftError, 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
           next if checked_properties.key?(property)
@@ -495,17 +546,21 @@ module Mongoff
           instance.errors.clear
           state[:instance_clear]
         end
+        report_error = false
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
             begin
               validate_instance(property, schema, data_type, options)
             rescue RuntimeError => ex
-              instance.errors.add(property, "name does not match the property names schema (#{ex.message})")
+              report_error = true
+              _handle_error(instance, ex, property) do |msg|
+                "name does not match the property names schema (#{msg})"
+              end
             end
           end
         end
-        raise SoftError, 'has errors' if instance.errors.present?
+        raise SoftError, 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.keys.each do |property|
           begin
@@ -522,6 +577,26 @@ module Mongoff
     def _check_type(key, value, *klasses)
       unless klasses.any? { |klass| value.is_a?(klass) }
         raise "Invalid value for #{key} of type #{value.class} (#{value}), #{klass.to_sentence(last_word_connector: 'or')} is expected"
+      end
+    end
+
+    def _handle_error(instance, err, property = :base)
+      return unless instance
+      msg =
+        if block_given?
+          yield err.message
+        else
+          err.message
+        end
+      if err.is_a?(SoftError)
+        if instance.errors.blank?
+          unless (soft_errors = instance.instance_variable_get(:@__soft_errors))
+            instance.instance_variable_set(:@__soft_errors, soft_errors = {}.with_indifferent_access)
+          end
+          soft_errors[property] = msg
+        end
+      else
+        instance.errors.add(property, msg)
       end
     end
 

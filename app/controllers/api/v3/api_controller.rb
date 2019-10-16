@@ -397,7 +397,7 @@ module Api::V3
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
           @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
-          if access_token && access_token.alive?
+          if access_token&.alive?
             if access_token.set_current_tenant!
               access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
               if access_grant

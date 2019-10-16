@@ -19,12 +19,12 @@ module Mongoff
             model.pretty_errors(associated)
           end
           if association_errors.any?(&:present?)
-            errors[name]['errors'] = association_errors
+            errors[name].merge!(association_errors)
           end
         else
           association_errors = model.pretty_errors(record.send(name))
           if association_errors.present?
-            errors[name]['errors'] = association_errors
+            errors[name].merge!(association_errors)
           end
         end
         errors.delete(name) if errors[name].blank?
