@@ -30,11 +30,7 @@ module Cenit
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
       if (algorithm = @__algorithms__[symbol])
-        if algorithm.is_a?(Proc)
-          define_singleton_method(symbol, algorithm)
-        else
-          @__wrapper__.bundle(symbol, algorithm)
-        end
+        @__wrapper__.bundle(symbol, algorithm)
         send(symbol, *args, &block)
       else
         super
@@ -120,15 +116,20 @@ module Cenit
             nil
           end
         unless method
-          bundle_method = "bundled_#{algorithm.language}_code"
-          if respond_to?(bundle_method)
-            interpreter.instance_eval "define_singleton_method :#{symbol} do |*args|
-              #{send(bundle_method, algorithm)}
-            end"
-            algorithms[symbol] = algorithm
+          if algorithm.is_a?(Proc)
+            interpreter.define_singleton_method(symbol, algorithm)
             method = interpreter.method(symbol)
           else
-            fail "Language #{algorithm.language_name} not supported by bundler interpreter"
+            bundle_method = "bundled_#{algorithm.language}_code"
+            if respond_to?(bundle_method)
+              interpreter.instance_eval "define_singleton_method :#{symbol} do |*args|
+                #{send(bundle_method, algorithm)}
+              end"
+              algorithms[symbol] = algorithm
+              method = interpreter.method(symbol)
+            else
+              fail "Language #{algorithm.language_name} not supported by bundler interpreter"
+            end
           end
         end
         method
