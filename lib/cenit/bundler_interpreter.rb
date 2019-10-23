@@ -30,11 +30,7 @@ module Cenit
     def method_missing(symbol, *args, &block)
       symbol = symbol.to_s
       if (algorithm = @__algorithms__[symbol])
-        if algorithm.is_a?(Proc)
-          define_singleton_method(symbol, algorithm)
-        else
-          @__wrapper__.bundle(symbol, algorithm)
-        end
+        @__wrapper__.bundle(symbol, algorithm)
         send(symbol, *args, &block)
       else
         super
@@ -113,16 +109,27 @@ module Cenit
       end
 
       def bundle(symbol, algorithm)
-        method = interpreter.method(symbol) rescue nil
+        method =
+          begin
+            interpreter.method(symbol)
+          rescue
+            nil
+          end
         unless method
-          bundle_method = "bundled_#{algorithm.language}_code"
-          if respond_to?(bundle_method)
-            interpreter.instance_eval "define_singleton_method :#{symbol} do |*args|
-              #{send(bundle_method, algorithm)}
-            end"
+          if algorithm.is_a?(Proc)
+            interpreter.define_singleton_method(symbol, algorithm)
             method = interpreter.method(symbol)
           else
-            fail "Language #{algorithm.language_name} not supported by bundler interpreter"
+            bundle_method = "bundled_#{algorithm.language}_code"
+            if respond_to?(bundle_method)
+              interpreter.instance_eval "define_singleton_method :#{symbol} do |*args|
+                #{send(bundle_method, algorithm)}
+              end"
+              algorithms[symbol] = algorithm
+              method = interpreter.method(symbol)
+            else
+              fail "Language #{algorithm.language_name} not supported by bundler interpreter"
+            end
           end
         end
         method
@@ -143,13 +150,17 @@ module Cenit
           args = "__args#{rand}".tr('.', '_')
           params_initializer = "#{args}=args;" + params_initializer.gsub('=args[', "=#{args}[")
         end
-        params_initializer + Capataz.rewrite(algorithm.code,
-                                             code_key: algorithm.code_key,
-                                             locals: locals,
-                                             self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
-                                             self_send_prefixer: self,
-                                             iteration_counter_prefix: "alg#{algorithm.id}_it",
-                                             invoke_counter_prefix: "alg#{algorithm.id}_invk")
+        links = {}
+        code = params_initializer + Capataz.rewrite(algorithm.code,
+                                                    code_key: algorithm.code_key,
+                                                    locals: locals,
+                                                    self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
+                                                    self_send_prefixer: self,
+                                                    links: links,
+                                                    iteration_counter_prefix: "alg#{algorithm.id}_it",
+                                                    invoke_counter_prefix: "alg#{algorithm.id}_invk")
+        links.each { |key, alg| bundle(key, alg) }
+        code
       rescue Exception => ex
         raise "Error bundling algorithm #{algorithm.custom_title}: #{ex.message}"
       end
@@ -159,11 +170,11 @@ module Cenit
         i = -1
         params_initializer =
           "arguments = {}\n" +
-          algorithm.parameters.collect do |p|
-            arguments_param ||= p.name == 'arguments'
-            i += 1
-            "arguments['#{p.name}'] = (args.length > #{i} ? args[#{i}] : #{p.default_javascript})"
-          end.join("\n") + "\n"
+            algorithm.parameters.collect do |p|
+              arguments_param ||= p.name == 'arguments'
+              i += 1
+              "arguments['#{p.name}'] = (args.length > #{i} ? args[#{i}] : #{p.default_javascript})"
+            end.join("\n") + "\n"
         params_initializer += "arguments['arguments']=args\n" unless arguments_param
         params_initializer += '@__js_arguments__ << arguments'
         ast = RKelly.parse(algorithm.code) rescue nil
