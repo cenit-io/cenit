@@ -15,11 +15,9 @@ module Mongoff
             {}
           end
         if (associations[name.to_s] || associations[name.to_sym]).many?
-          association_errors = record.send(name).map do |associated|
-            model.pretty_errors(associated)
-          end
-          if association_errors.any?(&:present?)
-            errors[name].merge!(association_errors)
+          record.send(name).each_with_index do |associated, index|
+            next unless (associated_errors = model.pretty_errors(associated)).present?
+            errors[name][index] = associated_errors
           end
         else
           association_errors = model.pretty_errors(record.send(name))
