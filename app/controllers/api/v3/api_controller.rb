@@ -87,8 +87,23 @@ module Api::V3
     end
 
     def show
+      item = @item
+      if (json_path = request.headers['X-JSON-Path']) && json_path =~ /\A\$(.(^[.\[\]])*(\[[0-9]+\])?)+\Z/
+        current_path = '$'
+        json_path = json_path.split('.')
+        json_path.shift
+        json_path.each do |access|
+          index =
+            if (match = access.match(/(.*)\[([0-9]+)\]\Z/))
+              access = match[1]
+              match[2].to_i
+            end
+          item = item[access]
+          item = item[index] if index
+        end
+      end
       setup_viewport
-      render json: Template.with(@item) { |template| template.to_hash(template_options) }
+      render json: Template.with(item) { |template| template.to_hash(template_options) }
     end
 
     def new
