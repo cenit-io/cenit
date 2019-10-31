@@ -24,7 +24,7 @@ module Api::V3
     def cors_headers
       allow_origin_header
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options, X-Record-Id'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
@@ -227,9 +227,24 @@ module Api::V3
       @klass = @ns_name = nil
       @ns_slug = options[:namespace] || params[:__ns_]
       @model = options[:model] || params[:__model_]
+      @_id = options[:id] || params[:__id_]
       @format = options[:format] || params[:format]
       @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       query_selector
+    end
+
+    def find_item
+      if (id = @_id) == 'me' && klass == User
+        id = User.current_id
+      elsif id == 'current' && klass == Account
+        id = Account.current_id
+      end
+      if (@item = accessible_records.where(id: id).first)
+        true
+      else
+        render json: { status: 'item not found' }, status: :not_found
+        false
+      end
     end
 
     protected
@@ -501,20 +516,6 @@ module Api::V3
       end
     end
 
-    def find_item
-      if (id = params[:__id_]) == 'me' && klass == User
-        id = User.current_id
-      elsif id == 'current' && klass == Account
-        id = Account.current_id
-      end
-      if (@item = accessible_records.where(id: id).first)
-        true
-      else
-        render json: { status: 'item not found' }, status: :not_found
-        false
-      end
-    end
-
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
@@ -617,8 +618,14 @@ module Setup
   class DataType
 
     def handle_get_digest(controller)
-      controller.setup_request(namespace: ns_slug, model: slug)
-      controller.index
+      if (id = controller.request.headers['X-Record-Id'])
+        controller.setup_request(namespace: ns_slug, model: slug, id: id)
+        controller.find_item
+        controller.show
+      else
+        controller.setup_request(namespace: ns_slug, model: slug)
+        controller.index
+      end
     end
 
     def handle_post_digest(controller)
