@@ -250,7 +250,7 @@ module Edi
         end
         primary_fields = primary_fields.collect(&:to_sym)
         unless record ||= new_record
-          if model && model.modelable?
+          if model&.modelable?
             record = find_record(model, container, container_schema) do |criteria|
               if json.is_a?(Hash) &&
                  options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
@@ -309,7 +309,7 @@ module Edi
                 items_schema = data_type.merge_schema(property_schema['items'] || {})
                 if property_value
                   property_value = [property_value] unless property_value.is_a?(Array)
-                  persist = property_model && property_model.persistable?
+                  persist = property_model&.persistable?
                   property_value.each do |sub_value|
                     next unless sub_value
                     if persist && sub_value['_reference'] && ((sub_value[:id].nil? && sub_value[:_id].nil?) || options[:skip_refs_binding])
@@ -349,7 +349,7 @@ module Edi
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                   end
                 else
-                  record.send("#{property_name}=", nil) if property_model && property_model.modelable? && !options[:add_only]
+                  record.send("#{property_name}=", nil) if property_model&.modelable? && !options[:add_only]
                 end
               else
                 next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)
@@ -540,7 +540,7 @@ module Edi
               end
               json[property_name] = property_json unless property_json.empty?
             else
-              if field = fields.shift #composite field
+              if (field = fields.shift) #composite field
                 property_json = {}
                 property_record = property_model.new
                 sub_elements = field.split(':')
@@ -581,7 +581,7 @@ module Edi
         report[:segments] << [segment, record]
 
         record.try(:run_after_initialized)
-        return [json, start, record]
+        [json, start, record]
       end
     end
   end
