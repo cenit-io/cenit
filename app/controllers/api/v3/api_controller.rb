@@ -620,8 +620,7 @@ module Setup
     def handle_get_digest(controller)
       if (id = controller.request.headers['X-Record-Id'])
         controller.setup_request(namespace: ns_slug, model: slug, id: id)
-        controller.find_item
-        controller.show
+        controller.show if controller.find_item
       else
         controller.setup_request(namespace: ns_slug, model: slug)
         controller.index
