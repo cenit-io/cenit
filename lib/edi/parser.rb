@@ -349,7 +349,7 @@ module Edi
                     record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
                   end
                 else
-                  record.send("#{property_name}=", nil) if property_model&.modelable? && !options[:add_only]
+                  record.send("#{property_name}=", nil) if json.key?(name) || (property_model&.modelable? && !options[:add_only])
                 end
               else
                 next if updating && ((property_name == '_id' || primary_fields.include?(name.to_sym)) && !record.send(property_name).nil?)
