@@ -249,15 +249,17 @@ module Api::V3
 
     protected
 
+    PARSER_OPTIONS = %w(add_only primary_field ignore reset skip_refs_binding).collect(&:to_sym)
+
     def parser_options
       @parser_options ||=
         begin
           unless (opts = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
             opts = {}
           end
-          params.each do |key, value|
-            next if %w(controller action __ns_ __model_ __id_ format api).include?(key)
-            opts[key] = Cenit::Utility.json_value_of(value)
+          PARSER_OPTIONS.each do |opt|
+            next unless params.key?(opt)
+            opts[opt] = Cenit::Utility.json_value_of(params[opt])
           end
           %w(primary_field primary_fields ignore reset).each do |option|
             unless (value = opts.delete(option)).is_a?(Array)
