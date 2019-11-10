@@ -339,6 +339,8 @@ module Edi
                   if sub_values
                     record.send("#{property_name}=", sub_values)
                   end
+                elsif json.key?(name)
+                  record.send("#{property_name}=", nil)
                 end
               when 'object'
                 next unless updating || !property_model.modelable? || record.send(property_name).nil?
