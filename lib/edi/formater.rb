@@ -387,7 +387,7 @@ module Edi
         case property_schema['type']
         when 'array'
           referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
-          if (value = record.send(property_name))
+          if (value = record.send(property_name)) && !value.try(:null?)
             next if max_entries && value.size > max_entries
             sub_max_entries = max_entries && (max_entries - value.size)
             sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries.positive?
