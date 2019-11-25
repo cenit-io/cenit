@@ -40,7 +40,7 @@ module Cenit
       next if ENV['SKIP_MONGO_CLIENT'].to_b
       Thread.current[:cenit_initializing] = true
 
-      unless ENV['SKIP_DB_INITIALIZATION']
+      unless ENV['SKIP_DB_INITIALIZATION'].to_b
         Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
         puts 'Clearing LOCKS'
