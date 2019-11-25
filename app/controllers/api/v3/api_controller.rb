@@ -103,7 +103,7 @@ module Api::V3
         end
       end
       setup_viewport
-      render json: Template.with(item) { |template| template.to_hash(template_options) }
+      render json: to_hash(item)
     end
 
     def new
@@ -114,7 +114,7 @@ module Api::V3
       record = parser.create_from(request_data, parser_options)
       if record.errors.blank?
         if setup_viewport(:headers)
-          render json: Template.with(record) { |template| template.to_hash(template_options) }
+          render json: to_hash(record)
         else
           render nothing: true
         end
@@ -132,7 +132,7 @@ module Api::V3
       end
       if Cenit::Utility.save(@item, save_options)
         if setup_viewport(:headers)
-          render json: Template.with(@item) { |template| template.to_hash(template_options) }
+          render json: to_hash(@item)
         else
           render nothing: true
         end
@@ -246,8 +246,6 @@ module Api::V3
         false
       end
     end
-
-    protected
 
     PARSER_OPTIONS = %w(add_only primary_field ignore reset update skip_refs_binding).collect(&:to_sym)
 
@@ -422,6 +420,12 @@ module Api::V3
         items
       end
     end
+
+    def to_hash(item)
+      Template.with(item) { |template| template.to_hash(template_options) }
+    end
+
+    protected
 
     def authorize_account
       Account.current = User.current = error_description = nil
@@ -632,6 +636,29 @@ module Setup
     def handle_post_digest(controller)
       controller.setup_request(namespace: ns_slug, model: slug)
       controller.new
+    end
+
+    def handle_delete_digest(controller)
+      query = where(controller.query_selector)
+      response =
+        if query.count == 1
+          item = query.first
+          if item.destroy
+            { nothing: true }
+          else
+            {
+              json: records_model.pretty_errors(item),
+              status: :unprocessable_entity
+            }
+          end
+        else
+          execution = Deletion.process(model_name: records_model.to_s, selector: query.selector)
+          {
+            json: controller.to_hash(execution),
+            status: :accepted
+          }
+        end
+      controller.render response
     end
 
     def digest_schema(request, options = {})
