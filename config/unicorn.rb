@@ -52,7 +52,7 @@ after_fork do |server, worker|
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
   if worker.nr.zero?
-    unless ENV['SKIP_DB_INITIALIZATION']
+    unless ENV['SKIP_DB_INITIALIZATION'].to_b
       Tenant.all.each do |tenant|
         tenant.switch do
           Setup::Scheduler.activated.each(&:start)
