@@ -353,7 +353,7 @@ module Edi
                     end
                     references[property_name] = { model: property_model, criteria: property_value }
                   else
-                    record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema))
+                    record.send("#{property_name}=", do_parse_json(data_type, property_model, property_value, options, property_schema, nil, nil, [record.send(property_name)].compact))
                   end
                 else
                   record.send("#{property_name}=", nil) if json.key?(name) || (property_model&.modelable? && !options[:add_only])
