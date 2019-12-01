@@ -1,3 +1,8 @@
+# This implementation try to follow the JSON Schema Validation specification described at
+#
+# https://json-schema.org/draft/2019-09/json-schema-validation.html
+#
+#
 module Mongoff
   module Validator
     extend self
@@ -83,6 +88,7 @@ module Mongoff
             args << state if key_method.arity > 2
             args << data_type if key_method.arity > 3
             args << options if key_method.arity > 4
+            args << schema if key_method.arity > 5
             key_method.call(*args)
           end
         end
@@ -104,12 +110,10 @@ module Mongoff
       null: NilClass,
       boolean: Boolean,
       number: Numeric,
-      string: Object,
+      string: String,
       integer: Integer,
       object: Hash,
-      array: Array,
-      record: Mongoff::Record,
-      record_array: Mongoff::RecordArray
+      array: Array
     }
 
     def check_schema_type(type)
@@ -118,20 +122,37 @@ module Mongoff
 
     # Validation Keywords for Any Instance Type
 
-    def check_type(type, instance, _, _, options)
+    def check_type(type, instance, _, _, options, schema)
       return if instance.nil? && options[:skip_nulls]
-      type =
-        if (instance.is_a?(Mongoff::Record) || instance.is_a?(Mongoff::RecordArray)) && instance.orm_model.modelable?
-          if type == 'object'
-            :record
+      if (type = type&.to_sym)
+        super_type =
+          case type
+          when :object
+            if instance.is_a?(Mongoff::Record) && instance.orm_model.modelable?
+              Mongoff::Record
+            elsif instance.is_a?(Setup::OrmModelAware)
+              Setup::OrmModelAware
+            else
+              TYPE_MAP[type]
+            end
+          when :array
+            if instance.is_a?(Mongoff::RecordArray) && instance.orm_model.modelable?
+              Mongoff::RecordArray
+            elsif instance.is_a?(Mongoid::Relations::Targets::Enumerable)
+              Mongoid::Relations::Targets::Enumerable
+            else
+              TYPE_MAP[type]
+            end
+          when :string
+            if !instance.is_a?(String) && schema.key?('format')
+              Object
+            else
+              TYPE_MAP[type]
+            end
           else
-            :record_array
+            TYPE_MAP[type]
           end
-        else
-          type && type.to_sym
-        end
-      if type
-        raise "of type #{instance.class} is not an instance for type #{type}" unless instance.is_a?(TYPE_MAP[type])
+        raise "of type #{instance.class} is not an instance for type #{type}" unless instance.is_a?(super_type)
       else
         raise "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
       end
@@ -220,6 +241,25 @@ module Mongoff
 
     def check_pattern(value, instance)
       raise "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
+    end
+
+    def check_schema_format(value)
+      _check_type(:format, value, String)
+    end
+
+    DATE_TIME_TYPES = [Date, DateTime, Time]
+
+    def check_format(format, instance)
+      case format
+      when 'date', 'date-time', 'time'
+        begin
+          DateTime.parse(instance)
+        rescue Exception => ex
+          "does not complies format #{format}: #{ex.message}"
+        end
+      else
+        raise "format #{format} not supported"
+      end
     end
 
     # Validation Keywords for Arrays
