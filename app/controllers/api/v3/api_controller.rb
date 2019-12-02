@@ -434,13 +434,18 @@ module Api::V3
         if auth_header.length == 2
           @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
           if access_token&.alive?
-            if access_token.set_current_tenant!
-              access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
-              if access_grant
-                @oauth_scope = access_grant.oauth_scope
-              else
-                error_description = 'Access grant revoked or moved outside token tenant'
+            if (user = access_token.user)
+              User.current = user
+              if access_token.set_current_tenant!
+                access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
+                if access_grant
+                  @oauth_scope = access_grant.oauth_scope
+                else
+                  error_description = 'Access grant revoked or moved outside token tenant'
+                end
               end
+            else
+              error_description = 'The token owner is no longer an active user'
             end
           else
             error_description = 'Access token is expired or malformed'
@@ -448,7 +453,6 @@ module Api::V3
         else
           error_description = 'Malformed authorization header'
         end
-        User.current = (Account.current ? Account.current.owner : nil)
         if User.current && Account.current
           @ability = Ability.new(User.current)
           true
