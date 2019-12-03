@@ -17,7 +17,7 @@ module Cenit
 
     def get_tenant
       if access_grant.origin == :owner
-        tenant.owner.account
+        user&.account || tenant&.owner&.account
       else
         super
       end
