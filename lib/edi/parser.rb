@@ -239,6 +239,7 @@ module Edi
       end
 
       def do_parse_json(data_type, model, json, options, json_schema, record = nil, new_record = nil, container = nil, container_schema = nil)
+        add_new = options.delete(:add_new)
         updating = !(record.nil? && new_record.nil?) || options[:add_only]
         (primary_fields = options.delete(:primary_field) || options.delete('primary_field')).present? ||
           (primary_fields = json.is_a?(Hash) && json['_primary']).present? ||
@@ -251,11 +252,13 @@ module Edi
         primary_fields = primary_fields.collect(&:to_sym)
         unless record ||= new_record
           if model&.modelable?
-            record = find_record(model, container, container_schema) do |criteria|
-              if json.is_a?(Hash) &&
-                options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
-                (criterion = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
-                criteria.merge!(criterion)
+            unless add_new
+              record = find_record(model, container, container_schema) do |criteria|
+                if json.is_a?(Hash) &&
+                  options[:ignore].none? { |ignored_field| primary_fields.include?(ignored_field) } &&
+                  (criterion = Cenit::Utility.deep_remove(json.select { |key, _| primary_fields.include?(key.to_sym) }, '_reference')).size == primary_fields.count
+                  criteria.merge!(criterion)
+                end
               end
             end
             if record
