@@ -106,6 +106,41 @@ class Hash
   end
 end
 
+class Numeric
+
+  def to_time_span(metric = :s)
+    v = self.abs.to_i
+    str = ''
+    h = {
+      ms: 1000,
+      s: 1000,
+      m: 60,
+      h: 60,
+      d: 24
+    }
+    current_metric = metric
+    h.keys.each do|m|
+      h.delete(m)
+      break if m == current_metric
+    end
+    scaled_v = 0
+    h.each do |m, scale|
+      if (scaled_v = v / scale).positive?
+        str = "#{v % scale}#{current_metric} #{str}"
+        v = scaled_v
+        current_metric = m
+      else
+        str = "#{v}#{current_metric} #{str}"
+        break
+      end
+    end
+    if scaled_v.positive?
+      str = "#{v}#{current_metric} #{str}"
+    end
+    str
+  end
+end
+
 class String
 
   def to_title
