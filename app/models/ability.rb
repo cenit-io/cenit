@@ -30,6 +30,7 @@ class Ability
             { '_id' => { '$in' => user.member_account_ids || [] } }
           ] }
           can [:destroy, :clean_up], Account, :id.in => user.account_ids - [user.account_id]
+          can :destroy, ::Cenit::OauthAccessToken
           StandardUser
         end
 
