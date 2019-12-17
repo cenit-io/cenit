@@ -7,6 +7,7 @@ module Mongoff
 
       SCHEMA = Cenit::Utility.stringfy({
                                          type: :object,
+                                         label: '{{filename}}',
                                          properties:
                                            {
                                              _id: {},
