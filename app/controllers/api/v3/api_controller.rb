@@ -687,8 +687,14 @@ module Setup
   class FileDataType
 
     def post_digest_upload(request, options = {})
-      request.body.rewind
-      file = create_from(request.body, options)
+      readable =
+        if request.content_type.downcase == 'multipart/form-data'
+          request.params[:data] || request.params[:file] || fail('Missing data (or file) part')
+        else
+          request.body
+        end
+      readable.rewind
+      file = create_from(readable, options)
       {
         json: Api::V3::ApiController::Template.with(file) { |template| template.to_hash }
       }
