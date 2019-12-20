@@ -122,7 +122,12 @@ module Setup
         super
       else
         options.reverse_merge!(default_attributes)
-        file = records_model.new(options.select { |key, _| %w(filename contentType metadata).include?(key.to_s) })
+        attrs = options.select { |key, _| %w(filename contentType metadata).include?(key.to_s) }
+        if (id = (options['_id'] || options['id']))
+          attrs['id'] = id
+        end
+        file = (id && !options['add_new'] && records_model.where(_id: id).first) || records_model.new
+        file.assign_attributes(attrs)
         file.data = string_or_readable
         file
       end
