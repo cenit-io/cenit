@@ -474,6 +474,20 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      access:
+        title: "Access"
+        menu: "Access"
+        breadcrumb: "Access"
+        submit: "Access"
+        done: "giving access"
+        doing: "giving access"
+      token:
+        title: "Get Access Token"
+        menu: "Get Access Token"
+        breadcrumb: "Get Access Token"
+        submit: "Get Access Token"
+        done: "generating Access Token"
+        doing: "generating Access Token"
       algorithm_dependencies:
         title: "Dependencies"
         menu: "Dependencies"

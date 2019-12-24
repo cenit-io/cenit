@@ -6,6 +6,14 @@ module Cenit
 
     included do
       belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
+
+      before_destroy do
+        current_tenant = ::Tenant.current
+        unless current_tenant && current_tenant.id == tenant_id
+          errors.add(:base, 'Destroy action is out of current scope')
+        end
+        errors.blank?
+      end
     end
 
     def access_grant

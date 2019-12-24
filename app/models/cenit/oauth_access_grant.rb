@@ -8,7 +8,7 @@ module Cenit
     build_in_data_type.with(:scope)
 
     deny :all
-    allow :index, :show, :delete, :edit
+    allow :index, :show, :delete, :edit, :token
 
     origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }
 
@@ -38,6 +38,10 @@ module Cenit
 
     def oauth_scope
       Cenit::OauthScope.new(scope)
+    end
+
+    def tokens
+      OauthAccessToken.where(tenant: Account.current, application_id: application_id)
     end
 
     def clear_oauth_tokens

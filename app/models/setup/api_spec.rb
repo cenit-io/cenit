@@ -11,10 +11,40 @@ module Setup
     field :url, type: String
     field :specification, type: String
 
+    DEFAULT_SPEC = <<-YAML
+swagger: '2.0'
+info:
+  version: 0.0.1
+  title: title
+  description: description
+  termsOfService: terms
+  contact:
+    name: name
+    url: http://example
+    email: email@example
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+paths:
+  /resource:
+    get:
+     responses:
+      200:
+        description: "Successful operation"
+        schema:
+          type: object
+      404:
+        description: "Resource not found"
+    YAML
+
+    after_initialize do
+      self.specification = DEFAULT_SPEC if new_record? && specification.nil?
+    end
+
     before_save :validate_specification
 
     def validate_specification
-      if specification.blank? && url.present?
+      if (specification.blank? || (new_record? && specification == DEFAULT_SPEC)) && url.present?
         begin
           self.specification = Setup::Connection.get(url).submit!
         rescue Exception => ex
@@ -86,6 +116,7 @@ module Setup
 
         if definitions.size.positive?
           definitions.each_pair do |name, schema|
+            next if is_file?(schema)
             schema['type'] = 'object' if schema['properties'] && schema['type'].nil?
             schema['title'] = name
             if schema['type'].nil? && schema['properties'].nil?
@@ -136,8 +167,9 @@ module Setup
         shared['data'] = data = {}
 
         base_connections = {}
-        multiple_schemes = spec ['schemes'].size > 1
-        spec['schemes'].each do |scheme|
+        schemes = spec['schemes'] || [];
+        multiple_schemes = schemes.size > 1
+        schemes.each do |scheme|
           base_connections[scheme] =
             {
               namespace: namespace,
@@ -178,14 +210,14 @@ module Setup
                 end
               fail I18n.t('cenit.api_spec.swagger_parser.error.authorization_url_missing') unless (auth_url = security['authorizationUrl'])
               provider = oauth_providers[auth_url] ||
-                         provider_model.where(authorization_endpoint: auth_url).first ||
-                         (oauth_providers_config.key?(auth_url) && provider_model.new_from_json(oauth_providers_config[auth_url]))
+                provider_model.where(authorization_endpoint: auth_url).first ||
+                (oauth_providers_config.key?(auth_url) && provider_model.new_from_json(oauth_providers_config[auth_url]))
               provider.authorization_endpoint = auth_url
               provider.namespace ||= 'Cenit'
               if provider
                 client = oauth_clients[auth_url] ||
-                         Setup::RemoteOauthClient.where(provider: provider).first ||
-                         Setup::RemoteOauthClient.new(provider: provider, name: 'Client')
+                  Setup::RemoteOauthClient.where(provider: provider).first ||
+                  Setup::RemoteOauthClient.new(provider: provider, name: 'Client')
                 oauth_clients[auth_url] = client
                 oauth_providers[auth_url] = provider
                 unless namespaces.key?(provider.namespace)
@@ -296,19 +328,29 @@ module Setup
               name = name.delete '$'
               slug = slug_prefix.to_s + slugify(name)
               fail "Slug name clash: #{slug}" unless slugs.add?(slug)
-              data_type = Setup::JsonDataType.new namespace: namespace,
-                                                  name: name,
-                                                  slug: slug,
-                                                  title: name.to_title
-              data_type.schema = schema
-              if data_type.validate_model
-                data_type.snippet.namespace = namespace
-                data_type.snippet.name = data_type.snippet_name
-                data_type.snippet.type = :javascript
-                snippets << data_type.snippet.share_hash
+              dt_class =
+                if is_file?(schema)
+                  Setup::FileDataType
+                else
+                  Setup::JsonDataType
+                end
+              data_type = dt_class.new namespace: namespace,
+                                       name: name,
+                                       slug: slug,
+                                       title: name.to_title
+              if is_file?(schema)
                 data_types << data_type.share_hash
               else
-                fail I18n.t('cenit.api_spec.swagger_parser.error.invalid_data_type_schema', schema_name: name, reason: data_type.errors.full_messages.to_sentence)
+                data_type.schema = schema
+                if data_type.validate_model
+                  data_type.snippet.namespace = namespace
+                  data_type.snippet.name = data_type.snippet_name
+                  data_type.snippet.type = :javascript
+                  snippets << data_type.snippet.share_hash
+                  data_types << data_type.share_hash
+                else
+                  fail I18n.t('cenit.api_spec.swagger_parser.error.invalid_data_type_schema', schema_name: name, reason: data_type.errors.full_messages.to_sentence)
+                end
               end
             end
           end
@@ -515,7 +557,7 @@ module Setup
             child_params = {}
             child[:metadata].delete(params).each do |p|
               if keys.exclude?(key = p[:key]) ||
-                 (p = parent_params[key].difference(p)).present?
+                (p = parent_params[key].difference(p)).present?
                 child_params[key] = p
               end
             end
@@ -582,9 +624,14 @@ module Setup
       end
 
       def identificable?(_name, schema)
+        is_file?(schema) || (
         schema['type'] == 'object' && (properties = schema['properties']) && properties.key?('id')
+        )
       end
 
+      def is_file?(schema)
+        schema['type'] == 'string' && (schema['format'] == 'binary' || schema['format'] == 'byte')
+      end
     end
   end
 end

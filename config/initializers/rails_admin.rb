@@ -74,7 +74,9 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::Trust,
   RailsAdmin::Config::Actions::Compare,
   RailsAdmin::Config::Actions::DoClean,
-  RailsAdmin::Config::Actions::CleanAll
+  RailsAdmin::Config::Actions::CleanAll,
+  RailsAdmin::Config::Actions::Access,
+  RailsAdmin::Config::Actions::Token
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 [
@@ -657,6 +659,8 @@ RailsAdmin.config do |config|
     cancel
     regist
     trust
+    access
+    token
     reinstall
     simple_delete_data_type
     bulk_delete_data_type
