@@ -248,7 +248,19 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { } }
+      schema = { 'type' => 'object', 'properties' => properties = {} }
+      if model < ClassHierarchyAware && model.abstract?
+        schema['abstract'] = true
+        schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|
+          data_type = sub_model.data_type
+          {
+            id: data_type.id.to_s,
+            namespace: data_type.namespace,
+            name: data_type.name,
+            abstract: sub_model.abstract?
+          }.stringify_keys
+        end
+      end
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
         next unless !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
@@ -270,11 +282,11 @@ module Setup
           root_schema: schema)
       end
       model.reflect_on_all_associations(:embeds_one,
-        :embeds_many,
-        :has_one,
-        :belongs_to,
-        :has_many,
-        :has_and_belongs_to_many).each do |relation|
+                                        :embeds_many,
+                                        :has_one,
+                                        :belongs_to,
+                                        :has_many,
+                                        :has_and_belongs_to_many).each do |relation|
         next unless included?((relation_name = relation.name.to_s))
         property_schema =
           case relation.macro
