@@ -66,35 +66,41 @@ module Mongoff
         else
           {}
         end
-      schema = args[0] || instance.orm_model.schema
-      data_type = args[1] || instance.orm_model.data_type
-      state = {}
-      validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
-      prefixes = %w(check)
-      if options[:check_schema]
-        prefixes.unshift('check_schema')
+      unless (visited = options[:visited])
+        visited = options[:visited] = Set.new
       end
-      validation_keys.each do |key|
-        prefixes.each do |prefix|
-          key_method_name = "#{prefix}_#{key}".to_sym
-          key_method =
-            begin
-              method(key_method_name)
-            rescue
-              nil
+      unless (soft_checked = visited.include?(instance))
+        visited << instance
+        schema = args[0] || instance.orm_model.schema
+        data_type = args[1] || instance.orm_model.data_type
+        state = {}
+        validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
+        prefixes = %w(check)
+        if options[:check_schema]
+          prefixes.unshift('check_schema')
+        end
+        validation_keys.each do |key|
+          prefixes.each do |prefix|
+            key_method_name = "#{prefix}_#{key}".to_sym
+            key_method =
+              begin
+                method(key_method_name)
+              rescue
+                nil
+              end
+            if key_method
+              args = [schema[key], instance]
+              args << state if key_method.arity > 2
+              args << data_type if key_method.arity > 3
+              args << options if key_method.arity > 4
+              args << schema if key_method.arity > 5
+              key_method.call(*args)
             end
-          if key_method
-            args = [schema[key], instance]
-            args << state if key_method.arity > 2
-            args << data_type if key_method.arity > 3
-            args << options if key_method.arity > 4
-            args << schema if key_method.arity > 5
-            key_method.call(*args)
           end
         end
       end
     ensure
-      _check_soft_errors(instance)
+      _check_soft_errors(instance) unless soft_checked
     end
 
     def validate(schema)
