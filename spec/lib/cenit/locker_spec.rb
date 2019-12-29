@@ -23,12 +23,12 @@ describe Cenit::Locker do
   end
 
   context "with adapter independent behavior" do
-    it 'return true when testing lock for locked objects' do
+    it 'returns true when testing lock for locked objects' do
       locker.lock('test')
       expect(locker.locked?('test')).to be true
     end
 
-    it 'return false when testing lock for unlocked objects' do
+    it 'returns false when testing lock for unlocked objects' do
       locker.lock('test')
       locker.unlock('test')
       expect(locker.locked?('test')).to be false
