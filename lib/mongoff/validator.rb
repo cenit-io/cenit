@@ -20,7 +20,7 @@ module Mongoff
     # Object
     OBJECT_KEYWORDS = %w(maxProperties minProperties required dependentRequired properties patternProperties additionalProperties propertyNames)
     # Conditional
-    CONDITIONAL_KEYWORDS = %w(if then else)
+    CONDITIONAL_KEYWORDS = %w(if then else dependentSchemas)
     # Logic
     LOGIC_KEYWORDS = %w(allOf anyOf oneOf not)
     # Format
@@ -61,20 +61,14 @@ module Mongoff
       end
     end
 
-    def validate_instance(instance, *args)
-      options =
-        if args.last.is_a?(Hash)
-          args.pop
-        else
-          {}
-        end
+    def validate_instance(instance, options = {})
       unless (visited = options[:visited])
         visited = options[:visited] = Set.new
       end
       unless (soft_checked = visited.include?(instance))
         visited << instance
-        schema = args[0] || instance.orm_model.schema
-        data_type = args[1] || instance.orm_model.data_type
+        data_type = options[:data_type] || instance.orm_model.data_type
+        schema = options[:schema] || data_type.schema
         state = {}
         validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
         prefixes = %w(check)
@@ -180,7 +174,7 @@ module Mongoff
           else
             TYPE_MAP[type]
           end
-        raise_error "of type #{instance.class} is not an instance for type #{type}" unless instance.is_a?(super_type)
+        raise_error "of type #{instance.class} is not an instance of type #{type}" unless instance.is_a?(super_type)
       else
         raise_error "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
       end
@@ -201,7 +195,7 @@ module Mongoff
     end
 
     def check_const(const, instance)
-      raise_error "is not the const value #{const}" unless const == instance
+      raise_error "is not the const value '#{const}'" unless const == instance
     end
 
     # Validation Keywords for Numeric Instances (number and integer)
@@ -212,7 +206,7 @@ module Mongoff
     end
 
     def check_multipleOf(value, instance)
-      raise_error "is not multiple of #{value}" if instance.is_a?(Numeric) && instance % value != 0
+      raise_error "is not multiple of #{value}" if instance.is_a?(Numeric) && (instance / value).modulo(1) != 0
     end
 
     def check_schema_maximum(value)
@@ -220,7 +214,7 @@ module Mongoff
     end
 
     def check_maximum(value, instance)
-      raise_error "maximum is #{value}" if instance.is_a?(Numeric) && instance > value
+      raise_error "expected to be maximum #{value}" if instance.is_a?(Numeric) && instance > value
     end
 
     def check_schema_exclusiveMaximum(value)
@@ -236,7 +230,7 @@ module Mongoff
     end
 
     def check_minimum(value, instance)
-      raise_error "minimum is #{value}" if instance.is_a?(Numeric) && instance < value
+      raise_error "expected to be minimum #{value}" if instance.is_a?(Numeric) && instance < value
     end
 
     def check_schema_exclusiveMinimum(value)
@@ -376,7 +370,10 @@ module Mongoff
         items.each do |item|
           item.errors.clear
           begin
-            validate_instance(item, items_schema, data_type, options)
+            validate_instance(item, options.merge(
+              schema: items_schema,
+              data_type: data_type
+            ))
           rescue Error => ex
             _handle_error(item, ex)
           end
@@ -390,7 +387,10 @@ module Mongoff
             break if index == max
             item_schema = data_type.merge_schema(items_schema[index])
             begin
-              validate_instance(item, item_schema, data_type, options)
+              validate_instance(item, options.merge(
+                schema: item_schema,
+                data_type: data_type
+              ))
             rescue Error => ex
               raise_error "on item ##{index} (#{ex.message})"
             end
@@ -400,7 +400,10 @@ module Mongoff
           items_schema = data_type.merge_schema(items_schema)
           items.each do |item|
             begin
-              validate_instance(item, items_schema, data_type, options)
+              validate_instance(item, options.merge(
+                schema: items_schema,
+                data_type: data_type
+              ))
             rescue Error => ex
               raise_error "on item ##{index} (#{ex.message})"
             end
@@ -422,7 +425,10 @@ module Mongoff
         items_schema = data_type.merge_schema(items_schema)
         start_index.up_to(items.length - 1) do |index|
           begin
-            validate_instance(items[index], items_schema, data_type, options)
+            validate_instance(items[index], options.merge(
+              schema: items_schema,
+              data_type: data_type
+            ))
           rescue Error => ex
             raise_error "on item ##{index} (#{ex.message})"
           end
@@ -479,7 +485,10 @@ module Mongoff
       contains = 0
       items.each do |item|
         begin
-          validate_instance(item, contains_schema, data_type, options)
+          validate_instance(item, options.merge(
+            schema: contains_schema,
+            data_type: data_type
+          ))
           contains += 1
           break unless max_min
         rescue
@@ -639,7 +648,10 @@ module Mongoff
                 else
                   data_type
                 end
-              validate_instance(instance[property], model.property_schema(property), property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                schema: model.property_schema(property),
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               _handle_error(instance, ex, property)
               report_error = true
@@ -649,9 +661,17 @@ module Mongoff
         raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
+          property = property.to_s
           next unless properties.key?(property)
           checked_properties << property
-          validate_instance(value, data_type.merge_schema(properties[property]), data_type, options)
+          begin
+            validate_instance(value, options.merge(
+              schema: data_type.merge_schema(properties[property]),
+              data_type: data_type
+            ))
+          rescue Error => ex
+            raise_error "Value '#{value}' #{ex.message}"
+          end
         end
       end
     end
@@ -724,7 +744,10 @@ module Mongoff
               unless (schema = merged_schemas[property])
                 schema = merged_schemas[property] = property_data_type.merge_schema(patterns[pattern])
               end
-              validate_instance(instance[property], schema, property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                schema: schema,
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -743,7 +766,10 @@ module Mongoff
             schema = merged_schemas[property] = data_type.merge_schema(patterns[pattern])
           end
           begin
-            validate_instance(value, schema, data_type, options)
+            validate_instance(value, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
             _handle_error(instance, ex, property) do |msg|
               "#{msg} (against additional property pattern #{pattern})"
@@ -783,7 +809,10 @@ module Mongoff
                 else
                   data_type
                 end
-              validate_instance(instance[property], schema, property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                schema: schema,
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -797,7 +826,10 @@ module Mongoff
         instance.each do |property, value|
           next if checked_properties.key?(property)
           begin
-            validate_instance(value, schema, data_type, options)
+            validate_instance(value, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
             raise_error "#{ex.message} (against additional properties schema)"
           end
@@ -825,7 +857,10 @@ module Mongoff
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
             begin
-              validate_instance(property, schema, data_type, options)
+              validate_instance(property, options.merge(
+                schema: schema,
+                data_type: data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -838,7 +873,10 @@ module Mongoff
       elsif instance.is_a?(Hash)
         instance.keys.each do |property|
           begin
-            validate_instance(property, schema, data_type, options)
+            validate_instance(property, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
             raise_error "property name #{property} does not match property manes schema (#{ex.message})"
           end
@@ -863,7 +901,7 @@ module Mongoff
     def check_allOf(schemas, instance)
       schemas.each_with_index do |schema, index|
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
         rescue Error => ex
           raise_error "does not match allOf schema##{index}: #{ex.message}"
         end
@@ -885,7 +923,7 @@ module Mongoff
     def check_anyOf(schemas, instance)
       schemas.each_with_index do |schema|
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
           return
         rescue
         end
@@ -909,7 +947,7 @@ module Mongoff
       oneIndex = nil
       schemas.each_with_index do |schema, index|
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
           if oneIndex
             raise_error "match more than one oneOf schemas (at least ##{oneIndex} and ##{index})"
           else
@@ -931,7 +969,7 @@ module Mongoff
 
     def check_not(schema, instance)
       begin
-        validate_instance(instance, schema)
+        validate_instance(instance, schema: schema)
         raise_error "should not match a NOT schema"
       rescue
       end
@@ -950,7 +988,7 @@ module Mongoff
     def check_if(schema, instance, state)
       sucess =
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
           true
         rescue
           false
@@ -969,7 +1007,7 @@ module Mongoff
     def check_then(schema, instance, state)
       if state.key?(:if_success)
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
         rescue
           unless state[:if_success]
             raise_error "matches the IF schema but ir does not match the THEN one"
@@ -989,7 +1027,7 @@ module Mongoff
     def check_else(schema, instance, state)
       if state.key?(:if_success)
         begin
-          validate_instance(instance, schema)
+          validate_instance(instance, schema: schema)
           if state[:if_success]
             raise_error "matches the IF schema and should not match the ELSE one"
           end
@@ -998,8 +1036,8 @@ module Mongoff
       end
     end
 
-    def check_schema_dependentSchema(properties)
-      _check_type(:dependentSchema, properties, Hash)
+    def check_schema_dependentSchemas(properties)
+      _check_type(:dependentSchemas, properties, Hash)
       properties.each do |property_name, dependent_schema|
         begin
           validate(dependent_schema)
@@ -1009,7 +1047,7 @@ module Mongoff
       end
     end
 
-    def check_dependentSchema(properties, instance)
+    def check_dependentSchemas(properties, instance)
       return unless instance
       if instance.is_a?(Mongoff::Record)
         has_errors = false
@@ -1017,7 +1055,7 @@ module Mongoff
         properties.each do |property, dependent_schema|
           next unless stored_properties.include?(property.to_s)
           begin
-            validate_instance(instance, dependent_schema)
+            validate_instance(instance, schema: dependent_schema)
           rescue Error => ex
             has_errors = true
             _handle_error(
@@ -1032,7 +1070,7 @@ module Mongoff
         properties.each do |property, dependent_schema|
           next unless instance.key?(property)
           begin
-            validate_instance(instance, dependent_schema)
+            validate_instance(instance, schema: dependent_schema)
           rescue Error => ex
             dependent_properties[property] = ex.message
           end
