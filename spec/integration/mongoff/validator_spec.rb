@@ -59,6 +59,66 @@ describe Mongoff::Validator do
       exclusiveMinimum: {
         type: 'number',
         exclusiveMinimum: 100 - rand(100)
+      },
+
+      maxLength: {
+        type: 'string',
+        maxLength: 10 + rand(50)
+      },
+
+      minLength: {
+        type: 'string',
+        minLength: 10 + rand(10)
+      },
+
+      pattern: {
+        type: 'string',
+        pattern: '\S+@\S+\.\S+'
+      },
+
+      date: {
+        type: 'string',
+        format: 'date'
+      },
+
+      time: {
+        type: 'string',
+        format: 'time'
+      },
+
+      date_time: {
+        type: 'string',
+        format: 'date-time'
+      },
+
+      email: {
+        type: 'string',
+        format: 'email'
+      },
+
+      ipv4: {
+        type: 'string',
+        format: 'ipv4'
+      },
+
+      ipv6: {
+        type: 'string',
+        format: 'ipv6'
+      },
+
+      hostname: {
+        type: 'string',
+        format: 'hostname'
+      },
+
+      uri: {
+        type: 'string',
+        format: 'uri'
+      },
+
+      uuid: {
+        type: 'string',
+        format: 'uuid'
       }
     }
   }.deep_stringify_keys
@@ -255,7 +315,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the minLength value is a negative integer' do
-          schema = { minLength: -rand(100) }
+          schema = { minLength: - 1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -876,6 +936,17 @@ describe Mongoff::Validator do
           expect(instance.errors.empty?).to be true
         end
 
+        it 'does not raise an exception if a JSON maximum instance is maximum' do
+          instance = { maximum: test_schema['properties']['maximum']['maximum'] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maximum instance is maximum' do
+          instance = data_type.new_from(maximum: test_schema['properties']['maximum']['maximum'])
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
         it 'raises an error when a JSON maximum instance is not valid' do
           maximum = test_schema['properties']['maximum']['maximum']
           wrong_value = maximum + 1 + rand(10)
@@ -943,12 +1014,31 @@ describe Mongoff::Validator do
       context 'when validating keyword minimum' do
 
         it 'does not raise an exception if a JSON minimum instance is valid' do
-          instance = { minimum: test_schema['properties']['minimum']['minimum'] + rand(1) }
+          instance = {
+            minimum: test_schema['properties']['minimum']['minimum'] + 1 + rand(1)
+          }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff minimum instance is valid' do
-          instance = data_type.new_from(minimum: test_schema['properties']['minimum']['minimum'] + rand(1))
+          instance = data_type.new_from(
+            minimum: test_schema['properties']['minimum']['minimum'] + 1 + rand(1)
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if a JSON minimum instance is minimum' do
+          instance = {
+            minimum: test_schema['properties']['minimum']['minimum']
+          }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff minimum instance is minimum' do
+          instance = data_type.new_from(
+            minimum: test_schema['properties']['minimum']['minimum']
+          )
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
@@ -1014,6 +1104,392 @@ describe Mongoff::Validator do
           instance = data_type.new_from(exclusiveMinimum: minimum)
           validator.soft_validates(instance)
           expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{minimum}")
+        end
+      end
+    end
+
+    context 'when validating Keywords for Strings' do
+
+      context 'when validating keyword maxLength' do
+
+        it 'does not raise an exception if a JSON maxLength instance is valid' do
+          instance = {
+            maxLength: 'a' * (test_schema['properties']['maxLength']['maxLength'] - 1 - rand(5))
+          }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maxLength instance is valid' do
+          instance = data_type.new_from(
+            maxLength: 'a' * (test_schema['properties']['maxLength']['maxLength'] - 1 - rand(5))
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if a JSON maxLength instance is maximum' do
+          instance = {
+            maxLength: 'a' * (test_schema['properties']['maxLength']['maxLength'])
+          }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maxLength instance is maximum' do
+          instance = data_type.new_from(
+            maxLength: 'a' * (test_schema['properties']['maxLength']['maxLength'])
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an error when a JSON maxLength instance is not valid' do
+          max_length = test_schema['properties']['maxLength']['maxLength']
+          wrong_value = 'a' * (max_length + 1 + rand(5))
+          instance = { maxLength: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is too long (#{wrong_value.length} of #{max_length} max)")
+        end
+
+        it 'reports an error when a Mongoff maxLength instance is not valid' do
+          max_length = test_schema['properties']['maxLength']['maxLength']
+          wrong_value = 'a' * (max_length + 1 + rand(5))
+          instance = data_type.new_from(maxLength: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:maxLength]).to include("is too long (#{wrong_value.length} of #{max_length} max)")
+        end
+      end
+
+      context 'when validating keyword minLength' do
+
+        it 'does not raise an exception if a JSON minLength instance is valid' do
+          instance = {
+            minLength: 'a' * (test_schema['properties']['minLength']['minLength'] + 1 + rand(5))
+          }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff minLength instance is valid' do
+          instance = data_type.new_from(
+            minLength: 'a' * (test_schema['properties']['minLength']['minLength'] + 1 + rand(5))
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if a JSON minLength instance is minimum' do
+          instance = {
+            minLength: 'a' * (test_schema['properties']['minLength']['minLength'])
+          }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maxLength instance is minimum' do
+          instance = data_type.new_from(
+            minLength: 'a' * (test_schema['properties']['minLength']['minLength'])
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an error when a JSON minLength instance is not valid' do
+          min_length = test_schema['properties']['minLength']['minLength']
+          wrong_value = 'a' * (min_length - 1 - rand(5))
+          instance = { minLength: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is too short (#{wrong_value.length} of #{min_length} min)")
+        end
+
+        it 'reports an error when a Mongoff minLength instance is not valid' do
+          min_length = test_schema['properties']['minLength']['minLength']
+          wrong_value = 'a' * (min_length - 1 - rand(5))
+          instance = data_type.new_from(minLength: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:minLength]).to include("is too short (#{wrong_value.length} of #{min_length} min)")
+        end
+      end
+
+      context 'when validating keyword pattern' do
+
+        it 'does not raise an exception if a JSON pattern instance is valid' do
+          instance = { pattern: 'support@cenit.io' }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff pattern instance is valid' do
+          instance = data_type.new_from(pattern: 'support@cenit.io')
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an error when a JSON pattern instance is not valid' do
+          pattern = test_schema['properties']['pattern']['pattern']
+          wrong_value = 'not valid'
+          instance = { pattern: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not match the pattern #{pattern}")
+        end
+
+        it 'reports an error when a Mongoff pattern instance is not valid' do
+          pattern = test_schema['properties']['pattern']['pattern']
+          wrong_value = 'not valid'
+          instance = data_type.new_from(pattern: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:pattern]).to include("does not match the pattern #{pattern}")
+        end
+      end
+
+      context 'when validating defined formats' do
+
+        context 'when validating Dates and Times' do
+
+          it 'does not raise an exception if a date format value is valid' do
+            instance = { date: Time.now.to_s.split(' ').first }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a date format value is a date instance' do
+            instance = { date: Time.now.to_s.to_date }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff date format value is valid' do
+            instance = data_type.new_from(date: Time.now.to_s.to_date)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the date format value is not valid' do
+            wrong_value = 'not a date'
+            instance = { date: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format date: invalid date")
+          end
+
+          it 'does not raise an exception if a time format value is valid' do
+            instance = { time: Time.now.to_s.split(' ')[1..2].join(' ') }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a time format value is a time instance' do
+            instance = { time: Time.now.to_s.to_time }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff time format value is valid' do
+            instance = data_type.new_from(time: Time.now.to_s.to_time)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the time format value is not valid' do
+            wrong_value = 'not a time'
+            instance = { time: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format time: invalid date")
+          end
+
+          it 'does not raise an exception if a date-time format value is valid' do
+            instance = { date_time: Time.now.to_s.to_datetime.to_s }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a date-time format value is a time instance' do
+            instance = { date_time: Time.now.to_s.to_datetime }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff date-time format value is valid' do
+            instance = data_type.new_from(date_time: Time.now.to_s.to_time)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the date-time format value is not valid' do
+            wrong_value = 'not a date-time'
+            instance = { date_time: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format date-time: invalid date")
+          end
+        end
+
+        context 'when validating an Email Address' do
+
+          it 'does not raise an exception if an email format value is valid' do
+            instance = { email: 'support@cenit.io' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff email format value is valid' do
+            instance = data_type.new_from(email: 'support@cenit.io')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the email format value is not valid' do
+            wrong_value = 'not an email'
+            instance = { email: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid email address")
+          end
+
+          it 'reports an error when a Mongoff email format value is not valid' do
+            wrong_value = 'not an email'
+            instance = data_type.new_from(email: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:email]).to include('is not a valid email address')
+          end
+        end
+
+        context 'when validating an IPv4 address' do
+
+          it 'does not raise an exception if an IPv4 format value is valid' do
+            instance = { ipv4: [rand(256), rand(256), rand(256), rand(256)].join('.') }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff IPv4 format value is valid' do
+            instance = data_type.new_from(ipv4: [rand(256), rand(256), rand(256), rand(256)].join('.'))
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the ipv4 format value is not valid' do
+            wrong_value = 'not an ipv4'
+            instance = { ipv4: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid IPv4")
+          end
+
+          it 'reports an error when a Mongoff ipv4 format value is not valid' do
+            wrong_value = 'not an ipv4'
+            instance = data_type.new_from(ipv4: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:ipv4]).to include('is not a valid IPv4')
+          end
+        end
+
+        context 'when validating an IPv6 address' do
+
+          it 'does not raise an exception if an IPv6 format value is valid' do
+            instance = { ipv6: '2001:0db8:85a3:0000:0000:8a2e:0370:7334' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff IPv6 format value is valid' do
+            instance = data_type.new_from(ipv6: '2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the ipv6 format value is not valid' do
+            wrong_value = 'not an ipv6'
+            instance = { ipv6: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid IPv6")
+          end
+
+          it 'reports an error when a Mongoff ipv6 format value is not valid' do
+            wrong_value = 'not an ipv6'
+            instance = data_type.new_from(ipv6: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:ipv6]).to include('is not a valid IPv6')
+          end
+        end
+
+        context 'when validating a Host Name' do
+
+          it 'does not raise an exception if a Hostname format value is valid' do
+            instance = { hostname: 'cenit.io' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff Hostname format value is valid' do
+            instance = data_type.new_from(hostname: 'cenit.io')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the hostname format value is not valid' do
+            wrong_value = 'not a host name'
+            instance = { hostname: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid host name")
+          end
+
+          it 'reports an error when a Mongoff hostname format value is not valid' do
+            wrong_value = 'not a hostname'
+            instance = data_type.new_from(hostname: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:hostname]).to include('is not a valid host name')
+          end
+        end
+
+        context 'when validating an URI' do
+
+          it 'does not raise an exception if an URI format value is valid' do
+            instance = { uri: 'https://cenit.io' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff URI format value is valid' do
+            instance = data_type.new_from(uri: 'https://cenit.io')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the uri format value is not valid' do
+            wrong_value = 'not an uri'
+            instance = { uri: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid URI")
+          end
+
+          it 'reports an error when a Mongoff uri format value is not valid' do
+            wrong_value = 'not an uri'
+            instance = data_type.new_from(uri: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uri]).to include('is not a valid URI')
+          end
+        end
+
+        context 'when validating an UUID' do
+
+          it 'does not raise an exception if an UUID format value is valid' do
+            instance = { uuid: '123e4567-e89b-12d3-a456-426655440000' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff UUID format value is valid' do
+            instance = data_type.new_from(uuid: '123e4567-e89b-12d3-a456-426655440000')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the uuid format value is not valid' do
+            wrong_value = 'not an uuid'
+            instance = { uuid: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid UUID")
+          end
+
+          it 'reports an error when a Mongoff uuid format value is not valid' do
+            wrong_value = 'not an uuid'
+            instance = data_type.new_from(uuid: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uuid]).to include('is not a valid UUID')
+          end
         end
       end
     end

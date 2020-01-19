@@ -5,6 +5,9 @@
 # https://json-schema.org/draft/2019-09/json-schema-validation.html
 #
 #
+
+require 'resolv'
+
 module Mongoff
   module Validator
     extend self
@@ -258,7 +261,7 @@ module Mongoff
     end
 
     def check_minLength(value, instance)
-      raise_error "is too short (#{instance.length} for #{value} min)" if instance.is_a?(String) && instance.length < value
+      raise_error "is too short (#{instance.length} of #{value} min)" if instance.is_a?(String) && instance.length < value
     end
 
     def check_schema_pattern(value)
@@ -306,11 +309,11 @@ module Mongoff
 
         when 'ipv4'
           _check_type(:ipv4, instance, String)
-          raise_error 'is not a valid IPv4' unless instance =~ Resolv::IPv4::Regex
+          raise_error 'is not a valid IPv4' unless instance =~ ::Resolv::IPv4::Regex
 
         when 'ipv6'
           _check_type(:ipv6, instance, String)
-          raise_error 'is not a valid IPv6' unless instance =~ Resolv::IPv6::Regex
+          raise_error 'is not a valid IPv6' unless instance =~ ::Resolv::IPv6::Regex
 
         when 'hostname'
           _check_type(:'host name', instance, String)
@@ -321,7 +324,7 @@ module Mongoff
           begin
             URI.parse(instance)
           rescue Exception => ex
-            raise_error "is not a valid URI: #{ex.message}"
+            raise_error "is not a valid URI"
           end
 
         when 'uuid'
