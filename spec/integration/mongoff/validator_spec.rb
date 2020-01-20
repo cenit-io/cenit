@@ -119,6 +119,13 @@ describe Mongoff::Validator do
       uuid: {
         type: 'string',
         format: 'uuid'
+      },
+
+      embedded_array: {
+        type: 'array',
+        items: {
+          '$ref': 'A'
+        }
       }
     }
   }.deep_stringify_keys
@@ -315,7 +322,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the minLength value is a negative integer' do
-          schema = { minLength: - 1 - rand(100) }
+          schema = { minLength: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -374,7 +381,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the items value is an array containing not valid schemas' do
-          schema = { items: [validator, test_schema, validator] }
+          schema = { items: ['not valid schema', test_schema, 'not valid schema'] }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -524,7 +531,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the minProperties value is a negative integer' do
-          schema = { minProperties: -rand(100) }
+          schema = { minProperties: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -753,7 +760,7 @@ describe Mongoff::Validator do
           instance = { null: 'not null' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not null' of type String is not an instance of type null")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/null' of type String is not an instance of type null")
         end
 
         it 'does not raise an exception if the instance and type are boolean' do
@@ -765,7 +772,7 @@ describe Mongoff::Validator do
           instance = { boolean: 'not boolean' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not boolean' of type String is not an instance of type boolean")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/boolean' of type String is not an instance of type boolean")
         end
 
         it 'does not raise an exception if the instance and type are object' do
@@ -777,7 +784,7 @@ describe Mongoff::Validator do
           instance = { obj: 'not object' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not object' of type String is not an instance of type object")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/obj' of type String is not an instance of type object")
         end
 
         it 'does not raise an exception if the instance and type are array' do
@@ -789,7 +796,7 @@ describe Mongoff::Validator do
           instance = { array: 'not array' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not array' of type String is not an instance of type array")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/array' of type String is not an instance of type array")
         end
 
         it 'does not raise an exception if the instance and type are number' do
@@ -801,7 +808,7 @@ describe Mongoff::Validator do
           instance = { number: 'not number' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not number' of type String is not an instance of type number")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/number' of type String is not an instance of type number")
         end
 
         it 'does not raise an exception if the instance and type are integer' do
@@ -813,7 +820,7 @@ describe Mongoff::Validator do
           instance = { integer: 'not integer' }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value 'not integer' of type String is not an instance of type integer")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/integer' of type String is not an instance of type integer")
         end
 
         it 'does not raise an exception if the instance and type are string' do
@@ -825,7 +832,7 @@ describe Mongoff::Validator do
           instance = { string: 123 }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '123' of type Integer is not an instance of type string")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/string' of type Integer is not an instance of type string")
         end
       end
 
@@ -847,7 +854,7 @@ describe Mongoff::Validator do
           instance = { color: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not included in the enumeration")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/color' is not included in the enumeration")
         end
 
         it 'reports an error when a Mongoff enum instance is not valid' do
@@ -877,7 +884,7 @@ describe Mongoff::Validator do
           instance = { const: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not the const value '#{value}'")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/const' is not the const value '#{value}'")
         end
 
         it 'reports an error when a Mongoff const instance is not valid' do
@@ -911,7 +918,7 @@ describe Mongoff::Validator do
           instance = { multipleOf: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not multiple of #{factor}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/multipleOf' is not multiple of #{factor}")
         end
 
         it 'reports an error when a Mongoff multipleOf instance is not valid' do
@@ -953,7 +960,7 @@ describe Mongoff::Validator do
           instance = { maximum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' expected to be maximum #{maximum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/maximum' expected to be maximum #{maximum}")
         end
 
         it 'reports an error when a Mongoff maximum instance is not valid' do
@@ -984,7 +991,7 @@ describe Mongoff::Validator do
           instance = { exclusiveMaximum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' must be strictly less than #{maximum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{maximum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMaximum instance is not valid' do
@@ -1000,7 +1007,7 @@ describe Mongoff::Validator do
           instance = { exclusiveMaximum: maximum }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{maximum}' must be strictly less than #{maximum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{maximum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMaximum instance is maximum' do
@@ -1049,7 +1056,7 @@ describe Mongoff::Validator do
           instance = { minimum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' expected to be minimum #{minimum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/minimum' expected to be minimum #{minimum}")
         end
 
         it 'reports an error when a Mongoff minimum instance is not valid' do
@@ -1080,7 +1087,7 @@ describe Mongoff::Validator do
           instance = { exclusiveMinimum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' must be strictly greater than #{minimum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{minimum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMinimum instance is not valid' do
@@ -1096,7 +1103,7 @@ describe Mongoff::Validator do
           instance = { exclusiveMinimum: minimum }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{minimum}' must be strictly greater than #{minimum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{minimum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMinimum instance is minimum' do
@@ -1148,7 +1155,7 @@ describe Mongoff::Validator do
           instance = { maxLength: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is too long (#{wrong_value.length} of #{max_length} max)")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/maxLength' is too long (#{wrong_value.length} of #{max_length} max)")
         end
 
         it 'reports an error when a Mongoff maxLength instance is not valid' do
@@ -1198,7 +1205,7 @@ describe Mongoff::Validator do
           instance = { minLength: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is too short (#{wrong_value.length} of #{min_length} min)")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/minLength' is too short (#{wrong_value.length} of #{min_length} min)")
         end
 
         it 'reports an error when a Mongoff minLength instance is not valid' do
@@ -1229,7 +1236,7 @@ describe Mongoff::Validator do
           instance = { pattern: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not match the pattern #{pattern}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/pattern' does not match the pattern #{pattern}")
         end
 
         it 'reports an error when a Mongoff pattern instance is not valid' do
@@ -1266,7 +1273,7 @@ describe Mongoff::Validator do
             instance = { date: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format date: invalid date")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/date' does not complies format date: invalid date")
           end
 
           it 'does not raise an exception if a time format value is valid' do
@@ -1290,7 +1297,7 @@ describe Mongoff::Validator do
             instance = { time: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format time: invalid date")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/time' does not complies format time: invalid date")
           end
 
           it 'does not raise an exception if a date-time format value is valid' do
@@ -1314,7 +1321,7 @@ describe Mongoff::Validator do
             instance = { date_time: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' does not complies format date-time: invalid date")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/date_time' does not complies format date-time: invalid date")
           end
         end
 
@@ -1336,7 +1343,7 @@ describe Mongoff::Validator do
             instance = { email: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid email address")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/email' is not a valid email address")
           end
 
           it 'reports an error when a Mongoff email format value is not valid' do
@@ -1365,7 +1372,7 @@ describe Mongoff::Validator do
             instance = { ipv4: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid IPv4")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ipv4' is not a valid IPv4")
           end
 
           it 'reports an error when a Mongoff ipv4 format value is not valid' do
@@ -1394,7 +1401,7 @@ describe Mongoff::Validator do
             instance = { ipv6: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid IPv6")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ipv6' is not a valid IPv6")
           end
 
           it 'reports an error when a Mongoff ipv6 format value is not valid' do
@@ -1423,7 +1430,7 @@ describe Mongoff::Validator do
             instance = { hostname: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid host name")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/hostname' is not a valid host name")
           end
 
           it 'reports an error when a Mongoff hostname format value is not valid' do
@@ -1452,7 +1459,7 @@ describe Mongoff::Validator do
             instance = { uri: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid URI")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uri' is not a valid URI")
           end
 
           it 'reports an error when a Mongoff uri format value is not valid' do
@@ -1481,7 +1488,7 @@ describe Mongoff::Validator do
             instance = { uuid: wrong_value }
             expect {
               validator.validate_instance(instance, data_type: data_type)
-            }.to raise_error(::Mongoff::Validator::Error, "Value '#{wrong_value}' is not a valid UUID")
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uuid' is not a valid UUID")
           end
 
           it 'reports an error when a Mongoff uuid format value is not valid' do
@@ -1490,6 +1497,63 @@ describe Mongoff::Validator do
             validator.soft_validates(instance)
             expect(instance.errors[:uuid]).to include('is not a valid UUID')
           end
+        end
+      end
+    end
+
+    context 'when validating keywords for Applying Subschemas to Arrays' do
+
+      context 'when validating keyword items' do
+
+        it 'does not raise an exception if an items embedded value is valid' do
+          instance = { embeded_array: [
+            { integer: rand(100) }
+          ] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not reports errors if a Mongoff items embedded value is valid' do
+          instance = data_type.new_from(embeded_array: [
+            { integer: rand(100) }
+          ])
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an items embedded value is not an array' do
+          wrong_value = 'not an array'
+          instance = { embedded_array: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array' of type String is not an instance of type array")
+        end
+
+        it 'reports errors if a Mongoff items embedded value is not an array' do
+          wrong_value = 'not an array'
+          expect {
+            data_type.new_from_json(embedded_array: wrong_value)
+          }.to raise_error(Exception, "Can not assign '#{wrong_value}' as simple content to A")
+        end
+
+        it 'raises an exception if an items embedded value is not a valid array' do
+          wrong_value = 'not a number'
+          instance = { embedded_array: [
+            { number: wrong_value }
+          ] }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array[0]/number' of type String is not an instance of type number")
+        end
+
+        it 'reports errors if a Mongoff items embedded value is not a valid array' do
+          const = test_schema['properties']['const']['const']
+          wrong_value = "not #{const}"
+          instance = data_type.new_from_json(embedded_array: [
+            { const: wrong_value }
+          ])
+          validator.soft_validates(instance)
+          expect(instance.errors[:base]).to include('property embedded_array has errors')
+          expect(instance.embedded_array[0].errors[:const]).to include("is not the const value '#{const}'")
         end
       end
     end
