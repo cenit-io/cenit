@@ -71,9 +71,9 @@ module Cenit
       def client
         @client ||= Aws::S3::Client.new(
           region: Cenit.aws_s3_region,
-        # access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-        # secret_access_key:  ENV['AWS_SECRET_ACCESS_KEY']
-          )
+          access_key_id: ENV['AWS_ACCESS_KEY_ID'],
+          secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
+        )
       end
 
       ###
