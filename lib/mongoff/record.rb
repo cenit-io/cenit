@@ -117,7 +117,7 @@ module Mongoff
       field = field.to_sym
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
       value = @fields[field] || document[attribute_key]
-      if property_model && property_model.modelable?
+      if property_model&.modelable?
         @fields[field] ||=
           if (association = orm_model.associations[field.to_s]).many?
             RecordArray.new(property_model, value, association.referenced?, self)

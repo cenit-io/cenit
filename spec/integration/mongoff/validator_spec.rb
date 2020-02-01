@@ -32,24 +32,24 @@ describe Mongoff::Validator do
         enum: %w(red green blue)
       },
 
-      const: {
+      const: CONST_SCHEMA = {
         const: rand(100)
-      },
+      }.deep_stringify_keys,
 
       multipleOf: {
         type: 'number',
         multipleOf: 5 + rand(10)
       },
 
-      maximum: {
+      maximum: MAXIMUM_SCHEMA = {
         type: 'number',
         maximum: 5 + rand(100)
-      },
+      }.deep_stringify_keys,
 
-      minimum: {
+      minimum: MINIMUM_SCHEMA = {
         type: 'number',
         minimum: 5 + rand(100)
-      },
+      }.stringify_keys,
 
       exclusiveMaximum: {
         type: 'number',
@@ -126,6 +126,22 @@ describe Mongoff::Validator do
         items: {
           '$ref': 'A'
         }
+      },
+
+      array_ref: {
+        type: 'array',
+        referenced: true,
+        items: {
+          '$ref': 'A'
+        }
+      },
+
+      embedded_array_items: {
+        type: 'array',
+        items: [
+          CONST_SCHEMA,
+          { '$ref': 'A' }
+        ]
       }
     }
   }.deep_stringify_keys
@@ -868,18 +884,18 @@ describe Mongoff::Validator do
       context 'when validating keyword const' do
 
         it 'does not raise an exception if a JSON const instance is valid' do
-          instance = { const: test_schema['properties']['const']['const'] }
+          instance = { const: CONST_SCHEMA['const'] }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff const instance is valid' do
-          instance = data_type.new_from(const: test_schema['properties']['const']['const'])
+          instance = data_type.new_from(const: CONST_SCHEMA['const'])
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'raises an error when a JSON const instance is not valid' do
-          value = test_schema['properties']['const']['const']
+          value = CONST_SCHEMA['const']
           wrong_value = "#{value}_wrong"
           instance = { const: wrong_value }
           expect {
@@ -888,7 +904,7 @@ describe Mongoff::Validator do
         end
 
         it 'reports an error when a Mongoff const instance is not valid' do
-          value = test_schema['properties']['const']['const']
+          value = CONST_SCHEMA['const']
           wrong_value = "#{value}_wrong"
           instance = data_type.new_from(const: wrong_value)
           validator.soft_validates(instance)
@@ -933,29 +949,29 @@ describe Mongoff::Validator do
       context 'when validating keyword maximum' do
 
         it 'does not raise an exception if a JSON maximum instance is valid' do
-          instance = { maximum: test_schema['properties']['maximum']['maximum'] - rand(1) }
+          instance = { maximum: MAXIMUM_SCHEMA['maximum'] - rand(1) }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff maximum instance is valid' do
-          instance = data_type.new_from(maximum: test_schema['properties']['maximum']['maximum'] - rand(1))
+          instance = data_type.new_from(maximum: MAXIMUM_SCHEMA['maximum'] - rand(1))
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'does not raise an exception if a JSON maximum instance is maximum' do
-          instance = { maximum: test_schema['properties']['maximum']['maximum'] }
+          instance = { maximum: MAXIMUM_SCHEMA['maximum'] }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff maximum instance is maximum' do
-          instance = data_type.new_from(maximum: test_schema['properties']['maximum']['maximum'])
+          instance = data_type.new_from(maximum: MAXIMUM_SCHEMA['maximum'])
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'raises an error when a JSON maximum instance is not valid' do
-          maximum = test_schema['properties']['maximum']['maximum']
+          maximum = MAXIMUM_SCHEMA['maximum']
           wrong_value = maximum + 1 + rand(10)
           instance = { maximum: wrong_value }
           expect {
@@ -964,7 +980,7 @@ describe Mongoff::Validator do
         end
 
         it 'reports an error when a Mongoff maximum instance is not valid' do
-          maximum = test_schema['properties']['maximum']['maximum']
+          maximum = MAXIMUM_SCHEMA['maximum']
           wrong_value = maximum + 1 + rand(10)
           instance = data_type.new_from(maximum: wrong_value)
           validator.soft_validates(instance)
@@ -1022,14 +1038,14 @@ describe Mongoff::Validator do
 
         it 'does not raise an exception if a JSON minimum instance is valid' do
           instance = {
-            minimum: test_schema['properties']['minimum']['minimum'] + 1 + rand(1)
+            minimum: MINIMUM_SCHEMA['minimum'] + 1 + rand(1)
           }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff minimum instance is valid' do
           instance = data_type.new_from(
-            minimum: test_schema['properties']['minimum']['minimum'] + 1 + rand(1)
+            minimum: MINIMUM_SCHEMA['minimum'] + 1 + rand(1)
           )
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
@@ -1037,21 +1053,21 @@ describe Mongoff::Validator do
 
         it 'does not raise an exception if a JSON minimum instance is minimum' do
           instance = {
-            minimum: test_schema['properties']['minimum']['minimum']
+            minimum: MINIMUM_SCHEMA['minimum']
           }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff minimum instance is minimum' do
           instance = data_type.new_from(
-            minimum: test_schema['properties']['minimum']['minimum']
+            minimum: MINIMUM_SCHEMA['minimum']
           )
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'raises an error when a JSON minimum instance is not valid' do
-          minimum = test_schema['properties']['minimum']['minimum']
+          minimum = MINIMUM_SCHEMA['minimum']
           wrong_value = minimum - 1 - rand(10)
           instance = { minimum: wrong_value }
           expect {
@@ -1060,7 +1076,7 @@ describe Mongoff::Validator do
         end
 
         it 'reports an error when a Mongoff minimum instance is not valid' do
-          minimum = test_schema['properties']['minimum']['minimum']
+          minimum = MINIMUM_SCHEMA['minimum']
           wrong_value = minimum - 1 - rand(10)
           instance = data_type.new_from(minimum: wrong_value)
           validator.soft_validates(instance)
@@ -1505,55 +1521,215 @@ describe Mongoff::Validator do
 
       context 'when validating keyword items' do
 
-        it 'does not raise an exception if an items embedded value is valid' do
-          instance = { embeded_array: [
-            { integer: rand(100) }
-          ] }
-          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        context 'when items schema is simple and embedded' do
+
+          it 'does not raise an exception if an items embedded value is valid' do
+            instance = { embeded_array: [
+              { integer: rand(100) },
+              { number: rand(100) + rand }
+            ] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not reports errors if a Mongoff items embedded value is valid' do
+            instance = data_type.new_from(embeded_array: [
+              { integer: rand(100) },
+              { number: rand(100) + rand }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if an items embedded value is not an array' do
+            wrong_value = 'not an array'
+            instance = { embedded_array: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array' of type String is not an instance of type array")
+          end
+
+          it 'reports errors if a Mongoff items embedded value is not an array' do
+            wrong_value = 'not an array'
+            expect {
+              data_type.new_from_json(embedded_array: wrong_value)
+            }.to raise_error(Exception, "Can not assign '#{wrong_value}' as simple content to A")
+          end
+
+          it 'raises an exception if an items embedded value is not a valid array' do
+            wrong_value = 'not a number'
+            instance = { embedded_array: [
+              { number: wrong_value }
+            ] }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array[0]/number' of type String is not an instance of type number")
+          end
+
+          it 'reports errors if a Mongoff items embedded value is not a valid array' do
+            const = CONST_SCHEMA['const']
+            wrong_const = "not #{const}"
+            maximum = MAXIMUM_SCHEMA['maximum']
+            wrong_maximum = maximum + 1
+            instance = data_type.new_from_json(embedded_array: [
+              { const: wrong_const },
+              { maximum: wrong_maximum }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors[:base]).to include('property embedded_array has errors')
+            expect(instance.embedded_array[0].errors[:const]).to include("is not the const value '#{const}'")
+            expect(instance.embedded_array[1].errors[:maximum]).to include("expected to be maximum #{maximum}")
+          end
         end
 
-        it 'does not reports errors if a Mongoff items embedded value is valid' do
-          instance = data_type.new_from(embeded_array: [
-            { integer: rand(100) }
-          ])
-          validator.soft_validates(instance)
-          expect(instance.errors.empty?).to be true
+        context 'when items schema is simple and referenced' do
+
+          it 'does not raise an exception if an items referenced value is valid' do
+            instance = { array_ref: [
+              { integer: rand(100) },
+              { number: rand(100) + rand }
+            ] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not reports errors if a Mongoff items referenced value is valid' do
+            instance = data_type.new_from(array_ref: [
+              { integer: rand(100) },
+              { number: rand(100) + rand }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if an items referenced value is not an array' do
+            wrong_value = 'not an array'
+            instance = { array_ref: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/array_ref' of type String is not an instance of type array")
+          end
+
+          it 'reports errors if a Mongoff items referenced value is not an array' do
+            wrong_value = 'not an array'
+            expect {
+              data_type.new_from_json(array_ref: wrong_value)
+            }.to raise_error(Exception, "Can not assign '#{wrong_value}' as simple content to A")
+          end
+
+          it 'raises an exception if an items referenced value is not a valid array' do
+            wrong_value = 'not a number'
+            instance = { array_ref: [
+              { number: wrong_value }
+            ] }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/array_ref[0]/number' of type String is not an instance of type number")
+          end
+
+          it 'reports errors if a Mongoff items referenced value is not a valid array' do
+            const = CONST_SCHEMA['const']
+            wrong_const = "not #{const}"
+            maximum = MAXIMUM_SCHEMA['maximum']
+            wrong_maximum = maximum + 1
+            instance = data_type.new_from_json(array_ref: [
+              { const: wrong_const },
+              { maximum: wrong_maximum }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors[:base]).to include('property array_ref has errors')
+            expect(instance.array_ref[0].errors[:const]).to include("is not the const value '#{const}'")
+            expect(instance.array_ref[1].errors[:maximum]).to include("expected to be maximum #{maximum}")
+          end
         end
 
-        it 'raises an exception if an items embedded value is not an array' do
-          wrong_value = 'not an array'
-          instance = { embedded_array: wrong_value }
-          expect {
-            validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array' of type String is not an instance of type array")
-        end
+        context 'when items schema is an array' do
 
-        it 'reports errors if a Mongoff items embedded value is not an array' do
-          wrong_value = 'not an array'
-          expect {
-            data_type.new_from_json(embedded_array: wrong_value)
-          }.to raise_error(Exception, "Can not assign '#{wrong_value}' as simple content to A")
-        end
+          it 'does not raise an exception if an items embedded value is valid' do
+            instance = { embedded_array_items: [
+              CONST_SCHEMA['const'],
+              { maximum: MAXIMUM_SCHEMA['maximum'] }
+            ] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
 
-        it 'raises an exception if an items embedded value is not a valid array' do
-          wrong_value = 'not a number'
-          instance = { embedded_array: [
-            { number: wrong_value }
-          ] }
-          expect {
-            validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array[0]/number' of type String is not an instance of type number")
-        end
+          it 'does not raise an exception if the embedded items is greater than then the schemas array' do
+            instance = { embedded_array_items: [
+              CONST_SCHEMA['const'],
+              { maximum: MAXIMUM_SCHEMA['maximum'] },
+              { minimum: MINIMUM_SCHEMA['minimum'] }
+            ] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
 
-        it 'reports errors if a Mongoff items embedded value is not a valid array' do
-          const = test_schema['properties']['const']['const']
-          wrong_value = "not #{const}"
-          instance = data_type.new_from_json(embedded_array: [
-            { const: wrong_value }
-          ])
-          validator.soft_validates(instance)
-          expect(instance.errors[:base]).to include('property embedded_array has errors')
-          expect(instance.embedded_array[0].errors[:const]).to include("is not the const value '#{const}'")
+          it 'does not raise an exception if the embedded items count is shorter than then the schemas array' do
+            instance = { embedded_array_items: [
+              CONST_SCHEMA['const']
+            ] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not reports errors if a Mongoff items embedded value is valid' do
+            instance = data_type.new_from(embedded_array_items: [
+              CONST_SCHEMA['const'],
+              { maximum: MAXIMUM_SCHEMA['maximum'] }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'does not raise an exception if the embedded items count is greater than then the schemas array' do
+            instance = data_type.new_from_json(embedded_array_items: [
+              CONST_SCHEMA['const'],
+              { maximum: MAXIMUM_SCHEMA['maximum'] },
+              { minimum: MINIMUM_SCHEMA['minimum'] }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'does not raise an exception if the embedded items count is shorter than then the schemas array' do
+            instance = data_type.new_from_json(embedded_array_items: [
+              CONST_SCHEMA['const']
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if an items embedded value is not an array' do
+            wrong_value = 'not an array'
+            instance = { embedded_array_items: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array_items' of type String is not an instance of type array")
+          end
+
+          it 'reports errors if a Mongoff items embedded value is not an array' do
+            wrong_value = 'not an array'
+            instance = data_type.new_from_json(embedded_array_items: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_array_items]).to include("Item #/embedded_array_items[0] is not the const value '#{CONST_SCHEMA['const']}'")
+          end
+
+          it 'raises an exception if an items embedded value is not a valid array' do
+            const = CONST_SCHEMA['const']
+            wrong_const = "not #{const}"
+            instance = { embedded_array_items: [
+              wrong_const
+            ] }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Item #/embedded_array_items[0] is not the const value '#{const}'")
+          end
+
+          it 'reports errors if a Mongoff items embedded value is not a valid array' do
+            maximum = MAXIMUM_SCHEMA['maximum']
+            wrong_maximum = maximum + 1
+            instance = data_type.new_from_json(embedded_array_items: [
+              CONST_SCHEMA['const'],
+              { maximum: wrong_maximum }
+            ])
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_array_items]).to include("Value '#/embedded_array_items[1]/maximum' expected to be maximum #{maximum}")
+          end
         end
       end
     end

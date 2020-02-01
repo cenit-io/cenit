@@ -387,9 +387,8 @@ module Mongoff
         raise_soft 'has errors' if has_errors
       elsif items.is_a?(Array)
         if items_schema.is_a?(Array)
-          max = [items.length, items_schema.length].max
           items.each_with_index do |item, index|
-            break if index == max
+            break unless index < items_schema.length
             item_schema = data_type.merge_schema(items_schema[index])
             begin
               validate_instance(item, options.merge(
@@ -401,7 +400,7 @@ module Mongoff
               raise_error "Item #{path}[#{index}] #{ex.message}"
             end
           end
-          state[:additional_items_index] = max
+          state[:additional_items_index] = (items.length > items_schema.length) && items_schema.length
         else
           items_schema = data_type.merge_schema(items_schema)
           items.each_with_index do |item, index|
