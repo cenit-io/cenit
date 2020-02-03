@@ -428,15 +428,17 @@ module Mongoff
 
     def check_additionalItems(items_schema, items, state, data_type, options)
       if (start_index = state[:additional_items_index]) && start_index < items.length
+        path = options[:path] || '#'
         items_schema = data_type.merge_schema(items_schema)
-        start_index.up_to(items.length - 1) do |index|
+        start_index.upto(items.length - 1) do |index|
           begin
             validate_instance(items[index], options.merge(
+              path: "#{path}[#{index}]",
               schema: items_schema,
               data_type: data_type
             ))
-          rescue Error => ex
-            raise_path_less_error "on item ##{index} (#{ex.message})"
+          rescue PathLessError => ex
+            raise_error "Item #{path}[#{index}] #{ex.message}"
           end
         end
       end

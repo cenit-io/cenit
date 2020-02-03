@@ -142,6 +142,15 @@ describe Mongoff::Validator do
           CONST_SCHEMA,
           { '$ref': 'A' }
         ]
+      },
+
+      embedded_additionalItems: {
+        type: 'array',
+        items: [
+          CONST_SCHEMA,
+          { '$ref': 'A' }
+        ],
+        additionalItems: MAXIMUM_SCHEMA
       }
     }
   }.deep_stringify_keys
@@ -1730,6 +1739,53 @@ describe Mongoff::Validator do
             validator.soft_validates(instance)
             expect(instance.errors[:embedded_array_items]).to include("Value '#/embedded_array_items[1]/maximum' expected to be maximum #{maximum}")
           end
+        end
+      end
+
+      context 'when validating keyword additionalItems' do
+
+        it 'does not raise an exception if an items embedded value is valid' do
+          instance = { embedded_additionalItems: [
+            CONST_SCHEMA['const'],
+            { number: rand(100) + rand },
+            MAXIMUM_SCHEMA['maximum'] - rand(2),
+            MAXIMUM_SCHEMA['maximum'] - rand(2)
+          ] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not reports errors if a Mongoff items embedded value is valid' do
+          instance = data_type.new_from(embedded_additionalItems: [
+            CONST_SCHEMA['const'],
+            { number: rand(100) + rand },
+            MAXIMUM_SCHEMA['maximum'] - rand(2),
+            MAXIMUM_SCHEMA['maximum'] - rand(2)
+          ])
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an items embedded value is not a valid array' do
+          instance = { embedded_additionalItems: [
+            CONST_SCHEMA['const'],
+            { number: rand(100) + rand },
+            MAXIMUM_SCHEMA['maximum'] - rand(2),
+            MAXIMUM_SCHEMA['maximum'] + 1 + rand(100)
+          ] }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Item #/embedded_additionalItems[3] expected to be maximum #{MAXIMUM_SCHEMA['maximum']}")
+        end
+
+        it 'reports errors if a Mongoff items embedded value is not a valid array' do
+          instance = data_type.new_from_json(embedded_additionalItems: [
+            CONST_SCHEMA['const'],
+            { number: rand(100) + rand },
+            MAXIMUM_SCHEMA['maximum'] - rand(2),
+            MAXIMUM_SCHEMA['maximum'] + 1 + rand(100)
+          ])
+          validator.soft_validates(instance)
+          expect(instance.errors[:embedded_additionalItems]).to include("Item #/embedded_additionalItems[3] expected to be maximum #{MAXIMUM_SCHEMA['maximum']}")
         end
       end
     end
