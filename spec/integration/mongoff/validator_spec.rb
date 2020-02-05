@@ -349,7 +349,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the maxLength value is a negative integer' do
-          schema = { maxLength: -rand(100) }
+          schema = { maxLength: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -457,7 +457,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the maxItems value is a negative integer' do
-          schema = { maxItems: -rand(100) }
+          schema = { maxItems: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -475,7 +475,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the minItems value is a negative integer' do
-          schema = { minItems: -rand(100) }
+          schema = { minItems: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -519,7 +519,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the maxContains value is a negative integer' do
-          schema = { maxContains: -rand(100) }
+          schema = { maxContains: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -537,7 +537,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the minContains value is a negative integer' do
-          schema = { minContains: -rand(100) }
+          schema = { minContains: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -558,7 +558,7 @@ describe Mongoff::Validator do
         end
 
         it 'raises an exception if the maxProperties value is a negative integer' do
-          schema = { maxProperties: -rand(100) }
+          schema = { maxProperties: -1 - rand(100) }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -1935,8 +1935,7 @@ describe Mongoff::Validator do
           it 'does not raise an exception if a Mongoff minItems instance size is not minimum' do
             size = min_items_schema['minItems'] + 1 + rand(5)
             instance = data_type.new_from(
-              { embedded_minItems: Array(1..size) },
-              add_only: true
+              { embedded_minItems: Array(1..size) }
             )
             expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
           end
