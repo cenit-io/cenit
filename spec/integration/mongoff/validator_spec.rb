@@ -200,6 +200,18 @@ describe Mongoff::Validator do
           '$ref': 'A',
           required: %w(const)
         }
+      },
+
+      maxContains: {
+        type: 'array',
+        contains: const_schema,
+        maxContains: max_contains = 5 + rand(10)
+      },
+
+      minContains: {
+        type: 'array',
+        contains: const_schema,
+        minContains: min_contains = 10 + rand(5)
       }
     }
   }.deep_stringify_keys
@@ -2187,6 +2199,145 @@ describe Mongoff::Validator do
         end
       end
 
+      context 'when validating keyword maxContains' do
+
+        it 'does not raise an exception if a maxContains value is valid' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 1 + rand(10)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(max_contains - 1 - rand(3)).each { |i| items[i] = const }
+          instance = { maxContains: items }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maxContains value is valid' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 1 + rand(10)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(max_contains - 1 - rand(3)).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            maxContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if a maxContains value is maximum' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 1 + rand(10)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(max_contains).each { |i| items[i] = const }
+          instance = { maxContains: items }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff maxContains value is maximum' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 1 + rand(10)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(max_contains).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            maxContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if a maxContains value is not valid' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(contains = max_contains + 1 + rand(4)).each { |i| items[i] = const }
+          instance = {
+            maxContains: items
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/maxContains' has too much items (#{contains} for #{max_contains} max) matching the contains schema")
+        end
+
+        it 'reports errors if a Mongoff maxContains value is not valid' do
+          const = const_schema['const']
+          indices = Array(1..(max_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(contains = max_contains + 1 + rand(4)).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            maxContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:maxContains]).to include("has too much items (#{contains} for #{max_contains} max) matching the contains schema")
+        end
+      end
+
+      context 'when validating keyword minContains' do
+
+        it 'does not raise an exception if a minContains value is valid' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(min_contains + 1 + rand(4)).each { |i| items[i] = const }
+          instance = { minContains: items }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff minContains value is valid' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(min_contains + 1 + rand(4)).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            minContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if a minContains value is minimum' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(min_contains).each { |i| items[i] = const }
+          instance = { minContains: items }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff minContains value is minimum' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 1 + rand(10)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(min_contains).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            minContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if a minContains value is not valid' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(contains = min_contains - 1 - rand(4)).each { |i| items[i] = const }
+          instance = {
+            minContains: items
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/minContains' has too few items (#{contains} for #{min_contains} min) matching the contains schema")
+        end
+
+        it 'reports errors if a Mongoff minContains value is not valid' do
+          const = const_schema['const']
+          indices = Array(1..(min_contains + 5 + rand(5)))
+          items = indices.map { |i| "not #{const} #{i}" }
+          indices.take(contains = min_contains - 1 - rand(4)).each { |i| items[i] = const }
+          instance = data_type.new_from(
+            minContains: items
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:minContains]).to include("has too few items (#{contains} for #{min_contains} min) matching the contains schema")
+        end
+      end
     end
   end
 end
