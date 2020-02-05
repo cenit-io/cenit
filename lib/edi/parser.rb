@@ -299,23 +299,22 @@ module Edi
               taken_items << property_name if json.has_key?(name)
               case property_schema['type']
               when 'array'
-                association = record.send(property_name)
-                next unless updating || association.blank?
-                property_value = json[name]
-                sub_values =
-                  if updating_associations.include?(property_name)
-                    []
-                  elsif resetting.include?(property_name) || !options[:add_only]
-                    if property_value.nil? || association.nil?
-                      record.send("#{property_name}=", [])
-                      association = record.send(property_name)
-                      nil
-                    elsif association.present?
+                if (property_value = json[name])
+                  association = record.send(property_name)
+                  next unless updating || association.blank?
+                  sub_values =
+                    if updating_associations.include?(property_name)
                       []
+                    elsif resetting.include?(property_name) || !options[:add_only]
+                      if property_value.nil? || association.nil?
+                        record.send("#{property_name}=", [])
+                        association = record.send(property_name)
+                        nil
+                      elsif association.present?
+                        []
+                      end
                     end
-                  end
-                items_schema = data_type.merge_schema(property_schema['items'] || {})
-                if property_value
+                  items_schema = data_type.merge_schema(property_schema['items'] || {})
                   property_value = [property_value] unless property_value.is_a?(Array)
                   persist = property_model&.persistable?
                   property_value.each do |sub_value|

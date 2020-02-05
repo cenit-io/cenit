@@ -214,7 +214,9 @@ module Cenit
         visited << record
         block.yield(record) if block
         if (orm_model = record.try(:orm_model))
+          stored_properties = orm_model.stored_properties_on(record)
           orm_model.for_each_association do |relation|
+            next unless stored_properties.include?(relation[:name].to_s)
             if (values = record.send(relation[:name]))
               stack << { record: record, attribute: relation[:name], referenced: !relation[:embedded] } if stack
               values = [values] unless values.is_a?(Enumerable)
