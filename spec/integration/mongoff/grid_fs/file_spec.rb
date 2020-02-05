@@ -2,21 +2,21 @@ require 'spec_helper'
 
 describe Mongoff::GridFs::File do
 
-  TEST_NAMESPACE = 'Mongoff GridFS Test'
+  test_namespace = 'Mongoff GridFS Test'
 
   before :all do
     Setup::FileDataType.create(
-        namespace: TEST_NAMESPACE,
+        namespace: test_namespace,
         name: 'File'
     )
   end
 
   let! :file_data_type do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'File').first
+    Setup::DataType.where(namespace: test_namespace, name: 'File').first
   end
 
   let! :file_model do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'File').first.records_model
+    Setup::DataType.where(namespace: test_namespace, name: 'File').first.records_model
   end
 
   let! :small_data do

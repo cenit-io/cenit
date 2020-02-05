@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Mongoff::Record do
-  TEST_NAMESPACE = 'Mongoff Test'
+  test_namespace = 'Mongoff Test'
 
   B_JSON_SAMPLE = {
     a_nested: {
@@ -54,7 +54,7 @@ describe Mongoff::Record do
 
   before :all do
     data_type_a = Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+      namespace: test_namespace,
       name: 'A',
       schema: {
         type: 'object',
@@ -95,7 +95,7 @@ describe Mongoff::Record do
     )
 
     data_type_b = Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+      namespace: test_namespace,
       name: 'B',
       schema: {
         type: 'object',
@@ -135,20 +135,20 @@ describe Mongoff::Record do
       }
     )
 
-    a_loaded = data_type_a.create_from(loaded: true)
-    b_loaded = data_type_b.create_from(loaded: true)
+    a_loaded = data_type_a.create_from!(name: 'A loaded', loaded: true)
+    b_loaded = data_type_b.create_from!(name: 'B loaded', loaded: true)
 
     data_type_a.create_from(A_JSON_SAMPLE.merge(id: a_loaded.id, loaded: true))
 
-    data_type_b.create_from(B_JSON_SAMPLE.merge(id: b_loaded.id, loaded: true))
+    data_type_b.create_from!(B_JSON_SAMPLE.merge(id: b_loaded.id, loaded: true))
   end
 
   let! :data_type_a do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'A').first
+    Setup::DataType.where(namespace: test_namespace, name: 'A').first
   end
 
   let! :data_type_b do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'B').first
+    Setup::DataType.where(namespace: test_namespace, name: 'B').first
   end
 
   let :new_record_a do

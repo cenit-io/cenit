@@ -2,19 +2,19 @@ require 'rails_helper'
 
 describe Setup::ErbTemplate do
 
-  TEST_NAMESPACE = 'ERB Template Test'
+  test_namespace = 'ERB Template Test'
   TEST_NAME = 'Test'
 
   before :all do
     Setup::ErbTemplate.create(
-      namespace: TEST_NAMESPACE,
+      namespace: test_namespace,
       name: TEST_NAME,
       code: "<%= value %>"
     )
   end
 
   let! :test_template do
-    Setup::ErbTemplate.where(namespace: TEST_NAMESPACE, name: TEST_NAME).first
+    Setup::ErbTemplate.where(namespace: test_namespace, name: TEST_NAME).first
   end
 
   context "when executed" do

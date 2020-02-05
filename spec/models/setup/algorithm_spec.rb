@@ -2,11 +2,11 @@ require 'rails_helper'
 
 describe Setup::Algorithm do
 
-  TEST_NAMESPACE = 'Algorithm Test'
+  test_namespace = 'Algorithm Test'
 
   before :all do
     Setup::Algorithm.create(
-      namespace: TEST_NAMESPACE,
+      namespace: test_namespace,
       name: 'test',
       language: :ruby,
       code: "'Test'"
@@ -14,14 +14,14 @@ describe Setup::Algorithm do
   end
 
   let! :test do
-    Setup::Algorithm.where(namespace: TEST_NAMESPACE, name: 'test').first
+    Setup::Algorithm.where(namespace: test_namespace, name: 'test').first
   end
 
   context "regardless configuration options" do
 
     it "link calls to other algorithms in the same namespace" do
       n = 5 + rand(5)
-      ns = "#{TEST_NAMESPACE} SAME"
+      ns = "#{test_namespace} SAME"
       alg = Setup::Algorithm.create(
         namespace: ns,
         name: 'alg_0',
@@ -44,7 +44,7 @@ describe Setup::Algorithm do
 
     it "link calls to other algorithms with different namespaces" do
       n = 5 + rand(5)
-      ns = "#{TEST_NAMESPACE} X"
+      ns = "#{test_namespace} X"
       alg = Setup::Algorithm.create(
         namespace: ns,
         name: 'alg_0',
