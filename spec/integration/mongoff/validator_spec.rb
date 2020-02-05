@@ -184,6 +184,22 @@ describe Mongoff::Validator do
       embedded_not_uniqueItems: {
         type: 'array',
         uniqueItems: false
+      },
+
+      embedded_contains: {
+        type: 'array',
+        contains: const_schema
+      },
+
+      ref_contains: {
+        type: 'array',
+        items: {
+          '$ref': 'A'
+        },
+        contains: {
+          '$ref': 'A',
+          required: %w(const)
+        }
       }
     }
   }.deep_stringify_keys
@@ -2087,6 +2103,90 @@ describe Mongoff::Validator do
           expect(instance.errors[:embedded_uniqueItems]).to include("contains repeated items")
         end
       end
+
+      context 'when validating keyword contains' do
+
+        context 'when items schema is embedded' do
+
+          it 'does not raise an exception if a contains embedded value is valid' do
+            const = const_schema['const']
+            items = Array(1..(5 + rand(10))).map { |i| "not #{const} #{i}" }
+            items[rand(items.length - 1)] = const
+            instance = { embedded_contains: items }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff contains embedded value is valid' do
+            const = const_schema['const']
+            items = Array(1..(5 + rand(10))).map { |i| "not #{const} #{i}" }
+            items[rand(items.length - 1)] = const
+            instance = data_type.new_from(
+              embedded_contains: items
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a contains embedded value is not valid' do
+            const = const_schema['const']
+            instance = {
+              embedded_contains: Array(1..(5 + rand(10))).map { |i| "not #{const} #{i}" }
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_contains' have no items matching the contains schema")
+          end
+
+          it 'reports errors if a Mongoff contains embedded value is not valid' do
+            const = const_schema['const']
+            instance = data_type.new_from(
+              embedded_contains: Array(1..(5 + rand(10))).map { |i| "not #{const} #{i}" }
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_contains]).to include('have no items matching the contains schema')
+          end
+        end
+
+        context 'when items schema is referenced' do
+
+          it 'does not raise an exception if a contains referenced value is valid' do
+            const = const_schema['const']
+            items = Array.new(5 + rand(10), {})
+            items[rand(items.length - 1)] = { const: const }
+            instance = { ref_contains: items }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff contains referenced value is valid' do
+            const = const_schema['const']
+            items = Array.new(5 + rand(10), {})
+            items[rand(items.length - 1)] = { const: const }
+            instance = data_type.new_from(
+              ref_contains: items
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a contains referenced value is not valid' do
+            instance = {
+              ref_contains: Array.new(5 + rand(10), {})
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_contains' have no items matching the contains schema")
+          end
+
+          it 'reports errors if a Mongoff contains referenced value is not valid' do
+            instance = data_type.new_from(
+              ref_contains: Array.new(5 + rand(10), {})
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:ref_contains]).to include('have no items matching the contains schema')
+          end
+        end
+      end
+
     end
   end
 end

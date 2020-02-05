@@ -69,7 +69,7 @@ module Mongoff
         visited = options[:visited] = Set.new
       end
       unless (soft_checked = visited.include?(instance))
-        visited << instance if instance.is_a?(Mongoff::Record)
+        visited << instance if (mongoff = instance.is_a?(Mongoff::Record))
         data_type = options[:data_type] || instance.orm_model.data_type
         schema = options[:schema] || data_type.schema
         state = {}
@@ -97,6 +97,7 @@ module Mongoff
             end
           end
         end
+        visited.delete(instance) if mongoff
       end
     ensure
       _check_soft_errors(instance) unless soft_checked
@@ -503,7 +504,7 @@ module Mongoff
           next
         end
       end
-      raise_path_less_error 'no item match against the contains schema' if contains == 0
+      raise_path_less_error 'have no items matching the contains schema' if contains == 0
       state[:contains] = contains
     end
 
@@ -550,15 +551,14 @@ module Mongoff
         has_errors = false
         stored_properties = instance.orm_model.stored_properties_on(instance)
         properties.each do |property|
-          unless stored_properties.include?(property)
-            has_errors = true
-            _handle_error(instance, 'is required', property)
-          end
+          next if stored_properties.include?(property.to_s)
+          has_errors = true
+          _handle_error(instance, 'is required', property)
         end
         raise_soft 'has errors' if has_errors
       elsif instance.is_a?(Hash)
         required = properties.select do |property|
-          !instance.key?(property)
+          !(instance.key?(property.to_s) || instance.key?(property.to_sym))
         end
         unless required.empty?
           if required.length == 1
