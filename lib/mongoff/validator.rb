@@ -451,7 +451,7 @@ module Mongoff
 
     def check_maxItems(max, items)
       if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
-        raise_path_less_error "has too many items (#{instance.count} of #{max} max)" if items.count > max
+        raise_path_less_error "has too many items (#{items.count} of #{max} max)" if items.count > max
       end
     end
 
@@ -462,7 +462,7 @@ module Mongoff
 
     def check_minItems(min, items)
       if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
-        raise_path_less_error "has too few items (#{instance.count} for #{min} min)" if items.count < min
+        raise_path_less_error "has too few items (#{items.count} for #{min} min)" if items.count < min
       end
     end
 

@@ -151,7 +151,27 @@ describe Mongoff::Validator do
           { '$ref': 'A' }
         ],
         additionalItems: MAXIMUM_SCHEMA
-      }
+      },
+
+      embedded_maxItems: MAX_ITEMS_SCHEMA = {
+        type: 'array',
+        maxItems: 5 + rand(10)
+      }.stringify_keys,
+
+      ref_maxItems: MAX_ITEMS_SCHEMA.merge(
+        items: { '$ref': 'A' },
+        referenced: true
+      ).stringify_keys,
+
+      embedded_minItems: MIN_ITEMS_SCHEMA = {
+        type: 'array',
+        minItems: 5 + rand(10)
+      }.stringify_keys,
+
+      ref_minItems: MIN_ITEMS_SCHEMA.merge(
+        items: { '$ref': 'A' },
+        referenced: true
+      ).stringify_keys
     }
   }.deep_stringify_keys
 
@@ -1786,6 +1806,229 @@ describe Mongoff::Validator do
           ])
           validator.soft_validates(instance)
           expect(instance.errors[:embedded_additionalItems]).to include("Item #/embedded_additionalItems[3] expected to be maximum #{MAXIMUM_SCHEMA['maximum']}")
+        end
+      end
+
+      context 'when validating keyword maxItems' do
+
+        context 'when items schema is embedded' do
+
+          it 'does not raise an exception if a maxItems instance size is not maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems'] - 1 - rand(5)
+            instance = {
+              embedded_maxItems: Array(1..size)
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxItems instance size is not maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems'] - 1 - rand(5)
+            instance = data_type.new_from(
+              embedded_maxItems: Array(1..size)
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a maxItems instance size is maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems']
+            instance = {
+              embedded_maxItems: Array(1..size)
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxItems instance size is maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems']
+            instance = data_type.new_from(
+              embedded_maxItems: Array(1..size)
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a maxItems instance overflows' do
+            wrong_size = MAX_ITEMS_SCHEMA['maxItems'] + 1 + rand(10)
+            instance = {
+              embedded_maxItems: Array(1..wrong_size)
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_maxItems' has too many items (#{wrong_size} of #{MAX_ITEMS_SCHEMA['maxItems']} max)")
+          end
+
+          it 'raises an exception if a Mongoff maxItems instance overflows' do
+            wrong_size = MAX_ITEMS_SCHEMA['maxItems'] + 1 + rand(10)
+            instance = data_type.new_from_json(
+              embedded_maxItems: Array(1..wrong_size)
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_maxItems]).to include("has too many items (#{wrong_size} of #{MAX_ITEMS_SCHEMA['maxItems']} max)")
+          end
+        end
+
+        context 'when items schema is referenced' do
+
+          it 'does not raise an exception if a maxItems instance size is not maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems'] - 1 - rand(5)
+            instance = {
+              ref_maxItems: Array(1..size).map { |i| { integer: i } }
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxItems instance size is not maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems'] - 1 - rand(5)
+            instance = data_type.new_from(
+              ref_maxItems: Array(1..size).map { |i| { integer: i } }
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a maxItems instance size is maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems']
+            instance = {
+              ref_maxItems: Array(1..size).map { |i| { integer: i } }
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxItems instance size is maximum' do
+            size = MAX_ITEMS_SCHEMA['maxItems']
+            instance = data_type.new_from(
+              ref_maxItems: Array(1..size).map { |i| { integer: i } }
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a maxItems instance overflows' do
+            wrong_size = MAX_ITEMS_SCHEMA['maxItems'] + 1 + rand(10)
+            instance = {
+              ref_maxItems: Array(1..wrong_size).map { |i| { integer: i } }
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_maxItems' has too many items (#{wrong_size} of #{MAX_ITEMS_SCHEMA['maxItems']} max)")
+          end
+
+          it 'raises an exception if a Mongoff maxItems instance overflows' do
+            wrong_size = MAX_ITEMS_SCHEMA['maxItems'] + 1 + rand(10)
+            instance = data_type.new_from_json(
+              ref_maxItems: Array(1..wrong_size).map { |i| { integer: i } }
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:ref_maxItems]).to include("has too many items (#{wrong_size} of #{MAX_ITEMS_SCHEMA['maxItems']} max)")
+          end
+        end
+      end
+
+      context 'when validating keyword minItems' do
+
+        context 'when items schema is embedded' do
+
+          it 'does not raise an exception if a minItems instance size is not minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems'] + 1 + rand(5)
+            instance = {
+              embedded_minItems: Array(1..size)
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minItems instance size is not minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems'] + 1 + rand(5)
+            instance = data_type.new_from(
+              { embedded_minItems: Array(1..size) },
+              add_only: true
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a minItems instance size is minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems']
+            instance = {
+              embedded_minItems: Array(1..size)
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minItems instance size is minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems']
+            instance = data_type.new_from(
+              embedded_minItems: Array(1..size)
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a minItems instance underflows' do
+            wrong_size = MIN_ITEMS_SCHEMA['minItems'] - 1 - rand(5)
+            instance = {
+              embedded_minItems: Array(1..wrong_size)
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_minItems' has too many items (#{wrong_size} of #{MIN_ITEMS_SCHEMA['minItems']} max)")
+          end
+
+          it 'raises an exception if a Mongoff minItems instance underflows' do
+            wrong_size = MIN_ITEMS_SCHEMA['minItems'] - 1 - rand(5)
+            instance = data_type.new_from_json(
+              embedded_minItems: Array(1..wrong_size)
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_minItems]).to include("has too many items (#{wrong_size} of #{MIN_ITEMS_SCHEMA['minItems']} max)")
+          end
+        end
+
+        context 'when items schema is referenced' do
+
+          it 'does not raise an exception if a minItems instance size is not minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems'] + 1 + rand(5)
+            instance = {
+              ref_minItems: Array(1..size).map { |i| { integer: i } }
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minItems instance size is not minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems'] + 1 + rand(5)
+            instance = data_type.new_from(
+              ref_minItems: Array(1..size).map { |i| { integer: i } }
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a minItems instance size is minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems']
+            instance = {
+              ref_minItems: Array(1..size).map { |i| { integer: i } }
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minItems instance size is minimum' do
+            size = MIN_ITEMS_SCHEMA['minItems']
+            instance = data_type.new_from(
+              ref_minItems: Array(1..size).map { |i| { integer: i } }
+            )
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a minItems instance underflows' do
+            wrong_size = MIN_ITEMS_SCHEMA['minItems'] - 1 - rand(10)
+            instance = {
+              ref_minItems: Array(1..wrong_size).map { |i| { integer: i } }
+            }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_minItems' has too many items (#{wrong_size} of #{MIN_ITEMS_SCHEMA['minItems']} max)")
+          end
+
+          it 'raises an exception if a Mongoff minItems instance underflows' do
+            wrong_size = MIN_ITEMS_SCHEMA['minItems'] - 1 - rand(10)
+            instance = data_type.new_from_json(
+              ref_minItems: Array(1..wrong_size).map { |i| { integer: i } }
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors[:ref_minItems]).to include("has too many items (#{wrong_size} of #{MIN_ITEMS_SCHEMA['minItems']} max)")
+          end
         end
       end
     end
