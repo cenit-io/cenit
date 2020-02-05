@@ -470,10 +470,10 @@ module Mongoff
       _check_type(:uniqueItems, unique, Boolean)
     end
 
-    def check_uniqueItems(min, items)
-      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+    def check_uniqueItems(unique, items)
+      if unique && (items.is_a?(Mongoff::RecordArray) || items.is_a?(Array))
         set = Set.new(items)
-        raise_path_less_error "items are not unique" if set.count < items.count
+        raise_path_less_error 'contains repeated items' if set.count < items.count
       end
     end
 

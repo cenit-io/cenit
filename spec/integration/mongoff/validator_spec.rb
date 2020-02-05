@@ -6,6 +6,9 @@ describe Mongoff::Validator do
   test_schema = {
     type: 'object',
     properties: {
+      id: {
+        # TODO If not declared then parsed id from JSON is ignored (fix it!)
+      },
       null: {
         type: 'null'
       },
@@ -171,7 +174,17 @@ describe Mongoff::Validator do
       ref_minItems: min_items_schema.merge(
         items: { '$ref': 'A' },
         referenced: true
-      ).stringify_keys
+      ).stringify_keys,
+
+      embedded_uniqueItems: {
+        type: 'array',
+        uniqueItems: true
+      },
+
+      embedded_not_uniqueItems: {
+        type: 'array',
+        uniqueItems: false
+      }
     }
   }.deep_stringify_keys
 
@@ -978,12 +991,12 @@ describe Mongoff::Validator do
       context 'when validating keyword maximum' do
 
         it 'does not raise an exception if a JSON maximum instance is valid' do
-          instance = { maximum: maximum_schema['maximum'] -1- rand(1) }
+          instance = { maximum: maximum_schema['maximum'] - 1 - rand(1) }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff maximum instance is valid' do
-          instance = data_type.new_from(maximum: maximum_schema['maximum'] -1- rand(1))
+          instance = data_type.new_from(maximum: maximum_schema['maximum'] - 1 - rand(1))
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
@@ -1560,7 +1573,7 @@ describe Mongoff::Validator do
             expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
           end
 
-          it 'does not reports errors if a Mongoff items embedded value is valid' do
+          it 'does not report errors if a Mongoff items embedded value is valid' do
             instance = data_type.new_from(embeded_array: [
               { integer: rand(100) },
               { number: rand(100) + rand }
@@ -1620,7 +1633,7 @@ describe Mongoff::Validator do
             expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
           end
 
-          it 'does not reports errors if a Mongoff items referenced value is valid' do
+          it 'does not report errors if a Mongoff items referenced value is valid' do
             instance = data_type.new_from(array_ref: [
               { integer: rand(100) },
               { number: rand(100) + rand }
@@ -1696,7 +1709,7 @@ describe Mongoff::Validator do
             expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
           end
 
-          it 'does not reports errors if a Mongoff items embedded value is valid' do
+          it 'does not report errors if a Mongoff items embedded value is valid' do
             instance = data_type.new_from(embedded_array_items: [
               const_schema['const'],
               { maximum: maximum_schema['maximum'] }
@@ -1774,7 +1787,7 @@ describe Mongoff::Validator do
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
-        it 'does not reports errors if a Mongoff items embedded value is valid' do
+        it 'does not report errors if a Mongoff items embedded value is valid' do
           instance = data_type.new_from(embedded_additionalItems: [
             const_schema['const'],
             { number: rand(100) + rand },
@@ -2028,6 +2041,50 @@ describe Mongoff::Validator do
             validator.soft_validates(instance)
             expect(instance.errors[:ref_minItems]).to include("has too few items (#{wrong_size} for #{min_items_schema['minItems']} min)")
           end
+        end
+      end
+
+      context 'when validating keyword uniqueItems' do
+
+        it 'does not raise an exception if an uniqueItems embedded value is valid' do
+          instance = { embedded_uniqueItems: [1, '2', 'three', false] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not raise an exception if a not uniqueItems embedded value is valid' do
+          instance = { embedded_not_uniqueItems: [1, '2', 'three', 1] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff uniqueItems embedded value is valid' do
+          instance = data_type.new_from(
+            embedded_uniqueItems: [1, '2', 'three', false]
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not report errors if a Mongoff not uniqueItems embedded value is valid' do
+          instance = data_type.new_from(
+            embedded_not_uniqueItems: [1, '2', 'three', 1]
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an uniqueItems embedded value is not valid' do
+          instance = { embedded_uniqueItems: [1, '2', 'three', 1] }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_uniqueItems' contains repeated items")
+        end
+
+        it 'reports errors if a Mongoff uniqueItems embedded value is not valid' do
+          instance = data_type.new_from(
+            embedded_uniqueItems: [1, '2', 'three', 1]
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:embedded_uniqueItems]).to include("contains repeated items")
         end
       end
     end
