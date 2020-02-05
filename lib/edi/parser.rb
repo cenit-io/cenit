@@ -436,7 +436,7 @@ module Edi
               end
             end
           else
-            fail "Can not assign #{json} as simple content to #{data_type.name}"
+            fail "Can not assign '#{json}' as simple content to #{data_type.name}"
           end
         end
         record.try(:run_after_initialized)

@@ -93,6 +93,17 @@ module Mongoff
         # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
         Mongoff::Validator.soft_validates(self, skip_nulls: true)
+        mongoff_errors = errors.present? && errors.full_messages.to_sentence
+        errors.clear
+        orm_model.fully_validate_against_schema(attributes).each do |error|
+          errors.add(:base, error[:message])
+        end
+        if mongoff_errors && !errors.present?
+          Setup::SystemReport.create_with(
+            message: "Mongoff Validator ERRORS: #{mongoff_errors}",
+            type: :warning
+          )
+        end
         @validated = true
       end
     end
@@ -169,7 +180,7 @@ module Mongoff
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       field_metadata_2 = {}
       attribute_assigning = !orm_model.property?(attribute_key) && attribute_key == field &&
-                            (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
+        (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
       field =
         if field
           field_metadata = field_metadata_2 if field_metadata.blank?

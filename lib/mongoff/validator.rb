@@ -1,8 +1,13 @@
 # This implementation try to follow the JSON Schema Validation specification described at
 #
+# https://json-schema.org/draft/2019-09/json-schema-core.html
+#
 # https://json-schema.org/draft/2019-09/json-schema-validation.html
 #
 #
+
+require 'resolv'
+
 module Mongoff
   module Validator
     extend self
@@ -14,11 +19,11 @@ module Mongoff
     # String
     STRING_KEYWORDS = %w(maxLength minLength pattern)
     # Array
-    ARRAY_KEYWORDS = %w(items additionalItems maxItems minItems uniqueItems contains)
+    ARRAY_KEYWORDS = %w(items additionalItems maxItems minItems uniqueItems contains maxContains minContains)
     # Object
-    OBJECT_KEYWORDS = %w(maxProperties minProperties required properties patternProperties additionalProperties dependencies propertyNames)
+    OBJECT_KEYWORDS = %w(maxProperties minProperties required dependentRequired properties patternProperties additionalProperties propertyNames)
     # Conditional
-    CONDITIONAL_KEYWORDS = %w(if then else)
+    CONDITIONAL_KEYWORDS = %w(if then else dependentSchemas)
     # Logic
     LOGIC_KEYWORDS = %w(allOf anyOf oneOf not)
     # Format
@@ -43,7 +48,7 @@ module Mongoff
 
     def soft_validates(instance, options = {})
       validate_instance(instance, options)
-    rescue Exception => ex
+    rescue Error => ex
       _handle_error(instance, ex)
     ensure
       _check_soft_errors(instance)
@@ -51,28 +56,22 @@ module Mongoff
 
     def _check_soft_errors(instance)
       if instance&.instance_variable_defined?(:@__soft_errors) &&
-         (soft_errors = instance.remove_instance_variable(:@__soft_errors)) &&
-         instance.errors.blank?
+        (soft_errors = instance.remove_instance_variable(:@__soft_errors)) &&
+        instance.errors.blank?
         soft_errors.each do |property, msg|
           instance.errors.add(:base, "property #{property} #{msg}")
         end
       end
     end
 
-    def validate_instance(instance, *args)
-      options =
-        if args.last.is_a?(Hash)
-          args.pop
-        else
-          {}
-        end
+    def validate_instance(instance, options = {})
       unless (visited = options[:visited])
         visited = options[:visited] = Set.new
       end
       unless (soft_checked = visited.include?(instance))
         visited << instance
-        schema = args[0] || instance.orm_model.schema
-        data_type = args[1] || instance.orm_model.data_type
+        data_type = options[:data_type] || instance.orm_model.data_type
+        schema = options[:schema] || data_type.schema
         state = {}
         validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
         prefixes = %w(check)
@@ -103,10 +102,20 @@ module Mongoff
       _check_soft_errors(instance) unless soft_checked
     end
 
+    def is_valid?(schema)
+      begin
+        validate(schema)
+        true
+      rescue
+        false
+      end
+    end
+
     def validate(schema)
+      _check_type(:schema, schema, Hash)
       schema.each do |key, key_value|
         key_method = "check_schema_#{key}".to_sym
-        if respond_to(key_method)
+        if respond_to?(key_method)
           send(key_method, key_value)
         end
       end
@@ -123,7 +132,17 @@ module Mongoff
     }
 
     def check_schema_type(type)
-      raise "Invalid schema type #{type}" unless type.nil? || TYPE_MAP.key?(type.to_s.to_sym)
+      raise_path_less_error "Invalid schema type #{type}" unless type.nil? || TYPE_MAP.key?(type.to_s.to_sym)
+    end
+
+    # Default Behavior
+
+    def check_schema_default(default)
+      raise_path_less_error "Invalid default value of type #{default.class}, JSON value is expected" unless ::Cenit::Utility.json_object?(default)
+    end
+
+    def check_default(_default, _instance)
+      # Nothing to do here
     end
 
     # Validation Keywords for Any Instance Type
@@ -158,149 +177,268 @@ module Mongoff
           else
             TYPE_MAP[type]
           end
-        raise "of type #{instance.class} is not an instance for type #{type}" unless instance.is_a?(super_type)
+        raise_path_less_error "of type #{instance.class} is not an instance of type #{type}" unless instance.is_a?(super_type)
       else
-        raise "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
+        raise_path_less_error "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
       end
     end
 
     def check_schema_enum(enum)
-      raise "Invalid schema enum of type #{enum.class}, array is expected" unless enum.is_a?(Array)
+      raise_path_less_error "Invalid enum schema of type #{enum.class}, array is expected" unless enum.is_a?(Array)
+      raise_path_less_error "Empty enum array is not allowed" if enum.length === 0
+      raise_path_less_error "Enum elements are not unique" unless enum.uniq.length == enum.length
     end
 
     def check_enum(enum, instance)
-      raise "is not included in the enumeration" unless enum.include?(instance)
+      raise_path_less_error "is not included in the enumeration" unless enum.include?(instance)
+    end
+
+    def check_schema_const(const)
+      raise_path_less_error "Invalid const schema of type #{const.class}, JSON value is expected" unless ::Cenit::Utility.json_object?(const)
     end
 
     def check_const(const, instance)
-      raise "is not the const value #{const}" unless const == instance
+      raise_path_less_error "is not the const value '#{const}'" unless const == instance
     end
 
     # Validation Keywords for Numeric Instances (number and integer)
 
     def check_schema_multipleOf(value)
       _check_type(:multipleOf, value, Numeric)
-      raise "Invalid value for multipleOf, strictly greater than zero is expected" unless value.positive?
+      raise_path_less_error "Invalid value for multipleOf, strictly greater than zero is expected" unless value.positive?
     end
 
     def check_multipleOf(value, instance)
-      raise "is not multiple of #{value}" if instance.is_a?(Numeric) && instance % value != 0
+      raise_path_less_error "is not multiple of #{value}" if instance.is_a?(Numeric) && (instance / value).modulo(1) != 0
     end
 
     def check_schema_maximum(value)
       _check_type(:maximum, value, Numeric)
     end
 
-    def check_maximum(value, instance, state)
-      raise "maximum is #{value}" if instance.is_a?(Numeric) && instance > value
-      state[:maximum] = value
+    def check_maximum(value, instance)
+      raise_path_less_error "expected to be maximum #{value}" if instance.is_a?(Numeric) && instance > value
     end
 
     def check_schema_exclusiveMaximum(value)
-      _check_type(:exclusiveMaximum, value, Boolean)
+      _check_type(:exclusiveMaximum, value, Numeric)
     end
 
-    def check_exclusiveMaximum(value, instance, state)
-      raise "must be strictly less than #{value}" if value && (maximum = state[:maximum]) && instance.is_a?(Numeric) && instance >= maximum
+    def check_exclusiveMaximum(value, instance)
+      raise_path_less_error "must be strictly less than #{value}" if instance.is_a?(Numeric) && instance >= value
     end
 
     def check_schema_minimum(value)
       _check_type(:minimum, value, Numeric)
     end
 
-    def check_minimum(value, instance, state)
-      raise "minimum is #{value}" if instance.is_a?(Numeric) && instance < value
-      state[:minimum] = value
+    def check_minimum(value, instance)
+      raise_path_less_error "expected to be minimum #{value}" if instance.is_a?(Numeric) && instance < value
     end
 
     def check_schema_exclusiveMinimum(value)
-      _check_type(:exclusiveMinimum, value, Boolean)
+      _check_type(:exclusiveMinimum, value, Numeric)
     end
 
-    def check_exclusiveMinimum(value, instance, state)
-      raise "must be strictly greater than #{value}" if value && (minimum = state[:minimum]) && instance.is_a?(Numeric) && instance <= minimum
+    def check_exclusiveMinimum(value, instance)
+      raise_path_less_error "must be strictly greater than #{value}" if instance.is_a?(Numeric) && instance <= value
     end
 
     # Validation Keywords for Strings
 
     def check_schema_maxLength(value)
       _check_type(:maxLength, value, Integer)
-      raise "Invalid value for maxLength, a non negative value is expected" if value.negative?
+      raise_path_less_error "Invalid value for maxLength, a non negative value is expected" if value.negative?
     end
 
     def check_maxLength(value, instance)
-      raise "is too long (#{instance.length} of #{value} max)" if instance.is_a?(String) && instance.length > value
+      raise_path_less_error "is too long (#{instance.length} of #{value} max)" if instance.is_a?(String) && instance.length > value
     end
 
     def check_schema_minLength(value)
       _check_type(:maxLength, value, Integer)
-      raise "Invalid value for minLength, a non negative value is expected" if value.negative?
+      raise_path_less_error "Invalid value for minLength, a non negative value is expected" if value.negative?
     end
 
     def check_minLength(value, instance)
-      raise "is too short (#{instance.length} for #{value} min)" if instance.is_a?(String) && instance.length < value
+      raise_path_less_error "is too short (#{instance.length} of #{value} min)" if instance.is_a?(String) && instance.length < value
     end
 
     def check_schema_pattern(value)
       _check_type(:pattern, value, String)
+      begin
+        Regexp.new(value)
+      rescue Exception => ex
+        raise_path_less_error "Pattern value '#{value}' is not a regular expression: #{ex.message}"
+      end
     end
 
     def check_pattern(value, instance)
-      raise "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
+      raise_path_less_error "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
     end
 
-    def check_schema_format(value)
-      _check_type(:format, value, String)
+    FORMATS = %w(date date-time time email hostname ipv4 ipv6 uri uuid)
+
+    def check_schema_format(format)
+      _check_type(:format, format, String)
+      raise_path_less_error "format #{format} is not supported" unless FORMATS.include?(format)
     end
 
     DATE_TIME_TYPES = [Date, DateTime, Time]
 
-    def check_format(format, instance)
-      case format
-      when 'date', 'date-time', 'time'
-        begin
-          DateTime.parse(instance)
-        rescue Exception => ex
-          "does not complies format #{format}: #{ex.message}"
+    HOSTNAME_REGEX = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/
+
+    UUID_REGEX = /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/
+
+    def check_format(format, instance, _state, _data_type, _options, schema)
+      if instance && schema['type'] == 'string'
+        case format
+
+        when 'date', 'date-time', 'time'
+          unless DATE_TIME_TYPES.any? { |type| instance.is_a?(type) }
+            begin
+              DateTime.parse(instance)
+            rescue Exception => ex
+              raise_path_less_error "does not complies format #{format}: #{ex.message}"
+            end
+          end
+
+        when 'email'
+          _check_type(:email, instance, String)
+          raise_path_less_error 'is not a valid email address' unless instance =~ URI::MailTo::EMAIL_REGEXP
+
+        when 'ipv4'
+          _check_type(:ipv4, instance, String)
+          raise_path_less_error 'is not a valid IPv4' unless instance =~ ::Resolv::IPv4::Regex
+
+        when 'ipv6'
+          _check_type(:ipv6, instance, String)
+          raise_path_less_error 'is not a valid IPv6' unless instance =~ ::Resolv::IPv6::Regex
+
+        when 'hostname'
+          _check_type(:'host name', instance, String)
+          raise_path_less_error 'is not a valid host name' unless instance =~ HOSTNAME_REGEX
+
+        when 'uri'
+          _check_type(:'URI', instance, String)
+          begin
+            URI.parse(instance)
+          rescue Exception => ex
+            raise_path_less_error "is not a valid URI"
+          end
+
+        when 'uuid'
+          _check_type(:'UUID', instance, String)
+          raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
+
+        else
+          raise_path_less_error "format #{format} not supported"
         end
-      else
-        raise "format #{format} not supported"
       end
     end
 
-    # Validation Keywords for Arrays
+    # Keywords for Applying Subschemas to Arrays
 
     def check_schema_items(items_schema)
       _check_type(:items, items_schema, Hash, Array)
       if items_schema.is_a?(Hash)
-        validate(items_schema)
+        begin
+          validate(items_schema)
+        rescue Error => ex
+          raise_path_less_error "Items schema is not valid: #{ex.message}"
+        end
       else # Is an array
-        raise "array of schemas for items is not yet supported" # TODO Support array of schemas for items and additionalItems validation keyword
+        errors = {}
+        items_schema.each_with_index do |item_schema, index|
+          begin
+            validate(item_schema)
+          rescue Error => ex
+            errors[index] = ex.message
+          end
+        end
+        unless errors.empty?
+          msg = errors.map do |index, msg|
+            "item schema ##{index} is not valid (#{msg})"
+          end.to_sentence.capitalize
+          raise_path_less_error msg
+        end
       end
     end
 
-    def check_items(items_schema, items, _, data_type, options)
+    def check_items(items_schema, items, state, data_type, options)
+      path = options[:path] || '#'
       if items.is_a?(Mongoff::RecordArray)
         items_schema = items.orm_model.schema
         data_type = items.orm_model.data_type
         has_errors = false
-        items.each do |item|
+        items.each_with_index do |item, index|
           item.errors.clear
           begin
-            validate_instance(item, items_schema, data_type, options)
-          rescue RuntimeError => ex
+            validate_instance(item, options.merge(
+              path: "#{path}[#{index}]",
+              schema: items_schema,
+              data_type: data_type
+            ))
+          rescue Error => ex
             _handle_error(item, ex)
           end
           has_errors ||= item.errors.present?
         end
-        raise SoftError, 'has errors' if has_errors
+        raise_soft 'has errors' if has_errors
       elsif items.is_a?(Array)
+        if items_schema.is_a?(Array)
+          items.each_with_index do |item, index|
+            break unless index < items_schema.length
+            item_schema = data_type.merge_schema(items_schema[index])
+            begin
+              validate_instance(item, options.merge(
+                path: "#{path}[#{index}]",
+                schema: item_schema,
+                data_type: data_type
+              ))
+            rescue PathLessError => ex
+              raise_error "Item #{path}[#{index}] #{ex.message}"
+            end
+          end
+          state[:additional_items_index] = (items.length > items_schema.length) && items_schema.length
+        else
+          items_schema = data_type.merge_schema(items_schema)
+          items.each_with_index do |item, index|
+            begin
+              validate_instance(item, options.merge(
+                path: "#{path}[#{index}]",
+                schema: items_schema,
+                data_type: data_type
+              ))
+            rescue PathLessError => ex
+              raise_error "Item #{path}[#{index}] #{ex.message}"
+            end
+          end
+        end
+      end
+    end
+
+    def check_schema_additionalItems(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Additional items schema is not valid: #{ex.message}"
+      end
+    end
+
+    def check_additionalItems(items_schema, items, state, data_type, options)
+      if (start_index = state[:additional_items_index]) && start_index < items.length
+        path = options[:path] || '#'
         items_schema = data_type.merge_schema(items_schema)
-        items.each_with_index do |item, index|
+        start_index.upto(items.length - 1) do |index|
           begin
-            validate_instance(item, items_schema, data_type, options)
-          rescue RuntimeError => ex
-            raise "on item #{index}, #{ex.message}"
+            validate_instance(items[index], options.merge(
+              path: "#{path}[#{index}]",
+              schema: items_schema,
+              data_type: data_type
+            ))
+          rescue PathLessError => ex
+            raise_error "Item #{path}[#{index}] #{ex.message}"
           end
         end
       end
@@ -308,23 +446,23 @@ module Mongoff
 
     def check_schema_maxItems(max)
       _check_type(:maxItems, max, Integer)
-      raise "Invalid value for maxItems, a non negative value is expected" if max.negative?
+      raise_path_less_error "Invalid value for maxItems, a non negative value is expected" if max.negative?
     end
 
     def check_maxItems(max, items)
       if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
-        raise "has too many items (#{instance.count} of #{max} max)" if items.count > max
+        raise_path_less_error "has too many items (#{items.count} of #{max} max)" if items.count > max
       end
     end
 
     def check_schema_minItems(min)
       _check_type(:minItems, min, Integer)
-      raise "Invalid value for minItems, a non negative value is expected" if min.negative?
+      raise_path_less_error "Invalid value for minItems, a non negative value is expected" if min.negative?
     end
 
     def check_minItems(min, items)
       if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
-        raise "has too few items (#{instance.count} for #{min} min)" if items.count < min
+        raise_path_less_error "has too few items (#{items.count} for #{min} min)" if items.count < min
       end
     end
 
@@ -335,59 +473,154 @@ module Mongoff
     def check_uniqueItems(min, items)
       if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
         set = Set.new(items)
-        raise "items are not unique" if set.count < items.count
+        raise_path_less_error "items are not unique" if set.count < items.count
       end
     end
 
     def check_schema_contains(schema)
-      validate(schema)
-    end
-
-    def check_contains(schema, items, _, data_type, options)
-      schema = data_type.merge_schema(schema)
-      if items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
-        data_type = items.orm_model.data_type if items.is_a?(Mongoff::RecordArray)
-        items.each do |item|
-          begin
-            validate_instance(item, schema, data_type, options)
-            return
-          rescue
-            next
-          end
-        end
-        raise 'no item match against the contains schema'
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Contains schema is not valid: #{ex.message}"
       end
     end
 
-    # Validation Keywords for Objects
+    def check_contains(contains_schema, items, state, data_type, options, schema)
+      return unless items.is_a?(Mongoff::RecordArray) || items.is_a?(Array)
+      contains_schema = data_type.merge_schema(contains_schema)
+      data_type = items.orm_model.data_type if items.is_a?(Mongoff::RecordArray)
+      max_min = schema['maxContains'] || schema['minContains']
+      contains = 0
+      items.each do |item|
+        begin
+          validate_instance(item, options.merge(
+            schema: contains_schema,
+            data_type: data_type
+          ))
+          contains += 1
+          break unless max_min
+        rescue
+          next
+        end
+      end
+      raise_path_less_error 'no item match against the contains schema' if contains == 0
+      state[:contains] = contains
+    end
+
+    def check_schema_maxContains(max)
+      _check_type(:maxContains, max, Integer)
+      raise_path_less_error "Invalid value for maxContains, a non negative value is expected" if max.negative?
+    end
+
+    def check_maxContains(max, _items, state)
+      if (contains = state[:contains])
+        raise_path_less_error "has too much items (#{contains} for #{max} max) matching the contains schema" if contains > max
+      end
+    end
+
+    def check_schema_minContains(min)
+      _check_type(:minContains, min, Integer)
+      raise_path_less_error "Invalid value for minContains, a non negative value is expected" if min.negative?
+    end
+
+    def check_minContains(min, _items, state)
+      if (contains = state[:contains])
+        raise_path_less_error "has too few items (#{contains} for #{min} min) matching the contains schema" if contains < min
+      end
+    end
+
+    # Keywords for Applying Subschemas to Objects
 
     def check_schema_required(value)
       _check_type(:properties, value, Array)
+      hash = {}
       value.each do |property_name|
+        hash[property_name] = (hash[property_name] || 0) + 1
         _check_type('property name', property_name, String)
+      end
+      repeated_properties = hash.keys.select { |prop| hash[prop] > 1 }
+      if repeated_properties.count > 0
+        raise_path_less_error "Required properties are not unique: #{repeated_properties.to_sentence}"
       end
     end
 
     def check_required(properties, instance)
       return unless instance
-      has_errors = false
       if instance.is_a?(Mongoff::Record)
+        has_errors = false
         stored_properties = instance.orm_model.stored_properties_on(instance)
         properties.each do |property|
           unless stored_properties.include?(property)
             has_errors = true
-            instance.errors.add(property, "is required")
+            _handle_error(instance, 'is required', property)
           end
         end
+        raise_soft 'has errors' if has_errors
       elsif instance.is_a?(Hash)
-        properties.each do |property|
-          unless instance.key?(property)
-            has_errors = true
-            instance.errors.add(property, "is required")
+        required = properties.select do |property|
+          !instance.key?(property)
+        end
+        unless required.empty?
+          if required.length == 1
+            raise_path_less_error "Property #{required[0]} is required"
           end
+          raise_path_less_error "Properties #{required.to_sentence} are required"
         end
       end
-      raise SoftError, 'has errors' if has_errors
+    end
+
+    def check_schema_dependentRequired(value)
+      _check_type(:dependentRequired, value, Hash)
+      value.each do |property_name, dependencies|
+        _check_type('property name', property_name, String, Symbol)
+        _check_type('property dependencies', dependencies, Array)
+        hash = {}
+        dependencies.each do |prop|
+          hash[prop.to_s] = (hash[prop.to_s] || 0) + 1
+          _check_type('dependent property', prop, String, Symbol)
+        end
+        repeated_properties = hash.keys.select { |prop| hash[prop] > 1 }
+        if repeated_properties.count > 0
+          raise_path_less_error "Properties dependencies are not unique: #{repeated_properties.to_sentence}"
+        end
+      end
+    end
+
+    def check_dependentRequired(properties, instance)
+      return unless instance
+      if instance.is_a?(Mongoff::Record)
+        has_errors = false
+        stored_properties = instance.orm_model.stored_properties_on(instance).map(&:to_s)
+        properties.each do |property, dependencies|
+          next unless stored_properties.include?(property.to_s)
+          dependencies.each do |dependent_property|
+            unless stored_properties.include?(dependent_property.to_s)
+              has_errors = true
+              _handle_error(
+                instance,
+                "is required because depending on #{property}",
+                dependent_property
+              )
+            end
+          end
+        end
+        raise_soft 'has errors' if has_errors
+      elsif instance.is_a?(Hash)
+        hash = {}
+        properties.each do |property, dependencies|
+          next unless instance.key?(property)
+          dependencies.each do |dependent_property|
+            next if instance.key?(dependent_property.to_s)
+            hash[property] = (hash[property] || []) + [dependent_property]
+          end
+        end
+        unless hash.empty?
+          error = hash.map do |property, dependents|
+            "depending on #{property} properties #{dependents.to_sentence} are required"
+          end.to_sentence
+          raise_path_less_error error
+        end
+      end
     end
 
     def check_schema_properties(value)
@@ -396,19 +629,20 @@ module Mongoff
         begin
           validate(schema)
         rescue RuntimeError => ex
-          raise "Property #{property} schema is not valid: #{ex.message}"
+          raise_path_less_error "Property #{property} schema is not valid: #{ex.message}"
         end
       end
     end
 
     def check_properties(properties, instance, state, data_type, options)
+      path = options[:path] || '#'
       unless (checked_properties = state[:checked_properties])
         checked_properties = state[:checked_properties] = Set.new
       end
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
           instance.errors.clear
-          state[:instance_clear]
+          state[:instance_clear] = true
         end
         report_error = false
         if instance.changed?
@@ -423,44 +657,57 @@ module Mongoff
                 else
                   data_type
                 end
-              validate_instance(instance[property], model.property_schema(property), property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                path: "#{path}/#{property}",
+                schema: model.property_schema(property),
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               _handle_error(instance, ex, property)
               report_error = true
             end
           end
         end
-        raise SoftError, 'has errors' if report_error
+        raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
+          property = property.to_s
           next unless properties.key?(property)
           checked_properties << property
-          validate_instance(value, data_type.merge_schema(properties[property]), data_type, options)
+          begin
+            validate_instance(value, options.merge(
+              path: "#{path}/#{property}",
+              schema: data_type.merge_schema(properties[property]),
+              data_type: data_type
+            ))
+          rescue PathLessError => ex
+            raise_error "Value '#{path}/#{property}' #{ex.message}"
+          end
         end
       end
     end
 
     def check_schema_maxProperties(max)
       _check_type(:maxProperties, max, Integer)
-      raise "Invalid value for maxProperties, a non negative value is expected" if max.negative?
+      raise_path_less_error "Invalid value for maxProperties, a non negative value is expected" if max.negative?
     end
 
     def check_maxProperties(max, instance)
       if instance.is_a?(Mongoff::Record) || instance.is_a?(Hash)
         instance = instance.orm_model.stored_properties_on(instance) if instance.is_a?(Mongoff::Record)
-        raise "has too many properties (#{instance.size} of #{max} max)" if instance.size > max
+        raise_path_less_error "has too many properties (#{instance.size} of #{max} max)" if instance.size > max
       end
     end
 
     def check_schema_minProperties(min)
       _check_type(:minProperties, min, Integer)
-      raise "Invalid value for minProperties, a non negative value is expected" if min.negative?
+      raise_path_less_error "Invalid value for minProperties, a non negative value is expected" if min.negative?
     end
 
     def check_minProperties(min, instance)
       if instance.is_a?(Mongoff::Record) || instance.is_a?(Hash)
         instance = instance.orm_model.stored_properties_on(instance) if instance.is_a?(Mongoff::Record)
-        raise "has too few properties (#{instance.size} for #{min} min)" if instance.size < min
+        raise_path_less_error "has too few properties (#{instance.size} for #{min} min)" if instance.size < min
       end
     end
 
@@ -468,10 +715,14 @@ module Mongoff
       _check_type(:properties, value, Hash)
       value.each do |pattern, schema|
         begin
-          raise "Property pattern #{pattern} is not regex compatible" unless pattern.is_a?(String)
+          Regexp.new(pattern)
+        rescue Exception => ex
+          raise_path_less_error "Property pattern #{pattern} is not a regex: #{ex.message}"
+        end
+        begin
           validate(schema)
-        rescue RuntimeError => ex
-          raise "Property pattern #{pattern} schema is not valid: #{ex.message}"
+        rescue Error => ex
+          raise_path_less_error "Property pattern #{pattern} schema is not valid: #{ex.message}"
         end
       end
     end
@@ -480,12 +731,12 @@ module Mongoff
       unless (checked_properties = state[:checked_properties])
         checked_properties = state[:checked_properties] = Set.new
       end
-      patterns = patterns.collect { |pattern, schema| [Regex.new(pattern), schema] }.to_h
+      patterns = patterns.map { |pattern, schema| [Regex.new(pattern), schema] }.to_h
       merged_schemas = {}
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
           instance.errors.clear
-          state[:instance_clear]
+          state[:instance_clear] = true
         end
         report_error = false
         if instance.changed?
@@ -504,7 +755,10 @@ module Mongoff
               unless (schema = merged_schemas[property])
                 schema = merged_schemas[property] = property_data_type.merge_schema(patterns[pattern])
               end
-              validate_instance(instance[property], schema, property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                schema: schema,
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -513,7 +767,7 @@ module Mongoff
             end
           end
         end
-        raise SoftError, 'has errors' if report_error
+        raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
           pattern = patterns.keys.detect { |regex| regex.match(property) }
@@ -523,7 +777,10 @@ module Mongoff
             schema = merged_schemas[property] = data_type.merge_schema(patterns[pattern])
           end
           begin
-            validate_instance(value, schema, data_type, options)
+            validate_instance(value, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
             _handle_error(instance, ex, property) do |msg|
               "#{msg} (against additional property pattern #{pattern})"
@@ -534,7 +791,11 @@ module Mongoff
     end
 
     def check_schema_additionalProperties(schema)
-      validate(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Additional properties schema is not valid: #{ex.message}"
+      end
     end
 
     def check_additionalProperties(schema, instance, state, data_type, options)
@@ -545,7 +806,7 @@ module Mongoff
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
           instance.errors.clear
-          state[:instance_clear]
+          state[:instance_clear] = true
         end
         report_error = false
         if instance.changed?
@@ -559,7 +820,10 @@ module Mongoff
                 else
                   data_type
                 end
-              validate_instance(instance[property], schema, property_data_type, options)
+              validate_instance(instance[property], options.merge(
+                schema: schema,
+                data_type: property_data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -568,21 +832,28 @@ module Mongoff
             end
           end
         end
-        raise SoftError, 'has errors' if report_error
+        raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
           next if checked_properties.key?(property)
           begin
-            validate_instance(value, schema, data_type, options)
+            validate_instance(value, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
-            raise "#{ex.message} (against additional properties schema)"
+            raise_path_less_error "#{ex.message} (against additional properties schema)"
           end
         end
       end
     end
 
     def check_schema_propertyNames(schema)
-      validate(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Property names schema is not valid: #{ex.message}"
+      end
     end
 
     def check_propertyNames(schema, instance, state, data_type, options)
@@ -590,14 +861,17 @@ module Mongoff
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
           instance.errors.clear
-          state[:instance_clear]
+          state[:instance_clear] = true
         end
         report_error = false
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
             begin
-              validate_instance(property, schema, data_type, options)
+              validate_instance(property, options.merge(
+                schema: schema,
+                data_type: data_type
+              ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
@@ -606,14 +880,217 @@ module Mongoff
             end
           end
         end
-        raise SoftError, 'has errors' if report_error
+        raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.keys.each do |property|
           begin
-            validate_instance(property, schema, data_type, options)
+            validate_instance(property, options.merge(
+              schema: schema,
+              data_type: data_type
+            ))
           rescue RuntimeError => ex
-            raise "property name #{property} does not match property manes schema (#{ex.message})"
+            raise_path_less_error "property name #{property} does not match property manes schema (#{ex.message})"
           end
+        end
+      end
+    end
+
+    # Keywords for Applying Subschemas With Boolean Logic
+
+    def check_schema_allOf(schemas)
+      _check_type(:allOf, schemas, Array)
+      raise_path_less_error 'allOf schemas should not be empty' if schemas.length == 0
+      schemas.each_with_index do |schema, index|
+        begin
+          validate(schema)
+        rescue Error => ex
+          raise_path_less_error "allOf schema##{index} is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_allOf(schemas, instance)
+      schemas.each_with_index do |schema, index|
+        begin
+          validate_instance(instance, schema: schema)
+        rescue Error => ex
+          raise_path_less_error "does not match allOf schema##{index}: #{ex.message}"
+        end
+      end
+    end
+
+    def check_schema_anyOf(schemas)
+      _check_type(:anyOf, schemas, Array)
+      raise_path_less_error 'anyOf schemas should not be empty' if schemas.length == 0
+      schemas.each_with_index do |schema, index|
+        begin
+          validate(schema)
+        rescue Error => ex
+          raise_path_less_error "anyOf schema##{index} is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_anyOf(schemas, instance)
+      schemas.each_with_index do |schema|
+        begin
+          validate_instance(instance, schema: schema)
+          return
+        rescue
+        end
+      end
+      raise_path_less_error 'does not match any of the anyOf schemas'
+    end
+
+    def check_schema_oneOf(schemas)
+      _check_type(:oneOf, schemas, Array)
+      raise_path_less_error 'oneOf schemas should not be empty' if schemas.length == 0
+      schemas.each_with_index do |schema, index|
+        begin
+          validate(schema)
+        rescue Error => ex
+          raise_path_less_error "oneOf schema##{index} is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_oneOf(schemas, instance)
+      oneIndex = nil
+      schemas.each_with_index do |schema, index|
+        begin
+          validate_instance(instance, schema: schema)
+          if oneIndex
+            raise_path_less_error "match more than one oneOf schemas (at least ##{oneIndex} and ##{index})"
+          else
+            oneIndex = index
+          end
+        rescue
+        end
+      end
+      raise_path_less_error 'does not match any of the oneOf schemas'
+    end
+
+    def check_schema_not(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Not schema is not valid: #{ex.message}"
+      end
+    end
+
+    def check_not(schema, instance)
+      begin
+        validate_instance(instance, schema: schema)
+        raise_path_less_error "should not match a NOT schema"
+      rescue
+      end
+    end
+
+    # Keywords for Applying Subschemas Conditionally
+
+    def check_schema_if(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "If schema is not valid: #{ex.message}"
+      end
+    end
+
+    def check_if(schema, instance, state)
+      sucess =
+        begin
+          validate_instance(instance, schema: schema)
+          true
+        rescue
+          false
+        end
+      state[:if_success] = sucess
+    end
+
+    def check_schema_then(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Then schema is not valid: #{ex.message}"
+      end
+    end
+
+    def check_then(schema, instance, state)
+      if state.key?(:if_success)
+        begin
+          validate_instance(instance, schema: schema)
+        rescue
+          unless state[:if_success]
+            raise_path_less_error "matches the IF schema but ir does not match the THEN one"
+          end
+        end
+      end
+    end
+
+    def check_schema_else(schema)
+      begin
+        validate(schema)
+      rescue Error => ex
+        raise_path_less_error "Else schema is not valid: #{ex.message}"
+      end
+    end
+
+    def check_else(schema, instance, state)
+      if state.key?(:if_success)
+        begin
+          validate_instance(instance, schema: schema)
+          if state[:if_success]
+            raise_path_less_error "matches the IF schema and should not match the ELSE one"
+          end
+        rescue
+        end
+      end
+    end
+
+    def check_schema_dependentSchemas(properties)
+      _check_type(:dependentSchemas, properties, Hash)
+      properties.each do |property_name, dependent_schema|
+        begin
+          validate(dependent_schema)
+        rescue Error => ex
+          raise_path_less_error "Dependent schema en property #{property_name} is not valid: #{ex.message}"
+        end
+      end
+    end
+
+    def check_dependentSchemas(properties, instance)
+      return unless instance
+      if instance.is_a?(Mongoff::Record)
+        has_errors = false
+        stored_properties = instance.orm_model.stored_properties_on(instance).map(&:to_s)
+        properties.each do |property, dependent_schema|
+          next unless stored_properties.include?(property.to_s)
+          begin
+            validate_instance(instance, schema: dependent_schema)
+          rescue Error => ex
+            has_errors = true
+            _handle_error(
+              instance,
+              "Does not match dependent schema on property #{property}: #{ex.message}",
+            )
+          end
+        end
+        raise_path_less_error 'has errors' if has_errors
+      elsif instance.is_a?(Hash)
+        dependent_properties = {}
+        properties.each do |property, dependent_schema|
+          next unless instance.key?(property)
+          begin
+            validate_instance(instance, schema: dependent_schema)
+          rescue Error => ex
+            dependent_properties[property] = ex.message
+          end
+        end
+        unless dependent_properties.empty?
+          error = dependent_properties.map do |property, msg|
+            "does not match dependent schema on property #{property} (#{msg})"
+          end.to_sentence.capitalize
+          raise_path_less_error error
         end
       end
     end
@@ -622,18 +1099,16 @@ module Mongoff
 
     def _check_type(key, value, *klasses)
       unless klasses.any? { |klass| value.is_a?(klass) }
-        raise "Invalid value for #{key} of type #{value.class} (#{value}), #{klass.to_sentence(last_word_connector: 'or')} is expected"
+        raise_path_less_error "Invalid value for #{key} of type #{value.class} (#{value}), #{klasses.to_sentence(last_word_connector: 'or')} is expected"
       end
     end
 
     def _handle_error(instance, err, property = :base)
       return unless instance
-      msg =
-        if block_given?
-          yield err.message
-        else
-          err.message
-        end
+      msg = err.is_a?(String) ? err : err.message
+      if block_given?
+        msg = yield msg
+      end
       if err.is_a?(SoftError)
         if instance.errors.blank?
           unless (soft_errors = instance.instance_variable_get(:@__soft_errors))
@@ -646,7 +1121,27 @@ module Mongoff
       end
     end
 
-    class SoftError < RuntimeError
+    def raise_soft(msg)
+      raise SoftError, msg
+    end
+
+    def raise_path_less_error(msg)
+      raise PathLessError, msg
+    end
+
+    def raise_error(msg)
+      raise Error, msg
+    end
+
+    class Error < RuntimeError
+
+    end
+
+    class PathLessError < Error
+
+    end
+
+    class SoftError < Error
 
     end
   end
