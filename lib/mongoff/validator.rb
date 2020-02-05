@@ -69,7 +69,7 @@ module Mongoff
         visited = options[:visited] = Set.new
       end
       unless (soft_checked = visited.include?(instance))
-        visited << instance
+        visited << instance if instance.is_a?(Mongoff::Record)
         data_type = options[:data_type] || instance.orm_model.data_type
         schema = options[:schema] || data_type.schema
         state = {}
