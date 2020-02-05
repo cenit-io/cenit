@@ -333,7 +333,7 @@ module Edi
                       end
                     else
                       sub_value = do_parse_json(data_type, property_model, sub_value, options, items_schema, nil, nil, association, property_schema)
-                      unless (sub_values || association).include?(sub_value)
+                      if Cenit::Utility.json_object?(sub_value) || (sub_values || association).exclude?(sub_value)
                         (sub_values || association) << sub_value
                       end
                     end
