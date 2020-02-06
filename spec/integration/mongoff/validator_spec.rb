@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Mongoff::Validator do
+
   test_namespace = 'Mongoff Validator Test'
 
   test_schema = {
@@ -32,7 +33,7 @@ describe Mongoff::Validator do
       },
 
       color: {
-        enum: %w(red green blue)
+        enum: enum = %w(red green blue)
       },
 
       const: const_schema = {
@@ -41,7 +42,7 @@ describe Mongoff::Validator do
 
       multipleOf: {
         type: 'number',
-        multipleOf: 5 + rand(10)
+        multipleOf: multiple_of = 5 + rand(10)
       },
 
       maximum: maximum_schema = {
@@ -56,22 +57,22 @@ describe Mongoff::Validator do
 
       exclusiveMaximum: {
         type: 'number',
-        exclusiveMaximum: 100 + rand(100)
+        exclusiveMaximum: exclusive_maximum = 100 + rand(100)
       },
 
       exclusiveMinimum: {
         type: 'number',
-        exclusiveMinimum: 100 - rand(100)
+        exclusiveMinimum: exclusive_minimum = 100 - rand(100)
       },
 
       maxLength: {
         type: 'string',
-        maxLength: 10 + rand(50)
+        maxLength: max_length = 10 + rand(50)
       },
 
       minLength: {
         type: 'string',
-        minLength: 10 + rand(10)
+        minLength: min_length = 10 + rand(10)
       },
 
       pattern: {
@@ -212,9 +213,75 @@ describe Mongoff::Validator do
         type: 'array',
         contains: const_schema,
         minContains: min_contains = 10 + rand(5)
+      },
+
+      embedded_maxProperties: {
+        type: 'object',
+        maxProperties: max_properties = 14
+      },
+
+      ref_maxProperties: {
+        '$ref': 'A',
+        referenced: true,
+        maxProperties: max_properties
+      },
+      
+      embedded_minProperties: {
+      type: 'object',
+      minProperties: min_properties = 7
+    },
+
+      ref_minProperties: {
+        '$ref': 'A',
+        referenced: true,
+        minProperties: min_properties
       }
     }
   }.deep_stringify_keys
+
+  sample = {
+    null: nil,
+
+    boolean: (rand(5) % 2).to_b,
+
+    integer: 10 + rand(10),
+
+    number: 10 + rand(10) + rand,
+
+    string: 'string',
+
+    object: {},
+
+    array: [],
+
+    color: enum.take(1)[0],
+
+    const: const_schema['const'],
+
+    multipleOf: (1 + rand(10)) * multiple_of,
+
+    maximum: maximum_schema['maximum'],
+
+    minimum: minimum_schema['minimum'],
+
+    exclusiveMaximum: exclusive_maximum - 1,
+
+    exclusiveMinimum: exclusive_minimum + 1,
+
+    maxLength: 'a' * max_length,
+
+    minLength: 'a' * min_length,
+
+    pattern: 'support@cenit.io',
+
+    date: Time.now,
+
+    time: Time.now,
+
+    date_time: Time.now,
+
+    email: 'support@cenit.io'
+  }
 
   before :all do
     Setup::JsonDataType.create!(
@@ -234,6 +301,10 @@ describe Mongoff::Validator do
 
   let :test_schema do
     data_type.schema
+  end
+
+  let :sample_instance do
+    sample.deep_dup
   end
 
   context 'when validating a schema' do
@@ -584,7 +655,7 @@ describe Mongoff::Validator do
       end
     end
 
-    context 'when validating keywords for Objects' do
+    context 'when validating keywords for Applying Subschemas to Objects' do
 
       context 'when validating keyword maxProperties' do
 
@@ -2336,6 +2407,255 @@ describe Mongoff::Validator do
           )
           validator.soft_validates(instance)
           expect(instance.errors[:minContains]).to include("has too few items (#{contains} for #{min_contains} min) matching the contains schema")
+        end
+      end
+    end
+
+    context 'when validating keywords for Applying Subschemas to Objects' do
+
+      context 'when validating keyword maxProperties' do
+
+        context 'when object schema is embedded' do
+
+          it 'does not raise an exception if a maxProperties instance size is not maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties - 1 - rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_maxProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxProperties instance size is not maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties - 1 - rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_maxProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a maxProperties instance size is maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_maxProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxProperties instance size is maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_maxProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a maxProperties instance overflows' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties + 1 + rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_maxProperties: obj }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_maxProperties' has too many properties (#{obj.size} of #{max_properties} max)")
+          end
+
+          it 'raises an exception if a Mongoff maxProperties instance overflows' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties + 1 + rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_maxProperties: obj)
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_maxProperties]).to include("has too many properties (#{obj.size} of #{max_properties} max)")
+          end
+        end
+
+        context 'when object schema is referenced' do
+
+          it 'does not raise an exception if a maxProperties instance size is not maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties - 1 - rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_maxProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxProperties instance size is not maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties - 1 - rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_maxProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a maxProperties instance size is maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_maxProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff maxProperties instance size is maximum' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_maxProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a maxProperties instance overflows' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties + 1 + rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_maxProperties: obj }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_maxProperties' has too many properties (#{obj.size} of #{max_properties} max)")
+          end
+
+          it 'raises an exception if a Mongoff maxProperties instance overflows' do
+            obj = sample_instance
+            obj = obj.keys.take(max_properties + 1 + rand(max_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_maxProperties: obj)
+            validator.soft_validates(instance)
+            expect(instance.errors[:ref_maxProperties]).to include("has too many properties (#{obj.size} of #{max_properties} max)")
+          end
+        end
+      end
+
+      context 'when validating keyword minProperties' do
+
+        context 'when object schema is embedded' do
+
+          it 'does not raise an exception if a minProperties instance size is not minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties + 1 + rand(min_properties)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_minProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minProperties instance size is not minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties + 1 + rand(min_properties)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_minProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a minProperties instance size is minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_minProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minProperties instance size is minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_minProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a minProperties instance underflows' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties - 1 - rand(min_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { embedded_minProperties: obj }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_minProperties' has too few properties (#{obj.size} for #{min_properties} min)")
+          end
+
+          it 'raises an exception if a Mongoff minProperties instance underflows' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties - 1 - rand(min_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from(embedded_minProperties: obj)
+            validator.soft_validates(instance)
+            expect(instance.errors[:embedded_minProperties]).to include("has too few properties (#{obj.size} for #{min_properties} min)")
+          end
+        end
+
+        context 'when object schema is referenced' do
+
+          it 'does not raise an exception if a minProperties instance size is not minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties + 1 + rand(min_properties)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_minProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minProperties instance size is not minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties + 1 + rand(min_properties)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_minProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a minProperties instance size is minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_minProperties: obj }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not raise an exception if a Mongoff minProperties instance size is minimum' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_minProperties: obj)
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'raises an exception if a minProperties instance underflows' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties - 1 - rand(min_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = { ref_minProperties: obj }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_minProperties' has too few properties (#{obj.size} for #{min_properties} min)")
+          end
+
+          it 'raises an exception if a Mongoff minProperties instance underflows' do
+            obj = sample_instance
+            obj = obj.keys.take(min_properties - 1 - rand(min_properties / 2)).map do |key|
+              [key, obj[key]]
+            end.to_h
+            instance = data_type.new_from_json(ref_minProperties: obj)
+            validator.soft_validates(instance)
+            expect(instance.errors[:ref_minProperties]).to include("has too few properties (#{obj.size} for #{min_properties} min)")
+          end
         end
       end
     end
