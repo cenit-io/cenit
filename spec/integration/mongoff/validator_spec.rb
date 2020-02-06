@@ -225,11 +225,11 @@ describe Mongoff::Validator do
         referenced: true,
         maxProperties: max_properties
       },
-      
+
       embedded_minProperties: {
-      type: 'object',
-      minProperties: min_properties = 7
-    },
+        type: 'object',
+        minProperties: min_properties = 7
+      },
 
       ref_minProperties: {
         '$ref': 'A',
@@ -283,11 +283,23 @@ describe Mongoff::Validator do
     email: 'support@cenit.io'
   }
 
+  required_test_schema = {
+    required: required_props = sample.keys.take(2 + rand(5)).map(&:to_s) - %w(null)
+  }.deep_stringify_keys
+
+  required_test_schema = test_schema.deep_merge(required_test_schema)
+
   before :all do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'A',
       schema: test_schema
+    )
+
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
+      name: 'R',
+      schema: required_test_schema
     )
   end
 
@@ -299,12 +311,16 @@ describe Mongoff::Validator do
     Setup::DataType.where(namespace: test_namespace, name: 'A').first
   end
 
-  let :test_schema do
+  let! :data_type_with_required do
+    Setup::DataType.where(namespace: test_namespace, name: 'R').first
+  end
+
+  let! :test_schema do
     data_type.schema
   end
 
   let :sample_instance do
-    sample.deep_dup
+    sample.clone
   end
 
   context 'when validating a schema' do
@@ -2655,6 +2671,53 @@ describe Mongoff::Validator do
             instance = data_type.new_from_json(ref_minProperties: obj)
             validator.soft_validates(instance)
             expect(instance.errors[:ref_minProperties]).to include("has too few properties (#{obj.size} for #{min_properties} min)")
+          end
+        end
+      end
+
+      context 'when validating keyword required' do
+
+        it 'does not raise an exception if a required instance is valid' do
+          expect {
+            validator.validate_instance(sample_instance, data_type: data_type_with_required)
+          }.not_to raise_error
+        end
+
+        it 'does not raise an exception if a Mongoff required instance is valid' do
+          instance = data_type_with_required.new_from_json(sample_instance)
+          validator.soft_validates(instance)
+          expect {
+            validator.validate_instance(instance)
+          }.not_to raise_error
+        end
+
+        it 'raises an exception if a required property is missing' do
+          instance = sample_instance
+          missing_prop = required_props.sample
+          instance.delete(missing_prop.to_sym)
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_required)
+          }.to raise_error(::Mongoff::Validator::Error, "Property #{missing_prop} is required")
+        end
+
+
+        it 'raises an exception if multiple required properties are missing' do
+          instance = sample_instance
+          missing_props = required_props.take(2 + rand(required_props.length - 2))
+          missing_props.each { |p| instance.delete(p.to_sym) }
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_required)
+          }.to raise_error(::Mongoff::Validator::Error, "Properties #{missing_props.to_sentence} are required")
+        end
+
+        it 'reports errors if a Mongoff required instance is not valid' do
+          obj = sample_instance
+          missing_props = required_props.take(1 + rand(required_props.length - 1))
+          missing_props.each { |p| obj.delete(p.to_sym) }
+          instance = data_type_with_required.new_from(obj)
+          validator.soft_validates(instance)
+          missing_props.each do |p|
+            expect(instance.errors[p]).to include('is required')
           end
         end
       end
