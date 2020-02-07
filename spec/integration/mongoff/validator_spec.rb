@@ -215,6 +215,30 @@ describe Mongoff::Validator do
         minContains: min_contains = 10 + rand(5)
       },
 
+      embedded_properties: {
+        '$ref': 'A'
+      },
+
+      ref_properties: {
+        referenced: true,
+        '$ref': 'A'
+      },
+
+      embedded_array_properties: {
+        type: 'array',
+        items: {
+          '$ref': 'A'
+        }
+      },
+
+      ref_array_properties: {
+        referenced: true,
+        type: 'array',
+        items: {
+          '$ref': 'A'
+        }
+      },
+
       embedded_maxProperties: {
         type: 'object',
         maxProperties: max_properties = 14
@@ -691,6 +715,29 @@ describe Mongoff::Validator do
     end
 
     context 'when validating keywords for Applying Subschemas to Objects' do
+
+      context 'when validating keyword properties' do
+
+        it 'does not raise an exception if the properties value is valid' do
+          schema = { properties: { value: maximum_schema } }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the properties value is not an object' do
+          schema = { properties: 'not a object' }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+
+        it 'raises an exception if a properties entry value is not a valid schema' do
+          schema = {
+            properties: {
+              value: maximum_schema,
+              wrong: 'not a valid schema'
+            }
+          }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+      end
 
       context 'when validating keyword maxProperties' do
 
@@ -2447,6 +2494,149 @@ describe Mongoff::Validator do
     end
 
     context 'when validating keywords for Applying Subschemas to Objects' do
+
+      context 'when validating keyword properties' do
+
+        context 'when properties schema is embedded' do
+
+          it 'does not raise an exception if a properties embedded value is valid' do
+            instance = { embedded_properties: sample_instance }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff properties embedded value is valid' do
+            instance = data_type.new_from(
+              embedded_properties: sample_instance
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a properties embedded value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = { embedded_properties: sample_instance }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_properties/const' is not the const value '#{const_schema['const']}'")
+          end
+
+          it 'reports errors if a Mongoff properties embedded value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = data_type.new_from(
+              embedded_properties: obj
+            )
+            validator.soft_validates(instance)
+            expect(instance.embedded_properties.errors[:const]).to include("is not the const value '#{const_schema['const']}'")
+          end
+        end
+
+        context 'when properties schema is referenced' do
+
+          it 'does not raise an exception if a properties referenced value is valid' do
+            instance = { ref_properties: sample_instance }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff properties referenced value is valid' do
+            instance = data_type.new_from(
+              ref_properties: sample_instance
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a properties referenced value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = { ref_properties: sample_instance }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_properties/const' is not the const value '#{const_schema['const']}'")
+          end
+
+          it 'reports errors if a Mongoff properties referenced value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = data_type.new_from(
+              ref_properties: obj
+            )
+            validator.soft_validates(instance)
+            expect(instance.ref_properties.errors[:const]).to include("is not the const value '#{const_schema['const']}'")
+          end
+        end
+
+        context 'when properties schema is an embedded array' do
+
+          it 'does not raise an exception if a properties embedded array value is valid' do
+            instance = { embedded_array_properties: [sample_instance] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff properties embedded array value is valid' do
+            instance = data_type.new_from(
+              embedded_array_properties: [sample_instance]
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a properties embedded array value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = { embedded_array_properties: [sample_instance] }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array_properties[0]/const' is not the const value '#{const_schema['const']}'")
+          end
+
+          it 'reports errors if a Mongoff properties embedded array value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = data_type.new_from(
+              embedded_array_properties: [obj]
+            )
+            validator.soft_validates(instance)
+            expect(instance.embedded_array_properties[0].errors[:const]).to include("is not the const value '#{const_schema['const']}'")
+          end
+        end
+
+        context 'when properties schema is referenced array' do
+
+          it 'does not raise an exception if a properties referenced array value is valid' do
+            instance = { ref_array_properties: [sample_instance] }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff properties referenced array value is valid' do
+            instance = data_type.new_from(
+              ref_array_properties: [sample_instance]
+            )
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if a properties referenced array value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = { ref_array_properties: [sample_instance] }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_array_properties[0]/const' is not the const value '#{const_schema['const']}'")
+          end
+
+          it 'reports errors if a Mongoff properties referenced array value is not valid' do
+            obj = sample_instance
+            obj[:const] = "not #{const_schema['const']}"
+            instance = data_type.new_from(
+              ref_array_properties: [obj]
+            )
+            validator.soft_validates(instance)
+            expect(instance.ref_array_properties[0].errors[:const]).to include("is not the const value '#{const_schema['const']}'")
+          end
+        end
+      end
 
       context 'when validating keyword maxProperties' do
 
