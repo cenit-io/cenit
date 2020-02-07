@@ -1,6 +1,4 @@
 SHOW_SLACK_BADGE: "true"
-JUPYTER_NOTEBOOKS: "true"
-JUPYTER_NOTEBOOKS_URL: "//{your-cenit-jupyter-notebooks}.herokuapp.com"
 GITHUB_OAUTH_TOKEN: "{GITHUB_OAUTH_TOKEN}"
 DB_PROD: "{DB_PROD}"
 OAUTH_TOKEN_END_POINT: "embedded"

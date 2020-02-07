@@ -48,10 +48,7 @@
                 %ul.subdomain-menu
                   = main_navigation
         %main
-          - if @action.is_a?(RailsAdmin::Config::Actions::Notebooks)
-            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax_notebooks'
-          -else
-            .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
+          .content{:'data-pjax-container' => true}= render template: 'layouts/rails_admin/pjax'
 - tour = User.current.present? && TourTrack.show_tour?(request.remote_ip, User.current)
 :javascript
   var doStartTour = #{tour};
