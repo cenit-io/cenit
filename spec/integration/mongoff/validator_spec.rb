@@ -25,7 +25,7 @@ describe Mongoff::Validator do
       string: {
         type: 'string'
       },
-      object: {
+      obj: {
         type: 'object'
       },
       array: {
@@ -250,7 +250,7 @@ describe Mongoff::Validator do
 
     string: 'string',
 
-    object: {},
+    obj: {},
 
     array: [],
 
@@ -289,6 +289,15 @@ describe Mongoff::Validator do
 
   required_test_schema = test_schema.deep_merge(required_test_schema)
 
+  dependent_required_test_schema = {
+    dependentRequired: {
+      (p_0 = sample.keys[1]) => [p_1 = sample.keys[2]],
+      (p_2 = sample.keys[3]) => [p_3 = sample.keys[4], p_4 = sample.keys[5]]
+    }
+  }.deep_stringify_keys
+
+  dependent_required_test_schema = test_schema.deep_merge(dependent_required_test_schema)
+
   before :all do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
@@ -300,6 +309,12 @@ describe Mongoff::Validator do
       namespace: test_namespace,
       name: 'R',
       schema: required_test_schema
+    )
+
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
+      name: 'dR',
+      schema: dependent_required_test_schema
     )
   end
 
@@ -313,6 +328,10 @@ describe Mongoff::Validator do
 
   let! :data_type_with_required do
     Setup::DataType.where(namespace: test_namespace, name: 'R').first
+  end
+
+  let! :data_type_with_dependent_required do
+    Setup::DataType.where(namespace: test_namespace, name: 'dR').first
   end
 
   let! :test_schema do
@@ -2685,7 +2704,6 @@ describe Mongoff::Validator do
 
         it 'does not raise an exception if a Mongoff required instance is valid' do
           instance = data_type_with_required.new_from_json(sample_instance)
-          validator.soft_validates(instance)
           expect {
             validator.validate_instance(instance)
           }.not_to raise_error
@@ -2699,7 +2717,6 @@ describe Mongoff::Validator do
             validator.validate_instance(instance, data_type: data_type_with_required)
           }.to raise_error(::Mongoff::Validator::Error, "Property #{missing_prop} is required")
         end
-
 
         it 'raises an exception if multiple required properties are missing' do
           instance = sample_instance
@@ -2718,6 +2735,56 @@ describe Mongoff::Validator do
           validator.soft_validates(instance)
           missing_props.each do |p|
             expect(instance.errors[p]).to include('is required')
+          end
+        end
+      end
+
+      context 'when validating keyword dependentRequired' do
+
+        it 'does not raise an exception if a dependentRequired instance is valid' do
+          expect {
+            validator.validate_instance(sample_instance, data_type: data_type_with_dependent_required)
+          }.not_to raise_error
+        end
+
+        it 'does not raise an exception if a Mongoff dependentRequired instance is valid' do
+          instance = data_type_with_dependent_required.new_from_json(sample_instance)
+          expect {
+            validator.validate_instance(instance)
+          }.not_to raise_error
+        end
+
+        it 'raises an exception if a dependentRequired property is missing' do
+          instance = sample_instance
+          instance.delete(p_1.to_sym)
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_dependent_required)
+          }.to raise_error(::Mongoff::Validator::Error, "Property #{p_1} is required because depending on #{p_0}")
+        end
+
+
+        it 'raises an exception if multiple dependentRequired properties are missing' do
+          instance = sample_instance
+          instance.delete(p_3.to_sym)
+          instance.delete(p_4.to_sym)
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_dependent_required)
+          }.to raise_error(::Mongoff::Validator::Error, "Properties #{p_3} and #{p_4} are required because depending on #{p_2}")
+        end
+
+        it 'reports errors if a Mongoff dependentRequired instance is not valid' do
+          obj = sample_instance
+          obj.delete(p_1.to_sym)
+          obj.delete(p_3.to_sym)
+          obj.delete(p_4.to_sym)
+          instance = data_type_with_dependent_required.new_from(obj)
+          validator.soft_validates(instance)
+          {
+            p_1 => p_0,
+            p_3 => p_2,
+            p_4 => p_2
+          }.each do |p, d|
+            expect(instance.errors[p]).to include("is required because depending on #{d}")
           end
         end
       end

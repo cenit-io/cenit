@@ -608,16 +608,20 @@ module Mongoff
       elsif instance.is_a?(Hash)
         hash = {}
         properties.each do |property, dependencies|
-          next unless instance.key?(property)
+          next unless instance.key?(property.to_s) || instance.key?(property.to_sym)
           dependencies.each do |dependent_property|
-            next if instance.key?(dependent_property.to_s)
+            next if instance.key?(dependent_property.to_s) || instance.key?(dependent_property.to_sym)
             hash[property] = (hash[property] || []) + [dependent_property]
           end
         end
         unless hash.empty?
           error = hash.map do |property, dependents|
-            "depending on #{property} properties #{dependents.to_sentence} are required"
-          end.to_sentence
+            if dependents.size > 1
+              "properties #{dependents.to_sentence} are required because depending on #{property}"
+            else
+              "property #{dependents[0]} is required because depending on #{property}"
+            end
+          end.to_sentence.capitalize
           raise_path_less_error error
         end
       end
