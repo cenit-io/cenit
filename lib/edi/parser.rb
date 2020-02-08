@@ -278,6 +278,7 @@ module Edi
           end
         end
         json_schema = data_type.merge_schema(json_schema)
+        taken_items = Set.new
         if json.is_a?(Hash)
           resetting = json['_reset'] || []
           resetting = (resetting.is_a?(Enumerable) ? resetting.to_a : [resetting]) + options[:reset].to_a
@@ -285,7 +286,6 @@ module Edi
           updating_associations = json['_update'] || []
           updating_associations = (updating_associations.is_a?(Enumerable) ? updating_associations.to_a : [updating_associations]) + options[:update].to_a
           updating_associations = updating_associations.collect(&:to_s)
-          taken_items = Set.new
           phase = 0
           while phase < 2
             json_schema['properties'].each do |property_name, property_schema|
@@ -437,6 +437,10 @@ module Edi
           else
             fail "Can not assign '#{json}' as simple content to #{data_type.name}"
           end
+        end
+        if record.orm_model.data_type.additional_properties? && taken_items.size != json.size
+          add_props = json.reject { |k, _| taken_items.include?(k) }
+          record.assign_attributes(add_props)
         end
         record.try(:run_after_initialized)
         record.instance_variable_set(:@_edi_parsed, true)

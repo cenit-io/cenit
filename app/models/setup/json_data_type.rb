@@ -45,6 +45,10 @@ module Setup
         end
     end
 
+    def additional_properties?
+      true #TODO additional_properties field
+    end
+
     def code=(code)
       @schema = nil
       super

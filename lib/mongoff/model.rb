@@ -118,7 +118,9 @@ module Mongoff
       record.document.each_key do |field|
         if property?(field)
           properties << field.to_s
-        elsif (field = property_for_attribute(field.to_s))
+        elsif (property = property_for_attribute(field.to_s))
+          properties << property.to_s
+        elsif data_type.additional_properties?
           properties << field.to_s
         end
       end
