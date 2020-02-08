@@ -263,7 +263,11 @@ describe Mongoff::Validator do
     },
 
     patternProperties: {
-      '[a-z]*_email': email_schema
+      '[a-z]*_email': email_schema,
+
+      "not_allowed(_\\d)?": false,
+
+      "allowed_\\d": true
     },
 
     additionalProperties: const_schema
@@ -387,6 +391,17 @@ describe Mongoff::Validator do
         !validator.respond_to?("check_schema_#{keyword}")
       end
       expect(not_checked_keywords).to match_array([])
+    end
+
+    context 'when validating Boolean JSON Schemas' do
+
+      it 'returns true if the schema is the true value' do
+        expect(validator.is_valid?(true)).to be true
+      end
+
+      it 'returns true if the schema is the false value' do
+        expect(validator.is_valid?(true)).to be true
+      end
     end
 
     context 'when validating Keywords for Any Instance Type' do
@@ -1023,6 +1038,47 @@ describe Mongoff::Validator do
   end
 
   context 'when validating an instance' do
+
+    context 'when validating Boolean JSON Schemas' do
+
+      it 'does not raise an exception if true schema values are present' do
+        n = 1 + rand(5)
+        instance = sample_instance
+        n.downto(1) { |i| instance["allowed_#{i}"] = instance.values.sample }
+        expect {
+          validator.validate_instance(instance, data_type: data_type)
+        }.not_to raise_error
+      end
+
+      it 'does not report errors if a Mongoff true schema value is present' do
+        n = 1 + rand(5)
+        obj = sample_instance
+        n.downto(1) { |i| obj["allowed_#{i}"] = obj.values.sample }
+        instance = data_type.new_from(obj)
+        validator.soft_validates(instance)
+        expect(instance.errors.empty?).to be true
+      end
+
+      it 'raises an exception if false schema value is present' do
+        instance = sample_instance.merge(
+          not_allowed: 'not allowed'
+        )
+        expect {
+          validator.validate_instance(instance, data_type: data_type)
+        }.to raise_error(::Mongoff::Validator::Error, "Value '#/not_allowed' is not allowed")
+      end
+
+      it 'reports errors if a Mongoff false schema value is present' do
+        n = 2 + rand(5)
+        obj = sample_instance
+        n.downto(1) { |i| obj["not_allowed_#{i}"] = obj.values.sample }
+        instance = data_type.new_from(obj)
+        validator.soft_validates(instance)
+        n.downto(1) do |i|
+          expect(instance.errors["not_allowed_#{i}"]).to include('is not allowed')
+        end
+      end
+    end
 
     context 'when validating Keywords for Any Instance Type' do
 

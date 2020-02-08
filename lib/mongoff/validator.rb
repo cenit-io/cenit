@@ -70,34 +70,41 @@ module Mongoff
       end
       unless (soft_checked = visited.include?(instance))
         visited << instance if (mongoff = instance.is_a?(Mongoff::Record))
-        data_type = options[:data_type] || instance.orm_model.data_type
-        schema = options[:schema] || data_type.schema
-        state = {}
-        validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
-        prefixes = %w(check)
-        if options[:check_schema]
-          prefixes.unshift('check_schema')
-        end
-        validation_keys.each do |key|
-          prefixes.each do |prefix|
-            key_method_name = "#{prefix}_#{key}".to_sym
-            key_method =
-              begin
-                method(key_method_name)
-              rescue
-                nil
+        begin
+          data_type = options[:data_type] || instance.orm_model.data_type
+          unless (schema = options[:schema]).is_a?(FalseClass)
+            schema ||= data_type.schema
+          end
+          return if schema.is_a?(TrueClass)
+          raise_path_less_error 'is not allowed' if schema.is_a?(FalseClass)
+          state = {}
+          validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
+          prefixes = %w(check)
+          if options[:check_schema]
+            prefixes.unshift('check_schema')
+          end
+          validation_keys.each do |key|
+            prefixes.each do |prefix|
+              key_method_name = "#{prefix}_#{key}".to_sym
+              key_method =
+                begin
+                  method(key_method_name)
+                rescue
+                  nil
+                end
+              if key_method
+                args = [schema[key], instance]
+                args << state if key_method.arity > 2
+                args << data_type if key_method.arity > 3
+                args << options if key_method.arity > 4
+                args << schema if key_method.arity > 5
+                key_method.call(*args)
               end
-            if key_method
-              args = [schema[key], instance]
-              args << state if key_method.arity > 2
-              args << data_type if key_method.arity > 3
-              args << options if key_method.arity > 4
-              args << schema if key_method.arity > 5
-              key_method.call(*args)
             end
           end
+        ensure
+          visited.delete(instance) if mongoff
         end
-        visited.delete(instance) if mongoff
       end
     ensure
       _check_soft_errors(instance) unless soft_checked
@@ -113,6 +120,7 @@ module Mongoff
     end
 
     def validate(schema)
+      return if schema.is_a?(TrueClass) || schema.is_a?(FalseClass)
       _check_type(:schema, schema, Hash)
       schema.each do |key, key_value|
         key_method = "check_schema_#{key}".to_sym

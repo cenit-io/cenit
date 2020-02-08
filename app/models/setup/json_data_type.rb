@@ -216,7 +216,7 @@ module Setup
     def validate_schema
       # check_type_name(self.name)
       self.schema = JSON.parse(schema) unless schema.is_a?(Hash)
-      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), schema.to_json)
+      ::Mongoff::Validator.validate(schema)
       embedded_refs = {}
       if schema['type'] == 'object'
         check_schema(schema, self.name, defined_types = [], embedded_refs, schema)
