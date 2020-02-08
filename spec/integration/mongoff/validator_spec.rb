@@ -276,7 +276,7 @@ describe Mongoff::Validator do
   sample = {
     null: nil,
 
-    boolean: (rand(5) % 2).to_b,
+    boolean: true,
 
     integer: 10 + rand(10),
 
@@ -332,6 +332,10 @@ describe Mongoff::Validator do
 
   dependent_required_test_schema = test_schema.deep_merge(dependent_required_test_schema)
 
+  additional_properties_true_schema = test_schema.merge(additionalProperties: true)
+
+  additional_properties_false_schema = test_schema.merge(additionalProperties: false)
+
   before :all do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
@@ -350,6 +354,18 @@ describe Mongoff::Validator do
       name: 'dR',
       schema: dependent_required_test_schema
     )
+
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
+      name: 'addTrue',
+      schema: additional_properties_true_schema
+    )
+
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
+      name: 'addFalse',
+      schema: additional_properties_false_schema
+    )
   end
 
   let! :validator do
@@ -366,6 +382,14 @@ describe Mongoff::Validator do
 
   let! :data_type_with_dependent_required do
     Setup::DataType.where(namespace: test_namespace, name: 'dR').first
+  end
+
+  let! :data_type_with_additional_props_true do
+    Setup::DataType.where(namespace: test_namespace, name: 'addTrue').first
+  end
+
+  let! :data_type_with_additional_props_false do
+    Setup::DataType.where(namespace: test_namespace, name: 'addFalse').first
   end
 
   let! :test_schema do
@@ -1044,7 +1068,7 @@ describe Mongoff::Validator do
       it 'does not raise an exception if true schema values are present' do
         n = 1 + rand(5)
         instance = sample_instance
-        n.downto(1) { |i| instance["allowed_#{i}"] = instance.values.sample }
+        n.downto(1) { |i| instance["allowed_#{i}"] = true }
         expect {
           validator.validate_instance(instance, data_type: data_type)
         }.not_to raise_error
@@ -1053,7 +1077,7 @@ describe Mongoff::Validator do
       it 'does not report errors if a Mongoff true schema value is present' do
         n = 1 + rand(5)
         obj = sample_instance
-        n.downto(1) { |i| obj["allowed_#{i}"] = obj.values.sample }
+        n.downto(1) { |i| obj["allowed_#{i}"] = true }
         instance = data_type.new_from(obj)
         validator.soft_validates(instance)
         expect(instance.errors.empty?).to be true
@@ -1071,7 +1095,7 @@ describe Mongoff::Validator do
       it 'reports errors if a Mongoff false schema value is present' do
         n = 2 + rand(5)
         obj = sample_instance
-        n.downto(1) { |i| obj["not_allowed_#{i}"] = obj.values.sample }
+        n.downto(1) { |i| obj["not_allowed_#{i}"] = true }
         instance = data_type.new_from(obj)
         validator.soft_validates(instance)
         n.downto(1) do |i|
@@ -2905,6 +2929,46 @@ describe Mongoff::Validator do
       end
 
       context 'when validating keyword additionalProperties' do
+
+        it 'does not raise an exception if additional properties are allowed' do
+          instance = sample_instance.merge(
+            an_additional_property: true,
+            another_additional_property: true
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_additional_props_true)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff additional properties are allowed' do
+          obj = sample_instance.merge(
+            an_additional_property: true,
+            another_additional_property: true
+          )
+          instance = data_type_with_additional_props_true.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if additional properties are not allowed' do
+          instance = sample_instance.merge(
+            an_additional_property: true
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_additional_props_false)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/an_additional_property' is not allowed (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff additional properties are not allowed' do
+          n = 2 + rand(5)
+          obj = sample_instance
+          n.downto(1) { |i| obj["an_additional_property_#{i}"] = true }
+          instance = data_type_with_additional_props_false.new_from(obj)
+          validator.soft_validates(instance)
+          n.downto(1) do |i|
+            expect(instance.errors["an_additional_property_#{i}"]).to include('is not allowed (against additional properties schema)')
+          end
+        end
 
         it 'does not raise an exception if additional properties are valid' do
           instance = sample_instance.merge(
