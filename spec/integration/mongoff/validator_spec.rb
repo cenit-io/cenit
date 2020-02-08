@@ -95,7 +95,7 @@ describe Mongoff::Validator do
         format: 'date-time'
       },
 
-      email: {
+      email: email_schema = {
         type: 'string',
         format: 'email'
       },
@@ -260,6 +260,10 @@ describe Mongoff::Validator do
         referenced: true,
         minProperties: min_properties
       }
+    },
+
+    patternProperties: {
+      '[a-z]*_email': email_schema
     }
   }.deep_stringify_keys
 
@@ -733,6 +737,38 @@ describe Mongoff::Validator do
             properties: {
               value: maximum_schema,
               wrong: 'not a valid schema'
+            }
+          }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+      end
+
+      context 'when validating keyword patternProperties' do
+
+        it 'does not raise an exception if the patternProperties value is valid' do
+          schema = { patternProperties: { '[a-z]*_email': email_schema } }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the patternProperties value is not an object' do
+          schema = { patternProperties: 'not a object' }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+
+        it 'raises an exception if a patternProperties entry is not a regular expression' do
+          schema = {
+            patternProperties: {
+              '[a-z]*_email': email_schema,
+              'not a regular (expression]': {}
+            }
+          }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+
+        it 'raises an exception if a patternProperties entry value is not a valid schema' do
+          schema = {
+            patternProperties: {
+              '[a-z]*_email': 'not a valid schema'
             }
           }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
@@ -2635,6 +2671,165 @@ describe Mongoff::Validator do
             validator.soft_validates(instance)
             expect(instance.ref_array_properties[0].errors[:const]).to include("is not the const value '#{const_schema['const']}'")
           end
+        end
+      end
+
+      context 'when validating keyword patternProperties' do
+
+        it 'does not raise an exception if pattern properties are not present' do
+          expect {
+            validator.validate_instance(sample_instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not raise an exception if valid pattern properties are present' do
+          instance = sample_instance.merge(
+            support_email: 'support@cenit.io',
+            company_email: 'support@cenit.io'
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff pattern properties are not present' do
+          instance = data_type.new_from(sample_instance)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not report errors if a Mongoff pattern properties are present' do
+          obj = sample_instance.merge(
+            support_email: 'support@cenit.io',
+            company_email: 'support@cenit.io'
+          )
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if pattern properties are not valid' do
+          instance = sample_instance.merge(
+            support_email: 'support@cenit.io',
+            company_email: 'not an email'
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/company_email' is not a valid email address")
+        end
+
+        it 'reports errors if a Mongoff pattern properties are not valid' do
+          obj = sample_instance.merge(
+            support_email: 'support@cenit.io',
+            company_email: 'not an email'
+          )
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors[:company_email]).to include('is not a valid email address')
+        end
+
+        it 'raises an exception if an embedded pattern properties are not valid' do
+          instance = {
+            embedded_properties: sample_instance.merge(
+              support_email: 'support@cenit.io',
+              company_email: 'not an email'
+            )
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_properties/company_email' is not a valid email address")
+        end
+
+        it 'reports errors if a Mongoff embedded pattern properties are not valid' do
+          obj = {
+            embedded_properties: sample_instance.merge(
+              support_email: 'support@cenit.io',
+              company_email: 'not an email'
+            )
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.embedded_properties.errors[:company_email]).to include('is not a valid email address')
+        end
+
+        it 'raises an exception if a referenced pattern properties are not valid' do
+          instance = {
+            ref_properties: sample_instance.merge(
+              support_email: 'support@cenit.io',
+              company_email: 'not an email'
+            )
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_properties/company_email' is not a valid email address")
+        end
+
+        it 'reports errors if a Mongoff referenced pattern properties are not valid' do
+          obj = {
+            ref_properties: sample_instance.merge(
+              support_email: 'support@cenit.io',
+              company_email: 'not an email'
+            )
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.ref_properties.errors[:company_email]).to include('is not a valid email address')
+        end
+
+        it 'raises an exception if an array of embedded pattern properties is not valid' do
+          instance = {
+            embedded_array_properties: [
+              sample_instance.merge(
+                support_email: 'support@cenit.io',
+                company_email: 'not an email'
+              )
+            ]
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array_properties[0]/company_email' is not a valid email address")
+        end
+
+        it 'reports errors if a Mongoff an array of embedded pattern properties is not valid' do
+          obj = {
+            embedded_array_properties: [
+              sample_instance.merge(
+                support_email: 'support@cenit.io',
+                company_email: 'not an email'
+              )
+            ]
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.embedded_array_properties[0].errors[:company_email]).to include('is not a valid email address')
+        end
+
+        it 'raises an exception if an array of referenced pattern properties is not valid' do
+          instance = {
+            ref_array_properties: [
+              sample_instance.merge(
+                support_email: 'support@cenit.io',
+                company_email: 'not an email'
+              )
+            ]
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_array_properties[0]/company_email' is not a valid email address")
+        end
+
+        it 'reports errors if a Mongoff an array of referenced pattern properties is not valid' do
+          obj = {
+            ref_array_properties: [
+              sample_instance.merge(
+                support_email: 'support@cenit.io',
+                company_email: 'not an email'
+              )
+            ]
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.ref_array_properties[0].errors[:company_email]).to include('is not a valid email address')
         end
       end
 

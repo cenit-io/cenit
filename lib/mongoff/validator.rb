@@ -719,7 +719,7 @@ module Mongoff
       _check_type(:properties, value, Hash)
       value.each do |pattern, schema|
         begin
-          Regexp.new(pattern)
+          Regexp.new(pattern.to_s)
         rescue Exception => ex
           raise_path_less_error "Property pattern #{pattern} is not a regex: #{ex.message}"
         end
@@ -732,10 +732,11 @@ module Mongoff
     end
 
     def check_patternProperties(patterns, instance, state, data_type, options)
+      path = options[:path] || '#'
       unless (checked_properties = state[:checked_properties])
         checked_properties = state[:checked_properties] = Set.new
       end
-      patterns = patterns.map { |pattern, schema| [Regex.new(pattern), schema] }.to_h
+      patterns = patterns.map { |pattern, schema| [Regexp.new(pattern), schema] }.to_h
       merged_schemas = {}
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
@@ -760,14 +761,13 @@ module Mongoff
                 schema = merged_schemas[property] = property_data_type.merge_schema(patterns[pattern])
               end
               validate_instance(instance[property], options.merge(
+                path: "#{path}/#{property}",
                 schema: schema,
                 data_type: property_data_type
               ))
             rescue RuntimeError => ex
+              _handle_error(instance, ex, property)
               report_error = true
-              _handle_error(instance, ex, property) do |msg|
-                "#{msg} (against additional property pattern #{pattern})"
-              end
             end
           end
         end
@@ -782,13 +782,12 @@ module Mongoff
           end
           begin
             validate_instance(value, options.merge(
+              path: "#{path}/#{property}",
               schema: schema,
               data_type: data_type
             ))
-          rescue RuntimeError => ex
-            _handle_error(instance, ex, property) do |msg|
-              "#{msg} (against additional property pattern #{pattern})"
-            end
+          rescue PathLessError => ex
+            raise_error "Value '#{path}/#{property}' #{ex.message}"
           end
         end
       end
