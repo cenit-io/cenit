@@ -264,7 +264,9 @@ describe Mongoff::Validator do
 
     patternProperties: {
       '[a-z]*_email': email_schema
-    }
+    },
+
+    additionalProperties: const_schema
   }.deep_stringify_keys
 
   sample = {
@@ -670,7 +672,7 @@ describe Mongoff::Validator do
 
       context 'when validating keyword contains' do
 
-        it 'does not raise an exception if the contains a valid schema' do
+        it 'does not raise an exception if contains is a valid schema' do
           schema = { contains: test_schema }
           expect { validator.validate(schema) }.not_to raise_error
         end
@@ -771,6 +773,19 @@ describe Mongoff::Validator do
               '[a-z]*_email': 'not a valid schema'
             }
           }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+      end
+
+      context 'when validating keyword additionalProperties' do
+
+        it 'does not raise an exception if additionalProperties is a valid schema' do
+          schema = { additionalProperties: test_schema }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the additionalProperties schema not valid' do
+          schema = { additionalProperties: 'not valid schema' }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -1783,7 +1798,7 @@ describe Mongoff::Validator do
         context 'when items schema is simple and embedded' do
 
           it 'does not raise an exception if an items embedded value is valid' do
-            instance = { embeded_array: [
+            instance = { embedded_array: [
               { integer: rand(100) },
               { number: rand(100) + rand }
             ] }
@@ -1791,7 +1806,7 @@ describe Mongoff::Validator do
           end
 
           it 'does not report errors if a Mongoff items embedded value is valid' do
-            instance = data_type.new_from(embeded_array: [
+            instance = data_type.new_from(embedded_array: [
               { integer: rand(100) },
               { number: rand(100) + rand }
             ])
@@ -2830,6 +2845,163 @@ describe Mongoff::Validator do
           instance = data_type.new_from(obj)
           validator.soft_validates(instance)
           expect(instance.ref_array_properties[0].errors[:company_email]).to include('is not a valid email address')
+        end
+      end
+
+      context 'when validating keyword additionalProperties' do
+
+        it 'does not raise an exception if additional properties are valid' do
+          instance = sample_instance.merge(
+            additional_property_1: const_schema['const'],
+            additional_property_2: const_schema['const']
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff additional properties are valid' do
+          obj = sample_instance.merge(
+            additional_property_1: const_schema['const'],
+            additional_property_2: const_schema['const']
+          )
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if additional properties are not valid' do
+          const = const_schema['const']
+          instance = sample_instance.merge(
+            additional_property_1: const,
+            additional_property_2: "not #{const}"
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/additional_property_2' is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff additional properties are not valid' do
+          const = const_schema['const']
+          obj = sample_instance.merge(
+            additional_property_1: const,
+            additional_property_2: "not #{const}"
+          )
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'raises an exception if an embedded additional properties are not valid' do
+          const = const_schema['const']
+          instance = {
+            embedded_properties: sample_instance.merge(
+              additional_property_1: const,
+              additional_property_2: "not #{const}"
+            )
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_properties/additional_property_2' is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff embedded additional properties are not valid' do
+          const = const_schema['const']
+          obj = {
+            embedded_properties: sample_instance.merge(
+              additional_property_1: const,
+              additional_property_2: "not #{const}"
+            )
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.embedded_properties.errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'raises an exception if a referenced additional properties are not valid' do
+          const = const_schema['const']
+          instance = {
+            ref_properties: sample_instance.merge(
+              additional_property_1: const,
+              additional_property_2: "not #{const}"
+            )
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_properties/additional_property_2' is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff referenced additional properties are not valid' do
+          const = const_schema['const']
+          obj = {
+            ref_properties: sample_instance.merge(
+              additional_property_1: const,
+              additional_property_2: "not #{const}"
+            )
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.ref_properties.errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'raises an exception if an array of embedded additional properties is not valid' do
+          const = const_schema['const']
+          instance = {
+            embedded_array_properties: [
+              sample_instance.merge(
+                additional_property_1: const,
+                additional_property_2: "not #{const}"
+              )
+            ]
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/embedded_array_properties[0]/additional_property_2' is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff an array of embedded additional properties is not valid' do
+          const = const_schema['const']
+          obj = {
+            embedded_array_properties: [
+              sample_instance.merge(
+                additional_property_1: const,
+                additional_property_2: "not #{const}"
+              )
+            ]
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.embedded_array_properties[0].errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'raises an exception if an array of referenced additional properties is not valid' do
+          const = const_schema['const']
+          instance = {
+            ref_array_properties: [
+              sample_instance.merge(
+                additional_property_1: const,
+                additional_property_2: "not #{const}"
+              )
+            ]
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/ref_array_properties[0]/additional_property_2' is not the const value '#{const}' (against additional properties schema)")
+        end
+
+        it 'reports errors if a Mongoff an array of referenced additional properties is not valid' do
+          const = const_schema['const']
+          obj = {
+            ref_array_properties: [
+              sample_instance.merge(
+                additional_property_1: const,
+                additional_property_2: "not #{const}"
+              )
+            ]
+          }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.ref_array_properties[0].errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
         end
       end
 

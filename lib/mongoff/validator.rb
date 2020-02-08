@@ -653,7 +653,7 @@ module Mongoff
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
             next unless properties.key?(property)
-            checked_properties << property
+            checked_properties << property.to_s
             begin
               property_data_type =
                 if (property_model = model.property_model(property))
@@ -677,7 +677,7 @@ module Mongoff
         instance.each do |property, value|
           property = property.to_s
           next unless properties.key?(property)
-          checked_properties << property
+          checked_properties << property.to_s
           begin
             validate_instance(value, options.merge(
               path: "#{path}/#{property}",
@@ -749,7 +749,7 @@ module Mongoff
           model.stored_properties_on(instance).each do |property|
             pattern = patterns.keys.detect { |regex| regex.match(property) }
             next unless pattern
-            checked_properties << property
+            checked_properties << property.to_s
             begin
               property_data_type =
                 if (property_model = model.property_model(property))
@@ -776,7 +776,7 @@ module Mongoff
         instance.each do |property, value|
           pattern = patterns.keys.detect { |regex| regex.match(property) }
           next unless pattern
-          checked_properties << property
+          checked_properties << property.to_s
           unless (schema = merged_schemas[property])
             schema = merged_schemas[property] = data_type.merge_schema(patterns[pattern])
           end
@@ -802,6 +802,7 @@ module Mongoff
     end
 
     def check_additionalProperties(schema, instance, state, data_type, options)
+      path = options[:path] || '#'
       unless (checked_properties = state[:checked_properties])
         checked_properties = state[:checked_properties] = Set.new
       end
@@ -815,7 +816,8 @@ module Mongoff
         if instance.changed?
           model = instance.orm_model
           model.stored_properties_on(instance).each do |property|
-            next if checked_properties.key?(property)
+            property = property.to_s
+            next if checked_properties.include?(property) || property == '_id' || property == '_type'
             begin
               property_data_type =
                 if (property_model = model.property_model(property))
@@ -824,6 +826,7 @@ module Mongoff
                   data_type
                 end
               validate_instance(instance[property], options.merge(
+                path: "#{path}/#{property}",
                 schema: schema,
                 data_type: property_data_type
               ))
@@ -838,14 +841,16 @@ module Mongoff
         raise_soft 'has errors' if report_error
       elsif instance.is_a?(Hash)
         instance.each do |property, value|
-          next if checked_properties.key?(property)
+          property = property.to_s
+          next if checked_properties.include?(property) || property == '_id' || property == '_type'
           begin
             validate_instance(value, options.merge(
+              path: "#{path}/#{property}",
               schema: schema,
               data_type: data_type
             ))
-          rescue RuntimeError => ex
-            raise_path_less_error "#{ex.message} (against additional properties schema)"
+          rescue PathLessError => ex
+            raise_error "Value '#{path}/#{property}' #{ex.message} (against additional properties schema)"
           end
         end
       end
