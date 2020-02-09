@@ -11,10 +11,40 @@ module Setup
     field :url, type: String
     field :specification, type: String
 
+    DEFAULT_SPEC = <<-YAML
+swagger: '2.0'
+info:
+  version: 0.0.1
+  title: title
+  description: description
+  termsOfService: terms
+  contact:
+    name: name
+    url: http://example
+    email: email@example
+  license:
+    name: MIT
+    url: http://opensource.org/licenses/MIT
+paths:
+  /resource:
+    get:
+     responses:
+      200:
+        description: "Successful operation"
+        schema:
+          type: object
+      404:
+        description: "Resource not found"
+    YAML
+
+    after_initialize do
+      self.specification = DEFAULT_SPEC if new_record? && specification.nil?
+    end
+
     before_save :validate_specification
 
     def validate_specification
-      if specification.blank? && url.present?
+      if (specification.blank? || (new_record? && specification == DEFAULT_SPEC)) && url.present?
         begin
           self.specification = Setup::Connection.get(url).submit!
         rescue Exception => ex
