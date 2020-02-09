@@ -45,15 +45,16 @@ describe Mongoff::Validator do
         multipleOf: multiple_of = 5 + rand(10)
       },
 
-      maximum: maximum_schema = {
-        type: 'number',
-        maximum: 5 + rand(100)
-      }.deep_stringify_keys,
-
       minimum: minimum_schema = {
         type: 'number',
         minimum: 5 + rand(100)
       }.stringify_keys,
+
+      maximum: maximum_schema = {
+        type: 'number',
+        maximum: minimum_schema['minimum'] + 10 + rand(100)
+      }.deep_stringify_keys,
+
 
       exclusiveMaximum: {
         type: 'number',
@@ -259,6 +260,13 @@ describe Mongoff::Validator do
         '$ref': 'A',
         referenced: true,
         minProperties: min_properties
+      },
+
+      allOf: {
+        allOf: [
+          minimum_schema,
+          maximum_schema
+        ]
       }
     },
 
@@ -3492,6 +3500,42 @@ describe Mongoff::Validator do
           }.each do |p, d|
             expect(instance.errors[p]).to include("is required because depending on #{d}")
           end
+        end
+      end
+    end
+
+    context 'when validating Keywords for Applying Subschemas With Boolean Logic' do
+
+      context 'when validating keyword allOf' do
+
+        it 'does not raise an exception if an allOf instance value is valid' do
+          n = ((minimum_schema['minimum'] + maximum_schema['maximum']) / 2).to_i
+          instance = { allOf: n }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff allOf instance is valid' do
+          n = ((minimum_schema['minimum'] + maximum_schema['maximum']) / 2).to_i
+          instance = data_type.new_from(allOf: n)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an allOf instance is not valid' do
+          wrong_value = maximum_schema['maximum'] + 1
+          instance = { allOf: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/allOf' does not match allOf schema#1: expected to be maximum #{maximum_schema['maximum']}")
+        end
+
+        it 'raises an exception if a Mongoff allOf instance is not valid' do
+          wrong_value = maximum_schema['maximum'] + 1
+          instance = data_type.new_from(allOf: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:allOf]).to include("does not match allOf schema#1: expected to be maximum #{maximum_schema['maximum']}")
         end
       end
     end

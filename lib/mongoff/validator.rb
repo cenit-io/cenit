@@ -77,6 +77,7 @@ module Mongoff
           end
           return if schema.is_a?(TrueClass)
           raise_path_less_error 'is not allowed' if schema.is_a?(FalseClass)
+          schema = data_type.merge_schema(schema)
           state = {}
           validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
           prefixes = %w(check)
@@ -398,11 +399,10 @@ module Mongoff
         if items_schema.is_a?(Array)
           items.each_with_index do |item, index|
             break unless index < items_schema.length
-            item_schema = data_type.merge_schema(items_schema[index])
             begin
               validate_instance(item, options.merge(
                 path: "#{path}[#{index}]",
-                schema: item_schema,
+                schema: items_schema[index],
                 data_type: data_type
               ))
             rescue PathLessError => ex
@@ -689,7 +689,7 @@ module Mongoff
           begin
             validate_instance(value, options.merge(
               path: "#{path}/#{property}",
-              schema: data_type.merge_schema(properties[property]),
+              schema: properties[property],
               data_type: data_type
             ))
           rescue PathLessError => ex
@@ -928,10 +928,10 @@ module Mongoff
       end
     end
 
-    def check_allOf(schemas, instance)
+    def check_allOf(schemas, instance, _, data_type)
       schemas.each_with_index do |schema, index|
         begin
-          validate_instance(instance, schema: schema)
+          validate_instance(instance, schema: schema, data_type: data_type)
         rescue Error => ex
           raise_path_less_error "does not match allOf schema##{index}: #{ex.message}"
         end
