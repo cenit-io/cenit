@@ -973,20 +973,25 @@ module Mongoff
       end
     end
 
-    def check_oneOf(schemas, instance)
-      oneIndex = nil
+    def check_oneOf(schemas, instance, _, data_type)
+      one_index = nil
       schemas.each_with_index do |schema, index|
-        begin
-          validate_instance(instance, schema: schema)
-          if oneIndex
-            raise_path_less_error "match more than one oneOf schemas (at least ##{oneIndex} and ##{index})"
-          else
-            oneIndex = index
+        valid =
+          begin
+            validate_instance(instance, schema: schema, data_type: data_type)
+            true
+          rescue
+            false
           end
-        rescue
+        if valid
+          if one_index
+            raise_path_less_error "match more than one oneOf schemas (at least ##{one_index} and ##{index})"
+          else
+            one_index = index
+          end
         end
       end
-      raise_path_less_error 'does not match any of the oneOf schemas'
+      raise_path_less_error 'does not match any of the oneOf schemas' unless one_index
     end
 
     def check_schema_not(schema)

@@ -274,6 +274,13 @@ describe Mongoff::Validator do
           multiple_of_schema,
           maximum_schema
         ]
+      },
+
+      oneOf: {
+        oneOf: [
+          multiple_of_schema,
+          maximum_schema
+        ]
       }
     },
 
@@ -3576,6 +3583,54 @@ describe Mongoff::Validator do
           instance = data_type.new_from(anyOf: wrong_value)
           validator.soft_validates(instance)
           expect(instance.errors[:anyOf]).to include('does not match any of the anyOf schemas')
+        end
+      end
+
+      context 'when validating keyword oneOf' do
+
+        it 'does not raise an exception if a oneOf instance value is valid' do
+          n = maximum_schema['maximum'] - 0.1
+          instance = { oneOf: n }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff oneOf instance is valid' do
+          n = maximum_schema['maximum'] - 0.1
+          instance = data_type.new_from(oneOf: n)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if a oneOf instance is not valid' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of + 2) * multiple_of + 0.1
+          instance = { oneOf: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/oneOf' does not match any of the oneOf schemas")
+        end
+
+        it 'raises an exception if a Mongoff oneOf instance is not valid' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of + 2) * multiple_of + 0.1
+          instance = data_type.new_from(oneOf: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:oneOf]).to include('does not match any of the oneOf schemas')
+        end
+
+        it 'raises an exception if a oneOf instance matches more than one schema' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of - 1) * multiple_of
+          instance = { oneOf: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/oneOf' match more than one oneOf schemas (at least #0 and #1)")
+        end
+
+        it 'raises an exception if a Mongoff oneOf instance matches more than one schema' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of - 1) * multiple_of
+          instance = data_type.new_from(oneOf: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:oneOf]).to include('match more than one oneOf schemas (at least #0 and #1)')
         end
       end
     end
