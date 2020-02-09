@@ -6,7 +6,7 @@ describe Mongoff::Validator do
 
   test_schema = {
     type: 'object',
-    properties: {
+    properties: properties = {
       id: {
         # TODO If not declared then parsed id from JSON is ignored (fix it!)
       },
@@ -270,7 +270,11 @@ describe Mongoff::Validator do
       "allowed_\\d": true
     },
 
-    additionalProperties: const_schema
+    additionalProperties: const_schema,
+
+    propertyNames: {
+      maxLength: property_names_max_length = 20 + properties.keys.map(&:to_s).map(&:length).max
+    }
   }.deep_stringify_keys
 
   sample = {
@@ -3122,6 +3126,31 @@ describe Mongoff::Validator do
           instance = data_type.new_from(obj)
           validator.soft_validates(instance)
           expect(instance.ref_array_properties[0].errors[:additional_property_2]).to include("is not the const value '#{const}' (against additional properties schema)")
+        end
+      end
+
+      context 'when validating keyword propertyNames' do
+
+        it 'raises an exception if property names are not valid' do
+          wrong_name = 'an_additional_property_with_a_very_long_long_name_' + ('x' * property_names_max_length)
+          instance = sample_instance.merge(
+            wrong_name => const_schema['const']
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Property '#/#{wrong_name}' name does not match property names schema: is too long (#{wrong_name.length} of #{property_names_max_length} max)")
+        end
+
+        it 'reports errors if a Mongoff property names are not valid' do
+          wrong_name_prefix = 'an_additional_property_with_a_very_long_long_name_' + ('x' * property_names_max_length)
+          n = 2 + rand(5)
+          obj = sample_instance
+          n.downto(1) { |i| obj["#{wrong_name_prefix}_#{i}"] = const_schema['const'] }
+          instance = data_type.new_from(obj)
+          validator.soft_validates(instance)
+          n.downto(1) do |i|
+            expect(instance.errors["#{wrong_name_prefix}_#{i}"]).to include("name does not match the property names schema: is too long (#{wrong_name_prefix.length + 2} of #{property_names_max_length} max)")
+          end
         end
       end
 

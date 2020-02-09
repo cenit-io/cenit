@@ -873,6 +873,7 @@ module Mongoff
     end
 
     def check_propertyNames(schema, instance, state, data_type, options)
+      path = options[:path] || '#'
       schema = data_type.merge_schema(schema)
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
@@ -885,13 +886,14 @@ module Mongoff
           model.stored_properties_on(instance).each do |property|
             begin
               validate_instance(property, options.merge(
+                path: "#{path}/#{property}",
                 schema: schema,
                 data_type: data_type
               ))
             rescue RuntimeError => ex
               report_error = true
               _handle_error(instance, ex, property) do |msg|
-                "name does not match the property names schema (#{msg})"
+                "name does not match the property names schema: #{msg}"
               end
             end
           end
@@ -901,11 +903,12 @@ module Mongoff
         instance.keys.each do |property|
           begin
             validate_instance(property, options.merge(
+              path: "#{path}/#{property}",
               schema: schema,
               data_type: data_type
             ))
-          rescue RuntimeError => ex
-            raise_path_less_error "property name #{property} does not match property manes schema (#{ex.message})"
+          rescue PathLessError => ex
+            raise_path_less_error "Property '#{path}/#{property}' name does not match property names schema: #{ex.message}"
           end
         end
       end
