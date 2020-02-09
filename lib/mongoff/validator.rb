@@ -950,10 +950,10 @@ module Mongoff
       end
     end
 
-    def check_anyOf(schemas, instance)
+    def check_anyOf(schemas, instance, _, data_type)
       schemas.each_with_index do |schema|
         begin
-          validate_instance(instance, schema: schema)
+          validate_instance(instance, schema: schema, data_type: data_type)
           return
         rescue
         end

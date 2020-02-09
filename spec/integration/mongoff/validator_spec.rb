@@ -40,7 +40,7 @@ describe Mongoff::Validator do
         const: rand(100)
       }.deep_stringify_keys,
 
-      multipleOf: {
+      multipleOf: multiple_of_schema = {
         type: 'number',
         multipleOf: multiple_of = 5 + rand(10)
       },
@@ -265,6 +265,13 @@ describe Mongoff::Validator do
       allOf: {
         allOf: [
           minimum_schema,
+          maximum_schema
+        ]
+      },
+
+      anyOf: {
+        anyOf: [
+          multiple_of_schema,
           maximum_schema
         ]
       }
@@ -3536,6 +3543,39 @@ describe Mongoff::Validator do
           instance = data_type.new_from(allOf: wrong_value)
           validator.soft_validates(instance)
           expect(instance.errors[:allOf]).to include("does not match allOf schema#1: expected to be maximum #{maximum_schema['maximum']}")
+        end
+      end
+
+      context 'when validating keyword anyOf' do
+
+        it 'does not raise an exception if an anyOf instance value is valid' do
+          n = (maximum_schema['maximum'] % multiple_of + 2) * multiple_of
+          instance = { anyOf: n }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff anyOf instance is valid' do
+          n = (maximum_schema['maximum'] % multiple_of + 2) * multiple_of
+          instance = data_type.new_from(anyOf: n)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an anyOf instance is not valid' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of + 2) * multiple_of + 0.1
+          instance = { anyOf: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/anyOf' does not match any of the anyOf schemas")
+        end
+
+        it 'raises an exception if a Mongoff anyOf instance is not valid' do
+          wrong_value = (maximum_schema['maximum'] / multiple_of + 2) * multiple_of + 0.1
+          instance = data_type.new_from(anyOf: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:anyOf]).to include('does not match any of the anyOf schemas')
         end
       end
     end
