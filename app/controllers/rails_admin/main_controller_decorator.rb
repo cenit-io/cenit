@@ -4,7 +4,6 @@ module RailsAdmin
     include OverrideActionsHelper
     include RestApiHelper
     include SwaggerHelper
-    include NotebooksHelper
     include TraceHelper
 
     before_action :process_context

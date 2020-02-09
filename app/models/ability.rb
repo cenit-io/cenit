@@ -293,7 +293,7 @@ class Ability
     can :access, :rails_admin
 
 
-    can [:dashboard, :shared_collection_index, :ecommerce_index, :notebooks_root, :open_api_directory]
+    can [:dashboard, :shared_collection_index, :ecommerce_index, :open_api_directory]
     can [:index, :show, :pull, :simple_export], Setup::CrossSharedCollection
     can [:index, :show], Setup::Models.all.to_a -
                          [
