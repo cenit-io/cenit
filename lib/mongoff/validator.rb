@@ -1002,12 +1002,13 @@ module Mongoff
       end
     end
 
-    def check_not(schema, instance)
+    def check_not(schema, instance, _, data_type)
       begin
-        validate_instance(instance, schema: schema)
-        raise_path_less_error "should not match a NOT schema"
+        validate_instance(instance, schema: schema, data_type: data_type)
       rescue
+        return
       end
+      raise_path_less_error "should not match a NOT schema"
     end
 
     # Keywords for Applying Subschemas Conditionally

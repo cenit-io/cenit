@@ -281,6 +281,10 @@ describe Mongoff::Validator do
           multiple_of_schema,
           maximum_schema
         ]
+      },
+
+      not: {
+        not: maximum_schema
       }
     },
 
@@ -3631,6 +3635,39 @@ describe Mongoff::Validator do
           instance = data_type.new_from(oneOf: wrong_value)
           validator.soft_validates(instance)
           expect(instance.errors[:oneOf]).to include('match more than one oneOf schemas (at least #0 and #1)')
+        end
+      end
+
+      context 'when validating keyword not' do
+
+        it 'does not raise an exception if a not instance value is valid' do
+          n = maximum_schema['maximum'] + 1
+          instance = { not: n }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff not instance is valid' do
+          n = maximum_schema['maximum'] + 1
+          instance = data_type.new_from(not: n)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if a not instance is not valid' do
+          wrong_value = maximum_schema['maximum'] - 1
+          instance = { not: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/not' should not match a NOT schema")
+        end
+
+        it 'raises an exception if a Mongoff not instance is not valid' do
+          wrong_value = maximum_schema['maximum'] - 1
+          instance = data_type.new_from(not: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:not]).to include('should not match a NOT schema')
         end
       end
     end
