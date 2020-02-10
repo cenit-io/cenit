@@ -88,25 +88,29 @@ module Mongoff
       raise Exception.new('Invalid data') unless save(options)
     end
 
-    def validate
+    def validate(options = {})
       unless @validated
         # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
-        Mongoff::Validator.soft_validates(self, skip_nulls: true)
-        # TODO Uncommnet as part of transition to Mongoff Validation...
-        # mongoff_errors = errors.present? && errors.full_messages.to_sentence
-        # errors.clear
-        # orm_model.fully_validate_against_schema(attributes).each do |error|
-        #   errors.add(:base, error[:message])
-        # end
-        # if mongoff_errors && !errors.present?
-        #   Setup::SystemReport.create_with(
-        #     message: "Mongoff Validator ERRORS: #{mongoff_errors}",
-        #     type: :warning
-        #   )
-        # end
+        do_validate(options)
         @validated = true
       end
+    end
+
+    def do_validate(options = {})
+      Mongoff::Validator.soft_validates(self, skip_nulls: true)
+      # TODO Uncommnet as part of transition to Mongoff Validation...
+      # mongoff_errors = errors.present? && errors.full_messages.to_sentence
+      # errors.clear
+      # orm_model.fully_validate_against_schema(attributes).each do |error|
+      #   errors.add(:base, error[:message])
+      # end
+      # if mongoff_errors && !errors.present?
+      #   Setup::SystemReport.create_with(
+      #     message: "Mongoff Validator ERRORS: #{mongoff_errors}",
+      #     type: :warning
+      #   )
+      # end
     end
 
     def valid?

@@ -72,9 +72,9 @@ module Mongoff
       unless (soft_checked = visited.include?(instance))
         visited << instance if (mongoff = instance.is_a?(Mongoff::Record))
         begin
-          data_type = options[:data_type] || instance.orm_model.data_type
+          data_type = options[:data_type] || (mongoff_model = instance.orm_model).data_type
           unless (schema = options[:schema]).is_a?(FalseClass)
-            schema ||= data_type.schema
+            schema ||= (mongoff_model || data_type).schema
           end
           return if schema.is_a?(TrueClass)
           raise_path_less_error 'is not allowed' if schema.is_a?(FalseClass)
