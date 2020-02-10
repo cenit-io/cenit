@@ -1080,7 +1080,7 @@ module Mongoff
       end
     end
 
-    def check_dependentSchemas(properties, instance)
+    def check_dependentSchemas(properties, instance, _, data_type)
       return unless instance
       if instance.is_a?(Mongoff::Record)
         has_errors = false
@@ -1088,12 +1088,12 @@ module Mongoff
         properties.each do |property, dependent_schema|
           next unless stored_properties.include?(property.to_s)
           begin
-            validate_instance(instance, schema: dependent_schema)
+            validate_instance(instance, schema: dependent_schema, data_type: data_type)
           rescue Error => ex
             has_errors = true
             _handle_error(
               instance,
-              "Does not match dependent schema on property #{property}: #{ex.message}",
+              "Does not match dependent schema on property #{property} (#{ex.message})",
             )
           end
         end
@@ -1101,9 +1101,9 @@ module Mongoff
       elsif instance.is_a?(Hash)
         dependent_properties = {}
         properties.each do |property, dependent_schema|
-          next unless instance.key?(property)
+          next unless instance.key?(property.to_s) || instance.key?(property.to_sym)
           begin
-            validate_instance(instance, schema: dependent_schema)
+            validate_instance(instance, schema: dependent_schema, data_type: data_type)
           rescue Error => ex
             dependent_properties[property] = ex.message
           end

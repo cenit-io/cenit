@@ -308,13 +308,21 @@ describe Mongoff::Validator do
 
       "not_allowed(_\\d)?": false,
 
-      "allowed_\\d": true
+      "allowed_\\d": true,
+
+      "dependent_schema(_\\d)?": true
     },
 
     additionalProperties: const_schema,
 
     propertyNames: {
       maxLength: property_names_max_length = 20 + properties.keys.map(&:to_s).map(&:length).max
+    },
+
+    dependentSchemas: {
+      dependent_schema_1: {
+        maxProperties: dependent_max_properties = 5
+      }
     }
   }.deep_stringify_keys
 
@@ -3803,6 +3811,44 @@ describe Mongoff::Validator do
           )
           validator.soft_validates(instance)
           expect(instance.errors[:if_then_else]).to include('does not match the IF schema and does not match the ELSE one')
+        end
+      end
+
+      context 'when validating keyword dependentSchemas' do
+
+        it 'does not raise an exception if a dependent schema successfully applies' do
+          instance = { dependent_schema_1: true }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not raise an exception if a Mongoff dependent schema successfully applies' do
+          instance = data_type.new_from(
+            dependent_schema_1: true
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if a dependent schema does not apply' do
+          instance = sample_instance.merge(
+            dependent_schema_1: true
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Does not match dependent schema on property dependent_schema_1 (has too many properties (#{instance.size} of #{dependent_max_properties} max))")
+        end
+
+        it 'raises an exception if a Mongoff dependent schema does not apply' do
+          instance = data_type.new_from(
+            sample_instance.merge(
+              dependent_schema_1: true
+            )
+          )
+          validator.soft_validates(instance)
+          size = instance.orm_model.stored_properties_on(instance).size
+          expect(instance.errors[:base]).to include("Does not match dependent schema on property dependent_schema_1 (has too many properties (#{size} of #{dependent_max_properties} max))")
         end
       end
     end
