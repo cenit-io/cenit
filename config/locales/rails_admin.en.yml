@@ -497,13 +497,6 @@ en:
         menu: "Rest API"
         breadcrumb: "Rest API"
         hint: "Generate command for access to API of this action."
-      notebooks:
-        title: "Notebooks"
-        menu: "Notebooks"
-        breadcrumb: "Notebooks"
-      notebooks_root:
-        menu: "Notebooks"
-        breadcrumb: "Notebooks"
       notifications:
         title: "Notifications"
         menu: "Notifications"

@@ -56,7 +56,7 @@
       "title": "Compute",
       "url": "/compute/dashboard",
       "icon": "fa fa-cog",
-      "description": "Algorithms - Applications - Snippets - Filters- Notebooks"
+      "description": "Algorithms - Applications - Snippets - Filters"
     },
     {
       "title": "eCcommerce",
@@ -120,12 +120,6 @@
       "title": "Open Api Directory",
       "url": "/open_api_directory",
       "icon": "fa fa-book",
-      "description": "Data description"
-    },
-    {
-      "title": "Notebooks",
-      "url": "/notebook",
-      "icon": "fa fa-list",
       "description": "Data description"
     }
   ],

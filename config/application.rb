@@ -62,8 +62,6 @@ module Cenit
         Capataz::Cache.clean
 
         Setup::CenitDataType.init!
-
-        Cenit::Notebooks.startup if Cenit.jupyter_notebooks
       end
 
       require 'mongoff/model'

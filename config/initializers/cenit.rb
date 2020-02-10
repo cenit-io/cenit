@@ -79,10 +79,6 @@ Cenit.config do
 
   max_handling_schemas 500
 
-  jupyter_notebooks (ENV['JUPYTER_NOTEBOOKS'] || 'false').to_b
-
-  jupyter_notebooks_url ENV['JUPYTER_NOTEBOOKS_URL'] || 'http://127.0.0.1:8888'
-
   file_stores Cenit::FileStore::LocalDb, Cenit::FileStore::AwsS3Default, Cenit::FileStore::AwsS3
 
   default_file_store ENV['DEFAULT_FILE_STORE']
