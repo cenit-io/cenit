@@ -44,7 +44,8 @@ module Mongoff
         OBJECT_KEYWORDS +
         LOGIC_KEYWORDS +
         FORMAT_KEYWORDS +
-        [DEFAULT_KEYWORD]
+        [DEFAULT_KEYWORD] +
+        CONDITIONAL_KEYWORDS
 
     def soft_validates(instance, options = {})
       validate_instance(instance, options)
@@ -1021,15 +1022,15 @@ module Mongoff
       end
     end
 
-    def check_if(schema, instance, state)
-      sucess =
+    def check_if(schema, instance, state, data_type)
+      success =
         begin
-          validate_instance(instance, schema: schema)
+          validate_instance(instance, schema: schema, data_type: data_type)
           true
         rescue
           false
         end
-      state[:if_success] = sucess
+      state[:if_success] = success
     end
 
     def check_schema_then(schema)
@@ -1040,14 +1041,12 @@ module Mongoff
       end
     end
 
-    def check_then(schema, instance, state)
-      if state.key?(:if_success)
+    def check_then(schema, instance, state, data_type)
+      if state.key?(:if_success) && state[:if_success]
         begin
-          validate_instance(instance, schema: schema)
+          validate_instance(instance, schema: schema, data_type: data_type)
         rescue
-          unless state[:if_success]
-            raise_path_less_error "matches the IF schema but ir does not match the THEN one"
-          end
+          raise_path_less_error "matches the IF schema but it does not match the THEN one"
         end
       end
     end
@@ -1060,14 +1059,12 @@ module Mongoff
       end
     end
 
-    def check_else(schema, instance, state)
-      if state.key?(:if_success)
+    def check_else(schema, instance, state, data_type)
+      if state.key?(:if_success) && !state[:if_success]
         begin
-          validate_instance(instance, schema: schema)
-          if state[:if_success]
-            raise_path_less_error "matches the IF schema and should not match the ELSE one"
-          end
+          validate_instance(instance, schema: schema, data_type: data_type)
         rescue
+          raise_path_less_error "does not match the IF schema and does not match the ELSE one"
         end
       end
     end

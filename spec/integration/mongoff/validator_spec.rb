@@ -66,7 +66,7 @@ describe Mongoff::Validator do
         exclusiveMinimum: exclusive_minimum = 100 - rand(100)
       },
 
-      maxLength: {
+      maxLength: max_length_schema = {
         type: 'string',
         maxLength: max_length = 10 + rand(50)
       },
@@ -285,6 +285,21 @@ describe Mongoff::Validator do
 
       not: {
         not: maximum_schema
+      },
+
+      if_then: {
+        if: {
+          type: 'integer'
+        },
+        then: maximum_schema
+      },
+
+      if_then_else: {
+        if: {
+          type: 'integer'
+        },
+        then: maximum_schema,
+        else: max_length_schema
       }
     },
 
@@ -348,7 +363,7 @@ describe Mongoff::Validator do
   }
 
   required_test_schema = {
-    required: required_props = sample.keys.take(2 + rand(5)).map(&:to_s) - %w(null)
+    required: required_props = sample.keys.take(3 + rand(5)).map(&:to_s) - %w(null)
   }.deep_stringify_keys
 
   required_test_schema = test_schema.deep_merge(required_test_schema)
@@ -3668,6 +3683,126 @@ describe Mongoff::Validator do
           instance = data_type.new_from(not: wrong_value)
           validator.soft_validates(instance)
           expect(instance.errors[:not]).to include('should not match a NOT schema')
+        end
+      end
+    end
+
+    context 'when validating Keywords for Applying Subschemas Conditionally' do
+
+      context 'when validating keywords combination if-then' do
+
+        it 'does not raise an exception if an if-then instance value successfully applies' do
+          instance = { if_then: maximum_schema['maximum'] }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff if-then instance value successfully applies' do
+          instance = data_type.new_from(
+            if_then: maximum_schema['maximum']
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if an if-then instance value does not apply' do
+          instance = { if_then: 'not an integer' }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff if-then instance value does not apply' do
+          instance = data_type.new_from(
+            if_then: 'not an integer'
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an if-then instance value is not valid' do
+          instance = {
+            if_then: maximum_schema['maximum'] + 1
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/if_then' matches the IF schema but it does not match the THEN one")
+        end
+
+        it 'raises an exception if a Mongoff if-then instance value is not valid' do
+          instance = data_type.new_from(
+            if_then: maximum_schema['maximum'] + 1
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:if_then]).to include('matches the IF schema but it does not match the THEN one')
+        end
+      end
+
+      context 'when validating keywords combination if-then-else' do
+
+        it 'does not raise an exception if an if-then-else instance value successfully applies if-then' do
+          instance = { if_then_else: maximum_schema['maximum'] }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff if-then-else instance value successfully applies if-then' do
+          instance = data_type.new_from(
+            if_then_else: maximum_schema['maximum']
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'does not raise an exception if an if-then instance value successfully applies if-else' do
+          instance = { if_then_else: 'a' * max_length }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff if-then instance value successfully applies if-else' do
+          instance = data_type.new_from(
+            if_then_else: 'a' * max_length
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an exception if an if-then-else instance value is not valid via if-then' do
+          instance = {
+            if_then_else: maximum_schema['maximum'] + 1
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/if_then_else' matches the IF schema but it does not match the THEN one")
+        end
+
+        it 'raises an exception if a Mongoff if-then-else instance value is not valid via if-then' do
+          instance = data_type.new_from(
+            if_then_else: maximum_schema['maximum'] + 1
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:if_then_else]).to include('matches the IF schema but it does not match the THEN one')
+        end
+
+        it 'raises an exception if an if-then-else instance value is not valid via if-else' do
+          instance = {
+            if_then_else: 'a' * (max_length + 1)
+          }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/if_then_else' does not match the IF schema and does not match the ELSE one")
+        end
+
+        it 'raises an exception if a Mongoff if-then-else instance value is not valid via if-then' do
+          instance = data_type.new_from(
+            if_then_else: 'a' * (max_length + 1)
+          )
+          validator.soft_validates(instance)
+          expect(instance.errors[:if_then_else]).to include('does not match the IF schema and does not match the ELSE one')
         end
       end
     end
