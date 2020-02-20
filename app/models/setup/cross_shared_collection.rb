@@ -321,7 +321,7 @@ module Setup
                 { _id: record.id.to_s }.merge(
                   with_reset(
                     record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) },
-                    record.orml_model
+                    record.orm_model
                   )
                 )
               end
