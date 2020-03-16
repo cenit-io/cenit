@@ -234,7 +234,7 @@ module Setup
         end
         begin
           start_time = Time.current
-          http_response = HTTMultiParty.send(method, url, msg)
+          http_response = Http.send(method, url, msg)
         rescue Timeout::Error
           http_response = Setup::Webhook::HttpResponse.new(
             true,
@@ -494,6 +494,9 @@ module Setup
       end
     end
 
+    class Http
+      include HTTMultiParty
+    end
 
     class HttpResponse
 
