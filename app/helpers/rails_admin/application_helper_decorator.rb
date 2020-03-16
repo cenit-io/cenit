@@ -1264,9 +1264,6 @@ module RailsAdmin
 
     def home_explore_menu
       explore_menu = (Setup::Configuration.home_explore_menu || [])
-      unless Cenit.jupyter_notebooks
-        explore_menu.delete_if { |desc| desc[:url] == '/notebook' }
-      end
       explore_menu
     end
 

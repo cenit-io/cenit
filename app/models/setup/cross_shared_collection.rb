@@ -318,13 +318,18 @@ module Setup
               configuring_fields = r.klass.data_type.get_referenced_by + r.klass.configuring_fields.to_a
               configuring_fields = configuring_fields.collect(&:to_s)
               collection.send(r.name).collect do |record|
-                { _id: record.id.to_s }.merge record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) }
+                { _id: record.id.to_s }.merge(
+                  with_reset(
+                    record.share_hash(opts).reject { |k, _| configuring_fields.exclude?(k) },
+                    record.orm_model
+                  )
+                )
               end
             else
-              collection.send(r.name).collect { |record| record.shared? ? { _id: record.id.to_s } : record.share_hash(opts) }
+              collection.send(r.name).collect { |record| record.shared? ? { _id: record.id.to_s } : with_reset(record.share_hash(opts), record.orm_model) }
             end
           else
-            collection.send(r.name).collect { |record| record.share_hash(opts) }
+            collection.send(r.name).collect { |record| with_reset(record.share_hash(opts), record.orm_model) }
           end
         pull_data.delete_if { |_, value| value.blank? }
         send("#{property}=", [])
@@ -400,11 +405,23 @@ module Setup
           h
         end
       when Array
-        value.collect { |sub_value| clean_ids(sub_value) }
+        value.collect(&method(:clean_ids))
       else
         value
       end
     end
 
+    def with_reset(hash, model)
+      unless (_reset = hash['_reset'])
+        _reset = hash['_reset'] = []
+      end
+      hash.keys.each do |property|
+        if !_reset.include?(property) && model.relations[property]&.many?
+          _reset << property
+        end
+      end
+      hash.delete('_reset') if _reset.empty?
+      hash
+    end
   end
 end

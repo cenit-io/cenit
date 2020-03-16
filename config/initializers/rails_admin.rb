@@ -79,11 +79,6 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::Token
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
-[
-  RailsAdmin::Config::Actions::Notebooks,
-  RailsAdmin::Config::Actions::NotebooksRoot
-].each { |a| RailsAdmin::Config::Actions.register(a) } if Cenit.jupyter_notebooks
-
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
 
 [
@@ -190,7 +185,7 @@ module RailsAdmin
               param: 'compute',
               label: 'Compute',
               icon: 'fa fa-cog',
-              externals: ['Setup::Notebook'],
+              externals: [],
               sublinks: %w(Setup::Algorithm Setup::Application Setup::Snippet Setup::Filter)
             },
             {
@@ -208,15 +203,6 @@ module RailsAdmin
               sublinks: %w(Setup::AuthorizationClient Setup::AuthorizationProvider Setup::Oauth2Scope Setup::Authorization Cenit::OauthAccessGrant )
             }
           ]
-          @dashboard_groups.select { |g| g[:param] == 'compute' }.each do |g|
-            nb= 'Setup::Notebook'
-            sublinks = g[:sublinks]
-            unless (sublinks.include?(nb))
-              if Cenit.jupyter_notebooks
-                g[:sublinks]<< 'Setup::Notebook'
-              end
-            end
-          end
 
           if ENV['SUBSCRIPTIONS_APP'].present?
             @dashboard_groups << {
@@ -268,7 +254,7 @@ RailsAdmin.config do |config|
 
   ### More at https://github.com/sferik/rails_admin/wiki/Base-configuration
   config.authenticate_with do
-    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show notebooks_root open_api_directory).include?(action_name)
+    warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show open_api_directory).include?(action_name)
   end
   config.current_user_method { current_user }
   config.authorize_with :cancan
@@ -401,8 +387,6 @@ RailsAdmin.config do |config|
   Cenit::ApplicationParameter
 
   Setup::Filter
-
-  Setup::Notebook if Cenit.jupyter_notebooks
 
   #Transformations
 
@@ -668,7 +652,6 @@ RailsAdmin.config do |config|
     compare
     delete
     trash
-    notebooks_root if Cenit.jupyter_notebooks
     clean_up
     do_clean
     clean_all
@@ -684,6 +667,5 @@ RailsAdmin.config do |config|
     rest_api1
     rest_api2
     documentation
-    notebooks if Cenit.jupyter_notebooks
   end
 end
