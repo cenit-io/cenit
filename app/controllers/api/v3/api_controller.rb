@@ -247,7 +247,7 @@ module Api::V3
       end
     end
 
-    PARSER_OPTIONS = %w(add_only primary_field ignore reset update skip_refs_binding).collect(&:to_sym)
+    PARSER_OPTIONS = %w(add_only primary_field ignore reset update skip_refs_binding add_new).collect(&:to_sym)
 
     def parser_options
       @parser_options ||=
