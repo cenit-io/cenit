@@ -389,6 +389,8 @@ describe Mongoff::Validator do
 
   additional_properties_false_schema = test_schema.merge(additionalProperties: false)
 
+  additional_properties_default_schema = test_schema.reject {|key| key == 'additionalProperties'}
+
   before :all do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
@@ -419,6 +421,12 @@ describe Mongoff::Validator do
       name: 'addFalse',
       schema: additional_properties_false_schema
     )
+
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
+      name: 'addDefault',
+      schema: additional_properties_default_schema
+    )
   end
 
   let! :validator do
@@ -443,6 +451,10 @@ describe Mongoff::Validator do
 
   let! :data_type_with_additional_props_false do
     Setup::DataType.where(namespace: test_namespace, name: 'addFalse').first
+  end
+
+  let! :data_type_with_additional_props_default do
+    Setup::DataType.where(namespace: test_namespace, name: 'addDefault').first
   end
 
   let! :test_schema do
@@ -2982,6 +2994,26 @@ describe Mongoff::Validator do
       end
 
       context 'when validating keyword additionalProperties' do
+
+        it 'does not raise an exception if additional properties are allowed by default' do
+          instance = sample_instance.merge(
+            an_additional_property: true,
+            another_additional_property: true
+          )
+          expect {
+            validator.validate_instance(instance, data_type: data_type_with_additional_props_default)
+          }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff additional properties are allowed by default' do
+          obj = sample_instance.merge(
+            an_additional_property: true,
+            another_additional_property: true
+          )
+          instance = data_type_with_additional_props_default.new_from(obj)
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
 
         it 'does not raise an exception if additional properties are allowed' do
           instance = sample_instance.merge(

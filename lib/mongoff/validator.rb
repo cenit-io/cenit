@@ -80,7 +80,28 @@ module Mongoff
           raise_path_less_error 'is not allowed' if schema.is_a?(FalseClass)
           schema = data_type.merge_schema(schema)
           state = {}
-          validation_keys = INSTANCE_VALIDATION_KEYWORDS.select { |key| schema.key?(key) }
+          validation_keys = []
+          props = items = false
+          INSTANCE_VALIDATION_KEYWORDS.each do |key|
+            next unless schema.key?(key)
+            validation_keys << key
+            if props
+              if key == 'additionalProperties'
+                props = false
+              end
+            elsif key == 'properties'
+              props = true
+            end
+            if items
+              if key == 'additionalItems'
+                items = false
+              end
+            elsif key == 'items'
+              items = true
+            end
+          end
+          validation_keys << 'additionalProperties' if props
+          validation_keys << 'additionalItems' if items
           prefixes = %w(check)
           if options[:check_schema]
             prefixes.unshift('check_schema')
@@ -439,6 +460,7 @@ module Mongoff
     def check_additionalItems(items_schema, items, state, data_type, options)
       if (start_index = state[:additional_items_index]) && start_index < items.length
         path = options[:path] || '#'
+        items_schema = items_schema.is_a?(FalseClass) ? false : (items_schema || true)
         items_schema = data_type.merge_schema(items_schema)
         start_index.upto(items.length - 1) do |index|
           begin
@@ -815,6 +837,7 @@ module Mongoff
       unless (checked_properties = state[:checked_properties])
         checked_properties = state[:checked_properties] = Set.new
       end
+      schema = schema.is_a?(FalseClass) ? false : (schema || true)
       schema = data_type.merge_schema(schema)
       if instance.is_a?(Mongoff::Record)
         unless state[:instance_clear]
