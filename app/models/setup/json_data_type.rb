@@ -46,7 +46,7 @@ module Setup
     end
 
     def additional_properties?
-      false #TODO additional_properties field
+      true #TODO additional_properties field
     end
 
     def code=(code)
