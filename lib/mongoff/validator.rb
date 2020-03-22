@@ -309,7 +309,13 @@ module Mongoff
       raise_path_less_error "does not match the pattern #{value}" if instance.is_a?(String) && !Regexp.new(value).match(instance)
     end
 
-    FORMATS = %w(date date-time time email hostname ipv4 ipv6 uri uuid)
+    FORMATS_MAP = {
+      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid),
+      integer: %w(int32 uint32 int64 uint64),
+      number: %w(float double)
+    }
+
+    FORMATS = FORMATS_MAP.values.flatten
 
     def check_schema_format(format)
       _check_type(:format, format, String)
@@ -323,49 +329,118 @@ module Mongoff
     UUID_REGEX = /[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/
 
     def check_format(format, instance, _state, _data_type, _options, schema)
-      if instance && schema['type'] == 'string'
-        case format
-
-        when 'date', 'date-time', 'time'
-          unless DATE_TIME_TYPES.any? { |type| instance.is_a?(type) }
-            begin
-              DateTime.parse(instance)
-            rescue Exception => ex
-              raise_path_less_error "does not complies format #{format}: #{ex.message}"
-            end
-          end
-
-        when 'email'
-          _check_type(:email, instance, String)
-          raise_path_less_error 'is not a valid email address' unless instance =~ URI::MailTo::EMAIL_REGEXP
-
-        when 'ipv4'
-          _check_type(:ipv4, instance, String)
-          raise_path_less_error 'is not a valid IPv4' unless instance =~ ::Resolv::IPv4::Regex
-
-        when 'ipv6'
-          _check_type(:ipv6, instance, String)
-          raise_path_less_error 'is not a valid IPv6' unless instance =~ ::Resolv::IPv6::Regex
-
-        when 'hostname'
-          _check_type(:'host name', instance, String)
-          raise_path_less_error 'is not a valid host name' unless instance =~ HOSTNAME_REGEX
-
-        when 'uri'
-          _check_type(:'URI', instance, String)
-          begin
-            URI.parse(instance)
-          rescue Exception => ex
-            raise_path_less_error "is not a valid URI"
-          end
-
-        when 'uuid'
-          _check_type(:'UUID', instance, String)
-          raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
-
-        else
-          raise_path_less_error "format #{format} not supported"
+      if instance
+        if schema['type'] == 'string'
+          check_string_format(format, instance)
         end
+
+        if schema['type'] == 'integer' || schema['type'] == 'number'
+          check_number_format(format, instance)
+        end
+      end
+    end
+
+    def check_string_format(format, instance)
+      case format
+
+      when 'date', 'date-time', 'time'
+        unless DATE_TIME_TYPES.any? { |type| instance.is_a?(type) }
+          begin
+            DateTime.parse(instance)
+          rescue Exception => ex
+            raise_path_less_error "does not complies format #{format}: #{ex.message}"
+          end
+        end
+
+      when 'email'
+        _check_type(:email, instance, String)
+        raise_path_less_error 'is not a valid email address' unless instance =~ URI::MailTo::EMAIL_REGEXP
+
+      when 'ipv4'
+        _check_type(:ipv4, instance, String)
+        raise_path_less_error 'is not a valid IPv4' unless instance =~ ::Resolv::IPv4::Regex
+
+      when 'ipv6'
+        _check_type(:ipv6, instance, String)
+        raise_path_less_error 'is not a valid IPv6' unless instance =~ ::Resolv::IPv6::Regex
+
+      when 'hostname'
+        _check_type(:'host name', instance, String)
+        raise_path_less_error 'is not a valid host name' unless instance =~ HOSTNAME_REGEX
+
+      when 'uri'
+        _check_type(:'URI', instance, String)
+        begin
+          URI.parse(instance)
+        rescue Exception => ex
+          raise_path_less_error "is not a valid URI"
+        end
+
+      when 'uuid'
+        _check_type(:'UUID', instance, String)
+        raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
+
+      else
+        raise_path_less_error "format #{format} not supported"
+      end
+    end
+
+    INT32_MAX = 2 ** 31 - 1
+    INT32_MIN = -(2 ** 31)
+
+    UINT32_MAX = 2 ** 32 - 1
+    UINT32_MIN = 0
+
+    INT64_MAX = 2 ** 63 - 1
+    INT64_MIN = -(2 ** 63)
+
+    UINT64_MAX = 2 ** 64 - 1
+    UINT64_MIN = 0
+
+    FLOAT_MAX = (2 - 2 ** -23) * 2 ** 127
+    FLOAT_MIN = -FLOAT_MAX
+
+    DOUBLE_MAX = Float::MAX
+    DOUBLE_MIN = Float::MIN
+
+    NUMBER_RANGES = {
+      int32: {
+        min: INT32_MIN,
+        max: INT32_MAX
+      },
+
+      uint32: {
+        min: UINT32_MIN,
+        max: UINT32_MAX
+      },
+
+      int64: {
+        min: INT64_MIN,
+        max: INT64_MAX
+      },
+
+      uint64: {
+        min: UINT64_MIN,
+        max: UINT64_MAX
+      },
+
+      float: {
+        min: FLOAT_MIN,
+        max: FLOAT_MAX
+      },
+
+      double: {
+        min: DOUBLE_MIN,
+        max: DOUBLE_MAX
+      }
+    }
+
+    def check_number_format(format, instance)
+      range = NUMBER_RANGES[format.to_s.to_sym]
+      if range
+        raise_path_less_error "is out of format #{format} range" if instance < range[:min] || instance > range[:max]
+      else
+        raise_path_less_error "format #{format} not supported"
       end
     end
 

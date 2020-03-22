@@ -126,6 +126,36 @@ describe Mongoff::Validator do
         format: 'uuid'
       },
 
+      int32: {
+        type: 'integer',
+        format: 'int32'
+      },
+
+      uint32: {
+        type: 'integer',
+        format: 'uint32'
+      },
+
+      int64: {
+        type: 'integer',
+        format: 'int64'
+      },
+
+      uint64: {
+        type: 'integer',
+        format: 'uint64'
+      },
+
+      float: {
+        type: 'number',
+        format: 'float'
+      },
+
+      double: {
+        type: 'number',
+        format: 'double'
+      },
+      
       embedded_array: {
         type: 'array',
         items: {
@@ -389,7 +419,7 @@ describe Mongoff::Validator do
 
   additional_properties_false_schema = test_schema.merge(additionalProperties: false)
 
-  additional_properties_default_schema = test_schema.reject {|key| key == 'additionalProperties'}
+  additional_properties_default_schema = test_schema.reject { |key| key == 'additionalProperties' }
 
   before :all do
     Setup::JsonDataType.create!(
@@ -1548,6 +1578,273 @@ describe Mongoff::Validator do
           expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{minimum}")
         end
       end
+
+      context 'when validating number formats' do
+
+        context 'when validating an int32' do
+
+          it 'does not raise an exception if an int32 format value is valid' do
+            instance = { int32: Mongoff::Validator::INT32_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff int32 format value is valid' do
+            instance = data_type.new_from(int32: Mongoff::Validator::INT32_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the int32 format value overflows' do
+            wrong_value = Mongoff::Validator::INT32_MAX + 1
+            instance = { int32: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/int32' is out of format int32 range")
+          end
+
+          it 'reports an error when a Mongoff int32 format value overflows' do
+            wrong_value = Mongoff::Validator::INT32_MAX + 1
+            instance = data_type.new_from(int32: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:int32]).to include('is out of format int32 range')
+          end
+
+          it 'raises an exception if the int32 format value underflows' do
+            wrong_value = Mongoff::Validator::INT32_MIN - 1
+            instance = { int32: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/int32' is out of format int32 range")
+          end
+
+          it 'reports an error when a Mongoff int32 format value underflows' do
+            wrong_value = Mongoff::Validator::INT32_MIN - 1
+            instance = data_type.new_from(int32: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:int32]).to include('is out of format int32 range')
+          end
+        end
+
+        context 'when validating an uint32' do
+
+          it 'does not raise an exception if an uint32 format value is valid' do
+            instance = { uint32: Mongoff::Validator::UINT32_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff uint32 format value is valid' do
+            instance = data_type.new_from(uint32: Mongoff::Validator::UINT32_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the uint32 format value overflows' do
+            wrong_value = Mongoff::Validator::UINT32_MAX + 1
+            instance = { uint32: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uint32' is out of format uint32 range")
+          end
+
+          it 'reports an error when a Mongoff uint32 format value overflows' do
+            wrong_value = Mongoff::Validator::UINT32_MAX + 1
+            instance = data_type.new_from(uint32: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uint32]).to include('is out of format uint32 range')
+          end
+
+          it 'raises an exception if the uint32 format value underflows' do
+            wrong_value = Mongoff::Validator::UINT32_MIN - 1
+            instance = { uint32: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uint32' is out of format uint32 range")
+          end
+
+          it 'reports an error when a Mongoff uint32 format value underflows' do
+            wrong_value = Mongoff::Validator::UINT32_MIN - 1
+            instance = data_type.new_from(uint32: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uint32]).to include('is out of format uint32 range')
+          end
+        end
+
+        context 'when validating an int64' do
+
+          it 'does not raise an exception if an int64 format value is valid' do
+            instance = { int64: Mongoff::Validator::INT64_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff int64 format value is valid' do
+            instance = data_type.new_from(int64: Mongoff::Validator::INT64_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the int64 format value overflows' do
+            wrong_value = Mongoff::Validator::INT64_MAX + 1
+            instance = { int64: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/int64' is out of format int64 range")
+          end
+
+          it 'reports an error when a Mongoff int64 format value overflows' do
+            wrong_value = Mongoff::Validator::INT64_MAX + 1
+            instance = data_type.new_from(int64: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:int64]).to include('is out of format int64 range')
+          end
+
+          it 'raises an exception if the int64 format value underflows' do
+            wrong_value = Mongoff::Validator::INT64_MIN - 1
+            instance = { int64: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/int64' is out of format int64 range")
+          end
+
+          it 'reports an error when a Mongoff int64 format value underflows' do
+            wrong_value = Mongoff::Validator::INT64_MIN - 1
+            instance = data_type.new_from(int64: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:int64]).to include('is out of format int64 range')
+          end
+        end
+
+        context 'when validating an uint64' do
+
+          it 'does not raise an exception if an uint64 format value is valid' do
+            instance = { uint64: Mongoff::Validator::UINT64_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff uint64 format value is valid' do
+            instance = data_type.new_from(uint64: Mongoff::Validator::UINT64_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the uint64 format value overflows' do
+            wrong_value = Mongoff::Validator::UINT64_MAX + 1
+            instance = { uint64: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uint64' is out of format uint64 range")
+          end
+
+          it 'reports an error when a Mongoff uint64 format value overflows' do
+            wrong_value = Mongoff::Validator::UINT64_MAX + 1
+            instance = data_type.new_from(uint64: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uint64]).to include('is out of format uint64 range')
+          end
+
+          it 'raises an exception if the uint64 format value underflows' do
+            wrong_value = Mongoff::Validator::UINT64_MIN - 1
+            instance = { uint64: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/uint64' is out of format uint64 range")
+          end
+
+          it 'reports an error when a Mongoff uint64 format value underflows' do
+            wrong_value = Mongoff::Validator::UINT64_MIN - 1
+            instance = data_type.new_from(uint64: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:uint64]).to include('is out of format uint64 range')
+          end
+        end
+
+        context 'when validating a float' do
+
+          it 'does not raise an exception if a float format value is valid' do
+            instance = { float: Mongoff::Validator::FLOAT_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff float format value is valid' do
+            instance = data_type.new_from(float: Mongoff::Validator::FLOAT_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the float format value overflows' do
+            wrong_value = 2 * Mongoff::Validator::FLOAT_MAX
+            instance = { float: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/float' is out of format float range")
+          end
+
+          it 'reports an error when a Mongoff float format value overflows' do
+            wrong_value = 2 * Mongoff::Validator::FLOAT_MAX
+            instance = data_type.new_from(float: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:float]).to include('is out of format float range')
+          end
+
+          it 'raises an exception if the float format value underflows' do
+            wrong_value = 2 * Mongoff::Validator::FLOAT_MIN
+            instance = { float: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/float' is out of format float range")
+          end
+
+          it 'reports an error when a Mongoff float format value underflows' do
+            wrong_value = 2 * Mongoff::Validator::FLOAT_MIN
+            instance = data_type.new_from(float: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:float]).to include('is out of format float range')
+          end
+        end
+
+        context 'when validating a double' do
+
+          it 'does not raise an exception if a double format value is valid' do
+            instance = { double: Mongoff::Validator::DOUBLE_MAX }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff double format value is valid' do
+            instance = data_type.new_from(double: Mongoff::Validator::DOUBLE_MAX)
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the double format value overflows' do
+            wrong_value = Float::INFINITY
+            instance = { double: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/double' is out of format double range")
+          end
+
+          it 'reports an error when a Mongoff double format value overflows' do
+            wrong_value = -Float::INFINITY
+            instance = data_type.new_from(double: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:double]).to include('is out of format double range')
+          end
+
+          it 'raises an exception if the double format value underflows' do
+            wrong_value = Float::INFINITY
+            instance = { double: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/double' is out of format double range")
+          end
+
+          it 'reports an error when a Mongoff double format value underflows' do
+            wrong_value = -Float::INFINITY
+            instance = data_type.new_from(double: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:double]).to include('is out of format double range')
+          end
+        end
+      end
     end
 
     context 'when validating Keywords for Strings' do
@@ -1683,7 +1980,7 @@ describe Mongoff::Validator do
         end
       end
 
-      context 'when validating defined formats' do
+      context 'when validating string formats' do
 
         context 'when validating Dates and Times' do
 
