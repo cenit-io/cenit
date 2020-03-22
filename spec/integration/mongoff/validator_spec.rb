@@ -121,6 +121,11 @@ describe Mongoff::Validator do
         format: 'uri'
       },
 
+      url: {
+        type: 'string',
+        format: 'url'
+      },
+
       uuid: {
         type: 'string',
         format: 'uuid'
@@ -2199,6 +2204,35 @@ describe Mongoff::Validator do
             instance = data_type.new_from(uri: wrong_value)
             validator.soft_validates(instance)
             expect(instance.errors[:uri]).to include('is not a valid URI')
+          end
+        end
+
+        context 'when validating an URL' do
+
+          it 'does not raise an exception if an URL format value is valid' do
+            instance = { url: 'https://cenit.io' }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff URL format value is valid' do
+            instance = data_type.new_from(url: 'https://cenit.io')
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the url format value is not valid' do
+            wrong_value = 'not an url'
+            instance = { url: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/url' is not a valid URL")
+          end
+
+          it 'reports an error when a Mongoff url format value is not valid' do
+            wrong_value = 'not an url'
+            instance = data_type.new_from(url: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:url]).to include('is not a valid URL')
           end
         end
 

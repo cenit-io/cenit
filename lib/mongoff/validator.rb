@@ -310,7 +310,7 @@ module Mongoff
     end
 
     FORMATS_MAP = {
-      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid),
+      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url),
       integer: %w(int32 uint32 int64 uint64),
       number: %w(float double)
     }
@@ -369,15 +369,24 @@ module Mongoff
         raise_path_less_error 'is not a valid host name' unless instance =~ HOSTNAME_REGEX
 
       when 'uri'
-        _check_type(:'URI', instance, String)
+        _check_type(:URI, instance, String)
         begin
           URI.parse(instance)
         rescue Exception => ex
           raise_path_less_error "is not a valid URI"
         end
 
+      when 'url'
+        _check_type(:URL, instance, String)
+        begin
+          uri = URI.parse(instance)
+          fail if uri.host.nil?
+        rescue Exception => ex
+          raise_path_less_error "is not a valid URL"
+        end
+
       when 'uuid'
-        _check_type(:'UUID', instance, String)
+        _check_type(:UUID, instance, String)
         raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
 
       else
