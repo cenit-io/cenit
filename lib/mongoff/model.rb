@@ -350,18 +350,24 @@ module Mongoff
         end
       success_value = nil
       success_type = nil
+      conversion_value = nil
+      conversion_type = nil
       types.each do |type|
-        break unless success_value.nil?
+        break if success_type
         if value.is_a?(type)
           success_value = value
           success_type = type
-        else
+        elsif !conversion_type
           begin
-            success_value = CONVERSION[type].call(value)
-            success_type = type
+            conversion_value = CONVERSION[type].call(value)
+            conversion_type = type
           rescue Exception
           end
         end
+      end
+      if !success_type && conversion_type
+        success_value = conversion_value
+        success_type = conversion_type
       end
       if success_type && success_block
         args =

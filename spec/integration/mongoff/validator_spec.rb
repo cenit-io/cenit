@@ -4,6 +4,8 @@ describe Mongoff::Validator do
 
   test_namespace = 'Mongoff Validator Test'
 
+  type_array = %w(integer boolean string)
+
   test_schema = {
     type: 'object',
     properties: properties = {
@@ -31,6 +33,9 @@ describe Mongoff::Validator do
       array: {
         type: 'array'
       },
+      anyOfTypeArray: {
+        type: type_array
+      },
 
       color: {
         enum: enum = %w(red green blue)
@@ -54,7 +59,6 @@ describe Mongoff::Validator do
         type: 'number',
         maximum: minimum_schema['minimum'] + 10 + rand(100)
       }.deep_stringify_keys,
-
 
       exclusiveMaximum: {
         type: 'number',
@@ -160,7 +164,7 @@ describe Mongoff::Validator do
         type: 'number',
         format: 'double'
       },
-      
+
       embedded_array: {
         type: 'array',
         items: {
@@ -405,6 +409,8 @@ describe Mongoff::Validator do
     email: 'support@cenit.io'
   }
 
+  sample[:anyOfTypeArray] = sample[type_array.sample.to_sym]
+
   required_test_schema = {
     required: required_props = sample.keys.take(3 + rand(5)).map(&:to_s) - %w(null)
   }.deep_stringify_keys
@@ -510,7 +516,7 @@ describe Mongoff::Validator do
       expect(validator.is_valid?('not valid schema')).to be false
     end
 
-    it 'provides check schema logic for every validation keyword' do
+    it 'provides a check schema logic for every validation keyword' do
       not_checked_keywords = ::Mongoff::Validator::INSTANCE_VALIDATION_KEYWORDS.select do |keyword|
         !validator.respond_to?("check_schema_#{keyword}")
       end
@@ -541,6 +547,29 @@ describe Mongoff::Validator do
 
         it 'raises an exception if the type value is not a primitive type' do
           schema = { type: 'not a primitive type' }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+
+        it 'does not raise an exception if the type value is an array of primitive type' do
+          types = %w(null boolean object array number string integer)
+          types = types.sample(types.length / 2)
+          schema = { type: types }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the type value is an array containing a non primitive type' do
+          types = %w(null boolean object array number string integer)
+          types = types.sample(types.length / 2)
+          types << 'not a primitive type'
+          schema = { type: types }
+          expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
+        end
+
+        it 'raises an exception if the type value is an array containing a non no unique types' do
+          types = %w(null boolean object array number string integer)
+          types = types.sample(types.length / 2)
+          types += [types.sample]
+          schema = { type: types }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
       end
@@ -1303,6 +1332,18 @@ describe Mongoff::Validator do
           expect {
             validator.validate_instance(instance, data_type: data_type)
           }.to raise_error(::Mongoff::Validator::Error, "Value '#/string' of type Integer is not an instance of type string")
+        end
+
+        it 'does not raise an exception if the instance matches one of the array type' do
+          instance = { anyOfTypeArray: sample[type_array.sample.to_sym] }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'raises an error when the expected instance does not match one of the array type' do
+          instance = { anyOfTypeArray: { v: 123 } }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/anyOfTypeArray' of type Hash is not an instance of any type integer, boolean, and string")
         end
       end
 

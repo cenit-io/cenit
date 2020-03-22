@@ -163,8 +163,14 @@ module Mongoff
       array: Array
     }
 
-    def check_schema_type(type)
-      raise_path_less_error "Invalid schema type #{type}" unless type.nil? || TYPE_MAP.key?(type.to_s.to_sym)
+    def check_schema_type(types)
+      return if types.nil?
+      types = [types] unless types.is_a?(Array)
+      types = types.map(&:to_s).map(&:to_sym)
+      raise_path_less_error "types are not unique" unless types.uniq.length === types.length
+      types.each do |type|
+        raise_path_less_error "type #{type} is invalid" unless TYPE_MAP.key?(type)
+      end
     end
 
     # Default Behavior
@@ -179,10 +185,12 @@ module Mongoff
 
     # Validation Keywords for Any Instance Type
 
-    def check_type(type, instance, _, _, options, schema)
+    def check_type(types, instance, _, _, options, schema)
       return if instance.nil? && options[:skip_nulls]
-      if (type = type&.to_sym)
-        super_type =
+      if types
+        types = [types] unless types.is_a?(Array)
+        types = types.map(&:to_s).map(&:to_sym)
+        super_types = types.map do |type|
           case type
           when :object
             if instance.is_a?(Mongoff::Record) && instance.orm_model.modelable?
@@ -209,7 +217,16 @@ module Mongoff
           else
             TYPE_MAP[type]
           end
-        raise_path_less_error "of type #{instance.class} is not an instance of type #{type}" unless instance.is_a?(super_type)
+        end
+        unless super_types.any? { |type| instance.is_a?(type) }
+          msg =
+            if super_types.length == 1
+              "of type #{instance.class} is not an instance of type #{types[0]}"
+            else
+              "of type #{instance.class} is not an instance of any type #{types.to_sentence}"
+            end
+          raise_path_less_error msg
+        end
       else
         raise_path_less_error "of type #{instance.class} is not a valid JSON type" unless Cenit::Utility.json_object?(instance)
       end
