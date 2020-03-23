@@ -432,7 +432,7 @@ module Mongoff
         # Only for Google APIs support
         #
       else
-        Tenant.notify(message: "format #{format} not supported", type: :warning)
+        Tenant.notify(message: "JSON Schema format #{format} is not supported", type: :warning)
       end
     end
 
@@ -491,7 +491,7 @@ module Mongoff
       if range
         raise_path_less_error "is out of format #{format} range" if instance < range[:min] || instance > range[:max]
       else
-        Tenant.notify(message: "format #{format} not supported", type: :warning)
+        Tenant.notify(message: "JSON Schema format #{format} is not supported", type: :warning)
       end
     end
 
@@ -690,20 +690,24 @@ module Mongoff
     # Keywords for Applying Subschemas to Objects
 
     def check_schema_required(value)
-      _check_type(:properties, value, Array)
-      hash = {}
-      value.each do |property_name|
-        hash[property_name] = (hash[property_name] || 0) + 1
-        _check_type('property name', property_name, String)
-      end
-      repeated_properties = hash.keys.select { |prop| hash[prop] > 1 }
-      if repeated_properties.count > 0
-        raise_path_less_error "Required properties are not unique: #{repeated_properties.to_sentence}"
+      _check_type(:properties, value, Array, Boolean) # TODO Boolean is only for legacy support
+      if value.is_a?(Array)
+        hash = {}
+        value.each do |property_name|
+          hash[property_name] = (hash[property_name] || 0) + 1
+          _check_type('property name', property_name, String)
+        end
+        repeated_properties = hash.keys.select { |prop| hash[prop] > 1 }
+        if repeated_properties.count > 0
+          raise_path_less_error "Required properties are not unique: #{repeated_properties.to_sentence}"
+        end
+      else
+        Tenant.notify(message: "JSON Schema keyword require is expected to be an Array and does not support #{value.class} values")
       end
     end
 
     def check_required(properties, instance)
-      return unless instance
+      return unless instance && properties.is_a?(Array)
       if instance.is_a?(Mongoff::Record)
         has_errors = false
         stored_properties = instance.orm_model.stored_properties_on(instance)
