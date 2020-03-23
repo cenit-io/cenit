@@ -520,7 +520,7 @@ describe Mongoff::Validator do
       not_checked_keywords = ::Mongoff::Validator::INSTANCE_VALIDATION_KEYWORDS.select do |keyword|
         !validator.respond_to?("check_schema_#{keyword}")
       end
-      expect(not_checked_keywords).to match_array([])
+      expect(not_checked_keywords).to eq([])
     end
 
     context 'when validating Boolean JSON Schemas' do

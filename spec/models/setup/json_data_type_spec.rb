@@ -32,12 +32,12 @@ describe Setup::JsonDataType do
   }
 
   before :all do
-    Setup::JsonDataType.create(
+    Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'B',
       schema: schema_b
     )
-    Setup::JsonDataType.create(
+    Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'A',
       schema: schema_a
@@ -69,8 +69,8 @@ describe Setup::JsonDataType do
 
   context "when updated" do
     it 'updates data base indexes to map unique properties' do
-      data_type_b.update(schema: schema_b.merge(properties: { name: { type: 'string', unique: false } }))
-      data_type_a.update(schema: schema_a.merge(properties: { name: { type: 'string', unique: false } }))
+      data_type_b.update!(schema: schema_b.merge(properties: { name: { type: 'string', unique: false } }))
+      data_type_a.update!(schema: schema_a.merge(properties: { name: { type: 'string', unique: false } }))
 
       expect(b_indexed_properties).to eq(data_type_b.unique_properties)
       expect(a_indexed_properties).to eq(data_type_a.unique_properties)

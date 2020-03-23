@@ -53,7 +53,7 @@ describe Mongoff::Record do
   }
 
   before :all do
-    data_type_a = Setup::JsonDataType.create(
+    data_type_a = Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'A',
       schema: {
@@ -94,7 +94,7 @@ describe Mongoff::Record do
       }
     )
 
-    data_type_b = Setup::JsonDataType.create(
+    data_type_b = Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'B',
       schema: {
@@ -138,7 +138,7 @@ describe Mongoff::Record do
     a_loaded = data_type_a.create_from!(name: 'A loaded', loaded: true)
     b_loaded = data_type_b.create_from!(name: 'B loaded', loaded: true)
 
-    data_type_a.create_from(A_JSON_SAMPLE.merge(id: a_loaded.id, loaded: true))
+    data_type_a.create_from!(A_JSON_SAMPLE.merge(id: a_loaded.id, loaded: true))
 
     data_type_b.create_from!(B_JSON_SAMPLE.merge(id: b_loaded.id, loaded: true))
   end
@@ -156,7 +156,7 @@ describe Mongoff::Record do
   end
 
   let :create_record_a do
-    data_type_a.create_from(A_JSON_SAMPLE)
+    data_type_a.create_from!(A_JSON_SAMPLE)
   end
 
   let :load_record_a do
@@ -297,7 +297,7 @@ describe Mongoff::Record do
       flags_before = a.b_ref_many.collect(&:new_record?)
       a.save
       flags_after = a.b_ref_many.collect(&:new_record?)
-      expect(flags_before).to match_array(flags_after)
+      expect(flags_before).to eq(flags_after)
     end
   end
 
@@ -315,7 +315,7 @@ describe Mongoff::Record do
     it 'sets new_record flag to false on nested many relations when created' do
       a = create_record_a
       flags = a.b_nested_many.collect(&:new_record?)
-      expect(flags).to match_array(Array.new(flags.count, false))
+      expect(flags).to eq(Array.new(flags.count, false))
     end
 
     it 'sets new_record flag to false on referenced many relations when created' do
@@ -374,7 +374,7 @@ describe Mongoff::Record do
       expect(a.valid?).to be true
     end
 
-    it 'returns true if no errors are present after initialized' do
+    it 'returns false if  errors are present after initialized' do
       a = data_type_a.new_from(A_JSON_SAMPLE.merge(name: nil))
       a.validate
       expect(a.valid?).to be false

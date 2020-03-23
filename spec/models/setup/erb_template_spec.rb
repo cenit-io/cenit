@@ -6,7 +6,7 @@ describe Setup::ErbTemplate do
   TEST_NAME = 'Test'
 
   before :all do
-    Setup::ErbTemplate.create(
+    Setup::ErbTemplate.create!(
       namespace: test_namespace,
       name: TEST_NAME,
       code: "<%= value %>"

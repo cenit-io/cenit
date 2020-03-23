@@ -6,7 +6,7 @@ describe Setup::Snippet do
 
   before :all do
     %w(default owner shared).each do |origin|
-      Setup::Snippet.create(
+      Setup::Snippet.create!(
         namespace: test_namespace,
         name: "#{origin}_test.rb",
         code: "'Test'",

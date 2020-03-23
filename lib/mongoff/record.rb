@@ -90,7 +90,6 @@ module Mongoff
 
     def validate(options = {})
       unless @validated
-        # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
         do_validate(options)
         @validated = true

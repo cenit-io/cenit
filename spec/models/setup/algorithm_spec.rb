@@ -5,7 +5,7 @@ describe Setup::Algorithm do
   test_namespace = 'Algorithm Test'
 
   before :all do
-    Setup::Algorithm.create(
+    Setup::Algorithm.create!(
       namespace: test_namespace,
       name: 'test',
       language: :ruby,
@@ -22,14 +22,14 @@ describe Setup::Algorithm do
     it "link calls to other algorithms in the same namespace" do
       n = 5 + rand(5)
       ns = "#{test_namespace} SAME"
-      alg = Setup::Algorithm.create(
+      alg = Setup::Algorithm.create!(
         namespace: ns,
         name: 'alg_0',
         language: :ruby,
         code: "0"
       )
       1.upto(n) do |i|
-        alg = Setup::Algorithm.create(
+        alg = Setup::Algorithm.create!(
           namespace: ns,
           name: "alg_#{i}",
           language: :ruby,
@@ -45,14 +45,14 @@ describe Setup::Algorithm do
     it "link calls to other algorithms with different namespaces" do
       n = 5 + rand(5)
       ns = "#{test_namespace} X"
-      alg = Setup::Algorithm.create(
+      alg = Setup::Algorithm.create!(
         namespace: ns,
         name: 'alg_0',
         language: :ruby,
         code: "0"
       )
       1.upto(n) do |i|
-        alg = Setup::Algorithm.create(
+        alg = Setup::Algorithm.create!(
           namespace: "#{ns} #{i}",
           name: "alg_#{i}",
           language: :ruby,
