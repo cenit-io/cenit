@@ -70,6 +70,18 @@ describe Mongoff::Validator do
         exclusiveMinimum: exclusive_minimum = 100 - rand(100)
       },
 
+      legacyExclusiveMaximum: {
+        type: 'number',
+        maximum: exclusive_maximum,
+        exclusiveMaximum: true
+      },
+
+      legacyExclusiveMinimum: {
+        type: 'number',
+        minimum: exclusive_minimum,
+        exclusiveMinimum: true
+      },
+
       maxLength: max_length_schema = {
         type: 'string',
         maxLength: max_length = 10 + rand(50)
@@ -646,7 +658,17 @@ describe Mongoff::Validator do
           expect { validator.validate(schema) }.not_to raise_error
         end
 
-        it 'raises an exception if the exclusiveMaximum value is not a number' do
+        it 'does not raise an exception if the exclusiveMaximum value is true (legacy)' do
+          schema = { exclusiveMaximum: true }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'does not raise an exception if the exclusiveMaximum value is false (legacy)' do
+          schema = { exclusiveMaximum: false }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the exclusiveMaximum value is not a number (and not a boolean legacy)' do
           schema = { exclusiveMaximum: 'not a number' }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
@@ -672,7 +694,17 @@ describe Mongoff::Validator do
           expect { validator.validate(schema) }.not_to raise_error
         end
 
-        it 'raises an exception if the exclusiveMaximum value is not a number' do
+        it 'does not raise an exception if the exclusiveMaximum value is true (legacy)' do
+          schema = { exclusiveMinimum: true }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'does not raise an exception if the exclusiveMaximum value is false (legacy)' do
+          schema = { exclusiveMinimum: false }
+          expect { validator.validate(schema) }.not_to raise_error
+        end
+
+        it 'raises an exception if the exclusiveMaximum value is not a number (and not a boolean legacy)' do
           schema = { exclusiveMinimum: 'not a number' }
           expect { validator.validate(schema) }.to raise_error(::Mongoff::Validator::Error)
         end
@@ -1486,46 +1518,84 @@ describe Mongoff::Validator do
       context 'when validating keyword exclusiveMaximum' do
 
         it 'does not raise an exception if a JSON exclusiveMaximum instance is valid' do
-          instance = { exclusiveMaximum: test_schema['properties']['exclusiveMaximum']['exclusiveMaximum'] - 1 - rand(10) }
+          instance = { exclusiveMaximum: exclusive_maximum - 1 - rand(10) }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff exclusiveMaximum instance is valid' do
-          instance = data_type.new_from(exclusiveMaximum: test_schema['properties']['exclusiveMaximum']['exclusiveMaximum'] - 1 - rand(10))
+          instance = data_type.new_from(exclusiveMaximum: exclusive_maximum - 1 - rand(10))
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'raises an error when a JSON exclusiveMaximum instance is not valid' do
-          maximum = test_schema['properties']['exclusiveMaximum']['exclusiveMaximum']
-          wrong_value = 1 + maximum
+          wrong_value = 1 + exclusive_maximum
           instance = { exclusiveMaximum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{maximum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{exclusive_maximum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMaximum instance is not valid' do
-          maximum = test_schema['properties']['exclusiveMaximum']['exclusiveMaximum']
-          wrong_value = 1 + maximum
+          wrong_value = 1 + exclusive_maximum
           instance = data_type.new_from(exclusiveMaximum: wrong_value)
           validator.soft_validates(instance)
-          expect(instance.errors[:exclusiveMaximum]).to include("must be strictly less than #{maximum}")
+          expect(instance.errors[:exclusiveMaximum]).to include("must be strictly less than #{exclusive_maximum}")
         end
 
         it 'raises an error when a JSON exclusiveMaximum instance is maximum' do
-          maximum = test_schema['properties']['exclusiveMaximum']['exclusiveMaximum']
-          instance = { exclusiveMaximum: maximum }
+          instance = { exclusiveMaximum: exclusive_maximum }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{maximum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMaximum' must be strictly less than #{exclusive_maximum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMaximum instance is maximum' do
-          maximum = test_schema['properties']['exclusiveMaximum']['exclusiveMaximum']
-          instance = data_type.new_from(exclusiveMaximum: maximum)
+          instance = data_type.new_from(exclusiveMaximum: exclusive_maximum)
           validator.soft_validates(instance)
-          expect(instance.errors[:exclusiveMaximum]).to include("must be strictly less than #{maximum}")
+          expect(instance.errors[:exclusiveMaximum]).to include("must be strictly less than #{exclusive_maximum}")
+        end
+      end
+
+      context 'when validating keyword exclusiveMaximum (legacy)' do
+
+        it 'does not raise an exception if a JSON legacy exclusiveMaximum instance is valid' do
+          instance = { legacyExclusiveMaximum: exclusive_maximum - 1 - rand(10) }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff legacy exclusiveMaximum instance is valid' do
+          instance = data_type.new_from(legacyExclusiveMaximum: exclusive_maximum - 1 - rand(10))
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an error when a JSON legacy exclusiveMaximum instance is not valid' do
+          wrong_value = 1 + exclusive_maximum
+          instance = { legacyExclusiveMaximum: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/legacyExclusiveMaximum' must be strictly less than #{exclusive_maximum}")
+        end
+
+        it 'reports an error when a Mongoff legacy exclusiveMaximum instance is not valid' do
+          wrong_value = 1 + exclusive_maximum
+          instance = data_type.new_from(legacyExclusiveMaximum: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:legacyExclusiveMaximum]).to include("must be strictly less than #{exclusive_maximum}")
+        end
+
+        it 'raises an error when a JSON legacy exclusiveMaximum instance is maximum' do
+          instance = { legacyExclusiveMaximum: exclusive_maximum }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/legacyExclusiveMaximum' must be strictly less than #{exclusive_maximum}")
+        end
+
+        it 'reports an error when a Mongoff legacy exclusiveMaximum instance is maximum' do
+          instance = data_type.new_from(legacyExclusiveMaximum: exclusive_maximum)
+          validator.soft_validates(instance)
+          expect(instance.errors[:legacyExclusiveMaximum]).to include("must be strictly less than #{exclusive_maximum}")
         end
       end
 
@@ -1582,46 +1652,84 @@ describe Mongoff::Validator do
       context 'when validating keyword exclusiveMinimum' do
 
         it 'does not raise an exception if a JSON exclusiveMinimum instance is valid' do
-          instance = { exclusiveMinimum: test_schema['properties']['exclusiveMinimum']['exclusiveMinimum'] + 1 + rand(10) }
+          instance = { exclusiveMinimum: exclusive_minimum + 1 + rand(10) }
           expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
         end
 
         it 'does not report errors if a Mongoff exclusiveMinimum instance is valid' do
-          instance = data_type.new_from(exclusiveMinimum: test_schema['properties']['exclusiveMinimum']['exclusiveMinimum'] + 1 + rand(10))
+          instance = data_type.new_from(exclusiveMinimum: exclusive_minimum + 1 + rand(10))
           validator.soft_validates(instance)
           expect(instance.errors.empty?).to be true
         end
 
         it 'raises an error when a JSON exclusiveMinimum instance is not valid' do
-          minimum = test_schema['properties']['exclusiveMinimum']['exclusiveMinimum']
-          wrong_value = minimum - 1
+          wrong_value = exclusive_minimum - 1
           instance = { exclusiveMinimum: wrong_value }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{minimum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{exclusive_minimum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMinimum instance is not valid' do
-          minimum = test_schema['properties']['exclusiveMinimum']['exclusiveMinimum']
-          wrong_value = minimum - 1
+          wrong_value = exclusive_minimum - 1
           instance = data_type.new_from(exclusiveMinimum: wrong_value)
           validator.soft_validates(instance)
-          expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{minimum}")
+          expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{exclusive_minimum}")
         end
 
         it 'raises an error when a JSON exclusiveMinimum instance is minimum' do
-          minimum = test_schema['properties']['exclusiveMinimum']['exclusiveMinimum']
-          instance = { exclusiveMinimum: minimum }
+          instance = { exclusiveMinimum: exclusive_minimum }
           expect {
             validator.validate_instance(instance, data_type: data_type)
-          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{minimum}")
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/exclusiveMinimum' must be strictly greater than #{exclusive_minimum}")
         end
 
         it 'reports an error when a Mongoff exclusiveMinimum instance is minimum' do
-          minimum = test_schema['properties']['exclusiveMinimum']['exclusiveMinimum']
-          instance = data_type.new_from(exclusiveMinimum: minimum)
+          instance = data_type.new_from(exclusiveMinimum: exclusive_minimum)
           validator.soft_validates(instance)
-          expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{minimum}")
+          expect(instance.errors[:exclusiveMinimum]).to include("must be strictly greater than #{exclusive_minimum}")
+        end
+      end
+
+      context 'when validating keyword exclusiveMinimum (legacy)' do
+
+        it 'does not raise an exception if a JSON exclusiveMinimum instance is valid' do
+          instance = { legacyExclusiveMinimum: exclusive_minimum + 1 + rand(10) }
+          expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+        end
+
+        it 'does not report errors if a Mongoff exclusiveMinimum instance is valid' do
+          instance = data_type.new_from(legacyExclusiveMinimum: exclusive_minimum + 1 + rand(10))
+          validator.soft_validates(instance)
+          expect(instance.errors.empty?).to be true
+        end
+
+        it 'raises an error when a JSON exclusiveMinimum instance is not valid' do
+          wrong_value = exclusive_minimum - 1
+          instance = { legacyExclusiveMinimum: wrong_value }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/legacyExclusiveMinimum' must be strictly greater than #{exclusive_minimum}")
+        end
+
+        it 'reports an error when a Mongoff exclusiveMinimum instance is not valid' do
+          wrong_value = exclusive_minimum - 1
+          instance = data_type.new_from(legacyExclusiveMinimum: wrong_value)
+          validator.soft_validates(instance)
+          expect(instance.errors[:legacyExclusiveMinimum]).to include("must be strictly greater than #{exclusive_minimum}")
+        end
+
+        it 'raises an error when a JSON exclusiveMinimum instance is minimum' do
+          instance = { legacyExclusiveMinimum: exclusive_minimum }
+          expect {
+            validator.validate_instance(instance, data_type: data_type)
+          }.to raise_error(::Mongoff::Validator::Error, "Value '#/legacyExclusiveMinimum' must be strictly greater than #{exclusive_minimum}")
+        end
+
+        it 'reports an error when a Mongoff exclusiveMinimum instance is minimum' do
+          instance = data_type.new_from(legacyExclusiveMinimum: exclusive_minimum)
+          validator.soft_validates(instance)
+          expect(instance.errors[:legacyExclusiveMinimum]).to include("must be strictly greater than #{exclusive_minimum}")
         end
       end
 

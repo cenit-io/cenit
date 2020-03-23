@@ -265,32 +265,48 @@ module Mongoff
       _check_type(:maximum, value, Numeric)
     end
 
-    def check_maximum(value, instance)
-      raise_path_less_error "expected to be maximum #{value}" if instance.is_a?(Numeric) && instance > value
+    def check_maximum(maximum, instance, _state, _data_type, _options, schema)
+      if instance.is_a?(Numeric)
+        if schema['exclusiveMaximum'].is_a?(TrueClass)
+          raise_path_less_error "must be strictly less than #{maximum}" if instance >= maximum
+        else
+          raise_path_less_error "expected to be maximum #{maximum}" if instance > maximum
+        end
+      end
     end
 
     def check_schema_exclusiveMaximum(value)
-      _check_type(:exclusiveMaximum, value, Numeric)
+      _check_type(:exclusiveMaximum, value, Numeric, Boolean)
     end
 
-    def check_exclusiveMaximum(value, instance)
-      raise_path_less_error "must be strictly less than #{value}" if instance.is_a?(Numeric) && instance >= value
+    def check_exclusiveMaximum(maximum, instance)
+      if maximum.is_a?(Numeric) && instance.is_a?(Numeric) && instance >= maximum
+        raise_path_less_error "must be strictly less than #{maximum}"
+      end
     end
 
     def check_schema_minimum(value)
       _check_type(:minimum, value, Numeric)
     end
 
-    def check_minimum(value, instance)
-      raise_path_less_error "expected to be minimum #{value}" if instance.is_a?(Numeric) && instance < value
+    def check_minimum(minimum, instance, _state, _data_type, _options, schema)
+      if instance.is_a?(Numeric)
+        if schema['exclusiveMinimum'].is_a?(TrueClass)
+          raise_path_less_error "must be strictly greater than #{minimum}" if instance <= minimum
+        else
+          raise_path_less_error "expected to be minimum #{minimum}" if instance < minimum
+        end
+      end
     end
 
     def check_schema_exclusiveMinimum(value)
-      _check_type(:exclusiveMinimum, value, Numeric)
+      _check_type(:exclusiveMinimum, value, Numeric, Boolean)
     end
 
-    def check_exclusiveMinimum(value, instance)
-      raise_path_less_error "must be strictly greater than #{value}" if instance.is_a?(Numeric) && instance <= value
+    def check_exclusiveMinimum(minimum, instance)
+      if minimum.is_a?(Numeric) && instance.is_a?(Numeric) && instance <= minimum
+        raise_path_less_error "must be strictly greater than #{minimum}"
+      end
     end
 
     # Validation Keywords for Strings
