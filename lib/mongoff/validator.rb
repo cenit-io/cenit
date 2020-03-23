@@ -343,7 +343,7 @@ module Mongoff
     end
 
     FORMATS_MAP = {
-      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url google-fieldmask),
+      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url byte google-fieldmask),
       integer: %w(int32 uint32 int64 uint64),
       number: %w(float double),
       boolean: %w(toggle) # TODO: Remove when migrate UI semantics outside schemas
@@ -422,6 +422,10 @@ module Mongoff
       when 'uuid'
         _check_type(:UUID, instance, String)
         raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
+
+      when 'byte'
+        _check_type(:byte, instance, String)
+        raise_path_less_error 'is not base64 encoded' unless Base64.encode64(Base64.decode64(instance)) == instance
 
       when 'google-fieldmask'
         #

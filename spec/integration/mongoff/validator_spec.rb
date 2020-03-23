@@ -147,6 +147,11 @@ describe Mongoff::Validator do
         format: 'uuid'
       },
 
+      byte: {
+        type: 'string',
+        format: 'byte'
+      },
+
       int32: {
         type: 'integer',
         format: 'int32'
@@ -2411,6 +2416,35 @@ describe Mongoff::Validator do
             instance = data_type.new_from(uuid: wrong_value)
             validator.soft_validates(instance)
             expect(instance.errors[:uuid]).to include('is not a valid UUID')
+          end
+        end
+
+        context 'when validating a byte (base64) encoding' do
+
+          it 'does not raise an exception if a byte format value is valid' do
+            instance = { byte: Base64.encode64('valid') }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
+          end
+
+          it 'does not report errors if a Mongoff byte format value is valid' do
+            instance = data_type.new_from(byte: Base64.encode64('valid'))
+            validator.soft_validates(instance)
+            expect(instance.errors.empty?).to be true
+          end
+
+          it 'raises an exception if the byte format value is not valid' do
+            wrong_value = 'not base6$'
+            instance = { byte: wrong_value }
+            expect {
+              validator.validate_instance(instance, data_type: data_type)
+            }.to raise_error(::Mongoff::Validator::Error, "Value '#/byte' is not base64 encoded")
+          end
+
+          it 'reports an error when a Mongoff byte format value is not valid' do
+            wrong_value = 'not base$'
+            instance = data_type.new_from(byte: wrong_value)
+            validator.soft_validates(instance)
+            expect(instance.errors[:byte]).to include('is not base64 encoded')
           end
         end
       end
