@@ -343,9 +343,10 @@ module Mongoff
     end
 
     FORMATS_MAP = {
-      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url),
+      string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url google-fieldmask),
       integer: %w(int32 uint32 int64 uint64),
-      number: %w(float double)
+      number: %w(float double),
+      boolean: %w(toggle) # TODO: Remove when migrate UI semantics outside schemas
     }
 
     FORMATS = FORMATS_MAP.values.flatten
@@ -422,8 +423,12 @@ module Mongoff
         _check_type(:UUID, instance, String)
         raise_path_less_error 'is not a valid UUID' unless instance =~ UUID_REGEX
 
+      when 'google-fieldmask'
+        #
+        # Only for Google APIs support
+        #
       else
-        raise_path_less_error "format #{format} not supported"
+        Tenant.notify(message: "format #{format} not supported", type: :warning)
       end
     end
 
@@ -482,7 +487,7 @@ module Mongoff
       if range
         raise_path_less_error "is out of format #{format} range" if instance < range[:min] || instance > range[:max]
       else
-        raise_path_less_error "format #{format} not supported"
+        Tenant.notify(message: "format #{format} not supported", type: :warning)
       end
     end
 
