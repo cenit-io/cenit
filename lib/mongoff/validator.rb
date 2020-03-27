@@ -345,7 +345,7 @@ module Mongoff
     FORMATS_MAP = {
       string: %w(date date-time time email hostname ipv4 ipv6 uri uuid url byte google-fieldmask),
       integer: %w(int32 uint32 int64 uint64),
-      number: %w(float double),
+      number: %w(float double long), # long format support for Accela Records API V4
       boolean: %w(toggle) # TODO: Remove when migrate UI semantics outside schemas
     }
 
