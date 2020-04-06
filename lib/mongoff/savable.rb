@@ -26,6 +26,7 @@ module Mongoff
             end
             query.update_one(update)
           end
+          true
         end
       end if orm_model.persistable? && errors.blank?
       errors.blank?

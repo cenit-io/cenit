@@ -6,7 +6,21 @@ module Setup
 
     validates_presence_of :namespace
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :id_type, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(
+      :namespace,
+      :name,
+      :id_type,
+      :title,
+      :slug,
+      :_type,
+      :validators,
+      :schema_data_type,
+      :events,
+      :before_save_callbacks,
+      :after_save_callbacks,
+      :records_methods,
+      :data_type_methods
+    )
     build_in_data_type.and(
       properties: {
         schema: {
