@@ -16,16 +16,26 @@ module Mongoid
 
       origins -> { Cenit::MultiTenancy.tenant_model.current && [:default, :owner] }, :shared
 
+      belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+
+      attr_readonly :data_type
+
+      before_create do
+        self.data_type = target.orm_model.data_type
+        true
+      end
+
       def target_model
-        if (match = target_model_name.match(/\ADt(.+)\Z/))
-          if (data_type = Setup::DataType.where(id: match[1]).first)
-            data_type.records_model
+        data_type&.records_model ||
+          if (match = target_model_name.match(/\ADt(.+)\Z/))
+            if (data_type = Setup::DataType.where(id: match[1]).first)
+              data_type.records_model
+            else
+              fail "Data type with ID #{match[1]} does not exist"
+            end
           else
-            fail "Data type with ID #{match[1]} does not exist"
+            target_model_name.constantize
           end
-        else
-          target_model_name.constantize
-        end
       end
 
       def label
@@ -33,21 +43,21 @@ module Mongoid
       end
 
       TRACEABLE_MODELS =
-          #   Setup::Validator.class_hierarchy +
-          #   Setup::AuthorizationProvider.class_hierarchy +
-          #   Setup::Translator.class_hierarchy +
-          [
-            Setup::Algorithm,
-            Setup::Connection,
-            Setup::JsonDataType,
-            Setup::Snippet
-          # Setup::PlainWebhook,
-          # Setup::Resource,
-          # Setup::Flow,
-          # Setup::Oauth2Scope,
-          # Setup::RemoteOauthClient,
-          # Setup::AuthorizationClient
-          ] -
+        #   Setup::Validator.class_hierarchy +
+        #   Setup::AuthorizationProvider.class_hierarchy +
+        #   Setup::Translator.class_hierarchy +
+        [
+          Setup::Algorithm,
+          Setup::Connection,
+          Setup::JsonDataType,
+          Setup::Snippet
+        # Setup::PlainWebhook,
+        # Setup::Resource,
+        # Setup::Flow,
+        # Setup::Oauth2Scope,
+        # Setup::RemoteOauthClient,
+        # Setup::AuthorizationClient
+        ] -
           [
             Setup::CenitDataType
           ]
