@@ -26,15 +26,25 @@ module Setup
     end
 
     def respond_to?(*args)
-      super || Setup::Operation.method_enum.any? do |method|
-        method == args[0] || args[0].to_s == "#{method}!"
-      end
+      super ||
+        args[0] == :del ||
+        args[0] == :del! ||
+        Setup::Operation.method_enum.any? do |method|
+          method == args[0] || args[0].to_s == "#{method}!"
+        end
     end
 
     def method_missing(symbol, *args, &block)
-      method = Setup::Operation.method_enum.detect do |method|
-        method == symbol || symbol.to_s == "#{method}!"
-      end
+      method =
+        if symbol == :del
+          :delete
+        elsif symbol == :del!
+          :delete!
+        else
+          Setup::Operation.method_enum.detect do |method|
+            method == symbol || symbol.to_s == "#{method}!"
+          end
+        end
       if method && (operation = operations.where(method: method).first)
         submit_method = 'submit'
         if symbol.to_s.ends_with?('!')

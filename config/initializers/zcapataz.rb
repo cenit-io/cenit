@@ -10,14 +10,14 @@ Capataz.config do
   allow_invoke_of %i(nil? present? is_a? respond_to? try == !=)
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
-    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
-    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
-    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
-    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
-    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
-    Tenant, Setup::SystemNotification, Tempfile, MWS, MWS::Orders::Client, MWS::Feeds::Client,
-    Setup::Oauth2Authorization, Cenit::XMLRPC, CombinePDF
+                    SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
+                    OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
+                    Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
+                    Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
+                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
+                    Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
+                    Tenant, Setup::SystemNotification, Tempfile, MWS, MWS::Orders::Client, MWS::Feeds::Client,
+                    Setup::Oauth2Authorization, Cenit::XMLRPC, CombinePDF
 
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
@@ -117,7 +117,7 @@ Capataz.config do
 
   allow_on Nokogiri::XML, [:search]
 
-  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where]
+  allow_on Setup::Connection, Setup::Webhook.method_enum + [:webhook_for, :where, :del] - [:delete]
 
   allow_on Setup::Webhook, [:where]
 
@@ -146,13 +146,13 @@ Capataz.config do
   # allow_for [Setup::Raml],  [:id, :name, :slug, :to_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :ref_hash, :raml_parse, :build_hash, :map_collection]
 
   allow_for [Class],
-    [
-      :where, :all, :now,
-      :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
-      :data_type, :id,
-      :write_buffer, :put_next_entry, :write,
-      :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
-    ] + Setup::Webhook.method_enum
+            [
+              :where, :all, :now,
+              :new_sign, :digest, :new_sha1, :hexdigest, :new_rsa, :sign, :new_certificate,
+              :data_type, :id,
+              :write_buffer, :put_next_entry, :write,
+              :encode64, :decode64, :urlsafe_encode64, :new_io, :get_input_stream, :open, :new_document
+            ] + Setup::Webhook.method_enum + [:del] - [:delete]
 
   allow_for [Mongoid::Criteria, Mongoff::Criteria], Enumerable.instance_methods(false) + Origin::Queryable.instance_methods(false) + [:each, :blank?, :limit, :skip, :where, :distinct]
 
@@ -172,7 +172,7 @@ Capataz.config do
         "#{action}_from#{format}"
       end
     end + [:create_from]
-  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug,  :title, :where, :all, :build_indices] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
+  end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug, :title, :where, :all, :build_indices] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
     return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :==, :errors, :destroy, :new_record?].include?(method)
