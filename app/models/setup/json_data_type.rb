@@ -9,7 +9,18 @@ module Setup
 
     trace_include :schema
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(
+      :namespace,
+      :name,
+      :title,
+      :_type,
+      :snippet,
+      :events,
+      :before_save_callbacks,
+      :after_save_callbacks,
+      :records_methods,
+      :data_type_methods
+    )
     build_in_data_type.and(
       properties: {
         schema: {

@@ -51,6 +51,10 @@ module Setup
       []
     end
 
+    def after_save_callbacks
+      []
+    end
+
     def count
       model.count
     end

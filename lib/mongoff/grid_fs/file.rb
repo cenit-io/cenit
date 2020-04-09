@@ -86,6 +86,7 @@ module Mongoff
                 errors.add(:data, ex.message)
               end
             end
+            errors.blank?
           end
         end
 

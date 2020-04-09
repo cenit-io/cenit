@@ -25,6 +25,10 @@ module Setup
       before_destroy :validates_for_destroy
     end
 
+    def delete(options = {})
+      validates_for_destroy && super
+    end
+
     def validates_for_destroy
       unless origin == :default
         errors.add(:base, "#{try(:custom_title) || try(:name) || "#{self.class}##{id}"} is shared")

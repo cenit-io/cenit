@@ -171,7 +171,7 @@ module Mongoff
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       field_metadata_2 = {}
       attribute_assigning = !orm_model.property?(attribute_key) && attribute_key == field &&
-                            (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
+        (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
       field =
         if field
           field_metadata = field_metadata_2 if field_metadata.blank?
@@ -364,11 +364,31 @@ module Mongoff
       success
     end
 
+    def after_save_callbacks
+      success = true
+      if (data_type = (model = orm_model).data_type).records_model == model
+        data_type.after_save_callbacks.each do |callback|
+          next unless success
+          success &&=
+            begin
+              callback.run(self).present?
+            rescue Exception => ex
+              Setup::SystemNotification.create(
+                message: "Error running after save callback '#{callback.custom_title}' on record #'#{id}' of type ' #{orm_model.data_type.custom_title}': #{ex.message}")
+              false
+            end
+        end
+      end
+      success
+    end
+
     def run_callbacks_and
       begin
         if Model.before_save.call(self) && before_save_callbacks
-          yield if block_given?
-          Model.after_save.call(self)
+          if block_given? && yield
+            after_save_callbacks
+            Model.after_save.call(self)
+          end
         end
       rescue Exception => ex
         errors.add(:base, ex.message)
