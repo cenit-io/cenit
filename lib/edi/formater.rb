@@ -332,7 +332,11 @@ module Edi
           {}
         end
       unless referenced
-        return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
+        if options[:inspected_records].include?(record) || options[:stack].include?(record)
+          result = { '_reference' => true }
+          do_store(result, 'id', record.id, {})
+          return result
+        end
         options[:inspected_records] << record
       end
       options[:stack] << record
