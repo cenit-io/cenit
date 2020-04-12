@@ -74,7 +74,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::DoClean,
   RailsAdmin::Config::Actions::CleanAll,
   RailsAdmin::Config::Actions::Access,
-  RailsAdmin::Config::Actions::Token
+  RailsAdmin::Config::Actions::Token,
+  RailsAdmin::Config::Actions::CancelAll
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -660,5 +661,6 @@ RailsAdmin.config do |config|
     rest_api1
     rest_api2
     documentation
+    cancel_all
   end
 end
