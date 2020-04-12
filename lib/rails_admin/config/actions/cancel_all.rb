@@ -22,7 +22,11 @@ module RailsAdmin
               scope = list_entries(@abstract_model.config)
               @total = scope.size
               if request.delete?
-                scope.each(&:cancel)
+                if model.respond_to?(:cancel_all)
+                  model.cancel_all(scope)
+                else
+                  scope.each(&:cancel)
+                end
                 redirect_to back_or_index
               end
             else

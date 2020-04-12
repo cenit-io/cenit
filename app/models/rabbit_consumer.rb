@@ -38,4 +38,11 @@ class RabbitConsumer
   def cancelled?
     !alive
   end
+
+  class << self
+
+    def cancel_all(scope = all)
+      scope.update_all(alive: false)
+    end
+  end
 end
