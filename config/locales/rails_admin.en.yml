@@ -210,6 +210,14 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
+      cancel_all:
+        title: "Cancel all"
+        menu: "Cancel all"
+        breadcrumb: "Cancel all"
+        are_you_sure: "Are you sure you want to cancel all the %{model_label_plural}?"
+        will_be_cancelled: "objects will be cancelled"
+        done: "cancelled"
+        doing: "canceling"
       trash:
         title: "Trash collection '%{object_label}'"
         menu: "Trash collection"

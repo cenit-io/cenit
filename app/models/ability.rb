@@ -269,7 +269,7 @@ class Ability
     can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
     can :simple_delete_data_type, Setup::CenitDataType, origin: :cenit
     can :destroy, Setup::CenitDataType, origin: :tmp
-    can [:index, :show, :cancel], RabbitConsumer
+    can [:index, :show, :cancel, :cancel_all], RabbitConsumer
     can [:index, :edit, :pull, :import], Setup::CrossSharedCollection
     can [:index, :show], Cenit::ApplicationId
     can(:destroy, Cenit::ApplicationId) do |app_id|
