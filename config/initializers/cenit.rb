@@ -50,17 +50,15 @@ Cenit.config do
 
   excluded_actions ENV['EXCLUDED_ACTIONS']
 
-  maximum_unicorn_consumers (ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3).to_i
+  maximum_unicorn_consumers((ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3).to_i)
 
   min_scheduler_interval 60
 
-  scheduler_lookup_interval (ENV['SCHEDULER_LOOKUP_INTERVAL'] || 60).to_i
+  scheduler_lookup_interval((ENV['SCHEDULER_LOOKUP_INTERVAL'] || 60).to_i)
 
   default_delay 30
 
-  rabbit_mq_user ENV['RABBIT_MQ_USER']
-
-  rabbit_mq_password ENV['RABBIT_MQ_PASSWORD']
+  delay_tasks ENV['DELAY_TASKS'].to_b
 
   default_code_theme 'monokai'
 

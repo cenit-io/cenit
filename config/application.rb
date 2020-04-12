@@ -46,8 +46,8 @@ module Cenit
         puts 'Clearing LOCKS'
         Cenit::Locker.clear
 
-        puts 'DELETING OLD Consumers'
-        RabbitConsumer.delete_all
+        puts 'DELETING CANCELLED Consumers'
+        RabbitConsumer.where(alive: false).delete_all
 
         Tenant.all.each do |tenant|
           tenant.switch do
