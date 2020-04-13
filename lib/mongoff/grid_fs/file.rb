@@ -90,7 +90,7 @@ module Mongoff
           end
         end
 
-        super if errors.blank?
+        errors.blank? && super
       end
 
       def destroy

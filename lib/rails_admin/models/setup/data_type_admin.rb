@@ -59,6 +59,15 @@ module RailsAdmin
               end
             end
 
+            configure :after_save_callbacks do
+              group :behavior
+              inline_add false
+              associated_collection_scope do
+                limit = (associated_collection_cache_all ? nil : 30)
+                Proc.new { |scope| scope.where(:parameters.with_size => 1).limit(limit) }
+              end
+            end
+
             configure :records_methods do
               group :behavior
               inline_add false
@@ -73,6 +82,7 @@ module RailsAdmin
               field :title, :enum_edit, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
+              field :after_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :records_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :data_type_methods, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
             end

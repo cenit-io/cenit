@@ -14,6 +14,7 @@ module Mongoff
           run_callbacks_and do
             insert_or_update(options)
           end
+          true
         end
       end
       errors.blank?
@@ -36,6 +37,7 @@ module Mongoff
         end
         query.update_one(update)
       end
+      true
     end
   end
 end

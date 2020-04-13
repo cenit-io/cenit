@@ -38,7 +38,8 @@ module Setup
     class << self
 
       def respond_to?(*args)
-        Setup::Webhook.method_enum.include?(args.first) || super
+        args[0] == :del ||
+          Setup::Webhook.method_enum.include?(args[0]) || super
       end
 
       def webhook_for(method, url)
@@ -62,6 +63,7 @@ module Setup
       end
 
       def method_missing(symbol, *args)
+        symbol = :delete if symbol == :del
         if Setup::Webhook.method_enum.include?(symbol)
           if args.length == 1 && (url = args[0]).is_a?(String)
             webhook_for(symbol, url)
