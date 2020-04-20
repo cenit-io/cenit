@@ -15,7 +15,7 @@ module Setup
       :title,
       :_type,
       :snippet,
-      :events,
+      :discard_additional_properties,
       :before_save_callbacks,
       :after_save_callbacks,
       :records_methods,
@@ -44,6 +44,8 @@ module Setup
       }
     }.deep_stringify_keys
 
+    field :discard_additional_properties, type: Boolean, default: true
+
     after_initialize do
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
     end
@@ -57,7 +59,7 @@ module Setup
     end
 
     def additional_properties?
-      true #TODO additional_properties field
+      !discard_additional_properties
     end
 
     def code=(code)

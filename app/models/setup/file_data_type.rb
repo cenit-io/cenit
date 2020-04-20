@@ -15,7 +15,6 @@ module Setup
       :_type,
       :validators,
       :schema_data_type,
-      :events,
       :before_save_callbacks,
       :after_save_callbacks,
       :records_methods,

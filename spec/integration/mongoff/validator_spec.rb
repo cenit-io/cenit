@@ -453,13 +453,15 @@ describe Mongoff::Validator do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'A',
-      schema: test_schema
+      schema: test_schema,
+      discard_additional_properties: false
     )
 
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'R',
-      schema: required_test_schema
+      schema: required_test_schema,
+      discard_additional_properties: false
     )
 
     Setup::JsonDataType.create!(
@@ -471,19 +473,22 @@ describe Mongoff::Validator do
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'addTrue',
-      schema: additional_properties_true_schema
+      schema: additional_properties_true_schema,
+      discard_additional_properties: false
     )
 
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'addFalse',
-      schema: additional_properties_false_schema
+      schema: additional_properties_false_schema,
+      discard_additional_properties: false
     )
 
     Setup::JsonDataType.create!(
       namespace: test_namespace,
       name: 'addDefault',
-      schema: additional_properties_default_schema
+      schema: additional_properties_default_schema,
+      discard_additional_properties: false
     )
   end
 
