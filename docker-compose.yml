@@ -14,7 +14,7 @@ services:
       - MAXIMUM_UNICORN_CONSUMERS=3
       - MONGODB_URI=mongodb://mongo_server/cenit
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
-    command: ["./wait-for-it.sh", "rabbitmq:5672", "--strict",  "--", "bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
     build: .
     ports:
       - "80:8080"
@@ -34,7 +34,7 @@ services:
       - MAXIMUM_UNICORN_CONSUMERS=0
       - MONGODB_URI=mongodb://mongo_server/cenit
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
-    command: ["./wait-for-it.sh", "rabbitmq:5672", "--strict",  "--", "bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
     build: .
     depends_on:
       - mongo_server
@@ -42,7 +42,7 @@ services:
       - redis
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:management
     ports:
       - "15672:15672"
       - "5672:5672"
