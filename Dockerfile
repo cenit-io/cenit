@@ -41,9 +41,6 @@ ENV SKIP_MONGO_CLIENT=true
 #Install gems
 RUN bundle install --jobs 20 --retry 5 --without development test
 
-#Copy waiting script to check availability of RabbitMQ service
-RUN chmod +x wait-for-it.sh
-
 RUN set -x; \
    bundle exec rake assets:precompile
 
