@@ -6,29 +6,45 @@ volumes:
   redis-data: {}
 
 services:
-  cenit:
+  cenit_1:
     environment:
-      - ENABLE_RERECAPTCHA=false
-      - DB_PORT=mongodb
-      - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
-      - UNICORN_WORKERS=5
-      - MAXIMUM_UNICORN_CONSUMERS=3
-      - DB_PROD='cenit_prod'
       - REDIS_HOST=redis
+      - UNICORN_WORKERS=5
+      - ENABLE_RERECAPTCHA=false
+      - MAXIMUM_UNICORN_CONSUMERS=3
+      - MONGODB_URI=mongodb://mongo_server/cenit
+      - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
     build: .
     ports:
-      - "3000:3000"
+      - "80:8080"
     depends_on:
-      - mongodb
+      - mongo_server
+      - rabbitmq
+      - cenit_init
+      - redis
+
+  cenit_init:
+    environment:
+      - REDIS_HOST=redis
+      - UNICORN_WORKERS=5
+      - SKIP_MONGO_CLIENT=false
+      - ENABLE_RERECAPTCHA=false
+      - SKIP_DB_INITIALIZATION=false
+      - MAXIMUM_UNICORN_CONSUMERS=0
+      - MONGODB_URI=mongodb://mongo_server/cenit
+      - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
+    build: .
+    depends_on:
+      - mongo_server
       - rabbitmq
       - redis
-    command: ["foreman", "start", "-f", "Procfile"]
 
   rabbitmq:
     image: rabbitmq:management
     ports:
       - "15672:15672"
-      - "5672:5672"
     environment:
       RABBITMQ_DEFAULT_PASS: cenit_rabbit
       RABBITMQ_DEFAULT_USER: cenit_rabbit
@@ -36,14 +52,14 @@ services:
     labels:
         NAME: "rabbitmq-server"
 
-  mongodb:
-    image: mongo:3.2
+  mongo_server:
+    image: mongo:3.6
     volumes:
       # We'll mount the 'mongodb-data' volume into the location mongodb stores it's data:
       - mongodb-data:/data/db
 
   redis:
-    image: redis
+    image: redis:5
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
