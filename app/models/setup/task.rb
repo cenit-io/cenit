@@ -122,6 +122,10 @@ module Setup
       end
     end
 
+    def maximum_resumes
+      Cenit.maximum_task_resumes
+    end
+
     def execute(options = {})
       if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
@@ -133,7 +137,7 @@ module Setup
         time = Time.now
         if running_status?
           self.resumes += 1
-          fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > Cenit.maximum_task_resumes
+          fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > maximum_resumes
           notify(message: "Restarting task ##{id} at #{time}", type: :notice)
         else
           self.attempts += 1
