@@ -6,7 +6,7 @@ volumes:
   redis-data: {}
 
 services:
-  cenit_frontend:
+  frontend:
     environment:
       - SKIP_DB_INITIALIZATION=true
       - SKIP_RABBIT_MQ=true
@@ -25,8 +25,9 @@ services:
       - mongo_server
       - redis
 
-  cenit_background:
+  background:
     environment:
+      - SKIP_ASSETS_COMPILE=true
       - ENABLE_RERECAPTCHA=false
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_CENIT_SERVER=true
