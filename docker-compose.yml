@@ -6,49 +6,54 @@ volumes:
   redis-data: {}
 
 services:
-  cenit_1:
+  cenit_frontend:
     environment:
-      - REDIS_HOST=redis
-      - UNICORN_WORKERS=5
+      - SKIP_DB_INITIALIZATION=true
+      - SKIP_RABBIT_MQ=true
       - ENABLE_RERECAPTCHA=false
-      - MAXIMUM_UNICORN_CONSUMERS=3
+      - UNICORN_CENIT_SERVER=true
+      - UNICORN_WORKERS=5
+      - MAXIMUM_UNICORN_CONSUMERS=0
       - MONGODB_URI=mongodb://mongo_server/cenit
-      - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+      - REDIS_HOST=redis
+      # more options in application.example.yml
     command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
     build: .
     ports:
       - "80:8080"
     depends_on:
       - mongo_server
-      - rabbitmq
-      - cenit_init
       - redis
 
-  cenit_init:
+  cenit_background:
     environment:
-      - REDIS_HOST=redis
-      - UNICORN_WORKERS=5
-      - SKIP_MONGO_CLIENT=false
+      - LOOKUP_SCHEDULER_OFF=false
+      - LOAD_DELAYED_MESSAGES_ON_START=true
       - ENABLE_RERECAPTCHA=false
-      - SKIP_DB_INITIALIZATION=false
-      - MAXIMUM_UNICORN_CONSUMERS=0
+      - BASE_MULTIPLIER_ACTIVE_TASKS=50
+      - SCHEDULER_LOOKUP_INTERVAL=8
+      - UNICORN_CENIT_SERVER=true
+      - UNICORN_WORKERS=6
+      - MAXIMUM_UNICORN_CONSUMERS=6
+      - REDIS_HOST=redis
       - MONGODB_URI=mongodb://mongo_server/cenit
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
+      # more options in application.example.yml
     command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
     build: .
     depends_on:
       - mongo_server
-      - rabbitmq
       - redis
+      - rabbitmq
 
   rabbitmq:
     image: rabbitmq:management
     ports:
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_PASS: cenit_rabbit
-      RABBITMQ_DEFAULT_USER: cenit_rabbit
-      RABBITMQ_DEFAULT_VHOST: cenit_rabbit_vhost
+      - RABBITMQ_DEFAULT_PASS=cenit_rabbit
+      - RABBITMQ_DEFAULT_USER=cenit_rabbit
+      - RABBITMQ_DEFAULT_VHOST=cenit_rabbit_vhost
     labels:
         NAME: "rabbitmq-server"
 
