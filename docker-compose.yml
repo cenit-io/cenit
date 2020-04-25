@@ -27,10 +27,7 @@ services:
 
   cenit_background:
     environment:
-      - LOOKUP_SCHEDULER_OFF=false
-      - LOAD_DELAYED_MESSAGES_ON_START=true
       - ENABLE_RERECAPTCHA=false
-      - BASE_MULTIPLIER_ACTIVE_TASKS=50
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_CENIT_SERVER=true
       - UNICORN_WORKERS=6
