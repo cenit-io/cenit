@@ -84,6 +84,10 @@ module Setup
       false
     end
 
+    def additional_properties?
+      false
+    end
+
     def data_type_storage_collection_name
       Account.tenant_collection_name(data_type_name)
     end

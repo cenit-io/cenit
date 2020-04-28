@@ -12,7 +12,6 @@ module Setup
       :title,
       :_type,
       :snippet,
-      :events,
       :before_save_callbacks,
       :after_save_callbacks,
       :records_methods,

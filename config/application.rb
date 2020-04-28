@@ -37,7 +37,6 @@ module Cenit
     end
 
     config.after_initialize do
-      next if ENV['SKIP_MONGO_CLIENT'].to_b
       Thread.current[:cenit_initializing] = true
 
       unless ENV['SKIP_DB_INITIALIZATION'].to_b

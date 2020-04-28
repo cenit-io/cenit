@@ -26,6 +26,8 @@ module RailsAdmin
 
             configure :schema, :json_schema
 
+            configure :discard_additional_properties, :toggle_boolean
+
             configure :code_warnings, :code_warnings
 
             configure :schema_code, :json_schema do
@@ -82,6 +84,7 @@ module RailsAdmin
               field :name, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :code_warnings
               field :schema_code
+              field :discard_additional_properties
               field :title, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
               field :slug
               field :before_save_callbacks, &RailsAdmin::Config::Fields::Base::SHARED_READ_ONLY
@@ -106,6 +109,7 @@ module RailsAdmin
               field :storage_size
               field :code_warnings
               field :schema
+              field :discard_additional_properties
               field :before_save_callbacks
               field :after_save_callbacks
               field :records_methods

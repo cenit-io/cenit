@@ -11,6 +11,10 @@ class ScriptExecution < Setup::Task
     self.script = Script.where(id: message['script_id']).first
   end
 
+  def maximum_resumes
+    Cenit.maximum_script_execution_resumes
+  end
+
   def run(message)
     if (script = Script.where(id: (script_id = message[:script_id])).first)
       result =

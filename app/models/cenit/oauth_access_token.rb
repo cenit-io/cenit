@@ -15,6 +15,14 @@ module Cenit
       # Nothing here
     end
 
+    def get_tenant
+      if access_grant.origin == :owner
+        user&.account || tenant&.owner&.account
+      else
+        super
+      end
+    end
+
     class << self
       def for(app_id, scope, user_or_id, tenant = Cenit::MultiTenancy.tenant_model.current)
         user_model = Cenit::MultiTenancy.user_model
@@ -63,7 +71,7 @@ module Cenit
             end
           end
           # TODO: Include other OpenID scopes
-          payload_inspector.call(:email) if scope.email? && user.confirmed?
+          payload_inspector.call(:email) if scope.email? && (app_id.trusted? || user.confirmed?)
           if scope.profile?
             [
               :name,

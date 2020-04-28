@@ -97,7 +97,6 @@ module Edi
         include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
       end
       [:only].each { |option| options.delete(option) if options[option].empty? }
-      options[:inspected_records] = Set.new
       options[:stack] = []
       options[:include_id] = include_id.respond_to?(:call) ? include_id : include_id.to_b
       if (viewport = options[:viewport])
@@ -244,7 +243,7 @@ module Edi
           elsif xml_opts['simple_type']
             elements << (e = xml_doc.create_element(name))
             e << property_value && property_value.collect(&:to_s).join(' ')
-          elsif property_model && property_model.modelable?
+          elsif property_model&.modelable?
             property_schema = data_type.merge_schema(property_schema['items'] || {})
             json_objects = []
             property_value.each do |sub_record|
@@ -261,7 +260,7 @@ module Edi
             elements << Nokogiri::XML({ name => property_value }.to_xml(dasherize: false)).root.first_element_child
           end
         when 'object'
-          if property_model && property_model.modelable?
+          if property_model&.modelable?
             elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, nil, options, namespaces)
           else
             elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
@@ -314,12 +313,7 @@ module Edi
         end
       return nil unless model
       schema = model.schema
-      key_properties =
-        if (key_properties = schema['referenced_by'])
-          key_properties.dup
-        else
-          []
-        end
+      key_properties = schema['referenced_by']&.dup || (options[:with_references] && ['_id']) || []
       json =
         if viewport.nil? && key_properties.present?
           if referenced
@@ -331,13 +325,10 @@ module Edi
           referenced = false
           {}
         end
-      unless referenced
-        if options[:inspected_records].include?(record) || options[:stack].include?(record)
-          result = { '_reference' => true }
-          do_store(result, 'id', record.id, {})
-          return result
-        end
-        options[:inspected_records] << record
+      if !referenced && options[:stack].include?(record)
+        result = { '_reference' => true }
+        do_store(result, 'id', record.id, {})
+        return result
       end
       options[:stack] << record
       if (include_id = options[:include_id]).respond_to?(:call)
@@ -354,7 +345,7 @@ module Edi
           key_properties.delete(property_name)
           next
         end
-        property_schema = model.property_schema(property_name)
+        property_schema = model.property_schema(property_name) || {}
         property_model = model.property_model(property_name)
         name = property_name
         if !options[:raw_properties] && property_schema['edi']
@@ -396,7 +387,7 @@ module Edi
         case property_schema['type']
         when 'array'
           referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
-          if (value = record.send(property_name))
+          if (value = record.send(property_name)) && !value.try(:null?)
             next if max_entries && value.size > max_entries
             sub_max_entries = max_entries && (max_entries - value.size)
             sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries.positive?
@@ -542,7 +533,7 @@ module Edi
         next if property_schema['edi'] && property_schema['edi']['discard']
         if (property_model = record.orm_model.property_model(property_name)) && property_model.modelable?
           if property_schema['type'] == 'array'
-            if sub_values = record.send(property_name)
+            if (sub_values = record.send(property_name))
               property_schema = data_type.merge_schema(property_schema['items'])
               sub_values.each do |sub_record|
                 output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))

@@ -15,7 +15,7 @@ module Setup
       :title,
       :_type,
       :snippet,
-      :events,
+      :discard_additional_properties,
       :before_save_callbacks,
       :after_save_callbacks,
       :records_methods,
@@ -44,6 +44,8 @@ module Setup
       }
     }.deep_stringify_keys
 
+    field :discard_additional_properties, type: Boolean, default: true
+
     after_initialize do
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
     end
@@ -54,6 +56,10 @@ module Setup
           remove_attribute(:schema)
           true
         end
+    end
+
+    def additional_properties?
+      !discard_additional_properties
     end
 
     def code=(code)
@@ -223,7 +229,7 @@ module Setup
     def validate_schema
       # check_type_name(self.name)
       self.schema = JSON.parse(schema) unless schema.is_a?(Hash)
-      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), schema.to_json)
+      ::Mongoff::Validator.validate(schema)
       embedded_refs = {}
       if schema['type'] == 'object'
         check_schema(schema, self.name, defined_types = [], embedded_refs, schema)

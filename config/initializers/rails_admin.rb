@@ -71,6 +71,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::JsonEdit,
   RailsAdmin::Config::Actions::Sudo,
   RailsAdmin::Config::Actions::Compare,
+  RailsAdmin::Config::Actions::Trust,
+  RailsAdmin::Config::Actions::Compare,
   RailsAdmin::Config::Actions::DoClean,
   RailsAdmin::Config::Actions::CleanAll,
   RailsAdmin::Config::Actions::Access,
@@ -563,6 +565,10 @@ RailsAdmin.config do |config|
 
   Cenit::BasicTenantToken
 
+  Cenit::OauthAccessToken
+
+  Cenit::OauthSessionAccessToken
+
   Setup::TaskToken
 
   Setup::DelayedMessage
@@ -637,6 +643,7 @@ RailsAdmin.config do |config|
     sudo
     cancel
     regist
+    trust
     access
     token
     reinstall

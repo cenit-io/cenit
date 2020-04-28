@@ -46,7 +46,7 @@ module Mongoff
         end
       end
 
-      def save(options = {})
+      def do_validate(options = {})
         if stash_data.nil?
           errors.add(:data, "can't be nil") if new_record?
         else
@@ -68,25 +68,25 @@ module Mongoff
           end
 
           self[:uploadDate] ||= Time.now.utc
+        end
+        super
+      end
 
-          run_callbacks_and do
-            file_data_errors =
-              if options[:valid_data]
-                []
-              else
-                orm_model.data_type.validate_file(self)
-              end
+      def insert_or_update(options = {})
+        file_data_errors =
+          if options[:valid_data]
+            []
+          else
+            orm_model.data_type.validate_file(self)
+          end
 
-            if file_data_errors.present?
-              errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
-            else
-              begin
-                file_store.save(self, stash_data, options)
-              rescue Exception => ex
-                errors.add(:data, ex.message)
-              end
-            end
-            errors.blank?
+        if file_data_errors.present?
+          errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
+        else
+          begin
+            file_store.save(self, stash_data, options)
+          rescue Exception => ex
+            errors.add(:data, ex.message)
           end
         end
 

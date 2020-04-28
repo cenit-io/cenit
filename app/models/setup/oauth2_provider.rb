@@ -58,7 +58,14 @@ module Setup
                    Cenit::OauthScope::ACCESS_TOKENS.collect { |method| "#{method} {{#{method}}}" } +
                    ['{{scope}}']
           scopes.each do |scope_name|
-            Setup::Oauth2Scope.find_or_create_by(origin: :cenit, provider_id: oauth_provider.id, name: scope_name)
+            scope = Setup::Oauth2Scope.find_or_create_by(provider_id: oauth_provider.id, name: scope_name)
+            unless scope.origin == :cenit
+              Setup::SystemReport.create(
+                message: "Cenit OAuth 2.0 scope #{scope.name} crossed from #{scope.origin} to cenit",
+                type: :warning
+              )
+              scope.cross(:cenit)
+            end
           end
         end
         @build_in_provider_id

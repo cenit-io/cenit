@@ -29,7 +29,7 @@ describe Setup::DelayedMessage do
   context "with adapter independent behavior" do
 
     it 'sets created delayed messages ready' do
-      msg = delayed_message.create(message: 'abc')
+      msg = delayed_message.create!(message: 'abc')
       record = nil
       delayed_message.for_each_ready(at: msg.publish_at + 5.seconds) do |delayed_message|
         record = delayed_message
@@ -39,8 +39,8 @@ describe Setup::DelayedMessage do
 
     it 'does not include not ready delayed messages' do
       now = Time.now
-      delayed_message.create(message: 'first', publish_at: now)
-      delayed_message.create(message: 'second', publish_at: now + 20.seconds)
+      delayed_message.create!(message: 'first', publish_at: now)
+      delayed_message.create!(message: 'second', publish_at: now + 20.seconds)
       messages = []
       delayed_message.for_each_ready(at: now) do |delayed_message|
         messages << delayed_message[:message]
@@ -50,8 +50,8 @@ describe Setup::DelayedMessage do
 
     it 'remove messages when destroyed' do
       now = Time.now
-      first = delayed_message.create(message: 'first', publish_at: now)
-      delayed_message.create(message: 'second', publish_at: now)
+      first = delayed_message.create!(message: 'first', publish_at: now)
+      delayed_message.create!(message: 'second', publish_at: now)
       first.destroy
       messages = []
       delayed_message.for_each_ready(at: now + 5.seconds) do |delayed_message|
@@ -62,8 +62,8 @@ describe Setup::DelayedMessage do
 
     it 'purges and keeps messages' do
       now = Time.now
-      delayed_message.create(message: 'first', publish_at: now)
-      second = delayed_message.create(message: 'second', publish_at: now)
+      delayed_message.create!(message: 'first', publish_at: now)
+      second = delayed_message.create!(message: 'second', publish_at: now)
       delayed_message.purge_message(second.message)
       messages = []
       delayed_message.for_each_ready(at: now + 5.seconds) do |delayed_message|
@@ -73,13 +73,13 @@ describe Setup::DelayedMessage do
     end
 
     it 'returns true when message is purged' do
-      delayed_message.create(message: 'message')
+      delayed_message.create!(message: 'message')
       purged = delayed_message.purge_message('message')
       expect(purged).to be true
     end
 
     it 'returns false when purging non existing messages' do
-      delayed_message.create(message: 'message')
+      delayed_message.create!(message: 'message')
       purged = delayed_message.purge_message('does not exists')
       expect(purged).to be false
     end
