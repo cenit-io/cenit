@@ -35,3 +35,5 @@ config/deploy.rb
 .idea
 .rbenv*
 custom_Gemfile
+.background_env
+.frontend_env
