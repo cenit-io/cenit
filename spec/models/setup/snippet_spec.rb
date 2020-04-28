@@ -2,12 +2,12 @@ require 'rails_helper'
 
 describe Setup::Snippet do
 
-  TEST_NAMESPACE = 'Snippet Test'
+  test_namespace = 'Snippet Test'
 
   before :all do
     %w(default owner shared).each do |origin|
-      Setup::Snippet.create(
-        namespace: TEST_NAMESPACE,
+      Setup::Snippet.create!(
+        namespace: test_namespace,
         name: "#{origin}_test.rb",
         code: "'Test'",
         origin: origin
@@ -28,15 +28,15 @@ describe Setup::Snippet do
   end
 
   let! :default_snippet do
-    Setup::Snippet.where(namespace: TEST_NAMESPACE, name: 'default_test.rb').first
+    Setup::Snippet.where(namespace: test_namespace, name: 'default_test.rb').first
   end
 
   let! :owner_snippet do
-    Setup::Snippet.where(namespace: TEST_NAMESPACE, name: 'owner_test.rb').first
+    Setup::Snippet.where(namespace: test_namespace, name: 'owner_test.rb').first
   end
 
   let! :shared_snippet do
-    Setup::Snippet.where(namespace: TEST_NAMESPACE, name: 'shared_test.rb').first
+    Setup::Snippet.where(namespace: test_namespace, name: 'shared_test.rb').first
   end
 
   context "when Redis client is present", if: Cenit::Redis.client? do

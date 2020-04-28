@@ -23,5 +23,9 @@ module Cenit
     def scope
       access_grant.scope
     end
+
+    def oauth_scope
+      access_grant.oauth_scope
+    end
   end
 end

@@ -38,7 +38,7 @@ module Cenit
 
       after_save { application_id.save if application_id.new_record? }
 
-      after_destroy { application_id && application_id.destroy }
+      after_destroy { application_id&.destroy }
     end
 
     def validates_configuration
@@ -48,7 +48,7 @@ module Cenit
     end
 
     def registered
-      application_id && application_id.registered
+      application_id&.registered
     end
 
     def registered?
@@ -56,7 +56,7 @@ module Cenit
     end
 
     def identifier
-      application_id && application_id.identifier
+      application_id&.identifier
     end
 
     def slug_id
@@ -104,6 +104,15 @@ module Cenit
 
     def oauth_name
       fail NotImplementedError
+    end
+
+    def user_id_for(access_token)
+      access_token = OauthAccessToken.where(token: access_token, application_id_id: application_id_id).first
+      if access_token&.alive? && access_token.access_grant && access_token.oauth_scope.openid?
+        access_token.user_id
+      else
+        nil
+      end
     end
 
     module ClassMethods

@@ -47,10 +47,11 @@ module RailsAdmin
               field :slug
               field :tenant_id
               field :identifier
+              field :trusted
               field :updated_at
             end
 
-            fields :created_at, :name, :registered, :tenant_id, :identifier, :created_at, :updated_at
+            fields :created_at, :name, :registered, :tenant_id, :identifier, :trusted, :created_at, :updated_at
           end
         end
       end

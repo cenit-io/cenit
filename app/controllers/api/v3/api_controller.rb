@@ -24,7 +24,7 @@ module Api::V3
     def cors_headers
       allow_origin_header
       headers['Access-Control-Allow-Credentials'] = false
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options'
+      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options, X-JSON-Path, X-Record-Id'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
     end
@@ -87,8 +87,23 @@ module Api::V3
     end
 
     def show
+      item = @item
+      if (json_path = request.headers['X-JSON-Path']) && json_path =~ /\A\$(.(^[.\[\]])*(\[[0-9]+\])?)+\Z/
+        current_path = '$'
+        json_path = json_path.split('.')
+        json_path.shift
+        json_path.each do |access|
+          index =
+            if (match = access.match(/(.*)\[([0-9]+)\]\Z/))
+              access = match[1]
+              match[2].to_i
+            end
+          item = item[access]
+          item = item[index] if index
+        end
+      end
       setup_viewport
-      render json: Template.with(@item) { |template| template.to_hash(template_options) }
+      render json: to_hash(item)
     end
 
     def new
@@ -99,7 +114,7 @@ module Api::V3
       record = parser.create_from(request_data, parser_options)
       if record.errors.blank?
         if setup_viewport(:headers)
-          render json: Template.with(record) { |template| template.to_hash(template_options) }
+          render json: to_hash(record)
         else
           render nothing: true
         end
@@ -117,7 +132,7 @@ module Api::V3
       end
       if Cenit::Utility.save(@item, save_options)
         if setup_viewport(:headers)
-          render json: Template.with(@item) { |template| template.to_hash(template_options) }
+          render json: to_hash(@item)
         else
           render nothing: true
         end
@@ -212,12 +227,27 @@ module Api::V3
       @klass = @ns_name = nil
       @ns_slug = options[:namespace] || params[:__ns_]
       @model = options[:model] || params[:__model_]
+      @_id = options[:id] || params[:__id_]
       @format = options[:format] || params[:format]
       @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
       query_selector
     end
 
-    protected
+    def find_item
+      if (id = @_id) == 'me' && klass == User
+        id = User.current_id
+      elsif id == 'current' && klass == Account
+        id = Account.current_id
+      end
+      if (@item = accessible_records.where(id: id).first)
+        true
+      else
+        render json: { status: 'item not found' }, status: :not_found
+        false
+      end
+    end
+
+    PARSER_OPTIONS = %w(add_only primary_field ignore reset update skip_refs_binding add_new).collect(&:to_sym)
 
     def parser_options
       @parser_options ||=
@@ -225,11 +255,11 @@ module Api::V3
           unless (opts = Cenit::Utility.json_value_of(request.headers['X-Parser-Options'])).is_a?(Hash)
             opts = {}
           end
-          params.each do |key, value|
-            next if %w(controller action __ns_ __model_ __id_ format api).include?(key)
-            opts[key] = Cenit::Utility.json_value_of(value)
+          PARSER_OPTIONS.each do |opt|
+            next unless params.key?(opt)
+            opts[opt] = Cenit::Utility.json_value_of(params[opt])
           end
-          %w(primary_field primary_fields ignore reset).each do |option|
+          %w(primary_field primary_fields ignore reset update).each do |option|
             unless (value = opts.delete(option)).is_a?(Array)
               value = value.to_s.split(',').collect(&:strip)
             end
@@ -391,20 +421,31 @@ module Api::V3
       end
     end
 
+    def to_hash(item)
+      Template.with(item) { |template| template.to_hash(template_options) }
+    end
+
+    protected
+
     def authorize_account
       Account.current = User.current = error_description = nil
       if (auth_header = request.headers['Authorization'])
         auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
         if auth_header.length == 2
           @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
-          if access_token && access_token.alive?
-            if access_token.set_current_tenant!
-              access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
-              if access_grant
-                @oauth_scope = access_grant.oauth_scope
-              else
-                error_description = 'Access grant revoked or moved outside token tenant'
+          if access_token&.alive?
+            if (user = access_token.user)
+              User.current = user
+              if access_token.set_current_tenant!
+                access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
+                if access_grant
+                  @oauth_scope = access_grant.oauth_scope
+                else
+                  error_description = 'Access grant revoked or moved outside token tenant'
+                end
               end
+            else
+              error_description = 'The token owner is no longer an active user'
             end
           else
             error_description = 'Access token is expired or malformed'
@@ -412,7 +453,6 @@ module Api::V3
         else
           error_description = 'Malformed authorization header'
         end
-        User.current = (Account.current ? Account.current.owner : nil)
         if User.current && Account.current
           @ability = Ability.new(User.current)
           true
@@ -446,7 +486,7 @@ module Api::V3
             @_action_name.to_sym
           end
         if @ability.can?(action_symbol, @item || klass) &&
-           (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
+          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
           @access_token.hit if @access_token
         else
           success = false
@@ -486,20 +526,6 @@ module Api::V3
       end
     end
 
-    def find_item
-      if (id = params[:__id_]) == 'me' && klass == User
-        id = User.current_id
-      elsif id == 'current' && klass == Account
-        id = Account.current_id
-      end
-      if (@item = accessible_records.where(id: id).first)
-        true
-      else
-        render json: { status: 'item not found' }, status: :not_found
-        false
-      end
-    end
-
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
@@ -518,7 +544,8 @@ module Api::V3
             end
             if @ns_name
               Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
-                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first
+                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first ||
+                Setup::DataType.where(namespace: @ns_name.camelize, name: slug.camelize).first
             else
               nil
             end
@@ -601,13 +628,41 @@ module Setup
   class DataType
 
     def handle_get_digest(controller)
-      controller.setup_request(namespace: ns_slug, model: slug)
-      controller.index
+      if (id = controller.request.headers['X-Record-Id'])
+        controller.setup_request(namespace: ns_slug, model: slug, id: id)
+        controller.show if controller.find_item
+      else
+        controller.setup_request(namespace: ns_slug, model: slug)
+        controller.index
+      end
     end
 
     def handle_post_digest(controller)
       controller.setup_request(namespace: ns_slug, model: slug)
       controller.new
+    end
+
+    def handle_delete_digest(controller)
+      query = where(controller.query_selector)
+      response =
+        if query.count == 1
+          item = query.first
+          if item.destroy
+            { nothing: true }
+          else
+            {
+              json: records_model.pretty_errors(item),
+              status: :unprocessable_entity
+            }
+          end
+        else
+          execution = Deletion.process(model_name: records_model.to_s, selector: query.selector)
+          {
+            json: controller.to_hash(execution),
+            status: :accepted
+          }
+        end
+      controller.render response
     end
 
     def digest_schema(request, options = {})
@@ -632,8 +687,14 @@ module Setup
   class FileDataType
 
     def post_digest_upload(request, options = {})
-      request.body.rewind
-      file = create_from(request.body, options)
+      readable =
+        if request.content_type.downcase == 'multipart/form-data'
+          request.params[:data] || request.params[:file] || fail('Missing data (or file) part')
+        else
+          request.body
+        end
+      readable.rewind
+      file = create_from(readable, options)
       {
         json: Api::V3::ApiController::Template.with(file) { |template| template.to_hash }
       }

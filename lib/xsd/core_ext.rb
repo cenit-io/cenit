@@ -25,11 +25,15 @@ end
 
 class Hash
   def deep_reverse_merge(other)
-    merge(other) do |_, left, right|
+    merge(other) do |key, left, right|
       if left.is_a?(Hash) && right.is_a?(Hash)
         left.deep_reverse_merge(right)
       else
-        left || right
+        if key?(key)
+          left
+        else
+          right
+        end
       end
     end
   end

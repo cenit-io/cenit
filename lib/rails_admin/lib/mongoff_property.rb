@@ -23,8 +23,12 @@ module RailsAdmin
     end
 
     def type
-      case hash_schema['type']
-      when nil
+      type = hash_schema['type']
+      if type.is_a?(Array) && type.length == 1
+        type = type[0]
+      end
+      case type
+      when nil, Array
         if name == :_id
           :sort_reverse_string
         else

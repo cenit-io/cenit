@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Mongoff::Record do
-  TEST_NAMESPACE = 'Mongoff Test'
+  test_namespace = 'Mongoff Test'
 
   B_JSON_SAMPLE = {
     a_nested: {
@@ -53,8 +53,8 @@ describe Mongoff::Record do
   }
 
   before :all do
-    data_type_a = Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+    data_type_a = Setup::JsonDataType.create!(
+      namespace: test_namespace,
       name: 'A',
       schema: {
         type: 'object',
@@ -89,12 +89,13 @@ describe Mongoff::Record do
               '$ref': 'B'
             }
           }
-        }
+        },
+        required: %w(name)
       }
     )
 
-    data_type_b = Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+    data_type_b = Setup::JsonDataType.create!(
+      namespace: test_namespace,
       name: 'B',
       schema: {
         type: 'object',
@@ -129,24 +130,25 @@ describe Mongoff::Record do
               '$ref': 'A'
             }
           }
-        }
+        },
+        required: %w(name)
       }
     )
 
-    a_loaded = data_type_a.create_from(loaded: true)
-    b_loaded = data_type_b.create_from(loaded: true)
+    a_loaded = data_type_a.create_from!(name: 'A loaded', loaded: true)
+    b_loaded = data_type_b.create_from!(name: 'B loaded', loaded: true)
 
-    data_type_a.create_from(A_JSON_SAMPLE.merge(id: a_loaded.id, loaded: true))
+    data_type_a.create_from!(A_JSON_SAMPLE.merge(id: a_loaded.id, loaded: true))
 
-    data_type_b.create_from(B_JSON_SAMPLE.merge(id: b_loaded.id, loaded: true))
+    data_type_b.create_from!(B_JSON_SAMPLE.merge(id: b_loaded.id, loaded: true))
   end
 
   let! :data_type_a do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'A').first
+    Setup::DataType.where(namespace: test_namespace, name: 'A').first
   end
 
   let! :data_type_b do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'B').first
+    Setup::DataType.where(namespace: test_namespace, name: 'B').first
   end
 
   let :new_record_a do
@@ -154,7 +156,7 @@ describe Mongoff::Record do
   end
 
   let :create_record_a do
-    data_type_a.create_from(A_JSON_SAMPLE)
+    data_type_a.create_from!(A_JSON_SAMPLE)
   end
 
   let :load_record_a do
@@ -180,8 +182,8 @@ describe Mongoff::Record do
           a.b_nested.a_nested.new_record?,
           a.b_ref.a_nested.new_record?
         ] +
-        a.b_nested_many.collect { |b| b.a_nested.new_record? } +
-        a.b_ref_many.collect { |b| b.loaded || b.a_nested.new_record? }
+          a.b_nested_many.collect { |b| b.a_nested.new_record? } +
+          a.b_ref_many.collect { |b| b.loaded || b.a_nested.new_record? }
 
       expect(flags).to all(eq true)
     end
@@ -197,9 +199,9 @@ describe Mongoff::Record do
 
       flags =
         a.b_nested.a_nested_many.collect(&:new_record?) +
-        a.b_ref.a_nested_many.collect(&:new_record?) +
-        a.b_nested_many.collect { |b| b.a_nested_many.collect(&:new_record?) }.flatten +
-        a.b_ref_many.collect { |b| b.loaded || b.a_nested_many.collect(&:new_record?) }.flatten
+          a.b_ref.a_nested_many.collect(&:new_record?) +
+          a.b_nested_many.collect { |b| b.a_nested_many.collect(&:new_record?) }.flatten +
+          a.b_ref_many.collect { |b| b.loaded || b.a_nested_many.collect(&:new_record?) }.flatten
 
       expect(flags).to all(eq true)
     end
@@ -217,8 +219,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref.new_record?,
           a.b_ref.a_ref.new_record?
         ] +
-        a.b_nested_many.collect { |b| b.a_ref.new_record? } +
-        a.b_ref_many.collect { |b| b.loaded || b.a_ref.new_record? }
+          a.b_nested_many.collect { |b| b.a_ref.new_record? } +
+          a.b_ref_many.collect { |b| b.loaded || b.a_ref.new_record? }
 
       expect(flags).to all(eq true)
     end
@@ -236,8 +238,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref_loaded.new_record?,
           a.b_ref.a_ref_loaded.new_record?
         ] +
-        a.b_nested_many.collect { |b| b.a_ref_loaded.new_record? } +
-        a.b_ref_many.collect { |b| b.a_ref_loaded.new_record? }
+          a.b_nested_many.collect { |b| b.a_ref_loaded.new_record? } +
+          a.b_ref_many.collect { |b| b.a_ref_loaded.new_record? }
 
       expect(flags).to all(eq false)
     end
@@ -256,8 +258,8 @@ describe Mongoff::Record do
           a.b_nested.a_ref_many.detect(&:loaded).new_record?,
           a.b_ref.a_ref_many.detect(&:loaded).new_record?
         ] +
-        a.b_nested_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? } +
-        a.b_ref_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? }
+          a.b_nested_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? } +
+          a.b_ref_many.collect { |b| b.a_ref_many.detect(&:loaded).new_record? }
 
       expect(flags).to all(eq false)
     end
@@ -295,7 +297,7 @@ describe Mongoff::Record do
       flags_before = a.b_ref_many.collect(&:new_record?)
       a.save
       flags_after = a.b_ref_many.collect(&:new_record?)
-      expect(flags_before).to match_array(flags_after)
+      expect(flags_before).to eq(flags_after)
     end
   end
 
@@ -313,7 +315,7 @@ describe Mongoff::Record do
     it 'sets new_record flag to false on nested many relations when created' do
       a = create_record_a
       flags = a.b_nested_many.collect(&:new_record?)
-      expect(flags).to match_array(Array.new(flags.count, false))
+      expect(flags).to eq(Array.new(flags.count, false))
     end
 
     it 'sets new_record flag to false on referenced many relations when created' do
@@ -362,6 +364,20 @@ describe Mongoff::Record do
       end
 
       expect(flags).to all(eq false)
+    end
+  end
+
+  context 'when validated' do
+    it 'returns true if no errors are present after initialized' do
+      a = new_record_a
+      a.validate
+      expect(a.valid?).to be true
+    end
+
+    it 'returns false if  errors are present after initialized' do
+      a = data_type_a.new_from(A_JSON_SAMPLE.merge(name: nil))
+      a.validate
+      expect(a.valid?).to be false
     end
   end
 end

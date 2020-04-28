@@ -118,7 +118,9 @@ module Mongoff
       record.document.each_key do |field|
         if property?(field)
           properties << field.to_s
-        elsif (field = property_for_attribute(field.to_s))
+        elsif (property = property_for_attribute(field.to_s))
+          properties << property.to_s
+        elsif data_type.additional_properties?
           properties << field.to_s
         end
       end
@@ -348,18 +350,24 @@ module Mongoff
         end
       success_value = nil
       success_type = nil
+      conversion_value = nil
+      conversion_type = nil
       types.each do |type|
-        break unless success_value.nil?
+        break if success_type
         if value.is_a?(type)
           success_value = value
           success_type = type
-        else
+        elsif !conversion_type
           begin
-            success_value = CONVERSION[type].call(value)
-            success_type = type
+            conversion_value = CONVERSION[type].call(value)
+            conversion_type = type
           rescue Exception
           end
         end
+      end
+      if !success_type && conversion_type
+        success_value = conversion_value
+        success_type = conversion_type
       end
       if success_type && success_block
         args =
@@ -523,7 +531,7 @@ module Mongoff
     end
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by maxProperties minProperties).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)
