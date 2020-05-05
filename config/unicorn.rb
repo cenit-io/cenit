@@ -59,9 +59,9 @@ after_fork do |server, worker|
         end
       end
     end
-    Cenit::Rabbit.start_scheduler
+    Cenit::Rabbit.start_scheduler unless ENV['SKIP_RABBIT_MQ'].to_b
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
-    Cenit::Rabbit.start_consumer
+    Cenit::Rabbit.start_consumer unless ENV['SKIP_RABBIT_MQ'].to_b
   end
 end
 
