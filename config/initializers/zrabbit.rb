@@ -1,13 +1,11 @@
-unless  ENV['SKIP_RABBIT_MQ'].to_b
-  require 'rabbit_consumer'
+require 'rabbit_consumer'
 
-  unless ENV['UNICORN_CENIT_SERVER'].to_b
-    Cenit::Application.config.after_initialize do
-      unless ENV['SKIP_DB_INITIALIZATION'].to_b
-        Tenant.all.each do |tenant|
-          tenant.switch do
-            Setup::Scheduler.activated.each(&:start)
-          end
+unless ENV['UNICORN_CENIT_SERVER'].to_b
+  Cenit::Application.config.after_initialize do
+    unless ENV['SKIP_DB_INITIALIZATION'].to_b
+      Tenant.all.each do |tenant|
+        tenant.switch do
+          Setup::Scheduler.activated.each(&:start)
         end
       end
     end
