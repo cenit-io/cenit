@@ -83,6 +83,8 @@ gem 'identicon'
 
 gem 'language_sniffer'
 
+gem 'glebtv_mongoid_userstamp', '0.6.2'
+
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
 gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git', branch: 'mongo_gem_2_3_1'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'

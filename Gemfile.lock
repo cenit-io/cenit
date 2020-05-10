@@ -6,11 +6,12 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 93300d9a2f8b6528ce08e2484604d6be37db1209
+  revision: 99e13fca5a5d02c0116fcb5736f8d68dbcb3d176
+  branch: mongo_gem_2_3_1
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
-      glebtv_mongoid_userstamp (~> 0.6.0)
+      glebtv_mongoid_userstamp (>= 0.6.0)
       mongoid (>= 5.0.1)
 
 GIT
@@ -542,6 +543,7 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
+  glebtv_mongoid_userstamp (= 0.6.2)
   haml-rails
   handlebars
   httmultiparty
