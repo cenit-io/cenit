@@ -15,7 +15,7 @@ RUN set -x; \
   imagemagick \
   libmagickwand-dev
 
-RUN git clone https://github.com/cenit-io/cenit.git -b master /var/www/cenit
+RUN git clone https://github.com/cenit-io/cenit.git -b upgrade-mongoid /var/www/cenit
 
 WORKDIR /var/www/cenit
 
