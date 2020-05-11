@@ -168,6 +168,7 @@ module Cenit
         channel_mutex.lock
         if ENV['SKIP_RABBIT_MQ'].to_b
           puts 'RabbitMQ SKIPPED'
+          false
         else
           if @connection.nil? || @channel.nil? || @channel.closed?
             unless @connection
@@ -249,22 +250,27 @@ module Cenit
             end
           end
           puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
+          true
         else
           puts 'RabbitMQ consumer not started (RabbitMQ not initialized)'
+          false
         end
       rescue Exception => ex
         Setup::SystemNotification.create(message: "Error subscribing RabbitMQ consumer: #{ex.message}")
+        false
       end
 
       def start_scheduler
         if ENV['LOOKUP_SCHEDULER_OFF'].to_b || !init
           puts 'Lookup scheduler NOT STARTED'
+          false
         else
           @scheduler_job = Rufus::Scheduler.new.interval(
             "#{Cenit.scheduler_lookup_interval}s",
             &method(:lookup_messages)
           )
           puts 'Lookup scheduler STARTED'
+          true
         end
       end
 

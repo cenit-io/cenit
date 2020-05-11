@@ -8,17 +8,12 @@ volumes:
 services:
   frontend:
     environment:
-      - SKIP_DB_INITIALIZATION=true
-      - SKIP_RABBIT_MQ=true
-      - ENABLE_RERECAPTCHA=false
-      - UNICORN_CENIT_SERVER=true
-      - UNICORN_WORKERS=5
-      - MAXIMUM_UNICORN_CONSUMERS=0
+      # more options in application.example.yml
+      - UNICORN_WORKERS=3
       - MONGODB_URI=mongodb://mongo_server/cenit
       - REDIS_HOST=redis
-      # more options in application.example.yml
-    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
-    build: .
+    build: ./cenit_web
+    image: cenit_web
     ports:
       - "80:8080"
     depends_on:
@@ -27,18 +22,16 @@ services:
 
   background:
     environment:
-      - SKIP_ASSETS_COMPILE=true
-      - ENABLE_RERECAPTCHA=false
+      - SKIP_DB_INITIALIZATION=false
+      - SKIP_RABBIT_MQ=false
       - SCHEDULER_LOOKUP_INTERVAL=8
-      - UNICORN_CENIT_SERVER=true
-      - UNICORN_WORKERS=6
-      - MAXIMUM_UNICORN_CONSUMERS=6
+      - UNICORN_WORKERS=4
+      - MAXIMUM_UNICORN_CONSUMERS=4
       - REDIS_HOST=redis
       - MONGODB_URI=mongodb://mongo_server/cenit
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
-      # more options in application.example.yml
-    command: ["bundle", "exec", "unicorn", "-c", "config/unicorn.rb"]
-    build: .
+    build: ./cenit
+    image: cenit
     depends_on:
       - mongo_server
       - redis
