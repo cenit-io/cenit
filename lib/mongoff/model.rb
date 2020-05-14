@@ -21,6 +21,17 @@ module Mongoff
       to_s
     end
 
+    def data_type_id
+      case @data_type_id
+      when Setup::DataType
+        @data_type_id.id
+      when Setup::BuildInDataType
+        @data_type_id.db_data_type.id
+      else
+        @data_type_id
+      end
+    end
+
     def data_type
       if @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType)
         @data_type_id
