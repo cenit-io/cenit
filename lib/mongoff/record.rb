@@ -17,17 +17,23 @@ module Mongoff
       @document = BSON::Document.new
       @fields = {}
       @new_record = new_record || false
+      initialize_attrs(model, attributes)
+      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
+        @document[:_id] ||= BSON::ObjectId.new
+      end
+      @changed = false
+    end
+
+    def initialize_attrs(model, attributes)
       model.properties_schemas.each do |property, schema|
         if @document[property].nil? && !(value = schema['default']).nil?
           self[property] = value
         end
       end
       assign_attributes(attributes)
-      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
-        @document[:_id] ||= BSON::ObjectId.new
-      end
-      @changed = false
     end
+
+    protected :initialize_attrs
 
     def attributes
       prepare_attributes
