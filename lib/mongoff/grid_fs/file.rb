@@ -13,8 +13,16 @@ module Mongoff
         seek(0)
       end
 
+      def initialize_attrs(model, attributes)
+        writing_content { super }
+      end
+
       def to_s
         filename
+      end
+
+      def content_type
+        self[:contentType]
       end
 
       def seek(pos)
@@ -57,7 +65,6 @@ module Mongoff
               self[:metadata] || {}
             end
           self[:encoding] = options[:encoding] || self[:encoding]
-          self[:length] = stash_data.size
 
           unless @custom_filename
             self[:filename] = options[:filename] || extract_basename(stash_data) || self[:filename] || options[:default_filename] || 'file'
@@ -82,9 +89,11 @@ module Mongoff
 
         if file_data_errors.present?
           errors.add(:base, "Invalid file data: #{file_data_errors.to_sentence}")
-        else
+        elsif stash_data
           begin
-            file_store.save(self, stash_data, options)
+            writing_content do
+              file_store.save(self, stash_data, options)
+            end
           rescue Exception => ex
             errors.add(:data, ex.message)
           end
@@ -106,7 +115,9 @@ module Mongoff
       def data=(string_or_readable)
         seek(0)
         if (@stash_data = string_or_readable)
-          self.length = stash_data.size
+          writing_content do
+            self.length = stash_data.size
+          end
         end
       end
 
@@ -131,6 +142,8 @@ module Mongoff
           self.data = value
         when :encoding
           self.encoding = value
+        when :length, :md5, :chunkSize
+          super if writing_content?
         else
           value = super
           case field
@@ -174,7 +187,24 @@ module Mongoff
         CGI.unescape(basename).gsub(%r/[^0-9a-zA-Z_@)(~.-]/, '_').gsub(%r/_+/, '_')
       end
 
-      private :extract_basename, :extract_content_type_from_io, :extract_content_type, :clean
+      def writing_content_key
+        @writing_content_key ||="[cenit][mongoff][grid_fs][file][#{orm_model.data_type_id}][#{BSON::ObjectId.new}]:writing_content"
+      end
+
+      def writing_content
+        key = writing_content_key
+        Thread.current[key] = true
+        yield if block_given?
+      ensure
+        Thread.current[key] = false
+      end
+
+      def writing_content?
+        Thread.current[writing_content_key]
+      end
+
+      private :extract_basename, :extract_content_type_from_io, :extract_content_type, :clean,
+              :writing_content_key, :writing_content
 
     end
   end

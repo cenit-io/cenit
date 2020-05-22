@@ -252,7 +252,7 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = {} }
+      schema = { 'type' => 'object', 'properties' => properties = { 'id' => {} } }
       if model < ClassHierarchyAware && model.abstract?
         schema['abstract'] = true
         schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|
