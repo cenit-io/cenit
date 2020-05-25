@@ -5,7 +5,7 @@ module Setup
 
     build_in_data_type.and(
       properties: {
-        _id: {
+        id: {
           type: 'string',
           edi: { segment: 'id' }
         }
