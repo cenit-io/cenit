@@ -14,19 +14,9 @@ module RailsAdmin
       scope = rails_admin_list_entries(model_config, auth_scope_key, additional_scope, pagination)
       if (model = model_config.abstract_model.model).is_a?(Class)
         if model.include?(CrossOrigin::CenitDocument)
-          if (acc = Account.current)
-            CrossOrigin.names.each do |origin|
-              origin_param = "#{origin}_origin"
-              if params.key?(origin_param)
-                even = params[origin_param].to_i.even?
-                acc.meta[origin_param] = (even ? 0 : 1)
-              end
-            end
-          end
           origins = model.origins
-          origins.select! { |origin| params["#{origin}_origin"].to_i.even? } unless acc
-          origins << nil if origins.include?(:default)
-          scope = scope.any_in(origin: origins)
+          origins = origins.select { |origin| params["#{origin}_origin"].to_i.odd? }
+          scope = scope.where(:origin.nin => origins)
         end
 
         if (filter_token = params[:filter_token]) &&
