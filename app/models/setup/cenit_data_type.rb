@@ -18,6 +18,7 @@ module Setup
       :data_type_methods
     )
     build_in_data_type.and(
+      abstract: true,
       properties: {
         schema: {
           type: 'object'

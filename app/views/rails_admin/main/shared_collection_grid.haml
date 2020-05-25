@@ -62,7 +62,7 @@
             - origins.each do |origin|
               - origin_param="#{origin}_origin"
               %label{class: origin}= t("admin.origin.#{origin}")
-              - param_value = (params[origin_param] || (acc && acc.meta[origin_param])).to_i
+              - param_value = (params[origin_param] || 0).to_i
               %button.btn.toggle-origin{class: origin}
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}

@@ -74,7 +74,7 @@
             - origins.each do |origin|
               - origin_param="#{origin}_origin"
               %label{class: origin}= t("admin.origin.#{origin}")
-              - param_value = (params[origin_param] || (acc && acc.meta[origin_param])).to_i
+              - param_value = (params[origin_param] || 0).to_i
               %button.btn.toggle-origin{class: origin}
                 %i{class: param_value.even? ? 'fa fa-toggle-on' : 'fa fa-toggle-off'}
               %input{name: origin_param, value: param_value, type: 'hidden'}
@@ -130,7 +130,7 @@
       .row
         .col-md-6= paginate(@objects, theme: 'ra-twitter-bootstrap', remote: true)
       .row
-        - unless total_count > 100 || total_count <= @objects.to_a.size
+        - unless total_count > 25 || total_count <= @objects.to_a.size
           - url_opts[:all] = true
           .col-md-6= link_to(t("admin.misc.show_all"), url_for(url_opts.merge(params)), class: 'show-all btn btn-default clearfix pjax')
       .clearfix.total-count= "#{total_count} #{@model_config.pluralize(total_count).downcase}"
