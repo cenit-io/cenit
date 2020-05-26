@@ -67,6 +67,10 @@ module RailsAdmin
             end
           end
 
+          list do
+            items_per_page 25
+          end
+
           fields :_id, :name, :owner, :users, :notification_level, :time_zone
         end
       end
