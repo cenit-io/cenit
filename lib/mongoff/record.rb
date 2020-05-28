@@ -18,7 +18,7 @@ module Mongoff
       @fields = {}
       @new_record = new_record || false
       initialize_attrs(model, attributes)
-      if !@document.key?('_id') && ((id_schema = model.property_schema(:_id)).nil? || id_schema['auto'])
+      if !@document.key?('_id') && ((id_schema = model.property_schema(:_id)).nil? || !id_schema.key?('type') || id_schema['auto'])
         @document[:_id] = BSON::ObjectId.new
         if id_schema && id_schema['type'] == 'string'
           @document[:_id] = @document[:_id].to_s

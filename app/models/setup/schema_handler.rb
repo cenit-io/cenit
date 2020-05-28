@@ -58,7 +58,11 @@ module Setup
                                                                           'description' => 'Required',
                                                                           'edi' => { 'segment' => 'id' }) }.merge(properties)
           properties['_id']['edi']['discard'] = true if edi_discard_id
-          properties['_id']['auto'] = true if auto || type.nil?
+          if auto && type
+            properties['_id']['auto'] = true
+          else
+            properties['_id'].delete('auto')
+          end
           unless (required = object_schema['required']).present?
             required = object_schema['required'] = []
           end

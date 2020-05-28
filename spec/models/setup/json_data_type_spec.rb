@@ -60,7 +60,63 @@ describe Setup::JsonDataType do
     data_type_b.records_model.collection.indexes.collect { |index| index['key'].keys.first }
   end
 
+  context "when created" do
+
+    it 'prevents auto ID properties with falsy values' do
+      [nil, false].each do |value|
+        dt = Setup::JsonDataType.create(
+          namespace: test_namespace,
+          name: 'F',
+          schema: {
+            type: 'object',
+            properties: {
+              id: {
+                auto: value
+              }
+            }
+          }.deep_stringify_keys
+        )
+        expect(dt.errors[:schema]).to include('ID property auto mark should not be present or it should be true')
+      end
+    end
+
+    it 'prevents auto ID properties with truthy values' do
+      ['true', 1].each do |value|
+        dt = Setup::JsonDataType.create(
+          namespace: test_namespace,
+          name: 'T',
+          schema: {
+            type: 'object',
+            properties: {
+              id: {
+                auto: value
+              }
+            }
+          }.deep_stringify_keys
+        )
+        expect(dt.errors[:schema]).to include('ID property auto mark should be true')
+      end
+    end
+
+    it 'success if the auto ID property is set to true' do
+      dt = Setup::JsonDataType.create(
+        namespace: test_namespace,
+        name: 'True',
+        schema: {
+          type: 'object',
+          properties: {
+            id: {
+              auto: true
+            }
+          }
+        }.deep_stringify_keys
+      )
+      expect(dt.errors.blank?).to be true
+    end
+  end
+
   context "after created" do
+
     it 'creates a data base index for each unique property' do
       expect(b_indexed_properties).to eq(data_type_b.unique_properties)
       expect(a_indexed_properties).to eq(data_type_a.unique_properties)
