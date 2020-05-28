@@ -458,7 +458,7 @@ module Cenit
               a, b = b, a
             end
             a.each do |k, value|
-              return false unless eql_content?(value, b[k], k, &block)
+              return false unless b.key?(k) && eql_content?(value, b[k], k, &block)
             end
           else
             return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
