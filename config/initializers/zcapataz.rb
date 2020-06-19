@@ -17,13 +17,16 @@ Capataz.config do
                     Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
                     Tenant, Setup::SystemNotification, Tempfile, MWS, MWS::Orders::Client, MWS::Feeds::Client,
-                    Setup::Oauth2Authorization, Cenit::XMLRPC, CombinePDF
+                    Setup::Oauth2Authorization, Cenit::XMLRPC, CombinePDF, CSV
 
 
   # TODO Configure zip utility access when removing tangled access to Zip::[Output|Input]Stream
   # allow_on Zip, [:decode, :encode]
   #
   # allow_for Zip::Entry, [:name, :read]
+  #
+
+  allow_on CSV, [:parse, :generate]
 
   allow_on Setup::SystemNotification, :create_with
 
