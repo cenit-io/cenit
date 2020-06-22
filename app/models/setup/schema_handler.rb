@@ -33,7 +33,7 @@ module Setup
         # Check #id property
         _id = properties['_id']
         id = properties['id']
-        fail Exception, 'Defining both id and _id' if _id && id
+        fail Exception, 'defines both id and _id' if _id && id
         edi_discard_id = false
         unless _id ||= id
           edi_discard_id = true
@@ -41,8 +41,16 @@ module Setup
         end
         naked_id = _id.reject { |k, _| %w(group xml unique title description edi format example enum readOnly default visible).include?(k) }
         type = naked_id.delete('type')
-        fail Exception, "Invalid id property type #{id}" unless naked_id.empty? && (type.nil? || !%w(object array).include?(type))
-        unless options[:skip_id]
+        auto_present = naked_id.key?('auto')
+        auto = naked_id.delete('auto')
+        fail Exception, "ID property type #{type} is not valid" unless naked_id.empty? && (type.nil? || %w(object array).exclude?(type))
+        if auto
+          fail Exception, "ID property auto mark should be true" unless auto.is_a?(TrueClass)
+          fail Exception, "ID property of type #{type} can not be auto" unless type.nil? || type == 'string'
+        else
+          fail Exception, "ID property auto mark should not be present or it should be true" if auto_present
+        end
+        unless options[:skip_id_refactoring]
           properties.delete('id')
           properties.delete('_id')
           object_schema['properties'] = properties = { '_id' => _id.merge('unique' => true,
@@ -50,6 +58,11 @@ module Setup
                                                                           'description' => 'Required',
                                                                           'edi' => { 'segment' => 'id' }) }.merge(properties)
           properties['_id']['edi']['discard'] = true if edi_discard_id
+          if auto && type
+            properties['_id']['auto'] = true
+          else
+            properties['_id'].delete('auto')
+          end
           unless (required = object_schema['required']).present?
             required = object_schema['required'] = []
           end

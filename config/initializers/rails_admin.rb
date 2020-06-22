@@ -433,6 +433,8 @@ RailsAdmin.config do |config|
 
   Setup::Parser
 
+  Setup::RubyParser
+
   Setup::Converter
 
   Setup::Updater

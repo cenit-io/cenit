@@ -162,7 +162,7 @@ module Setup
           begin
             json_schema, _ = validate_schema
             fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) && json_schema['properties'].key?('_type')
-            self.schema = check_properties(JSON.parse(json_schema.to_json), skip_id: true)
+            self.schema = check_properties(JSON.parse(json_schema.to_json), skip_id_refactoring: true)
           rescue Exception => ex
             errors.add(:schema, ex.message)
           end
