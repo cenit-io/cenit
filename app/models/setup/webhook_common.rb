@@ -232,6 +232,9 @@ module Setup
         if (http_proxy_port = options[:http_proxy_port])
           msg[:http_proxyport] = http_proxy_port
         end
+        if (pem = options[:pem])
+          msg[:pem] = pem
+        end
         begin
           start_time = Time.current
           http_response = Http.send(method, url, msg)
