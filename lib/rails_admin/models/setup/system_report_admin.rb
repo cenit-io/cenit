@@ -10,7 +10,7 @@ module RailsAdmin
             navigation_label 'Administration'
             visible { ::User.current_super_admin? }
 
-            fields :created_at, :type, :message, :attachment
+            fields :created_at, :tenant, :type, :message, :attachment
           end
         end
       end
