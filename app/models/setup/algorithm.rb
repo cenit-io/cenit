@@ -28,6 +28,7 @@ module Setup
     field :store_output, type: Boolean
     belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
     field :validate_output, type: Boolean
+    field :parameters_size, type: Integer
 
     before_save :validate_parameters, :validate_code, :validate_output_processing
 
@@ -57,6 +58,7 @@ module Setup
         p.errors.add(:required, 'marked as "Required" must come before non marked') if p.required
       end
       errors.add(:parameters, 'contains invalid sequence of required parameters') if (last = parameters.last) && last.errors.present?
+      self.parameters_size = parameters.size
       errors.blank?
     end
 
