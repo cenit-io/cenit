@@ -103,7 +103,7 @@ Cenit.config do
 
   slack_link ENV['SLACK_INVITATION']
 
-  tenant_creation_disabled (ENV['TENANT_CREATION_DISABLED'] || 'false').to_b
+  tenant_creation_disabled((ENV['TENANT_CREATION_DISABLED'] || 'false').to_b)
 
   storage_chunk_size [
                        [
@@ -112,4 +112,6 @@ Cenit.config do
                        ].max,
                        Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE
                      ].min
+
+  process_old_notifications((ENV['PROCESS_OLD_NOTIFICATIONS'] || :automatic).to_sym)
 end
