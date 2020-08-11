@@ -19,7 +19,7 @@ module Setup
 
     before_save :check_notification_level, :assign_execution_thread
 
-    after_save :process_old_notifications
+    after_save :process_old_notifications if Cenit.process_old_notifications == :automatic
 
     def process_old_notifications
       self.class.process_old_notifications(type)
