@@ -439,3 +439,21 @@ module Zip
     end
   end
 end
+
+class Time # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
+  end
+end
+
+class DateTime  # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
+  end
+end
+
+class Date # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
+  end
+end
