@@ -54,12 +54,6 @@ module RailsAdmin
             field :users do
               visible { ::User.current_super_admin? }
             end
-            field :key do
-              visible { ::User.current_super_admin? }
-            end
-            field :token do
-              visible { ::User.current_super_admin? }
-            end
             field :notification_level
             field :time_zone
             field :index_max_entries do
