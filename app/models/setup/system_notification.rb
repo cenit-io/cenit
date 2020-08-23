@@ -8,7 +8,7 @@ module Setup
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
-    attachment_uploader AccountUploader
+    attachment_uploader
 
     field :type, type: Symbol, default: :error
     field :message, type: String

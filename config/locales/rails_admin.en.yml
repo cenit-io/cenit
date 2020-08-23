@@ -356,6 +356,12 @@ en:
         breadcrumb: "Download"
         submit: "Download"
         done: "downloaded"
+      attachment:
+        title: "Download attachment"
+        menu: "Download attachment"
+        breadcrumb: "Download attachment"
+        submit: "Download attachment"
+        done: "Attachment downloaded"
       simple_delete_data_type:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
