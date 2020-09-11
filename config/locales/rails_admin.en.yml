@@ -104,6 +104,7 @@ en:
         send_to_flow_help: "Choose the flow to send models data"
         action_name: "Send"
         selector_label: "Send to flow"
+        doing: 'Flow sending'
       test_transformation:
         title: "Test transformation"
         menu: "Test transformation"
