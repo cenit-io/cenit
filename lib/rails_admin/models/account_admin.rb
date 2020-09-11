@@ -54,17 +54,15 @@ module RailsAdmin
             field :users do
               visible { ::User.current_super_admin? }
             end
-            field :key do
-              visible { ::User.current_super_admin? }
-            end
-            field :token do
-              visible { ::User.current_super_admin? }
-            end
             field :notification_level
             field :time_zone
             field :index_max_entries do
               visible { ::User.current_super_admin? }
             end
+          end
+
+          list do
+            items_per_page 25
           end
 
           fields :_id, :name, :owner, :users, :notification_level, :time_zone

@@ -21,6 +21,17 @@ module Mongoff
       to_s
     end
 
+    def data_type_id
+      case @data_type_id
+      when Setup::DataType
+        @data_type_id.id
+      when Setup::BuildInDataType
+        @data_type_id.db_data_type.id
+      else
+        @data_type_id
+      end
+    end
+
     def data_type
       if @data_type_id.is_a?(Setup::DataType) || @data_type_id.is_a?(Setup::BuildInDataType)
         @data_type_id
@@ -531,7 +542,7 @@ module Mongoff
     end
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by maxProperties minProperties).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by maxProperties minProperties auto).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)

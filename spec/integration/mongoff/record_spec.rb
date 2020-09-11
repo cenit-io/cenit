@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Mongoff::Record do
-  test_namespace = 'Mongoff Test'
+  test_namespace = 'Mongoff Record Test'
 
   B_JSON_SAMPLE = {
     a_nested: {

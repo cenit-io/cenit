@@ -59,7 +59,7 @@ after_fork do |server, worker|
         end
       end
     end
-    Cenit::Rabbit.start_scheduler
+    Cenit::Rabbit.start_scheduler || Cenit::Rabbit.start_consumer
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
     Cenit::Rabbit.start_consumer
   end

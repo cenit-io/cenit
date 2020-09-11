@@ -4,6 +4,9 @@ module RailsAdmin
   module Config
     module Fields
       Association.class_eval do
+
+        SHOW_LIMIT = [(ENV['ASSOCIATION_SHOW_LIMIT'] || 15).to_i, 10].max
+
         register_instance_option :nested_form_safe? do
           false
         end
@@ -60,7 +63,7 @@ module RailsAdmin
           v = bindings[:view]
           #Patch
           action = v.instance_variable_get(:@action)
-          values, total = show_values(limit = 40)
+          values, total = show_values(limit = SHOW_LIMIT)
           if (action.is_a?(RailsAdmin::Config::Actions::Show) || action.is_a?(RailsAdmin::Config::Actions::RemoteSharedCollection)) &&
              !v.instance_variable_get(:@showing)
             amc = RailsAdmin.config(association.klass)

@@ -246,6 +246,8 @@ module RailsAdmin
 end
 
 RailsAdmin.config do |config|
+  config.default_items_per_page = 10
+
   config.parent_controller = '::ApplicationController'
 
   config.total_columns_width = 900
@@ -430,6 +432,8 @@ RailsAdmin.config do |config|
   Setup::Renderer
 
   Setup::Parser
+
+  Setup::RubyParser
 
   Setup::Converter
 
