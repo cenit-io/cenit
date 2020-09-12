@@ -4,7 +4,7 @@ module Setup
     include SystemNotificationCommon
     include RailsAdmin::Models::Setup::SystemNotificationAdmin
 
-    build_in_data_type
+    build_in_data_type.including(:task)
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
