@@ -102,7 +102,7 @@ module Mongoid
         properties = Set.new
         begin
           data_type.schema['properties'].keys.each do |key|
-            properties << key unless record[key].nil? && record.send(key).nil?
+            properties << key unless record[key].nil? && record.try(key).nil?
           end
         rescue
           properties.clear
