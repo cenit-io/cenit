@@ -17,7 +17,10 @@ module Cenit
           'application/octet-stream',
         data: BSON::Binary.new(file.read)
       )
-      record.save
+      record.files = files
+      unless record.instance_variable_get(:"@embedding_#{uploader.mounted_as}_files")
+        record.save
+      end
     end
 
     def retrieve!(identifier)
