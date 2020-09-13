@@ -8,7 +8,7 @@ module RailsAdmin
         end
 
         register_instance_option :only do
-          Setup::SystemNotification
+          [Setup::SystemNotification, Setup::Execution]
         end
 
         register_instance_option :route_fragment do

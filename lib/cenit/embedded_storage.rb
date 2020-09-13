@@ -3,21 +3,7 @@ module Cenit
 
     def store!(file)
       record = uploader.model
-      unless (files = record.files)
-        files = record.files = []
-      end
-      unless (index = files.find_index { |f| f.filename == file.indentifier })
-        index = files.length
-        files << {}
-      end
-      files[index].merge!(
-        filename: file.filename,
-        content_type: file.content_type.presence ||
-          MIME::Types.type_for(file.filename)[0].to_s.presence ||
-          'application/octet-stream',
-        data: BSON::Binary.new(file.read)
-      )
-      record.files = files
+      self.class.store_on(record, file)
       unless record.instance_variable_get(:"@embedding_#{uploader.mounted_as}_files")
         record.save
       end
@@ -42,6 +28,27 @@ module Cenit
 
       def path
         "#{@uploader.store_dir}/#{filename}"
+      end
+    end
+
+    class << self
+      def store_on(record, file, opts = {})
+        unless (files = record.files)
+          files = record.files = []
+        end
+        unless (index = files.find_index { |f| f['filename'] == file.identifier })
+          index = files.length
+          files << {}
+        end
+        files[index].merge!(
+          filename: opts[:filename] || file.filename,
+          content_type: opts[:content_type] ||
+            file.content_type.presence ||
+            MIME::Types.type_for(file.filename)[0].to_s.presence ||
+            'application/octet-stream',
+          data: BSON::Binary.new(file.read)
+        )
+        record.files = files
       end
     end
   end
