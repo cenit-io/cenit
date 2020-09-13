@@ -12,7 +12,9 @@ module Cenit
       end
       files[index].merge!(
         filename: file.filename,
-        content_type: file.content_type,
+        content_type: file.content_type.presence ||
+          MIME::Types.type_for(file.filename)[0].to_s.presence ||
+          'application/octet-stream',
         data: BSON::Binary.new(file.read)
       )
       record.save
