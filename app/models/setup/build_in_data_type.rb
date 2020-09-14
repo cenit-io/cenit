@@ -252,7 +252,8 @@ module Setup
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { 'id' => {} } }
+      schema = Mongoff::Model.base_schema.deep_merge('properties' => { 'id' => {} })
+      properties = schema['properties']
       if model < ClassHierarchyAware && model.abstract?
         schema['abstract'] = true
         schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|

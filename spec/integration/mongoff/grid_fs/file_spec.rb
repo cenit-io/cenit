@@ -24,7 +24,7 @@ describe Mongoff::GridFs::File do
   end
 
   let! :long_data do
-    '1234567890' * 100 * 1000 * 10
+    '1234567890' * 100 * 1000 * 20
   end
 
   let! :very_long_data do

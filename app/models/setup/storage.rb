@@ -15,7 +15,36 @@ module Setup
     field :length, type: Integer
     field :metadata
 
-    after_destroy { self.class.chunks_collection.find(files_id: id).delete_many }
+    after_destroy { chunks.delete_many }
+
+    def identifier
+      filename
+    end
+
+    def content_type
+      contentType
+    end
+
+    def chunks
+      self.class.chunks_collection.find(files_id: id)
+    end
+
+    def read
+      data = ''
+      hash = {}
+      c = 0
+      chunks.each do |chunk|
+        n = chunk['n']
+        if n == c
+          data += chunk['data'].data
+          c += 1
+        else
+          hash[n] = chunk['data'].data
+        end
+      end
+      hash.keys.sort.each { |n| data += hash[n] }
+      data
+    end
 
     def storage_name
       name_components.last

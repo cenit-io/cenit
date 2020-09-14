@@ -43,7 +43,7 @@ module Setup
 
     class << self
       def stored_properties_on(_record)
-        %w(namespace name records)
+        %w(namespace name records created_at updated_at)
       end
     end
 

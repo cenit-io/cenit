@@ -493,9 +493,7 @@ module Edi
 
     def json_value(value, options)
       case value
-      when Time
-        value.strftime('%H:%M:%S')
-      when Date, DateTime, Class, Module
+      when Time, Date, DateTime, Class, Module
         value.to_s
       else
         if Cenit::Utility.json_object?(value)
