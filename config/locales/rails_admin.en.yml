@@ -150,6 +150,8 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      export:
+        doing: "Export"
       pull_import:
         title: "Pull import"
         menu: "Pull import"
