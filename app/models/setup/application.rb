@@ -125,7 +125,7 @@ module Setup
       end
 
       def stored_properties_on(record)
-        stored = %w(namespace name)
+        stored = %w(namespace name identifier secret created_at updated_at)
         %w(actions application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored

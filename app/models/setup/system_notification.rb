@@ -4,11 +4,11 @@ module Setup
     include SystemNotificationCommon
     include RailsAdmin::Models::Setup::SystemNotificationAdmin
 
-    build_in_data_type
+    build_in_data_type.including(:task)
 
     deny :copy, :new, :edit, :translator_update, :import, :convert
 
-    attachment_uploader AccountUploader
+    attachment_uploader
 
     field :type, type: Symbol, default: :error
     field :message, type: String

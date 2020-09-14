@@ -92,5 +92,11 @@ module Cenit
     def fail(*several_variants)
       super
     end
+
+    def attachment_uploader_for(model)
+      ENV["#{model}:attachment:uploader"].to_s.constantize
+    rescue
+      AccountUploader
+    end
   end
 end

@@ -77,7 +77,8 @@ require 'rails_admin/config_decorator'
   RailsAdmin::Config::Actions::CleanAll,
   RailsAdmin::Config::Actions::Access,
   RailsAdmin::Config::Actions::Token,
-  RailsAdmin::Config::Actions::CancelAll
+  RailsAdmin::Config::Actions::CancelAll,
+  RailsAdmin::Config::Actions::Attachment
 ].each { |a| RailsAdmin::Config::Actions.register(a) }
 
 RailsAdmin::Config::Actions.register(:export, RailsAdmin::Config::Actions::BulkExport)
@@ -628,6 +629,7 @@ RailsAdmin.config do |config|
     pull
     push
     download_file
+    attachment
     process_flow
     authorize
     simple_generate

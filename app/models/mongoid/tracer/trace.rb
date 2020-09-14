@@ -9,7 +9,11 @@ module Mongoid
 
       Setup::Models.regist(self)
 
-      build_in_data_type.including(:created_at)
+      build_in_data_type.including(:created_at).and(
+        properties: {
+          target: {}
+        }
+      )
 
       deny :all
       allow :index, :show, :member_trace_index, :collection_trace_index, :delete, :delete_all

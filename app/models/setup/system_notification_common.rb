@@ -23,7 +23,7 @@ module Setup
         attachment = attributes.delete(:attachment)
         notification = new(attributes)
         temporary_file = nil
-        if attachment && attachment[:body].present?
+        if attachment && attachment[:body].to_s.length > 0
           notification.attach(attachment)
         end
         notification.save ? notification : nil
