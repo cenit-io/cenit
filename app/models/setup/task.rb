@@ -115,7 +115,7 @@ module Setup
     end
 
     def queue_execution
-      if current_execution && current_execution.status == :pending
+      if current_execution&.status == :pending
         current_execution
       else
         new_execution

@@ -29,10 +29,10 @@ module Setup
 
     before_save { self.agent_id ||= task.agent_id }
 
-    default_scope -> { desc(:created_at) }
+    default_scope -> { desc(:_id) }
 
     def label
-      (task && task.to_s) || "#{self.class.to_s.split('::').last.to_title} ##{id}"
+      task&.to_s || "#{self.class.to_s.split('::').last.to_title} ##{id}"
     end
 
     def start(options)
