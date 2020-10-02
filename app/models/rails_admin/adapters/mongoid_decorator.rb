@@ -5,7 +5,8 @@ module RailsAdmin
   module Adapters
     Mongoid.module_eval do
       ALIAS_METHODS = proc do
-        alias_method_chain :count, :wrapper
+        alias_method :count_without_wrapper, :count
+        alias_method :count, :count_with_wrapper
       end
 
       # avoid use of alias_method in a module_eval
