@@ -1,6 +1,6 @@
 class OauthController < ApplicationController
 
-  before_filter { warden.authenticate! scope: :user if check_params }
+  before_action { warden.authenticate! scope: :user if check_params }
 
   def index
     skip_consent = false

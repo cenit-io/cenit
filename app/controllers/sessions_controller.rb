@@ -1,6 +1,6 @@
 class SessionsController < Devise::SessionsController
 
-  prepend_before_filter :inspect_auth_token
+  prepend_before_action :inspect_auth_token
 
   before_action :allow_x_frame
 

@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  around_filter :scope_current_account
+  around_action :scope_current_account
 
   protected
 
@@ -37,7 +37,7 @@ class ApplicationController < ActionController::Base
       current_user.account = current_user.accounts.first || Account.new_for_create(owner: current_user)
       current_user.save(validate: false)
     end
-    Account.current = current_user.account.target if signed_in?
+    Account.current = current_user.account if signed_in?
     yield
   ensure
     optimize
