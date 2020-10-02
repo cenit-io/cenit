@@ -52,10 +52,7 @@ module Setup
 
     def validates_configuration
       super && validate_model && check_indices &&
-        begin
-          remove_attribute(:schema)
-          true
-        end
+        remove_attribute(:schema)
     end
 
     def additional_properties?

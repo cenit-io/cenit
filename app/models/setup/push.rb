@@ -24,7 +24,7 @@ module Setup
         errors.add(:shared_collection, "can't be blank")
       end
 
-      errors.blank?
+      abort_if_has_errors
     end
 
     def run(message)

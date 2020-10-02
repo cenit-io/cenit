@@ -33,7 +33,7 @@ module Cenit
       else
         errors.add(:scope, 'is not valid')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def oauth_scope

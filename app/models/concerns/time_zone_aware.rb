@@ -25,6 +25,7 @@ module TimeZoneAware
 
   def validates_time_zone!
     validates_time_zone(true)
+    abort_if_has_errors
   end
 
   def time_zone_offset

@@ -22,6 +22,10 @@ module Mongoid
       errors.add(:base, report.message)
       false
     end
+
+    def abort_if_has_errors
+      throw(:abort) unless errors.blank?
+    end
   end
 
   module CenitExtension

@@ -59,7 +59,7 @@ module Setup
       end
       errors.add(:parameters, 'contains invalid sequence of required parameters') if (last = parameters.last) && last.errors.present?
       self.parameters_size = parameters.size
-      errors.blank?
+      abort_if_has_errors
     end
 
     def validate_code
@@ -83,7 +83,7 @@ module Setup
           do_link
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def validate_output_processing
@@ -95,7 +95,7 @@ module Setup
           self.output_datatype = rc
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def do_link

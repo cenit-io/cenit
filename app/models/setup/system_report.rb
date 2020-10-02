@@ -21,7 +21,6 @@ module Setup
 
     def catch_tenant
       self.tenant ||= Cenit::MultiTenancy.tenant_model.current_tenant if new_record?
-      true
     end
 
     def label

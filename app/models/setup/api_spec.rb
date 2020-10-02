@@ -79,7 +79,7 @@ paths:
       else
         errors.add(:specification, I18n.t('cenit.api_spec.specification.invalid_format'))
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def cenit_collection_hash(options = {})

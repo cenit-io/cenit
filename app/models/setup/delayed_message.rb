@@ -30,7 +30,7 @@ module Setup
             end
           end
       end
-      publish_at.present?
+      throw(:abort) unless publish_at.present?
     end
 
     after_save :send_to_adapter

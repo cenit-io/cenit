@@ -12,7 +12,7 @@ module Setup
 
       parameters :parameters, :template_parameters
 
-      before_save :check
+      before_save :check!
     end
 
     def check

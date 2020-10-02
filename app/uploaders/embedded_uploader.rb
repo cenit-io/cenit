@@ -23,7 +23,6 @@ class EmbeddedUploader < BasicUploader
               remove_instance_variable(i_flag)
             end
           end
-          true
         end
       end
     end

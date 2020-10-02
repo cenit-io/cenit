@@ -34,12 +34,12 @@ module Setup
       ecommerce_data_types.where(:origin.ne => :shared).each do |data_type|
         warnings << "eCommerce data type #{data_type.custom_title} is not shared"
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def check_email_data_type
       warnings << "Email data type #{email_data_type.custom_title} is not shared" unless email_data_type.nil? || email_data_type.origin == :shared
-      errors.blank?
+      abort_if_has_errors
     end
 
     def default_home_sections

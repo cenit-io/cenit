@@ -85,7 +85,7 @@ module Setup
       else
         errors.add(:base, 'Triggers or evaluator missing')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def check_name

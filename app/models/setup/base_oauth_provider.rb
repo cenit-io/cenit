@@ -28,7 +28,7 @@ module Setup
           self.refresh_token_algorithm = nil
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def response_type_enum

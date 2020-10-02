@@ -9,10 +9,8 @@ module ClassHierarchyAware
     def check_instance_type
       if self.class.abstract?
         errors.add(:base, "Saving #{self.class} record is only allowed for subclasses #{self.class.class_hierarchy.select { |c| !c.abstract? }.to_sentence}")
-        false
-      else
-        true
       end
+      abort_if_has_errors
     end
 
     module ClassMethods

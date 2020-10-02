@@ -24,7 +24,7 @@ module Setup
     before_save do
       self.discard_events = nil if (t = flow.translator).nil? || (t.type == :Export && flow.response_translator.blank?)
       remove_attribute(:auto_retry) if auto_retry.blank?
-      errors.blank?
+      abort_if_has_errors
     end
 
     def auto_retry_enum

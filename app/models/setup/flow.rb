@@ -148,7 +148,7 @@ module Setup
       if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.size != 1 }).present?
         errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def reject_message(field = nil)
@@ -316,7 +316,6 @@ module Setup
       else
         @scheduler_checked = false
       end
-      true
     end
 
     def schedule_task

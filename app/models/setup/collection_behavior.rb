@@ -81,7 +81,6 @@ module Setup
 
     def make_title
       self.title = name.to_title if title.blank?
-      errors.blank?
     end
 
     NO_DATA_FIELDS = %w(title name readme warnings)

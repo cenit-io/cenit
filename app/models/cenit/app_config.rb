@@ -33,7 +33,7 @@ module Cenit
           errors.add(:base, error)
         end
 
-        errors.blank?
+        abort_if_has_errors
       end
 
       after_save { application_id.save if application_id.new_record? }

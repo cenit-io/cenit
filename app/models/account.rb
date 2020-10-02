@@ -115,13 +115,12 @@ class Account
         end
       end
     end
-    true
   end
 
   def validates_configuration
     remove_attribute(:index_max_entries) if index_max_entries < DEFAULT_INDEX_MAX_ENTRIES
     validates_time_zone
-    errors.blank?
+    abort_if_has_errors
   end
 
   def default_time_zone

@@ -11,7 +11,7 @@ module Setup
 
     def validates_code
       Capataz.validate(code).each { |error| errors.add(:code, error) }
-      errors.blank?
+      abort_if_has_errors
     end
 
     def additional_local_variables

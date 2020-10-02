@@ -39,7 +39,7 @@ module Setup
       else
         errors.add(:base, 'Triggers missing')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def check_name

@@ -75,7 +75,6 @@ class User
     if attributes['name'] && attributes['given_name'].present? && attributes['family_name'].present?
       remove_attribute(:name)
     end
-    true
   end
 
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
@@ -103,14 +102,14 @@ class User
     if ::Role.default_ids.any? { |id| role_ids.exclude?(id) }
       self.role_ids = (role_ids + ::Role.default_ids).uniq
     end
-    errors.blank?
+    abort_if_has_errors
   end
 
   def check_account
     unless account_id.nil? || super_admin? || accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
       errors.add(:account, 'is not valid')
     end
-    errors.blank?
+    abort_if_has_errors
   end
 
   def all_accounts

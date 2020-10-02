@@ -49,7 +49,7 @@ module Setup
               end
             end
           end
-          errors.blank?
+          abort_if_has_errors
         end
         changed_if do
           self.class.parameters_relations_names.any? do |relation_name|

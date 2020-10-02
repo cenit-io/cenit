@@ -21,7 +21,7 @@ module Setup
 
     def validates_configuration
       errors.add(:type, 'is not valid') unless self.class.type_enum.include?(type)
-      errors.blank?
+      abort_if_has_errors
     end
 
     def data_type

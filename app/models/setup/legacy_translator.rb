@@ -77,7 +77,7 @@ module Setup
           rejects(:source_handler) unless style == 'ruby'
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def type_enum
@@ -88,7 +88,7 @@ module Setup
       if style == 'ruby'
         Capataz.validate(code).each { |error| errors.add(:code, error) }
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def reject_message(field = nil)

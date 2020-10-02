@@ -20,7 +20,7 @@ module FieldsInspection
         end
       end
     end
-    errors.blank?
+    abort_if_has_errors
   end
 
   def inspecting_fields

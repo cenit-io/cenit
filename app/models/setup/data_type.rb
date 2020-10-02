@@ -73,7 +73,7 @@ module Setup
       unless config.validate_slug
         config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def clean_up

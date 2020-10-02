@@ -34,7 +34,7 @@ module Setup
       params = application_parameters.sort_by(&:name).sort_by(&:group_s)
       self.application_parameters = params
 
-      errors.blank?
+      abort_if_has_errors
     end
 
     def configuration

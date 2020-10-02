@@ -38,7 +38,7 @@ module Cenit
           app.errors.full_messages.each { |error| errors.add(:base, "Invalid configuration: #{error}") }
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     before_destroy do

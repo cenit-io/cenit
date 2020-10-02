@@ -53,7 +53,7 @@ module Setup
           self.changed_attributes['snippet_id'] ||= default_snippet_id
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     # TODO Remove when refactoring translators and included only on code required models

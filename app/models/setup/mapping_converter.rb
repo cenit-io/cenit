@@ -10,7 +10,12 @@ module Setup
 
     validates_presence_of :target_data_type, :map_attributes
 
-    before_save :catch_map_attributes
+    before_save :catch_map_attributes!
+
+    def catch_map_attributes!
+      catch_map_attributes
+      abort_if_has_errors
+    end
 
     def catch_map_attributes
       if @mapping

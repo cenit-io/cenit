@@ -15,11 +15,15 @@ module Setup
 
     field :active, type: Boolean
 
-    before_save :ready_to_save?, :validates_configuration
+    before_save :ready_to_save!, :validates_configuration
 
     # Virtual abstract method to process a data type record.
     def process(record)
       fail NotImplementedError
+    end
+
+    def ready_to_save!
+      throw(:abort) unless ready_to_save?
     end
 
     def ready_to_save?
@@ -33,7 +37,7 @@ module Setup
         end
         errors.add(:transformation, 'data type mismatch') unless transformation.data_type.nil? || data_type == transformation.data_type
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     class << self

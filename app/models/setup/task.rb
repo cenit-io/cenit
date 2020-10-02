@@ -61,7 +61,7 @@ module Setup
         errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
       end
       self.progress = progress.round(1)
-      errors.blank?
+      abort_if_has_errors
     end
 
     before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }

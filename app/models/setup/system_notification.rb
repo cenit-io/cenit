@@ -26,12 +26,11 @@ module Setup
     end
 
     def check_notification_level
-      @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+      throw(:abort) unless @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
     end
 
     def assign_execution_thread
       self.task = Setup::Task.current unless self.task.present?
-      true
     end
 
     def skip_notification_level(skip)

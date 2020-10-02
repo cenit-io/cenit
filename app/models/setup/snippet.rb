@@ -30,7 +30,7 @@ module Setup
             'text'
           end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     after_save :clean_code_cache

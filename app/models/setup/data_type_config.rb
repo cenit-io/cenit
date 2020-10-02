@@ -31,7 +31,7 @@ module Setup
         remove_attribute(:trace_on_default)
         errors.add(:trace_on_default, 'is not available for the referred data type')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def tracing_option_available?

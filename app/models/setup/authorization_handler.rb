@@ -25,7 +25,7 @@ module Setup
           send(field).any_in(key: conflicting_keys).each { |p| p.errors.add(:key, "conflicts with #{label}") }
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def other_headers_each(template_parameters, &block)

@@ -9,7 +9,7 @@ module Setup
 
       before_save do
         remove_attribute(:bulk_source) unless bulk_source
-        errors.blank?
+        abort_if_has_errors
       end
     end
 

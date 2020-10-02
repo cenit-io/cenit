@@ -7,7 +7,11 @@ module Setup
 
       validates_length_of :slug, maximum: 255
 
-      before_save :validate_slug
+      before_save :validate_slug!
+    end
+
+    def validate_slug!
+      throw(:abort) unless validate_slug
     end
 
     def validate_slug

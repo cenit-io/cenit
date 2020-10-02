@@ -16,7 +16,8 @@ module Setup
             else
               changed_attributes[field] = changed_value
             end
-          end && errors.blank?
+          end
+        abort_if_has_errors
       end
     end
 

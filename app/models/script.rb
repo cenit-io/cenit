@@ -11,7 +11,7 @@ class Script
 
   before_save do
     errors.add(:code, "can't be blank") if code.blank?
-    errors.blank?
+    abort_if_has_errors
   end
 
   def parameters
