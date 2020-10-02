@@ -294,26 +294,26 @@ module Setup
                                         :has_and_belongs_to_many).each do |relation|
         next unless included?((relation_name = relation.name.to_s))
         property_schema =
-          case relation.macro
-          when :embeds_one
+          case relation
+          when Mongoid::Association::Embedded::EmbedsOne
             {
               '$ref': build_ref(relation.klass)
             }
-          when :embeds_many
+          when Mongoid::Association::Embedded::EmbedsMany
             {
               type: 'array',
               items: {
                 '$ref': build_ref(relation.klass)
               }
             }
-          when :has_one
+          when Mongoid::Association::Referenced::HasOne
             {
               '$ref': build_ref(relation.klass),
               referenced: true,
               exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
               export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
             }
-          when :belongs_to
+          when Mongoid::Association::Referenced::BelongsTo
             if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
               {
                 '$ref': build_ref(relation.klass),
@@ -322,7 +322,7 @@ module Setup
                 export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
               }
             end
-          when :has_many, :has_and_belongs_to_many
+          when Mongoid::Association::Referenced::HasMany, Mongoid::Association::Referenced::HasAndBelongsToMany
             {
               type: 'array',
               items: {
