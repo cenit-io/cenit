@@ -15,8 +15,11 @@ module RailsAdmin
             public_access true
             extra_associations do
               ::Setup::Collection.reflect_on_all_associations(:has_and_belongs_to_many).collect do |association|
-                association = association.dup
-                association[:name] = "data_#{association.name}".to_sym
+                association = association.class.new(
+                  abstract_model.model,
+                  "data_#{association.name}".to_sym,
+                  association.options
+                )
                 RailsAdmin::Adapters::Mongoid::Association.new(association, abstract_model.model)
               end
             end
