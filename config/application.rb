@@ -48,6 +48,48 @@ module Cenit
         puts 'DELETING CANCELLED Consumers'
         RabbitConsumer.where(alive: false).delete_all
 
+        Capataz::Cache.clean
+
+        Setup::CenitDataType.init!
+
+        Mongoff::Model.config do
+          before_save ->(record) do
+            record.updated_at = DateTime.now
+            if record.new_record?
+              record.created_at = record.updated_at
+            elsif record.orm_model.observable?
+              record.instance_variable_set(:@_obj_before, record.orm_model.where(id: record.id).first)
+            end
+            true
+          end
+
+          after_save ->(record) do
+            if record.orm_model.observable? && !record.instance_variable_get(:@discard_event_lookup)
+              Setup::Observer.lookup(record, record.instance_variable_get(:@_obj_before))
+            end
+            record.remove_instance_variable(:@discard_event_lookup) if record.instance_variable_defined?(:@discard_event_lookup)
+          end
+        end
+
+        require 'mongoff/model'
+        require 'mongoff/record'
+
+        Mongoff::Model.include(Mongoid::Tracer::Options::ClassMethods)
+        Mongoff::Record.class_eval do
+          include Mongoid::Tracer::DocumentExtension
+          include Mongoid::Tracer::TraceableDocument
+
+          def tracing?
+            self.class.data_type.trace_on_default && super
+          end
+
+          def set_association_values(association_name, values)
+            send("#{association_name}=", values)
+          end
+        end
+
+        Setup::Oauth2Provider.build_in_provider_id
+
         Tenant.all.each do |tenant|
           tenant.switch do
             ThreadToken.destroy_all
@@ -58,26 +100,7 @@ module Cenit
           end
         end
 
-        Capataz::Cache.clean
-
-        Setup::CenitDataType.init!
-      end
-
-      require 'mongoff/model'
-      require 'mongoff/record'
-
-      Mongoff::Model.include(Mongoid::Tracer::Options::ClassMethods)
-      Mongoff::Record.class_eval do
-        include Mongoid::Tracer::DocumentExtension
-        include Mongoid::Tracer::TraceableDocument
-
-        def tracing?
-          self.class.data_type.trace_on_default && super
-        end
-
-        def set_association_values(association_name, values)
-          send("#{association_name}=", values)
-        end
+        puts 'Ok!'
       end
 
       Thread.current[:cenit_initializing] = nil
