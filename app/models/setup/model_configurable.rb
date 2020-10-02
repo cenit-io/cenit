@@ -102,7 +102,9 @@ module Setup
 
       def clear_config_for(tenant, ids)
         super
-        config_model.with(tenant).where(foreign_key.in => ids).delete_all
+        tenant.switch do
+          config_model.where(foreign_key.in => ids).delete_all
+        end
       end
     end
   end

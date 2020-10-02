@@ -19,7 +19,9 @@ module Setup
 
       def clear_config_for(tenant, ids)
         super
-        Setup::Binding.with(tenant).clear(self, ids)
+        tenant.switch do
+          Setup::Binding.clear(self, ids)
+        end
       end
     end
   end
