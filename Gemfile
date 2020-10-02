@@ -8,7 +8,7 @@ gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'bootstrap-sass'
 gem 'jbuilder'
-gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
+gem 'devise'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -47,7 +47,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.2.0'
+gem 'rails_admin'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
@@ -77,7 +77,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+gem 'cross_origin', path: '../cross_origin'
 
 gem 'lodash-rails'
 gem 'identicon'
@@ -85,11 +85,11 @@ gem 'identicon'
 gem 'language_sniffer'
 
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
-gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
+gem 'cenit-multi_tenancy', path: '../cenit-multi_tenancy'
 gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
 
-gem 'capataz', git: 'https://github.com/macarci/capataz.git'
+gem 'capataz', path: '../capataz'
 
 gem 'rkelly-remix'
 
