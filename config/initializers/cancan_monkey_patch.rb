@@ -30,6 +30,10 @@ module CanCan
           @model_class.all.and(rules_scope.selector)
         end
       end
+
+      def self.matches_conditions_hash?(subject, conditions)
+        subject._matches?( subject.class.where(conditions).selector )
+      end
     end
   end
 end

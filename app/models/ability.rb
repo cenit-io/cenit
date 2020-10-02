@@ -112,6 +112,8 @@ class Ability
   class UserCommon
     extend CanCan::Ability
 
+    can :read, :dashboard
+
     can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
 
     can :destroy, Setup::Task,
@@ -291,6 +293,7 @@ class Ability
     extend CanCan::Ability
 
     can :access, :rails_admin
+    can :read, :dashboard
 
 
     can [:dashboard, :shared_collection_index, :ecommerce_index, :open_api_directory]

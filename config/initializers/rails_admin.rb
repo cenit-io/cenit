@@ -261,7 +261,7 @@ RailsAdmin.config do |config|
     warden.authenticate! scope: :user unless %w(dashboard shared_collection_index ecommerce_index index show open_api_directory).include?(action_name)
   end
   config.current_user_method { current_user }
-  config.authorize_with :cancan
+  config.authorize_with :cancancan
 
   config.excluded_models += [Setup::BaseOauthAuthorization, Setup::AwsAuthorization]
 
