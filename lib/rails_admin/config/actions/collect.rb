@@ -25,7 +25,7 @@ module RailsAdmin
             end
             @form_object = Forms::CollectionSelector.new(attrs)
             if request.post? && @form_object.valid?
-              do_flash_process_result Setup::NamespaceCollection.process(collection_id: @form_object.collection_id.to_s,
+              do_flash_process_result Setup::NamespaceCollection.process(collection_id: @form_object.selected_collection_id.to_s,
                                                                          namespace: @object.name)
               redirect_to back_or_index
             else
