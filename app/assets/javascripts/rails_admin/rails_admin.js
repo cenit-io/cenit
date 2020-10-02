@@ -1,8 +1,6 @@
 //=  require 'jquery_ujs'
 //=  require 'jquery.remotipart'
 //=  require 'jquery-ui/effect'
-//=  require 'jquery-ui/sortable'
-//=  require 'jquery-ui/autocomplete'
 //=  require 'rails_admin/moment-with-locales'
 //=  require 'rails_admin/bootstrap-datetimepicker'
 //=  require 'rails_admin/jquery.colorpicker'

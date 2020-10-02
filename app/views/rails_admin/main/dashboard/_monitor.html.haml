@@ -11,7 +11,7 @@
 - subgroup = options[:subgroup] ||= false
 
 .col-sms-6.col-sm-6.col-md-4
-  .monitor{class: "#{label_name.parameterize('_')} #{ subgroup ? 'subgroup' : ''}"}
+  .monitor{class: "#{label_name.parameterize(separator: '_')} #{ subgroup ? 'subgroup' : ''}"}
     .col-xs-3.icon-box
       %a{ href: url}
         %i.fa{class: icon}

@@ -1052,7 +1052,7 @@ module RailsAdmin
             actions.collect do |action|
               unless action.nil?
                 content_tag :li do
-                  link_to(wording_for(:menu, action), url_for(action: action.action_name, model_name: abstract_model.to_param, all: true, params: params.except('set').except('page')), class: 'pjax')
+                  link_to(wording_for(:menu, action), url_for(action: action.action_name, model_name: abstract_model.to_param, all: true, params: params.permit.except('set').except('page')), class: 'pjax')
                 end
               end
             end.join.html_safe
@@ -1222,32 +1222,32 @@ module RailsAdmin
 
     def breadcrumb(action = @action, _acc = [])
       value = rails_admin_breadcrumb(action, _acc)
-      if get_context_record
-        context_config = RailsAdmin::Config.model(@context_model)
-        value = value.to(value.index('<li') - 1) +
-          "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
-          value.from(value.index('</li>') + 5)
-      else
-        if @dashboard_group_ref && @model_config && @model_config.dashboard_group_path.length > 1
-          value = value.to(value.index('<li') - 1) +
-            "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
-            value.from(value.index('</li>') + 5)
-          value = value.to(value.index('</ol>') - 1) + '</ol>'
-        else
-          if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && @dashboard_group_ref
-            value = value.to(value.index('<li') - 1) +
-              "<li class=\"active\">#{@dashboard_group_ref.titleize }</li>" +
-              "<li class=\"active\">Dashboard</li>" +
-              value.from(value.index('</li>') + 5)
-            value = value.to(value.index('</ol>') - 1) + '</ol>'
-          end
-        end
-      end
-      m = /(.*)(class="pjax")(.*)(Dashboard)(.*)/.match(value)
-      if m
-        value = m[1] + m[3] + m[4] + m[5]
-      end
-      value.html_safe
+      # if get_context_record
+      #   context_config = RailsAdmin::Config.model(@context_model)
+      #   value = value.to(value.index('<li') - 1) +
+      #     "<li class=\"false\"><a class=\"contextual-record pjax\" href=\"#{index_path(model_name: @abstract_model.to_param, leave_context: true)}\" title='#{t('admin.misc.leave_context', label: (label = wording_for(:breadcrumb, :show, context_config.abstract_model, get_context_record)))}'>#{label}</a></li>" +
+      #     value.from(value.index('</li>') + 5)
+      # else
+      #   if @dashboard_group_ref && @model_config && @model_config.dashboard_group_path.length > 1
+      #     value = value.to(value.index('<li') - 1) +
+      #       "<li class=\"false\"><a class=\"pjax\" href=\"/#{@dashboard_group_ref}/dashboard\" title=\"#{@dashboard_group_ref.capitalize } Dashboard\">#{@dashboard_group_ref.capitalize }</a></li>" +
+      #       value.from(value.index('</li>') + 5)
+      #     value = value.to(value.index('</ol>') - 1) + '</ol>'
+      #   else
+      #     if @action.is_a?(RailsAdmin::Config::Actions::Dashboard) && @dashboard_group_ref
+      #       value = value.to(value.index('<li') - 1) +
+      #         "<li class=\"active\">#{@dashboard_group_ref.titleize }</li>" +
+      #         "<li class=\"active\">Dashboard</li>" +
+      #         value.from(value.index('</li>') + 5)
+      #       value = value.to(value.index('</ol>') - 1) + '</ol>'
+      #     end
+      #   end
+      # end
+      # m = /(.*)(class="pjax")(.*)(Dashboard)(.*)/.match(value)
+      # if m
+      #   value = m[1] + m[3] + m[4] + m[5]
+      # end
+      # value.html_safe
     end
 
     def home_page?
