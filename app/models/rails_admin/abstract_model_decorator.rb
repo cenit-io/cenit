@@ -31,7 +31,12 @@ module RailsAdmin
 
     def to_param
       #Patch
-      @model_name.split('::').last.underscore
+      m = model
+      if (custom_to_param = m.instance_variable_get(:@ra_custom_to_param))
+        custom_to_param.call(m)
+      else
+        @model_name.split('::').last.underscore
+      end
     end
 
     def api_path

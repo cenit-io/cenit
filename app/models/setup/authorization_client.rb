@@ -8,7 +8,7 @@ module Setup
 
     abstract_class true
 
-    origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
+    origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared, :admin
 
     build_in_data_type.including(:provider).and(
       properties: {
@@ -20,6 +20,8 @@ module Setup
         }
       }
     ).protecting(:identifier, :secret).referenced_by(:_type, :provider, :namespace, :name)
+
+    deny :delete, :delete_all, :new, :copy
 
     field :name, type: String
     belongs_to :provider, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil

@@ -8,6 +8,8 @@ module Setup
 
     build_in_data_type.including(:provider).referenced_by(:_type, :provider, :name).protecting(:identifier, :secret)
 
+    allow :delete, :delete_all, :new, :copy
+
     parameters :template_parameters
 
   end

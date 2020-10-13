@@ -17,10 +17,6 @@ module Cenit
         self.application_id ||= ApplicationId.new
         self.secret_token ||= Cenit::Token.friendly(60)
 
-        if new_record?
-          configuration['authentication_method'] ||= 'User credentials'
-        end
-
         if configuration['logo'].blank?
           configuration['logo'] = Identicon.data_url_for identifier
         end
@@ -67,37 +63,28 @@ module Cenit
       configuration_attributes
     end
 
-    def authentication_method
-      configuration['authentication_method'].to_s.underscore.gsub(/ +/, '_').to_sym
-    end
-
     def configuration_schema
-      schema =
-        {
-          type: 'object',
-          properties: properties = {
-            authentication_method: {
-              type: 'string',
-              enum: ['User credentials', 'Application ID'],
-              group: 'Security',
-              default: 'User credentials'
-            },
-            logo: {
-              type: 'string',
-              group: 'UI'
-            },
-            redirect_uris: {
-              type: 'array',
-              items: {
-                type: 'string'
-              },
-              group: 'OAuth',
-              default: ["#{Cenit.homepage}#{Cenit.oauth_path}/callback"]
-            }
+      schema = self.class.additional_config_schema.deep_merge(
+        type: 'object',
+        properties: {
+          logo: {
+            type: 'string',
+            group: 'UI'
           },
-          required: required = %w(authentication_method)
+          redirect_uris: {
+            type: 'array',
+            items: {
+              type: 'string'
+            },
+            group: 'OAuth',
+            default: ["#{Cenit.homepage}#{Cenit.oauth_path}/callback"]
+          }
         }
+      )
+      required = schema[:required] || []
       required << 'redirect_uris' if registered?
+      schema[:required] = required unless required.empty?
+      properties = schema[:properties]
       application_parameters.each { |p| properties[p.name] = p.schema }
       schema.deep_stringify_keys
     end
@@ -116,6 +103,15 @@ module Cenit
     end
 
     module ClassMethods
+
+      def additional_config_schema(*schemas)
+        if schemas.length == 0
+          @additional_config_schema || {}
+        else
+          @additional_config_schema = schemas.reduce(&:deep_merge)
+        end
+      end
+
       def before_validates_configuration(&block)
         block && configuration_callbacks << block
       end

@@ -4,7 +4,7 @@ module RailsAdmin
       class Access < RailsAdmin::Config::Actions::Base
 
         register_instance_option :only do
-          ::Setup::Application
+          [::Setup::Application, ::Cenit::BuildInApp]
         end
 
         register_instance_option :member do

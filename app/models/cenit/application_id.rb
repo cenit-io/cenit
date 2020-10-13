@@ -65,12 +65,13 @@ module Cenit
 
     def app
       @app ||= tenant && tenant.switch do
-        Setup::Application.where(application_id: self).first
+        Setup::Application.where(application_id: self).first ||
+          Cenit::BuildInApp.where(application_id: self).first
       end
     end
 
     def name
-      oauth_name.presence || (app && app.oauth_name)
+      oauth_name.presence || app&.oauth_name
     end
 
     def redirect_uris

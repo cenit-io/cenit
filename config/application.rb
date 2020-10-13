@@ -39,6 +39,12 @@ module Cenit
     config.after_initialize do
       Thread.current[:cenit_initializing] = true
 
+      default_user_email = ENV['DEFAULT_USER_EMAIL'] || 'support@cenit.io'
+
+      User.current = User.where(email: default_user_email).first ||
+        User.with_role(Role.find_or_create_by(name: :super_admin).name).first ||
+        User.create!(email: default_user_email, password: ENV['DEFAULT_USER_PASSWORD'] || 'password')
+
       unless ENV['SKIP_DB_INITIALIZATION'].to_b
         Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
@@ -60,6 +66,8 @@ module Cenit
 
         Capataz::Cache.clean
 
+        setup_build_in_apps_types
+
         Setup::CenitDataType.init!
       end
 
@@ -80,6 +88,10 @@ module Cenit
         end
       end
 
+      unless ENV['SKIP_DB_INITIALIZATION'].to_b
+        setup_build_in_apps
+      end
+
       Thread.current[:cenit_initializing] = nil
     end
 
@@ -95,5 +107,66 @@ module Cenit
                                               }
     end
 
+    def self.setup_build_in_apps_types
+      BuildInApps.apps_modules.each do |app_module|
+        app_module.document_types_defs.each do |name, spec|
+          # Model def
+          type = Class.new
+          app_module.const_set(name.to_s, type)
+          type.include(Setup::CenitScoped)
+          type.build_in_data_type
+          type.class_eval(&spec)
+
+          # Accessibility
+          Ability::SuperUser.can :manage, type
+
+          # Only for rails_admin
+          ra_config = RailsAdmin::Config.model(type)
+          RailsAdmin::AbstractModel.all << ra_config.abstract_model
+          type.instance_variable_set(:@ra_custom_to_param, Proc.new do |model|
+            if (ns_slug = model.data_type.ns_slug) && (dt_slug = model.data_type.slug)
+              "#{ns_slug}~#{dt_slug}"
+            else
+              super
+            end
+          end)
+        end
+      end
+    end
+
+    def self.setup_build_in_apps
+      puts 'Creating build-in apps'
+      BuildInApps.apps_modules.each do |app_module|
+        namespace = app_module.to_s.split('::')
+        name = namespace.pop
+        namespace = namespace.join('::')
+        app = Cenit::BuildInApp.find_or_create_by(namespace: namespace, name: name)
+        if app.persisted?
+          puts "App #{app_module} persisted..."
+          app_id = app.application_id
+          app_id.slug = app_module.app_key
+          app_id.oauth_name = app_module.app_name
+          app_id.trusted = true
+          app_id.tenant_id = app.tenant_id
+          app_id.save!
+          app_module.instance_variable_set(:@app_id, app.id)
+          tenant = app.tenant
+          meta_key = "app_#{app.id}"
+          unless (tenant.meta[meta_key] || {})['setup']
+            puts "Setting up #{app_module}..."
+            tenant.switch do
+              app_module.setups.each do |setup_block|
+                app_module.instance_eval(&setup_block)
+              end
+            end
+            tenant.meta[meta_key] = (tenant.meta[meta_key] || {}).merge('setup' => true)
+            tenant.save
+          end
+          puts "App #{app_module} ready!"
+        else
+          puts "Couldn't create build-in app #{app_module}: #{app.errors.full_messages.to_sentence}"
+        end
+      end
+    end
   end
 end

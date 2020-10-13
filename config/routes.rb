@@ -1,3 +1,6 @@
+
+Cenit::BuildInApps.build_controllers_from(BuildInAppBaseController)
+
 Cenit::Application.routes.draw do
   devise_for :users, controllers: {
     sessions: 'sessions',
@@ -96,6 +99,14 @@ Cenit::Application.routes.draw do
       match '/:__ns_/:__model_/:__id_/digest/*path', to: 'api#digest', via: [:get, :post, :delete]
       delete '/:__ns_/:__model_/:__id_', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
+    end
+  end
+
+  Cenit::BuildInApps.controllers.each do |key, controller|
+    match "/app/#{key}/*path", to: "#{key}#cors_check", via: [:options]
+    controller.routes.each do |route|
+      method, path, options = route
+      match "app/#{key}/#{path}".squeeze('/'), to: "#{key}##{options[:to]}", via: method
     end
   end
 

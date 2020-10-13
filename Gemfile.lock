@@ -1,4 +1,16 @@
 GIT
+  remote: https://github.com/cenit-io/cenit-admin.git
+  revision: 031396119955cd61ee17250ae05b17ac2592d128
+  specs:
+    cenit-admin (0.0.1)
+
+GIT
+  remote: https://github.com/cenit-io/cenit-build_in_apps.git
+  revision: 152bf5d0ec8286855e206b2e45ef2095b0ff214d
+  specs:
+    cenit-build_in_apps (0.0.1)
+
+GIT
   remote: https://github.com/cenit-io/cenit-config.git
   revision: 431cb31e44e9d027d771df7a93884929bdc458b6
   specs:
@@ -537,6 +549,8 @@ DEPENDENCIES
   captcha
   capybara
   carrierwave-mongoid
+  cenit-admin!
+  cenit-build_in_apps!
   cenit-config!
   cenit-multi_tenancy!
   cenit-service!
