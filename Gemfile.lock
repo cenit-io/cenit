@@ -1,12 +1,12 @@
 GIT
   remote: https://github.com/cenit-io/cenit-admin.git
-  revision: 031396119955cd61ee17250ae05b17ac2592d128
+  revision: 0fc60d761be617899a58b7f882c2908346cf9e68
   specs:
     cenit-admin (0.0.1)
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
-  revision: 152bf5d0ec8286855e206b2e45ef2095b0ff214d
+  revision: 61bf3f9007481ce1f285f9322b3126727f374bcf
   specs:
     cenit-build_in_apps (0.0.1)
 

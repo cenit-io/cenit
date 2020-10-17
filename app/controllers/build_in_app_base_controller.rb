@@ -20,7 +20,7 @@ class BuildInAppBaseController < ApplicationController
   end
 
   def app_module
-    self.class.instance_variable_get(:@app_module)
+    self.class.app_module
   end
 
   def app
@@ -55,6 +55,11 @@ class BuildInAppBaseController < ApplicationController
   end
 
   class << self
+
+    def app_module
+      @app_module
+    end
+
     def routes
       @routes ||= []
     end
@@ -69,16 +74,17 @@ class BuildInAppBaseController < ApplicationController
       if METHODS.include?(symbol)
         options =
           if args.length == 1 && block
-            base_method_name = method_name = 'handle_' + (
-            args[0]
-              .split('/')
-              .map { |token| token.gsub(/[^a-z,A-Z]/, '') }
-              .select { |token| token.length > 0 }
-              .join('_')
-              .presence || 'index'
-            )
+            base_method_name =
+              args[0]
+                .split('/')
+                .map { |token| token.gsub(/[^a-z,A-Z]/, '') }
+                .select { |token| token.length > 0 }
+                .join('_')
+                .presence
+            method_name = base_method_name =
+              (base_method_name && "handle_#{base_method_name}") || 'index'
             c = 0
-            while respond_to?(method_name)
+            while method_defined?(method_name)
               method_name = "#{base_method_name}_#{c += 1}"
             end
             define_method(method_name, &block)

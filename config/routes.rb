@@ -103,10 +103,10 @@ Cenit::Application.routes.draw do
   end
 
   Cenit::BuildInApps.controllers.each do |key, controller|
-    match "/app/#{key}/*path", to: "#{key}#cors_check", via: [:options]
+    match "/app/#{key}/*path", to: "#{controller.app_module.controller_prefix}/main#cors_check", via: [:options]
     controller.routes.each do |route|
       method, path, options = route
-      match "app/#{key}/#{path}".squeeze('/'), to: "#{key}##{options[:to]}", via: method
+      match "app/#{key}/#{path}".squeeze('/'), to: "#{controller.app_module.controller_prefix}/main##{options[:to]}", via: method
     end
   end
 
