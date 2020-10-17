@@ -142,12 +142,12 @@ module Cenit
         namespace = namespace.join('::')
         app = Cenit::BuildInApp.find_or_create_by(namespace: namespace, name: name)
         if app.persisted?
-          puts "App #{app_module} persisted..."
+          puts "App #{app_module} is persisted..."
+          app.check_tenant &:save!
           app_id = app.application_id
           app_id.slug = app_module.app_key
           app_id.oauth_name = app_module.app_name
           app_id.trusted = true
-          app_id.tenant_id = app.tenant_id
           app_id.save!
           app_module.instance_variable_set(:@app_id, app.id)
           tenant = app.tenant

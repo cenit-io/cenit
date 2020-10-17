@@ -23,8 +23,10 @@ module Cenit
 
     def check_tenant
       unless tenant
-        self.tenant = Tenant.create!(name: name)
+        self.tenant = Tenant.find_or_create_by!(name: name)
+        application_id.update(tenant_id: tenant_id)
       end
+      yield(self) if block_given?
     end
 
     class << self
