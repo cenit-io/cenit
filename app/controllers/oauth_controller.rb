@@ -108,7 +108,7 @@ class OauthController < ApplicationController
               callback_params = {}
             end
             callback_params[:redirect_token] = redirect_token
-            if app.authentication_method == :user_credentials
+            if app.is_a?(::Setup::Application) && app.authentication_method == :user_credentials
               callback_params[:'X-User-Access-Key'] = Tenant.current.owner.number
               callback_params[:'X-User-Access-Token'] = Tenant.current.owner.token
             end

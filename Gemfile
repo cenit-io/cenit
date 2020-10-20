@@ -108,6 +108,9 @@ gem 'kaminari-mongoid'
 
 gem 'redis'
 
+gem 'cenit-build_in_apps', git: 'https://github.com/cenit-io/cenit-build_in_apps.git'
+gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'
+
 custom_gemfile_name = 'custom_Gemfile'
 
 if File.exist?(custom_gemfile_name)

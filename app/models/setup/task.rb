@@ -133,7 +133,12 @@ module Setup
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
         self.retries += 1 if status == :retrying || status == :failed
-        self.current_execution = Setup::Execution.find(options[:execution_id])
+        self.current_execution =
+          begin
+            Setup::Execution.find(options[:execution_id])
+          rescue
+            queue_execution
+          end
         time = Time.now
         if running_status?
           self.resumes += 1

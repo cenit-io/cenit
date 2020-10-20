@@ -254,17 +254,21 @@ module Setup
       @discarding ||= []
       schema = Mongoff::Model.base_schema.deep_merge('properties' => { 'id' => {} })
       properties = schema['properties']
-      if model < ClassHierarchyAware && model.abstract?
-        schema['abstract'] = true
-        schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|
-          data_type = sub_model.data_type
-          {
-            id: data_type.id.to_s,
-            namespace: data_type.namespace,
-            name: data_type.name,
-            abstract: sub_model.abstract?
-          }.stringify_keys
+      if model < ClassHierarchyAware
+        if model.abstract?
+          schema['abstract'] = true
+          schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|
+            data_type = sub_model.data_type
+            {
+              id: data_type.id.to_s,
+              namespace: data_type.namespace,
+              name: data_type.name,
+              abstract: sub_model.abstract?
+            }.stringify_keys
+          end
         end
+      else
+        properties.delete('_type')
       end
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|

@@ -7,7 +7,7 @@ module Setup
     build_in_data_type.referenced_by(:namespace, :name)
 
     def check
-      errors.add(:client, 'must be an App') unless client.is_a?(Setup::Application)
+      errors.add(:client, 'must be an App') unless client.is_a?(Setup::Application) || client.is_a?(Cenit::BuildInApp)
       super
     end
 
