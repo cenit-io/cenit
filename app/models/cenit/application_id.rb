@@ -13,7 +13,6 @@ module Cenit
 
     validates_length_of :oauth_name, within: 6..20, allow_nil: true
     validates_length_of :slug, maximum: 255
-    validates_format_of :slug, with: /\A([a-z][a-z0-9]*([_-][a-z0-9]+)?)?\Z/
 
     validate do
       [:oauth_name, :slug].each do |field|
@@ -26,6 +25,7 @@ module Cenit
           end
         end
       end
+      errors.add(:slug, 'is not valid') unless slug.to_s.underscore == slug
       errors.blank?
     end
 
