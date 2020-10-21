@@ -5,7 +5,7 @@ module Setup
     include RailsAdmin::Models::Setup::DataTypeConfigAdmin
 
     deny :all
-    allow :index, :show, :new, :edit, :delete, :delete_all, :records
+    allow :index, :show, :new, :edit, :destroy, :delete_all, :records
 
     build_in_data_type
 

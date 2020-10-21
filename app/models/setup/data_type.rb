@@ -25,7 +25,7 @@ module Setup
       :data_type_methods
     ).referenced_by(:namespace, :name)
 
-    deny :delete, :new, :switch_navigation, :copy
+    deny :destroy, :new, :switch_navigation, :copy
 
     config_with Setup::DataTypeConfig, only: :slug
 

@@ -6,7 +6,7 @@ module Setup
     build_in_data_type
 
     deny :all
-    allow :index, :show, :edit, :delete
+    allow :index, :show, :edit, :destroy
 
     bind_models =
       [

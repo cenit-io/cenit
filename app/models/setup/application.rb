@@ -25,7 +25,7 @@ module Setup
       required: %w(authentication_method)
     )
 
-    allow :delete, :delete_all, :new, :copy
+    allow :destroy, :delete_all, :new, :copy
 
     embeds_many :actions, class_name: Setup::Action.to_s, order: { priority: :asc }, inverse_of: :application
 

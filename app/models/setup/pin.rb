@@ -7,7 +7,7 @@ module Setup
     build_in_data_type
 
     deny :all
-    allow :index, :show, :delete
+    allow :index, :show, :destroy
 
     field :target_model_name, type: String
     field :target_id

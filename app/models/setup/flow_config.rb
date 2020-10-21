@@ -4,7 +4,7 @@ module Setup
     include RailsAdmin::Models::Setup::FlowConfigAdmin
 
     deny :all
-    allow :index, :show, :new, :edit, :delete, :delete_all
+    allow :index, :show, :new, :edit, :destroy, :delete_all
 
     build_in_data_type
 

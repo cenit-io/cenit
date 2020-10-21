@@ -8,7 +8,7 @@ module Cenit
     build_in_data_type.with(:scope)
 
     deny :all
-    allow :index, :show, :delete, :edit, :token
+    allow :index, :show, :destroy, :edit, :token
 
     origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }
 
