@@ -47,7 +47,6 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
@@ -101,7 +100,7 @@ gem 'aws-sdk', '~> 2.10.13'
 gem 'net-scp'
 gem 'net-sftp'
 
-gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
+gem 'mongoid-tracer', path: '../mongoid-tracer'
 gem 'diffy'
 gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'

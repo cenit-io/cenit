@@ -4,7 +4,6 @@ module Setup
   class Schema < Validator
     include SnippetCode
     include Setup::FormatValidator
-    include RailsAdmin::Models::Setup::SchemaAdmin
 
     legacy_code_attribute :schema
 

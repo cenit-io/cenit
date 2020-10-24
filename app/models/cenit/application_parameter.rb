@@ -1,7 +1,6 @@
 module Cenit
   class ApplicationParameter
     include Setup::CenitScoped
-    include RailsAdmin::Models::Cenit::ApplicationParameterAdmin
 
     build_in_data_type.referenced_by(:name)
 

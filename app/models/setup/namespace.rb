@@ -2,7 +2,6 @@ module Setup
   class Namespace
     include CenitScoped
     include Slug
-    include RailsAdmin::Models::Setup::NamespaceAdmin
 
     build_in_data_type.referenced_by(:name)
 

@@ -2,7 +2,6 @@ module Setup
   class Snippet
     include SharedEditable
     include NamespaceNamed
-    include RailsAdmin::Models::Setup::SnippetAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

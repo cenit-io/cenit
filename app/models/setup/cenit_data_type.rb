@@ -1,6 +1,5 @@
 module Setup
   class CenitDataType < DataType
-    include RailsAdmin::Models::Setup::CenitDataTypeAdmin
 
     origins :cenit, -> { (Cenit.initializing? || ::User.current_super_admin?) ? [:admin, :tmp] : nil }
 

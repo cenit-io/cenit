@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include SharedEditable
-    include RailsAdmin::Models::Setup::ValidatorAdmin
 
     abstract_class true
 

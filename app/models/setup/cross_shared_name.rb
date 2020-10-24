@@ -2,7 +2,6 @@ module Setup
   class CrossSharedName
     include CenitUnscoped
     include CollectionName
-    include RailsAdmin::Models::Setup::CrossSharedNameAdmin
 
     deny :all
 

@@ -5,7 +5,6 @@ module Setup
     include SnippetCode
     include NamespaceNamed
     include Taggable
-    include RailsAdmin::Models::Setup::AlgorithmAdmin
     # = Algorithm
     #
     # Is a core concept in Cenit, define function that is possible execute.

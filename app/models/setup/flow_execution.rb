@@ -1,6 +1,5 @@
 module Setup
   class FlowExecution < Setup::Task
-    include RailsAdmin::Models::Setup::FlowExecutionAdmin
 
     agent_field :flow
 

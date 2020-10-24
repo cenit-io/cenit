@@ -1,6 +1,5 @@
 module Setup
   class DataTypeExpansion < Setup::Task
-    include RailsAdmin::Models::Setup::DataTypeExpansionAdmin
 
     build_in_data_type
 

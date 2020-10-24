@@ -1,7 +1,6 @@
 module Setup
   class AlgorithmParameter
     include CenitScoped
-    include RailsAdmin::Models::Setup::AlgorithmParameterAdmin
     # = Algorithm Parameter
     #
     # Define parameters that is possible pass to an algorithm

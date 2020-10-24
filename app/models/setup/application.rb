@@ -4,7 +4,6 @@ module Setup
     include Slug
     include Cenit::AppConfig
     include Cenit::AppCommon
-    include RailsAdmin::Models::Setup::ApplicationAdmin
 
     origins :app
 

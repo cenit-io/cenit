@@ -1,7 +1,6 @@
 module Setup
   class LiquidConverter < ConverterTransformation
     include TemplateConverter
-    include RailsAdmin::Models::Setup::LiquidConverterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

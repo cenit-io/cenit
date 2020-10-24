@@ -1,6 +1,5 @@
 module Setup
   class AsynchronousPersistence < Setup::Task
-    include RailsAdmin::Models::Setup::AsynchronousPersistenceAdmin
 
     build_in_data_type
 

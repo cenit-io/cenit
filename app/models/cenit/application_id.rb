@@ -2,7 +2,6 @@ module Cenit
   class ApplicationId
     include Mongoid::Document
     include Mongoid::Timestamps
-    include RailsAdmin::Models::Cenit::ApplicationIdAdmin
 
     field :tenant_id
 
@@ -38,7 +37,7 @@ module Cenit
           app.errors.full_messages.each { |error| errors.add(:base, "Invalid configuration: #{error}") }
         end
       end
-      abort_if_has_errors
+      throw :abort unless errors.blank?
     end
 
     before_destroy do

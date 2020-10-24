@@ -3,7 +3,6 @@ module Setup
     include CenitScoped
     include NamespaceNamed
     include ClassHierarchyAware
-    include RailsAdmin::Models::Setup::EmailChannelAdmin
 
     abstract_class true
 

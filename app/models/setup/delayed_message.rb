@@ -1,7 +1,6 @@
 module Setup
   class DelayedMessage
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::DelayedMessageAdmin
 
     deny :all
 

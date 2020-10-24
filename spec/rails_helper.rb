@@ -47,7 +47,6 @@ RSpec.configure do |config|
   end
 
   config.include RSpec::Matchers
-  config.include RailsAdmin::Engine.routes.url_helpers
   config.include FactoryGirl::Syntax::Methods
 
   config.include Warden::Test::Helpers
@@ -80,8 +79,6 @@ RSpec.configure do |config|
     #DatabaseCleaner.start
     #Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     # Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-    #RailsAdmin::Config.reset
-    #RailsAdmin::AbstractModel.reset
   end
   config.after(:each) do
     #Warden.test_reset!

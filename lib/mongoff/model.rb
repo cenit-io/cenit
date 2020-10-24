@@ -499,6 +499,22 @@ module Mongoff
       self.class.for(options)
     end
 
+    def model_name
+      @model_name ||= ActiveModel::Name.new(nil, nil, name)
+    end
+
+    def human_attribute_name(attribute, _ = {})
+      attribute.to_s.titleize
+    end
+
+    def method_defined?(*args)
+      property?(args[0])
+    end
+
+    def relations
+      associations
+    end
+
     protected
 
     def initialize(data_type, options = {})

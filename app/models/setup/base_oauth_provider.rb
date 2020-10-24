@@ -1,6 +1,5 @@
 module Setup
   class BaseOauthProvider < AuthorizationProvider
-    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin
 
     abstract_class true
 

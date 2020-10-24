@@ -2,9 +2,8 @@ module Cenit
   class BuildInApp < ::Setup::OauthClient
     include Setup::NamespaceNamed
     include Setup::Slug
-    include Cenit::AppConfig
-    include Cenit::AppCommon
-    include RailsAdmin::Models::Setup::BuildInAppAdmin
+    include AppConfig
+    include AppCommon
 
     origins :admin
 

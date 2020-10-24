@@ -1,5 +1,0 @@
-.a
-  = form.text_area field.method_name, field.html_attributes.merge(data: { richtext: false, options: {}.to_json }, style: 'float:left', rows: '10').reverse_merge({ value: field.form_value })
-
-  .b{style: 'float:left; padding-left:20px'}
-    = link_to "<i class=\"icon-cog\"></i> ".html_safe + t('admin.actions.test_transformation.action_name'), '#', data: { link: test_transformation_path}, class: 'btn btn-info', style: 'margin-left:10px', id: 'test-transformation'

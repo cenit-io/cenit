@@ -2,7 +2,6 @@ module Setup
   class PropertyLocation
     include CenitUnscoped
     include HashField
-    include RailsAdmin::Models::Setup::PropertyLocationAdmin
 
     build_in_data_type.referenced_by(:property_name, :location)
 

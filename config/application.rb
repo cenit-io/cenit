@@ -140,17 +140,6 @@ module Cenit
 
           # Accessibility
           Ability::SuperUser.can :manage, type
-
-          # Only for rails_admin
-          ra_config = RailsAdmin::Config.model(type)
-          RailsAdmin::AbstractModel.all << ra_config.abstract_model
-          type.instance_variable_set(:@ra_custom_to_param, Proc.new do |model|
-            if (ns_slug = model.data_type.ns_slug) && (dt_slug = model.data_type.slug)
-              "#{ns_slug}~#{dt_slug}"
-            else
-              super
-            end
-          end)
         end
       end
     end

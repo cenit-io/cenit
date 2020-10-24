@@ -346,6 +346,34 @@ module Mongoff
       end
     end
 
+    def safe_send(key)
+      self[key]
+    end
+
+    def class
+      orm_model
+    end
+
+    def ruby_class
+      method(:class).super_method.call
+    end
+
+    def associations
+      self.class.associations
+    end
+
+    def to_model
+      self
+    end
+
+    def model_name
+      orm_model.model_name
+    end
+
+    def to_key
+      [id]
+    end
+
     protected
 
     def prepare_attributes

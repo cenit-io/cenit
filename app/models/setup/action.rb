@@ -1,7 +1,6 @@
 module Setup
   class Action
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::ActionAdmin
     # = Action
     #
     # Actions HTTP Method.

@@ -1,6 +1,6 @@
 module Setup
   class Converter < LegacyTranslator
-    include RailsAdmin::Models::Setup::ConverterAdmin
+
     include Setup::TranslationCommon::ClassMethods
 
     transformation_type :Conversion

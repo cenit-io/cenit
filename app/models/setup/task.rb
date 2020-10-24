@@ -4,7 +4,6 @@ module Setup
     include ClassHierarchyAware
     include CrossOrigin::CenitDocument
     include FieldsInspection
-    include RailsAdmin::Models::Setup::TaskAdmin
 
     origins :default, -> { ::User.current_super_admin? ? :admin : nil }
 

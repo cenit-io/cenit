@@ -1,6 +1,5 @@
 module Setup
   class Parser < LegacyTranslator
-    include RailsAdmin::Models::Setup::ParserAdmin
 
     transformation_type :Import
 

@@ -3,7 +3,6 @@ require 'cenit/cross_tracing_criteria'
 module Setup
   class Crossing < Setup::Task
     include Setup::BulkableTask
-    include RailsAdmin::Models::Setup::CrossingAdmin
 
     def origin_from(message)
       origin = message['origin'].to_s.to_sym

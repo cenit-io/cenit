@@ -3,7 +3,6 @@ module Setup
     include Setup::TranslationCommon
     include Setup::DataUploader
     include Setup::DataIterator
-    include RailsAdmin::Models::Setup::DataImportAdmin
 
     build_in_data_type
 

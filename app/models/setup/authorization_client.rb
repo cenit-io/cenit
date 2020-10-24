@@ -3,7 +3,6 @@ module Setup
     include CenitScoped
     include CrossOrigin::CenitDocument
     include CustomTitle
-    include RailsAdmin::Models::Setup::AuthorizationClientAdmin
     include ClassHierarchyAware
 
     abstract_class true

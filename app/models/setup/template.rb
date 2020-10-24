@@ -1,7 +1,6 @@
 module Setup
   class Template < Translator
     include WithSourceOptions
-    include RailsAdmin::Models::Setup::TemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

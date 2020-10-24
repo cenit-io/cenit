@@ -1,7 +1,6 @@
 module Setup
   class PullImport < Setup::BasePull
     include Setup::DataUploader
-    include RailsAdmin::Models::Setup::PullImportAdmin
 
     build_in_data_type
 

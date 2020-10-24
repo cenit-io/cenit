@@ -1,7 +1,6 @@
 module Setup
   class AwsAuthorization < Setup::Authorization
     include CenitScoped
-    include RailsAdmin::Models::Setup::AwsAuthorizationAdmin
 
     deny :all
 

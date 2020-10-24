@@ -4,7 +4,6 @@ module Setup
     include Parameters
     include WithTemplateParameters
     include AuthorizationClientCommon
-    include RailsAdmin::Models::Setup::RemoteOauthClientAdmin
 
     build_in_data_type.including(:provider).referenced_by(:_type, :provider, :name).protecting(:identifier, :secret)
 

@@ -12,7 +12,6 @@ module Setup
     include TriggersFormatter
     include ThreadAware
     include ModelConfigurable
-    include RailsAdmin::Models::Setup::FlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
     build_in_data_type.and(
