@@ -1,3 +1,6 @@
+require 'mongoid/userstamp'
+require 'mongoid/userstamp/config'
+
 module Setup
   module CrossOriginShared
     extend ActiveSupport::Concern

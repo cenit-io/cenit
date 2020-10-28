@@ -7,15 +7,15 @@ module Cenit
     included do
       belongs_to :application_id, class_name: ApplicationId.to_s, inverse_of: nil
 
-      embeds_many :application_parameters, class_name: Cenit::ApplicationParameter.to_s, inverse_of: :application
-      Cenit::ApplicationParameter.embedded_in :application, class_name: self.to_s, inverse_of: :application_parameters
+      embeds_many :application_parameters, class_name: ApplicationParameter.to_s, inverse_of: :application
+      ApplicationParameter.embedded_in :application, class_name: self.to_s, inverse_of: :application_parameters
 
       field :secret_token, type: String
       field :configuration_attributes, type: Hash, default: {}
 
       before_save do
         self.application_id ||= ApplicationId.new
-        self.secret_token ||= Cenit::Token.friendly(60)
+        self.secret_token ||= Token.friendly(60)
 
         if configuration['logo'].blank?
           configuration['logo'] = Identicon.data_url_for identifier
@@ -77,7 +77,7 @@ module Cenit
               type: 'string'
             },
             group: 'OAuth',
-            default: ["#{Cenit.homepage}#{Cenit.oauth_path}/callback"]
+            default: ["#{::Cenit.homepage}#{::Cenit.oauth_path}/callback"]
           }
         }
       )

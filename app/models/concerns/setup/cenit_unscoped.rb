@@ -16,7 +16,8 @@ module Setup
       share_hash(self.class.copy_options)
     end
 
-    module ClassMethods
+    class_methods do
+
       def inherited(subclass)
         super
         Setup::Models.regist(subclass)
