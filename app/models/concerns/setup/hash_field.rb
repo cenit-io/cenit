@@ -29,7 +29,7 @@ module Setup
       value
     end
 
-    def read_attribute(name)
+    def read_raw_attribute(name)
       value = super
       name = name.to_s
       if self.class.hash_fields.include?(name)

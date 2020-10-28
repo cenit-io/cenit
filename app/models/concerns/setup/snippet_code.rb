@@ -119,7 +119,7 @@ module Setup
 
     # TODO: Only for legacy codes, remove after migration
 
-    def read_attribute(name)
+    def read_raw_attribute(name)
       if name.to_s == self.class.legacy_code_attribute.to_s
         if respond_to?(name)
           send(name)

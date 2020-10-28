@@ -84,7 +84,7 @@ class Account
     owner
   end
 
-  def read_attribute(name)
+  def read_raw_attribute(name)
     (!(value = super).nil? &&
 
       (new_record? || !self.class.build_in_data_type.protecting?(name) ||
