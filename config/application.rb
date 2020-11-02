@@ -10,6 +10,8 @@ require "sprockets/railtie"
 # you've limited to :test, :development, or :production.
 Bundler.require(:default, Rails.env)
 
+module Setup; end
+
 module Cenit
   class Application < Rails::Application
 
@@ -25,6 +27,8 @@ module Cenit
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de
+    #
+    config.load_defaults '5.2'
 
     config.to_prepare do
       # Load application's model / class decorators
@@ -37,6 +41,9 @@ module Cenit
     end
 
     config.after_initialize do
+
+      eager_load!
+
       Thread.current[:cenit_initializing] = true
 
       default_user_email = ENV['DEFAULT_USER_EMAIL'] || 'support@cenit.io'

@@ -626,7 +626,7 @@ module Api::V3
 end
 
 module Setup
-  class DataType
+  DataType.class_eval do
 
     def handle_get_digest(controller)
       if (id = controller.request.headers['X-Record-Id'])
@@ -685,7 +685,7 @@ module Setup
     end
   end
 
-  class FileDataType
+  FileDataType.class_eval do
 
     def post_digest_upload(request, options = {})
       readable =
@@ -707,7 +707,7 @@ module Setup
     end
   end
 
-  class Flow
+  Flow.class_eval do
 
     def post_digest(request, options = {})
       begin
@@ -729,7 +729,7 @@ require 'mongoff/grid_fs/file'
 
 module Mongoff
   module GridFs
-    class File
+    File.class_eval do
 
       def post_digest(request, options = {})
         request.body.rewind
