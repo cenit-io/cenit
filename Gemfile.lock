@@ -202,7 +202,8 @@ GEM
       request_store
     globalid (0.4.2)
       activesupport (>= 4.2.0)
-    haml (4.0.7)
+    haml (5.2.0)
+      temple (>= 0.8.0)
       tilt
     haml-rails (1.0.0)
       actionpack (>= 4.0.1)
@@ -486,6 +487,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
+    temple (0.8.2)
     therubyracer (0.12.3)
       libv8 (~> 3.16.14.15)
       ref
@@ -495,7 +497,7 @@ GEM
       rack (~> 1.0)
     thor (0.19.4)
     thread_safe (0.3.6)
-    tilt (2.0.9)
+    tilt (2.0.10)
     ttfunk (1.6.2.1)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
