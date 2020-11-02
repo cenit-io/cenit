@@ -328,8 +328,7 @@ module Api::V3
             selector = {}
           end
           selector = selector.with_indifferent_access
-          selector.merge!(params.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
-          selector.each { |key, value| selector[key] = Cenit::Utility.json_value_of(value) }
+          selector.merge!(params.permit!.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
           %w(page limit).each do |key|
             next unless selector.key?(key) && klass && !klass.property?(key)
             query_options[key] = selector.delete(key)
