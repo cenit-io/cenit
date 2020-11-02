@@ -107,6 +107,7 @@ gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'
 
 gem 'redis'
+gem 'net-ldap'
 
 custom_gemfile_name = 'custom_Gemfile'
 
