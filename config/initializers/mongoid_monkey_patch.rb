@@ -1,6 +1,7 @@
 require 'mongoid/document'
 require 'mongoid/scopable'
 require 'mongoid/factory'
+require 'mongoid/association/relatable'
 #require 'mongoid/relations/builders/nested_attributes/many'
 
 class NilClass
@@ -13,6 +14,10 @@ module Mongoid
   module Document
     def tenant_version
       self
+    end
+
+    def reflect_on_all_associations(*macros)
+      self.class.reflect_on_all_associations(*macros)
     end
 
     module ClassMethods
@@ -46,6 +51,58 @@ module Mongoid
 
     def from_db(klass, attributes = nil, criteria = nil, selected_fields = nil)
       mongoid_from_db(klass, attributes, criteria, selected_fields).tenant_version
+    end
+  end
+
+  module Association
+
+    module Relatable
+
+      def macro
+        @_macro ||= self.class.to_s.split('::').last.underscore.to_sym
+      end
+
+      def many?
+        macro.to_s =~ /many/
+      end
+
+      def embedded?
+        macro == :embeds_one || macro == :embeds_many
+      end
+
+      # TODO Make a pull request with this
+      def resolve_name(mod, name)
+        cls = exc = nil
+        parts = name.to_s.split('::')
+        if parts.first == ''
+          parts.shift
+          hierarchy = [Object]
+        else
+          hierarchy = namespace_hierarchy(mod)
+        end
+        hierarchy.each do |ns|
+          begin
+            parts.each do |part|
+              # Simple const_get sometimes pulls names out of weird scopes,
+              # perhaps confusing the receiver (ns in this case) with the
+              # local scope. Walk the class hierarchy ourselves one node
+              # at a time by specifying false as the second argument.
+              ns = ns.const_get(part, false)
+            end
+            cls = ns
+            break
+          rescue NameError, LoadError => e
+            if exc.nil?
+              exc = e
+            end
+          end
+        end
+        if cls.nil?
+          # Raise the first exception, this is from the most specific namespace
+          raise exc
+        end
+        cls
+      end
     end
   end
 

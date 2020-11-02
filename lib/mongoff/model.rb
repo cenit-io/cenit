@@ -1,5 +1,3 @@
-require 'json-schema/schema/cenit_reader'
-require 'json-schema/validators/mongoff'
 
 module Mongoff
   class Model

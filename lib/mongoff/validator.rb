@@ -203,8 +203,8 @@ module Mongoff
           when :array
             if instance.is_a?(Mongoff::RecordArray) && instance.orm_model.modelable?
               Mongoff::RecordArray
-            elsif instance.is_a?(Mongoid::Relations::Targets::Enumerable)
-              Mongoid::Relations::Targets::Enumerable
+            elsif instance.is_a?(Mongoid::Association::Referenced::HasMany::Targets::Enumerable)
+              Mongoid::Association::Referenced::HasMany::Targets::Enumerable
             else
               TYPE_MAP[type]
             end
