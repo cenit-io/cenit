@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
 
   protect_from_forgery with: :null_session, if: -> { request.format.json? }
 
-  rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
+  rescue_from CanCan::AccessDenied do |exception|
     if _current_user
       redirect_to main_app.root_path, alert: exception.message
     else

@@ -13,7 +13,7 @@ module Setup
       }
     )
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow, :edit
+    deny :create, :update
 
     attachment_uploader
 

@@ -7,7 +7,7 @@ module Setup
 
     build_in_data_type
 
-    deny :new, :edit, :copy, :update
+    deny :create, :update
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil

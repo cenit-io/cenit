@@ -2,9 +2,6 @@ module Setup
   class FlowConfig
     include CenitScoped
 
-    deny :all
-    allow :index, :show, :new, :edit, :destroy, :delete_all
-
     build_in_data_type
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false

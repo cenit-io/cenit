@@ -137,9 +137,6 @@ module Cenit
           type.include(Setup::CenitScoped)
           type.build_in_data_type
           type.class_eval(&spec)
-
-          # Accessibility
-          Ability::SuperUser.can :manage, type
         end
       end
     end

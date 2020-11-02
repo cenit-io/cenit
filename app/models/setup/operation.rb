@@ -3,8 +3,7 @@ module Setup
 
     build_in_data_type.including(:resource).referenced_by(:resource, :method)
 
-    deny :all
-    allow :show, :edit, :destroy
+    deny :create
 
     belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :operations
 

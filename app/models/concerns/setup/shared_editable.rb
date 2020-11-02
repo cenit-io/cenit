@@ -5,7 +5,7 @@ module Setup
     include CrossOriginShared
 
     included do
-      shared_allow :edit
+      shared_allow :update
     end
   end
 end

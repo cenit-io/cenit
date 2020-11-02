@@ -14,8 +14,7 @@ module Mongoid
         }
       )
 
-      deny :all
-      allow :index, :show, :trace, :destroy, :delete_all
+      allow :read, :destroy
 
       origins -> { Cenit::MultiTenancy.tenant_model.current && [:default, :owner] }, :shared
 

@@ -3,9 +3,6 @@ module Setup
     include CenitScoped
     include Slug
 
-    deny :all
-    allow :index, :show, :new, :edit, :destroy, :delete_all, :records
-
     build_in_data_type
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false

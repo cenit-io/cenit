@@ -7,8 +7,6 @@ module Setup
 
     build_in_data_type.including(:provider).referenced_by(:_type, :provider, :name).protecting(:identifier, :secret)
 
-    allow :destroy, :delete_all, :new, :copy
-
     parameters :request_token_parameters, :request_token_headers, :template_parameters
 
   end

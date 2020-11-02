@@ -6,8 +6,7 @@ module Cenit
     # TODO Include App information field
     build_in_data_type.with(:scope)
 
-    deny :all
-    allow :index, :show, :destroy, :edit, :token
+    deny :create
 
     origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }
 

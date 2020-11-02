@@ -3,9 +3,6 @@ module Setup
     include CenitScoped
     include CredentialsGenerator
 
-    deny :all
-    allow :index, :show, :new, :edit, :destroy, :delete_all
-
     build_in_data_type
 
     belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil, autosave: false
@@ -15,7 +12,7 @@ module Setup
     validates_presence_of :connection
     validates_uniqueness_of :connection
 
-    def read_attribute(name)
+    def read_raw_attribute(name)
       (!(value = super).nil? &&
 
         (new_record? || !Setup::Connection.data_type.protecting?(name) ||

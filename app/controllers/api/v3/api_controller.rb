@@ -479,10 +479,12 @@ module Api::V3
       if klass
         action_symbol =
           case @_action_name
-          when 'update'
-            :edit
-          else
-            @_action_name.to_sym
+            when 'index', 'show'
+              :read
+            when 'new'
+              :create
+            else
+              @_action_name.to_sym
           end
         if @ability.can?(action_symbol, @item || klass) &&
           (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
@@ -571,7 +573,7 @@ module Api::V3
     end
 
     def accessible_records
-      (@ability && klass.accessible_by(@ability)) || klass.all
+      (@ability && klass.accessible_by(@ability, :read)) || klass.all
     end
 
     def save_request_data

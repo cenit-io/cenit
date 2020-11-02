@@ -6,7 +6,7 @@ module Setup
 
     build_in_data_type.with(:key, :value, :description, :metadata).referenced_by(:key)
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    deny :create
 
     field :key, type: String, as: :name
     field :description, type: String

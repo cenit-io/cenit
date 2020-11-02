@@ -5,7 +5,7 @@ module Setup
 
     build_in_data_type.including(:task)
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert
+    deny :create, :update
 
     attachment_uploader
 

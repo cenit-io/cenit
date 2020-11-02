@@ -5,8 +5,6 @@ module Setup
 
     build_in_data_type
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
-
     belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
     belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
     belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil

@@ -1,5 +1,3 @@
-#rails_admin-1.0 ready
-
 require 'cenit/cenit'
 
 Cenit.config do

@@ -58,10 +58,10 @@ module Cenit
             stack = 1
             while stack.positive? && i < scope.length
               case scope[i]
-              when '{'
-                stack += 1
-              when '}'
-                stack -= 1
+                when '{'
+                  stack += 1
+                when '}'
+                  stack -= 1
               end
               i += 1
             end
@@ -277,17 +277,10 @@ module Cenit
     def can?(action, model)
       return false unless (data_type = model.try(:data_type))
       method =
-        case action
-        when :new, :upload_file
-          Cenit::OauthScope::CREATE_TOKEN
-        when :edit, :update
-          Cenit::OauthScope::UPDATE_TOKEN
-        when :index, :show
-          Cenit::OauthScope::READ_TOKEN
-        when :destroy
+        if ACCESS_TOKENS.include?(action)
+          action
+        elsif action == :destroy
           Cenit::OauthScope::DELETE_TOKEN
-        when :digest
-          Cenit::OauthScope::DIGEST_TOKEN
         else
           nil
         end

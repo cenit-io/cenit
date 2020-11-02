@@ -24,7 +24,7 @@ module Setup
       }
     )
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    deny :create, :update
 
     field :message, type: Hash, default: {}
     field :description, type: String

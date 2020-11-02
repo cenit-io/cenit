@@ -7,6 +7,7 @@ module Setup
     include Mongoid::CenitDocument
     include Mongoid::Timestamps
     include Mongoid::CenitExtension
+    include Cenit::Access
 
     included do
       Setup::Models.regist(self)
@@ -21,7 +22,6 @@ module Setup
       def inherited(subclass)
         super
         Setup::Models.regist(subclass)
-        subclass.deny Setup::Models.excluded_actions_for(self)
         subclass.build_in_data_type.excluding(build_in_data_type.get_excluding)
         subclass.build_in_data_type.embedding(build_in_data_type.get_embedding)
         subclass.build_in_data_type.and(build_in_data_type.get_to_merge)
@@ -46,14 +46,6 @@ module Setup
 
       def build_in_data_type
         BuildInDataType.regist(self)
-      end
-
-      def allow(*actions)
-        Setup::Models.included_actions_for self, *actions
-      end
-
-      def deny(*actions)
-        Setup::Models.excluded_actions_for self, *actions
       end
 
       def mongoid_root_class

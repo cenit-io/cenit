@@ -11,8 +11,7 @@ module Setup
       }
     )
 
-    deny :all
-    allow :index, :show, :simple_export, :export
+    allow :read
 
     field :_id, type: String
     field :title, type: String

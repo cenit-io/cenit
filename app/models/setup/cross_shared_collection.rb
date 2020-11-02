@@ -28,7 +28,7 @@ module Setup
     build_in_data_type.discarding(:pull_data, *COLLECTING_PROPERTIES)
     build_in_data_type.referenced_by(:name, :shared_version)
 
-    deny :new, :translator_update, :convert, :send_to_flow, :copy, :delete_all
+    deny :create
 
     belongs_to :owner, class_name: Cenit::MultiTenancy.user_model_name, inverse_of: nil
 

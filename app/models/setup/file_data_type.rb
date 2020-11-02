@@ -1,4 +1,3 @@
-require 'stringio'
 
 module Setup
   class FileDataType < DataType
@@ -29,9 +28,7 @@ module Setup
       }
     )
 
-    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :download_file, :copy, :switch_navigation, :config
-
-    shared_deny :simple_delete_data_type, :bulk_delete_data_type
+    # TODO shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
     field :id_type, type: String, default: -> { self.class.id_type_enum.values.first }
 

@@ -20,8 +20,6 @@ module Setup
       }
     ).protecting(:identifier, :secret).referenced_by(:_type, :provider, :namespace, :name)
 
-    deny :destroy, :delete_all, :new, :copy
-
     field :name, type: String
     belongs_to :provider, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil
 

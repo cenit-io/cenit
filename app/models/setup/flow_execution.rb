@@ -5,8 +5,6 @@ module Setup
 
     build_in_data_type
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
-
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
     before_save do

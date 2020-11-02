@@ -9,7 +9,7 @@ module Setup
 
     build_in_data_type.with(:namespace, :uri, :snippet).referenced_by(:namespace, :uri)
 
-    shared_deny :simple_generate, :bulk_generate
+    # TODO shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
     field :schema_type, type: Symbol

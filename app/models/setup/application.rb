@@ -24,8 +24,6 @@ module Setup
       required: %w(authentication_method)
     )
 
-    allow :destroy, :delete_all, :new, :copy
-
     embeds_many :actions, class_name: Setup::Action.to_s, order: { priority: :asc }, inverse_of: :application
 
     accepts_nested_attributes_for :actions, allow_destroy: true

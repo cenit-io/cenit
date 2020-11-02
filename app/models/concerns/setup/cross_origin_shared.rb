@@ -69,7 +69,7 @@ module Setup
       end
     end
 
-    def read_attribute(name)
+    def read_raw_attribute(name)
       if !(value = super).nil? &&
          (new_record? || !self.class.build_in_data_type.protecting?(name) ||
            (current_user = User.current) &&
@@ -86,12 +86,21 @@ module Setup
     end
 
     module ClassMethods
+
       def shared_deny(*actions)
-        Setup::Models.shared_excluded_actions_for self, *actions
+        @shared_denied_actions = Set.new(actions.flatten.map(&:to_sym))
+      end
+
+      def shared_denied_actions
+        @shared_denied_actions || []
       end
 
       def shared_allow(*actions)
-        Setup::Models.shared_allowed_actions_for self, *actions
+        @shared_allowed_actions = Set.new(actions.flatten.map(&:to_sym))
+      end
+
+      def shared_allowed_actions
+        @shared_allowed_actions || []
       end
 
       def clear_config_for(tenant, ids)

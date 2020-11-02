@@ -4,7 +4,7 @@ module Setup
 
     build_in_data_type.referenced_by(:name)
 
-    shared_allow :swagger
+    # TODO shared_allow :swagger
 
     field :title, type: String
     field :url, type: String
