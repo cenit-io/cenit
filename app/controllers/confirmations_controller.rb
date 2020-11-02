@@ -6,7 +6,7 @@ class ConfirmationsController < Devise::ConfirmationsController
     if request.xhr?
       self.resource = resource_class.send_confirmation_instructions(resource_params)
       yield resource if block_given?
-      render nothing: true, status: :ok
+      render body: nil, status: :ok
     else
       super
     end

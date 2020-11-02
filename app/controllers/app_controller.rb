@@ -15,7 +15,7 @@ class AppController < ApplicationController
 
   def cors_check
     process_headers
-    render nothing: true
+    render body: nil
   end
 
   protected

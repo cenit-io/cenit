@@ -14,7 +14,7 @@ module Api::V3
 
     def cors_check
       cors_headers
-      render nothing: true
+      render body: nil
     end
 
     def allow_origin_header
@@ -116,7 +116,7 @@ module Api::V3
         if setup_viewport(:headers)
           render json: to_hash(record)
         else
-          render nothing: true
+          render body: nil
         end
       else
         render json: klass.pretty_errors(record), status: :unprocessable_entity
@@ -134,7 +134,7 @@ module Api::V3
         if setup_viewport(:headers)
           render json: to_hash(@item)
         else
-          render nothing: true
+          render body: nil
         end
       else
         render json: klass.pretty_errors(@item), status: :unprocessable_entity
@@ -143,7 +143,7 @@ module Api::V3
 
     def destroy
       if @item.destroy
-        render nothing: true
+        render body: nil
       else
         render json: klass.pretty_errors(@item), status: :unprocessable_entity
       end
@@ -289,12 +289,12 @@ module Api::V3
           if (fields_option = query_selector.delete(:fields)) || !opts.key?(:only)
             fields_option =
               case fields_option
-              when Array
-                fields_option
-              when Hash
-                fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
-              else
-                fields_option.to_s.split(',').collect(&:strip)
+                when Array
+                  fields_option
+                when Hash
+                  fields_option.collect { |field, presence| presence.to_b ? field : nil }.select(&:presence)
+                else
+                  fields_option.to_s.split(',').collect(&:strip)
               end
             opts[:only] = fields_option
           end
@@ -394,19 +394,18 @@ module Api::V3
       page = get_page
       skip = page < 1 ? 0 : (page - 1) * limit
 
-      # TODO: Include Kaminari methods on CrossOrigin::Criteria
       items = accessible_records.limit(limit).skip(skip).where(query_selector)
 
       if (sort = query_options[:sort])
         sort.each do |field, sort_option|
           items =
             case sort_option
-            when 1
-              items.asc(field)
-            when -1
-              items.desc(field)
-            else
-              items
+              when 1
+                items.asc(field)
+              when -1
+                items.desc(field)
+              else
+                items
             end
         end
       end
