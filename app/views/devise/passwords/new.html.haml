@@ -1,24 +1,17 @@
-.user-auth.container
-  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-    .panel.panel-default.text-center
-      .panel-heading
-        = link_to root_path do
-          %span.cenit-logo
-            =image_tag 'logo_cenitsaas_web.png'
-          %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    .logo
+    = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'full-width' }) do |f|
+      .control
+        = f.email_field :email, placeholder: :email, autofocus: true, class: 'form-control'
+      .control
+        %button.btn.btn-primary.full-width
+          = t('admin.forgotten.new_submit')
+      .errors
+        = render 'devise/shared/error_messages', resource: resource
 
-      .panel-body
-        .form-top
-          = t('admin.forgotten.new_title')
-        = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
-          .text-danger
-            = devise_error_messages!
-          .field.text-justify
-            = f.label :email
-            = f.email_field :email, autofocus: true, class: 'form-control'
-          .actions
-            %button.btn.btn-primary.pull-right{type:'submit'}
-              = t('admin.forgotten.new_submit')
-      .panel-footer.clearfix
-        .pull-left
-          = render "devise/shared/links"
+    = link_to "Try to sign in again", new_session_path(resource_name), class: 'link link-primary'
+
+    .separator
+
+    = link_to "Create account", new_registration_path(resource_name, { return_to: params[:return_to] }), class: 'btn link'

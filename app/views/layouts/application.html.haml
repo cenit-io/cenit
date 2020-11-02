@@ -8,9 +8,5 @@
     %title= 'Cenit IO | open integration Platform(iPaaS)'
     = csrf_meta_tag
     = stylesheet_link_tag 'application', media: :all
-  %body.rails_admin
-    %main{role:"main"}
-      = render 'layouts/messages'
-      = yield
-    = javascript_include_tag 'rails_admin/sync.js'
-    = javascript_include_tag 'rails_admin/rails_admin.js'
+  %body.margin-0
+    = yield

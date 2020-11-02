@@ -1,18 +1,11 @@
-.user-auth.container
-  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-    .panel.panel-default.oauth-authorize
-      .panel-heading.text-center
-        %span.cenit-logo
-          =image_tag 'logo_cenitsaas_web.png'
-        %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
-      .panel-body
-        .col-xs-12.actions.bad
-          .action-title
-            %i.fa.fa-times
-            %span
-              = 'Bad request'
-          .action-description
-            %ul
-              - @errors.each do |error|
-                %li
-                  = error
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    .logo
+    .access-requested
+      .label
+        = 'Bad request'
+      .action-description
+        %ul
+          - @errors.each do |error|
+            %li
+              = error

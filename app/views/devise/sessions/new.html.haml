@@ -1,38 +1,27 @@
-.user-auth.container
-  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-    .panel.panel-default.text-center
-      .panel-heading
-        = link_to root_path do
-          %span.cenit-logo
-            =image_tag 'logo_cenitsaas_web.png'
-          %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
-      .panel-body
-        .form-top
-          =t('admin.session.new_title')
-        = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'form-inline' }) do |f|
-          - if (return_to = params[:return_to])
-            - f.hidden_field :return_to, value: return_to
-          = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-          - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'] || false).to_b
-            = render partial: 'devise/social_buttons', locals: { form: f }
-        - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'].to_b && !ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b)
-          .form-option
-            =t('admin.misc.or')
-        - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
-          = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
-            .field.text-justify
-              = f.label :email
-              = f.email_field :email, autofocus: true, class: "form-control"
-            .field.text-justify
-              = f.label :password
-              = f.password_field :password, autocomplete: "off", class: "form-control"
-            - if devise_mapping.rememberable?
-              .field.text-justify
-                = f.check_box :remember_me
-                = f.label :remember_me
-            .actions
-              %button.btn.btn-primary.pull-right{type:'submit'}
-                =t('admin.session.submit')
-      .panel-footer.clearfix
-        .pull-left
-          = render "devise/shared/links"
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    .logo
+    = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'full-width' }) do |f|
+      - if (return_to = params[:return_to])
+        - f.hidden_field :return_to, value: return_to
+      = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
+      - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'] || false).to_b
+        = render partial: 'devise/shared/social_buttons', locals: { form: f }
+    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'full-width' }) do |f|
+        .control
+          = f.email_field :email, autofocus: true, placeholder: :email, class: 'form-control'
+        .control
+          = f.password_field :password, autocomplete: 'off', placeholder: :password, class: 'form-control'
+        - if devise_mapping.rememberable?
+          .field.text-justify
+            = f.check_box :remember_me
+            = f.label :remember_me
+        .control
+          %button.btn.btn-primary.full-width
+            =t('admin.session.submit')
+      = link_to "Forgot password?", new_password_path(resource_name), class: 'link link-primary'
+
+      .separator
+
+      = link_to "Create account", new_registration_path(resource_name, { return_to: params[:return_to] }), class: 'btn link'

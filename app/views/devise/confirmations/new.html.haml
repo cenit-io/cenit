@@ -12,7 +12,7 @@
           = t('admin.confirmation.resend')
         = form_for(resource, as: resource_name, url: confirmation_path(resource_name), html: { method: :post }) do |f|
           .text-danger
-            = devise_error_messages!
+            = render 'devise/shared/error_messages', resource: resource
           .field.text-justify
             = f.label :email
             = f.email_field :email_view, value: resource_class.current.email, class: 'form-control', disabled: true
