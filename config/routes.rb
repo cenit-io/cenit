@@ -128,7 +128,5 @@ Cenit::Application.routes.draw do
     listener && listener.try(:on_route_draw, self)
   end
 
-  scope module: 'rails' do
-    root to: 'welcome#index'
-  end
+  root to: 'application#index'
 end

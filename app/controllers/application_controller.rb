@@ -14,6 +14,9 @@ class ApplicationController < ActionController::Base
 
   around_action :scope_current_account
 
+  def index
+  end
+
   protected
 
   def do_optimize

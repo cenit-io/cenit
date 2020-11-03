@@ -421,6 +421,7 @@ module Cenit
         end
       end
 
+      # TODO Remove this methods (used by rails_admin custom fields) since blank string are actually valid JSON values
       def json_value_of(value)
         return value unless value.is_a?(String)
         value = value.strip

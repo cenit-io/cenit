@@ -83,8 +83,9 @@ class BuildInAppBaseController < ApplicationController
                 .presence
             method_name = base_method_name =
               (base_method_name && "handle_#{base_method_name}") || 'index'
+            i_methods = instance_methods(false)
             c = 0
-            while method_defined?(method_name)
+            while i_methods.include?(method_name.to_sym)
               method_name = "#{base_method_name}_#{c += 1}"
             end
             define_method(method_name, &block)
