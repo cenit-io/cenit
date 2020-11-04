@@ -1,6 +1,6 @@
 .flex.full-v-width.full-v-height.justify-content-center.align-items-center
   .flex.column.align-items-center.devise.box
-    .logo
+    %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'full-width' }) do |f|
       .control
         = f.email_field :email, placeholder: :email, autofocus: true, class: 'form-control'

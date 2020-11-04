@@ -1,1 +1,14 @@
-<h1>Hello</h1>
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    %a.logo{href: '/'}
+    .flex.wrap.justify-content-space-around
+      - @apps.each do |app|
+        %a.item.flex.column{href: app[:url], target: '_blank'}
+          = image_tag(app[:logo], alt: '', class: 'avatar small')
+          .title
+            = app[:name]
+    .separator
+    - if User.current
+      = link_to 'Logout', destroy_session_path(User, { return_to: params[:return_to] }), class: 'btn btn-danger'
+    - else
+      = link_to 'Login for more options', new_session_path(User, { return_to: params[:return_to] }), class: 'link link-primary'

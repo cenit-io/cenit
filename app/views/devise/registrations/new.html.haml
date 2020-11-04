@@ -1,7 +1,7 @@
 
 .flex.full-v-width.full-v-height.justify-content-center.align-items-center
   .flex.column.align-items-center.devise.box
-    .logo
+    %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'full-width' }) do |f|
       - if (return_to = params[:return_to])
         - f.hidden_field :return_to, value: return_to

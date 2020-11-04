@@ -15,6 +15,14 @@ class ApplicationController < ActionController::Base
   around_action :scope_current_account
 
   def index
+    @apps =
+      Cenit::BuildInApp.all.map do |app|
+        {
+          logo: app.configuration.logo,
+          name: app.name,
+          url: "app/#{app.app_module.app_key}"
+        }
+      end
   end
 
   protected

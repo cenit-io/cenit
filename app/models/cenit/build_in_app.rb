@@ -30,6 +30,10 @@ module Cenit
       yield(self) if block_given?
     end
 
+    def app_module
+      "#{namespace}::#{name}".constantize
+    end
+
     class << self
 
       def stored_properties_on(record)
