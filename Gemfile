@@ -76,7 +76,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', path: '../cross_origin'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git', branch: 'upgrading'
 
 gem 'lodash-rails'
 gem 'identicon'
@@ -84,11 +84,11 @@ gem 'identicon'
 gem 'language_sniffer'
 
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
-gem 'cenit-multi_tenancy', path: '../cenit-multi_tenancy'
-gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git', branch: 'upgrading'
+gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git', branch: 'upgrading'
 gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
 
-gem 'capataz', path: '../capataz'
+gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
 gem 'rkelly-remix'
 
@@ -100,7 +100,7 @@ gem 'aws-sdk', '~> 2.10.13'
 gem 'net-scp'
 gem 'net-sftp'
 
-gem 'mongoid-tracer', path: '../mongoid-tracer'
+gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
 gem 'diffy'
 gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'
