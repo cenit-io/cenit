@@ -648,7 +648,7 @@ module Setup
         if query.count == 1
           item = query.first
           if item.destroy
-            { nothing: true }
+            { body: nil }
           else
             {
               json: records_model.pretty_errors(item),
