@@ -299,6 +299,7 @@ GEM
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     nested_form (0.3.2)
+    net-ldap (0.16.3)
     net-scp (1.2.1)
       net-ssh (>= 2.6.5)
     net-sftp (2.1.2)
@@ -570,6 +571,7 @@ DEPENDENCIES
   mongoid
   mongoid-rspec
   mongoid-tracer!
+  net-ldap
   net-scp
   net-sftp
   nokogiri
