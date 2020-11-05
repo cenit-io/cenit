@@ -34,8 +34,12 @@ module Setup
             self.default = "#{default}\"" unless default.end_with?('"')
           end
           begin
-            JSON::Validator.validate!(schema, default)
-          rescue JSON::Schema::ValidationError => e
+            Mongoff::Validator.validate_instance(
+              JSON.parse(default),
+              schema: schema,
+              data_type: self.class.data_type
+            )
+          rescue Exception => e
             errors.add(:default, e.message)
           end
         end

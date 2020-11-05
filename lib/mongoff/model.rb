@@ -393,13 +393,6 @@ module Mongoff
       success_value
     end
 
-    def fully_validate_against_schema(value, options = {})
-      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
-                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
-                                                                  errors_as_objects: true,
-                                                                  data_type: data_type))
-    end
-
     class << self
 
       def options

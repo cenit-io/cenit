@@ -43,8 +43,12 @@ module Setup
 
     validate do
       begin
-        JSON::Validator.validate!(SCHEMA, expression)
-      rescue JSON::Schema::ValidationError => e
+        Mongoff::Validator.validate_instance(
+          expression,
+          schema: SCHEMA,
+          data_type: self.class.data_type
+        )
+      rescue Exception => e
         errors.add(:expression, e.message)
       end
       errors.blank?
@@ -188,7 +192,7 @@ module Setup
       },
       required: %w(type),
       additionalProperties: false
-    }.to_json
+    }.deep_stringify_keys
   end
 
 

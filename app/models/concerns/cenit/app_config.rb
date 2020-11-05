@@ -38,9 +38,17 @@ module Cenit
     end
 
     def validates_configuration
-      JSON::Validator.fully_validate(configuration_schema, configuration_attributes, errors_as_objects: true).collect do |error|
-        error[:message]
+      errors = []
+      begin
+        Mongoff::Validator.validate_instance(
+          configuration_attributes,
+          schema: configuration_schema,
+          data_type: self.class.data_type
+        )
+      rescue Exception => ex
+        errors << ex.message
       end
+      errors
     end
 
     def registered

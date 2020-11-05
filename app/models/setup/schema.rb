@@ -73,11 +73,11 @@ module Setup
               JSON.parse(data.to_s)
             end
         end
-        JSON::Validator.fully_validate(JSON.parse(schema),
-                                       data,
-                                       version: :mongoff,
-                                       schema_reader: JSON::Schema::CenitReader.new(self),
-                                       strict: true)
+        Mongoff::Validator.validate_instance(
+          data,
+          schema: JSON.parse(schema),
+          data_type: self.class.data_type
+        )
         []
       when :xml_schema
         unless data.is_a?(Nokogiri::XML::Document)
