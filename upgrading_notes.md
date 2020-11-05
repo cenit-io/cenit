@@ -42,7 +42,7 @@ for the new UI to be able to render a progressive form depending on the demanded
 
 ## Reviewing the upgrading process
 
-To take a look at the the upgrade changes just checkout the upgrading branch at the Cenit main repository:
+To take a look at the upgrade changes just checkout the upgrading branch at the Cenit main repository:
 
 [https://github.com/cenit-io/cenit/compare/upgrading](https://github.com/cenit-io/cenit/compare/upgrading)
 
@@ -74,7 +74,7 @@ To run a cenit instance with the latest upgrade changes:
 
     `rvm install 2.5.5`
     
-    `rvm gemset create @upgrading`
+    `rvm gemset create upgrading`
     
     `rvm use 2.5.5@upgrading`
     
