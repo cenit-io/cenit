@@ -106,6 +106,7 @@ gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'
 
 gem 'redis'
+gem 'net-ldap'
 
 gem 'cenit-build_in_apps', git: 'https://github.com/cenit-io/cenit-build_in_apps.git'
 gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'

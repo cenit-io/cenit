@@ -612,6 +612,7 @@ DEPENDENCIES
   mongoid
   mongoid-rspec
   mongoid-tracer!
+  net-ldap
   net-scp
   net-sftp
   nokogiri
