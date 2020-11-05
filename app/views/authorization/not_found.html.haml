@@ -1,0 +1,14 @@
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    %a.logo{href: '/'}
+    .access-requested
+      .label
+        = 'Not found'
+      .action-description
+        %ul
+          %li
+            = "Authorization with ID #{params[:id]} not found"
+          -  if @errors.present?
+            - @errors.each do |error|
+              %li
+                = error

@@ -165,6 +165,20 @@
       }
     }
 
+    .access-success {
+      border: solid 1px forestgreen;
+      width: 100%;
+
+      .label {
+        padding: 8px;
+        color: forestgreen;
+        background: #ccddee;
+        font-weight: 600;
+        text-align: center;
+        text-transform: uppercase;
+      }
+    }
+
     .actions {
       margin-top: 40px;
     }

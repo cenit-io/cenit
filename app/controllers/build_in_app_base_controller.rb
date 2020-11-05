@@ -41,7 +41,7 @@ class BuildInAppBaseController < ApplicationController
         fail "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}"
       end
     else
-      authorize_path = rails_admin.authorize_path(model_name: auth.class.to_s.underscore.gsub('/', '~'), id: auth.id.to_s)
+      authorize_path = authorization_authorize_path(id: auth.id.to_s)
       redirect_to "#{Cenit.homepage}#{authorize_path}"
     end
   end

@@ -9,9 +9,6 @@ Cenit::Application.routes.draw do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
 
-  get 'explore/:api', to: 'api#explore', as: :explore_api
-  post 'write/:api', to: 'api#write', as: :write_api
-
   service_path =
     if Cenit.service_path.present?
       "/#{Cenit.service_path}".squeeze('/')
@@ -26,7 +23,6 @@ Cenit::Application.routes.draw do
     Cenit.routed_service_url(Cenit.homepage + service_path)
   end
 
-
   oauth_path =
     if Cenit.oauth_path.present?
       "/#{Cenit.oauth_path}".squeeze('/')
@@ -38,6 +34,9 @@ Cenit::Application.routes.draw do
   match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
   get "#{oauth_path}/callback", to: 'oauth#callback'
   post "#{oauth_path}/token", to: 'oauth#token'
+
+  get '/authorization/:id', to: 'authorization#show', as: 'authorization_show'
+  get '/authorization/:id/authorize', to: 'authorization#authorize', as: 'authorization_authorize'
 
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
