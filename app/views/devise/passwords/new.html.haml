@@ -2,13 +2,12 @@
   .flex.column.align-items-center.devise.box
     %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'full-width' }) do |f|
+      = render partial: 'devise/shared/errors', locals: { resource: resource }
       .control
         = f.email_field :email, placeholder: :email, autofocus: true, class: 'form-control'
       .control
         %button.btn.btn-primary.full-width
           = t('admin.forgotten.new_submit')
-      .errors
-        = render 'devise/shared/error_messages', resource: resource
 
     = link_to "Try to sign in again", new_session_path(resource_name), class: 'link link-primary'
 

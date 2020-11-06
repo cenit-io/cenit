@@ -1,0 +1,10 @@
+.errors
+  %ul
+    - flash.each do |name, msg|
+      - if msg.is_a?(String)
+        - unless name.to_s == 'notice'
+          %li
+            = msg
+    - resource.errors.full_messages.each do |message|
+      %li
+      = message

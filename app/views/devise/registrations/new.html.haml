@@ -10,6 +10,7 @@
         = render partial: 'devise/shared/social_buttons', locals: { form: f }
     - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
       = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'full-width' }) do |f|
+        = render partial: 'devise/shared/errors', locals: { resource: resource }
         .control
           = f.email_field :email, autofocus: true, placeholder: :email, class: 'form-control'
         .control

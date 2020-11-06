@@ -13,7 +13,6 @@
       width: 80px;
       background-size: contain;
       background-repeat: no-repeat;
-      margin-bottom: 32px;
     }
 
     .control + .control {
@@ -200,6 +199,16 @@
       .title {
         text-align: center;
         padding-top: 8px;
+      }
+    }
+
+    .errors {
+      color: red;
+      padding: 8px;
+
+      ul {
+        list-style: none;
+        padding: 0;
       }
     }
   }
