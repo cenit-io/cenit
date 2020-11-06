@@ -71,7 +71,7 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   config.before(:suite) do
     # DatabaseCleaner.strategy = :truncation
-    test_user = ::User.create!(email: 'test@cenit.io', password: '12345678')
+    test_user = ::User.all.first
     ::User.current = test_user
     test_user.accounts.first.switch
   end
