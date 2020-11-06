@@ -90,6 +90,7 @@ module Setup
     def schema=(sch)
       old_schema = schema
       sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
+      sch = sch.deep_stringify_keys
       self.code = JSON.pretty_generate(sch)
       @schema = sch
     rescue
