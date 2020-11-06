@@ -31,9 +31,9 @@ module Setup
       gs = Gensym.new
       marks = []
       res = code.gsub(pattern) do
-        match_1 = Regexp.last_match[1]
-        match_2 = Regexp.last_match[2]
-        match_3 = Regexp.last_match[3]
+        match_1 = ::Regexp.last_match[1]
+        match_2 = ::Regexp.last_match[2]
+        match_3 = ::Regexp.last_match[3]
         mark = gs.gen
         marks << mark.to_sym
         rb << match_2.strip.gsub(/\n/, ';').squeeze(';') + " ; #{mark}"
