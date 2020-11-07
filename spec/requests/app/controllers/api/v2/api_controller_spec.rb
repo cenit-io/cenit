@@ -12,7 +12,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       expect(user).not_to be
 
       # User creation request success
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:ok)
 
       # Resolve captcha token
@@ -22,7 +22,9 @@ RSpec.describe Api::V2::ApiController, type: :request do
       expect(captcha_token).to be
 
       # Confirm captcha token
-      post api_v2_setup_user_path, token: captcha_token.token, code: captcha_token.code
+      post api_v2_setup_user_path, params: {
+        token: captcha_token.token, code: captcha_token.code
+      }
       expect(response).to have_http_status(:ok)
 
       # User creation process success
@@ -36,7 +38,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
 
     it "fail email or token missing" do
       data = {}
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:bad_request)
 
       body_hash = JSON.parse(response.body)
@@ -49,7 +51,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
         name: 'Aldo',
         email: 'algo@mail.com'
       }
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:ok)
 
       body_hash = JSON.parse(response.body)
@@ -60,7 +62,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
         email: 'bertha@mail.com',
         password: 'test1234'
       }
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:ok)
     end
 
@@ -70,7 +72,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
         password: 'test1234',
         password_confirmation: 'test1234'
       }
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:ok)
     end
 
@@ -80,7 +82,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
         password: 'test1234',
         password_confirmation: 'test1235'
       }
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:not_acceptable)
 
       body_hash = JSON.parse(response.body)
@@ -92,7 +94,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       captcha_token = CaptchaToken.create!(email: data[:email], data: data)
       data.merge!(token: captcha_token.token, code: captcha_token.code)
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
       expect(response).to have_http_status(:ok)
 
       body_hash = JSON.parse(response.body)
@@ -104,7 +106,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       captcha_token = CaptchaToken.create!
       data.merge!(token: captcha_token.token, code: captcha_token.code)
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
 
       expect(response).to have_http_status(:not_acceptable)
 
@@ -118,7 +120,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
         email: data[:email], data: { email: 'wrong@mail.com' })
       data.merge!(token: captcha_token.token, code: captcha_token.code)
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
 
       expect(response).to have_http_status(:not_acceptable)
 
@@ -131,7 +133,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       captcha_token = CaptchaToken.create!(email: data[:email], data: data)
       data.merge!(token: captcha_token.token, code: 'not_valid')
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
 
       expect(response).to have_http_status(:not_acceptable)
 
@@ -144,7 +146,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       captcha_token = CaptchaToken.create!(email: data[:email], data: data)
       data.merge!(token: captcha_token.token, code: nil)
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
 
       expect(response).to have_http_status(:not_acceptable)
 
@@ -157,7 +159,7 @@ RSpec.describe Api::V2::ApiController, type: :request do
       captcha_token = CaptchaToken.create!(email: data[:email], data: data)
       data.merge!(token: 'not_valid', code: captcha_token.code)
 
-      post api_v2_setup_user_path, data
+      post api_v2_setup_user_path, params: data
 
       expect(response).to have_http_status(:not_acceptable)
 
