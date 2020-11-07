@@ -46,8 +46,9 @@ module Setup
     end
 
     def validates_configuration
-      super && validate_model && check_indices &&
-        remove_attribute(:schema)
+      super
+      remove_attribute(:schema) if validate_model && check_indices
+      abort_if_has_errors
     end
 
     def additional_properties?
