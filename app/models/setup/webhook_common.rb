@@ -326,14 +326,14 @@ module Setup
           else
             process_method = "process_#{uri.scheme}"
             if respond_to?(process_method)
-              args = {
+              args = [{
                 host: uri.host,
                 path: uri.path,
                 port: uri.port,
                 body: body,
                 template_parameters: template_parameters,
                 options: options
-              }
+              }]
             end
           end
           if args
