@@ -393,18 +393,22 @@ module Setup
     def process_ldap_uri(uri, template_parameters, options)
       username, password = check(template_parameters, :username, :password)
 
+      auth_method = (template_parameters['auth_method'].presence || 'simple').to_sym
+
       ldap = Net::LDAP.new host: uri.host,
                            port: uri.port,
                            auth: {
-                             method: :simple,
+                             method: auth_method,
                              username: username,
                              password: password
                            }
-      search_options = {
-        base: template_parameters['base'] ||
-          template_parameters['tree_base'] ||
-          template_parameters['treebase']
-      }
+
+      base = (template_parameters['base'] ||
+        template_parameters['tree_base'] ||
+        template_parameters['treebase']).presence ||
+        ((path = uri.path.presence) && path.split('/').map(&:presence).compact.join(','))
+
+      search_options = { base: base }
 
       if (filter = uri.filter)
         search_options[:filter] = Net::LDAP::Filter.construct(filter)
