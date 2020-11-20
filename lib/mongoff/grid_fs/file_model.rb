@@ -10,7 +10,14 @@ module Mongoff
                                          label: '{{filename}}',
                                          properties:
                                            {
-                                             _id: {},
+                                             _id: {
+                                               unique: true,
+                                               title: 'Id',
+                                               description: 'Required',
+                                               edi: {
+                                                 segment: 'id'
+                                               }
+                                             },
                                              filename: {
                                                title: 'File name',
                                                type: :string
