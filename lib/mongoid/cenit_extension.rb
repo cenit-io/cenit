@@ -45,12 +45,12 @@ module Mongoid
         if success_block
           args =
             case success_block.arity
-            when 0
-              []
-            when 1
-              [value]
-            else
-              [value, success_type]
+              when 0
+                []
+              when 1
+                [value]
+              else
+                [value, success_type]
             end
           success_block.call(*args)
         end
@@ -151,8 +151,9 @@ module Mongoid
         if property?(name)
           name
         else
-          name = name.to_s.gsub(/_id(s)?\Z/, '')
-          if (name = [name.pluralize, name].detect { |n| property?(n) })
+          match = name.to_s.match(/\A(.+)(_id(s)?)\Z/)
+          name = match && "#{match[1]}#{match[3]}"
+          if property?(name)
             name
           else
             nil

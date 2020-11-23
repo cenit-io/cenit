@@ -269,7 +269,7 @@ module Mongoff
     def attribute_key(field, field_metadata = {})
       field_metadata[:model] ||= property_model(field)
       model = field_metadata[:model]
-      if model && model.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      if model&.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
         field.to_s == 'id' ? :_id : field.to_sym
@@ -280,8 +280,9 @@ module Mongoff
       if property?(name)
         name
       else
-        name = name.to_s.gsub(/_id(s)?\Z/, '')
-        if (name = [name.pluralize, name].detect { |n| property?(n) })
+        match = name.to_s.match(/\A(.+)(_id(s)?)\Z/)
+        name = match && "#{match[1]}#{match[3]}"
+        if property?(name)
           name
         else
           nil
