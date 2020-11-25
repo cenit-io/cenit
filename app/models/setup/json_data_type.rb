@@ -45,6 +45,10 @@ module Setup
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
     end
 
+    def save_self_before_refs
+      true
+    end
+
     def validates_configuration
       super
       remove_attribute(:schema) if validate_model && check_indices
@@ -168,6 +172,7 @@ module Setup
         end
       else
         errors.add(:schema_code, 'is not a valid JSON value')
+        errors.add(:schema, 'is not a valid JSON value')
       end
       errors.blank?
     end

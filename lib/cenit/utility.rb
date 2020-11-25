@@ -33,7 +33,13 @@ module Cenit
       def save(record, options = {})
         saved = options[:saved_collector] || Set.new
         if bind_references(record, options.delete(:bind_references))
-          if save_references(record, options, saved) && record.save(options)
+          success =
+            if record.try(:save_self_before_refs)
+              record.save(options) && save_references(record, options, saved)
+            else
+              save_references(record, options, saved) && record.save(options)
+            end
+          if success
             true
           else
             for_each_node_starting_at(record, stack: stack = []) do |obj|
@@ -184,21 +190,21 @@ module Cenit
         criteria.each do |property_name, value|
           property_value =
             case obj
-            when Hash
-              obj[property_name]
-            else
-              obj.try(property_name)
+              when Hash
+                obj[property_name]
+              else
+                obj.try(property_name)
             end
           if value.is_a?(Hash)
             return false unless match?(property_value, value)
           else
             property_value =
               case property_value
-              when BSON::ObjectId
-                value = value.to_s
-                property_value.to_s
-              else
-                property_value
+                when BSON::ObjectId
+                  value = value.to_s
+                  property_value.to_s
+                else
+                  property_value
               end
             return false unless property_value == value
           end
@@ -393,17 +399,17 @@ module Cenit
 
       def json_object?(obj, options = {})
         case obj
-        when Hash
-          if options[:recursive]
-            obj.keys.each { |k| return false unless k.is_a?(String) }
-            obj.values.each { |v| return false unless json_object?(v) }
-          end
-          true
-        when Array
-          obj.each { |v| return false unless json_object?(v) } if options[:recursive]
-          true
-        else
-          [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
+          when Hash
+            if options[:recursive]
+              obj.keys.each { |k| return false unless k.is_a?(String) }
+              obj.values.each { |v| return false unless json_object?(v) }
+            end
+            true
+          when Array
+            obj.each { |v| return false unless json_object?(v) } if options[:recursive]
+            true
+          else
+            [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
         end
       end
 
@@ -439,12 +445,12 @@ module Cenit
               v
             else
               case value
-              when 'true'
-                true
-              when 'false'
-                false
-              else
-                value
+                when 'true'
+                  true
+                when 'false'
+                  false
+                else
+                  value
               end
             end
           end
@@ -453,35 +459,35 @@ module Cenit
 
       def eql_content?(a, b, key = nil, &block)
         case a
-        when Hash
-          if b.is_a?(Hash)
-            if a.size < b.size
-              a, b = b, a
-            end
-            a.each do |k, value|
-              return false unless b.key?(k) && eql_content?(value, b[k], k, &block)
-            end
-          else
-            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
-          end
-        when Array
-          if b.is_a?(Array) && a.length == b.length
-            a = a.dup
-            b = b.dup
-            until a.empty?
-              a_value = a.shift
-              b_len = b.length
-              b.delete_if { |b_value| eql_content?(a_value, b_value, &block) }
-              if b.length < b_len
-                a.delete_if { |value| eql_content?(a_value, value, &block) }
+          when Hash
+            if b.is_a?(Hash)
+              if a.size < b.size
+                a, b = b, a
               end
-              return false unless a.length == b.length
+              a.each do |k, value|
+                return false unless b.key?(k) && eql_content?(value, b[k], k, &block)
+              end
+            else
+              return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
+            end
+          when Array
+            if b.is_a?(Array) && a.length == b.length
+              a = a.dup
+              b = b.dup
+              until a.empty?
+                a_value = a.shift
+                b_len = b.length
+                b.delete_if { |b_value| eql_content?(a_value, b_value, &block) }
+                if b.length < b_len
+                  a.delete_if { |value| eql_content?(a_value, value, &block) }
+                end
+                return false unless a.length == b.length
+              end
+            else
+              return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
             end
           else
-            return block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b]))
-          end
-        else
-          return a.eql?(b) || (block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b])))
+            return a.eql?(b) || (block && block.call(*(block.arity == 3 ? [a, b, key] : [a, b])))
         end
         true
       end
