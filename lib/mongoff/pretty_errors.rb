@@ -10,7 +10,7 @@ module Mongoff
       properties.each do |name|
         next unless (model = property_model(name)) && model.modelable?
         errors[name] =
-          if (base_errors = errors[name])
+          if (base_errors = errors[name]).present?
             { '$': base_errors }
           else
             {}
