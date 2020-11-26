@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/cenit-io/cenit-admin.git
-  revision: 96415b3606cbca9196fd0aed0aeb9f65bf307dde
+  revision: 61b5288ab793d159ef4653113ef8829da75ed01a
   specs:
     cenit-admin (0.0.1)
 
