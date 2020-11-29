@@ -20,6 +20,11 @@ module Setup
     )
     build_in_data_type.and(
       properties: {
+        id_type: {
+          enum: %w(default integer string),
+          enumNames: %w(Default Integer String),
+          default: 'default'
+        },
         schema: {
           edi: {
             discard: true
