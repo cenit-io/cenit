@@ -89,7 +89,6 @@ module Api::V3
     def show
       item = @item
       if (json_path = request.headers['X-JSON-Path']) && json_path =~ /\A\$(.(^[.\[\]])*(\[[0-9]+\])?)+\Z/
-        current_path = '$'
         json_path = json_path.split('.')
         json_path.shift
         json_path.each do |access|
@@ -98,7 +97,12 @@ module Api::V3
               access = match[1]
               match[2].to_i
             end
-          item = item[access]
+          item =
+            if item.is_a?(Array) || item.is_a?(Hash)
+              item[access]
+            else
+              item.send(access)
+            end
           item = item[index] if index
         end
       end
