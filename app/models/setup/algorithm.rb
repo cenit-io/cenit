@@ -13,7 +13,15 @@ module Setup
 
     trace_include :code
 
-    build_in_data_type.referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name).and(
+      properties: {
+        language: {
+          enum: %w(auto ruby javascript),
+          enumNames: ['Auto detect', 'Ruby', 'JavaScript'],
+          default: 'auto'
+        }
+      }
+    )
 
     field :description, type: String
     embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
