@@ -31,12 +31,12 @@ module Setup
 
     def with(options)
       case options
-      when NilClass
-        self
-      when Setup::Connection, Setup::ConnectionRole
-        upon(options)
-      else
-        super
+        when NilClass
+          self
+        when Setup::Connection, Setup::ConnectionRole
+          upon(options)
+        else
+          super
       end
     end
 
@@ -110,26 +110,26 @@ module Setup
           submitter_body = '' if body_argument && submitter_body.nil?
           if [Hash, Array, String, NilClass].include?(submitter_body.class)
             case submitter_body
-            when Hash
-              if options[:contentType] == 'application/json'
+              when Hash
+                if options[:contentType] == 'application/json'
+                  body = submitter_body.to_json
+                else
+                  body = {}
+                  submitter_body.each do |key, content|
+                    body[key] =
+                      if content.is_a?(String) || content.respond_to?(:read)
+                        content
+                      elsif content.is_a?(Hash)
+                        UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
+                      else
+                        content.to_s
+                      end
+                  end
+                end
+              when Array
                 body = submitter_body.to_json
               else
-                body = {}
-                submitter_body.each do |key, content|
-                  body[key] =
-                    if content.is_a?(String) || content.respond_to?(:read)
-                      content
-                    elsif content.is_a?(Hash)
-                      UploadIO.new(StringIO.new(content[:data]), content[:contentType], content[:filename])
-                    else
-                      content.to_s
-                    end
-                end
-              end
-            when Array
-              body = submitter_body.to_json
-            else
-              body = submitter_body
+                body = submitter_body
             end
             template_parameters.reverse_merge!(
               url: url = connection.conformed_url(template_parameters),
@@ -140,10 +140,10 @@ module Setup
             uri = URI.parse(url)
 
             last_response = case uri.scheme
-                            when nil, '', 'http', 'https'
-                              process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
-                            else
-                              process_connection(template_parameters, verbose_response, last_response, options, &block)
+                              when nil, '', 'http', 'https'
+                                process_http_connection(connection, template_parameters, verbose_response, last_response, options, &block)
+                              else
+                                process_connection(template_parameters, verbose_response, last_response, options, &block)
                             end
           else
             notification_model.create(message: "Invalid submit data type: #{submitter_body.class}")
@@ -273,10 +273,10 @@ module Setup
           halt_anyway = true
           last_response =
             case block.arity
-            when 1
-              block.call(http_response)
-            when 2
-              block.call(http_response, template_parameters)
+              when 1
+                block.call(http_response)
+              when 2
+                block.call(http_response, template_parameters)
             end
         end
         if verbose_response
@@ -319,17 +319,26 @@ module Setup
         #msg[:timeout] = remaining_request_time #TODO handle timeout
         begin
           uri = URI.parse(url)
-          process_method = "process_#{uri.scheme}"
+          process_method = "process_#{uri.scheme}_uri"
+          args = nil
           if respond_to?(process_method)
+            args = [uri, template_parameters, options]
+          else
+            process_method = "process_#{uri.scheme}"
+            if respond_to?(process_method)
+              args = [{
+                host: uri.host,
+                path: uri.path,
+                port: uri.port,
+                body: body,
+                template_parameters: template_parameters,
+                options: options
+              }]
+            end
+          end
+          if args
             start_time = Time.current
-            result = send(
-              process_method,
-              host: uri.host,
-              path: uri.path,
-              body: body,
-              template_parameters: template_parameters,
-              options: options
-            )
+            result = send(process_method, *args)
             response = Setup::Webhook::Response.new(
               true,
               code: :success,
@@ -364,10 +373,10 @@ module Setup
           halt_anyway = true
           last_response =
             case block.arity
-            when 1
-              block.call(response)
-            when 2
-              block.call(response, template_parameters)
+              when 1
+                block.call(response)
+              when 2
+                block.call(response, template_parameters)
             end
         end
         if verbose_response
@@ -381,6 +390,37 @@ module Setup
       last_response
     end
 
+    def process_ldap_uri(uri, template_parameters, options)
+      username, password = check(template_parameters, :username, :password)
+
+      auth_method = (template_parameters['auth_method'].presence || 'simple').to_sym
+
+      ldap = Net::LDAP.new host: uri.host,
+                           port: uri.port,
+                           auth: {
+                             method: auth_method,
+                             username: username,
+                             password: password
+                           }
+
+      base = (template_parameters['base'] ||
+        template_parameters['tree_base'] ||
+        template_parameters['treebase']).presence ||
+        ((path = uri.path.presence) && path.split('/').map(&:presence).compact.join(','))
+
+      search_options = { base: base }
+
+      if (filter = uri.filter)
+        search_options[:filter] = Net::LDAP::Filter.construct(filter)
+      end
+
+      if (attributes = uri.attributes)
+        search_options[:attributes] = attributes.split(',')
+      end
+
+      ldap.search(search_options).to_json
+    end
+
     def process_ftp(opts)
       result = nil
       path = URI.decode(opts[:path])
@@ -392,7 +432,7 @@ module Setup
             # Checking the path
             folders = path.split('/')
             folders[0, folders.size - 1].each do |folder|
-              ftp.mkdir(folder) if !ftp.list(ftp.pwd).any? { |dir| dir.match(/\s#{folder}$/) }
+              ftp.mkdir(folder) unless ftp.list(ftp.pwd).any? { |dir| dir.match(/\s#{folder}$/) }
               ftp.chdir(folder)
             end
             # Uploading file
