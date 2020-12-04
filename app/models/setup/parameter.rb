@@ -4,7 +4,10 @@ module Setup
     include JsonMetadata
     include ChangedIf
 
-    build_in_data_type.with(:key, :value, :description, :metadata).referenced_by(:key)
+    build_in_data_type
+      .with(:key, :value, :description, :metadata)
+      .referenced_by(:key)
+      .and({ label: '{{key}}' })
 
     deny :create
 
