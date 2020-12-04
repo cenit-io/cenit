@@ -166,15 +166,23 @@ module Cenit
           app_module.instance_variable_set(:@app_id, app.id)
           tenant = app.tenant
           meta_key = "app_#{app.id}"
-          unless (tenant.meta[meta_key] || {})['setup']
-            puts "Setting up #{app_module}..."
+          if (tenant.meta[meta_key] || {})['installed']
+            puts "#{app_module} already installed!"
+          else
+            puts "Installing #{app_module}..."
             tenant.switch do
-              app_module.setups.each do |setup_block|
-                app_module.instance_eval(&setup_block)
+              app_module.installers.each do |install_block|
+                app_module.instance_eval(&install_block)
               end
             end
-            tenant.meta[meta_key] = (tenant.meta[meta_key] || {}).merge('setup' => true)
+            tenant.meta[meta_key] = (tenant.meta[meta_key] || {}).merge('installed' => true)
             tenant.save
+          end
+          puts "Setting up #{app_module}..."
+          tenant.switch do
+            app_module.setups.each do |setup_block|
+              app_module.instance_eval(&setup_block)
+            end
           end
           puts "App #{app_module} ready!"
         else
