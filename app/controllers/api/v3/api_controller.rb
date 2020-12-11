@@ -23,7 +23,7 @@ module Api::V3
 
     def cors_headers
       allow_origin_header
-      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Credentials'] = 'false'
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options, X-JSON-Path, X-Record-Id'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'
