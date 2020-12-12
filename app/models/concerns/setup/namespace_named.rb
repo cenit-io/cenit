@@ -9,6 +9,10 @@ module Setup
       field :namespace, type: String
       field :name, type: String
 
+      build_in_data_type.and(properties: {
+        ns_slug: { type: 'string' }
+      })
+
       validates_presence_of :name
       validates_uniqueness_of :name, scope: :namespace
 
