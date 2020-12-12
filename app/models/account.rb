@@ -16,6 +16,12 @@ class Account
   build_in_data_type.protecting(:number, :authentication_token)
   build_in_data_type.and(
     properties: {
+      notification_level: {
+        enum: Setup::SystemNotification.type_enum
+      },
+      time_zone: {
+        enum: time_zone_enum
+      },
       number: {
         type: 'string',
         edi: {
@@ -97,7 +103,7 @@ class Account
     users << owner unless user_ids.include?(owner.id)
     super
     if new_record?
-      self.owner_id = (owner && owner.id) || User.current.id
+      self.owner_id = owner&.id || User.current.id
     end
     generate_number
     ensure_token
@@ -127,7 +133,7 @@ class Account
   end
 
   def time_zone_offset
-    super || (owner && owner.time_zone_offset)
+    super || owner&.time_zone_offset
   end
 
   def notification_level_enum
