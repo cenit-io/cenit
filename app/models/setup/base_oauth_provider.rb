@@ -72,8 +72,8 @@ module Setup
     end
 
     def default_refresh_token(authorization)
-      if (refresh_token = authorization.refresh_token) &&
-         (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) - Time.now < ( ENV['TOKEN_LEFT_EXPIRE'] || 60 ).to_i))
+      if (refresh_token = authorization.refresh_token) && (authorization.authorized_at.nil? || (
+          authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh))
         fail 'Missing client configuration' unless (client = authorization.client)
         http_response = HTTMultiParty.post(
           authorization.token_endpoint,

@@ -1,7 +1,7 @@
 module Cenit
   class AuthToken < BasicToken
 
-    token_length ( ENV['AUTH_TOKEN_LENGTH'] || 60 ).to_i
+    token_length Cenit.default_auth_token_length
 
     before_save :authorize
 
