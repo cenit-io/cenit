@@ -112,7 +112,7 @@ module Api::V3
 
     def new
       if klass.is_a?(Class) && klass < FieldsInspection
-        options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+        parser_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
       end
       parser = Parser.new(klass.data_type)
       record = parser.create_from(request_data, parser_options)
