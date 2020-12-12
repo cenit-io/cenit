@@ -18,7 +18,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
-  revision: 0c0864dc0faf4008242991c1b8160a539421c1df
+  revision: 160b2f3cbfaf8ec308cc7176bfe60f98002566c5
   branch: upgrading
   specs:
     cenit-multi_tenancy (0.0.1)
