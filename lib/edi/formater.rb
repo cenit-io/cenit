@@ -498,7 +498,7 @@ module Edi
           if  schema && schema['format'] == 'time'
             value.strftime('%H:%M:%S')
           else
-            value.to_s
+            value.iso8601
           end
         when Class, Module
           value.to_s
