@@ -12,11 +12,16 @@ class User
   include ObserverTenantLookup
 
 
-  inspect_fields :name, :given_name, :family_name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
+  inspect_fields :name, :given_name, :family_name, :picture, :encrypted_password,
+                 :account_id, :api_account_id, :code_theme, :time_zone
 
   rolify
 
-  build_in_data_type.with(:email, :name, :account)
+  build_in_data_type.with(:email, :name, :account).and(properties: {
+    password: {
+      type: 'string'
+    }
+  }).protecting(:password)
 
   deny :all
 
