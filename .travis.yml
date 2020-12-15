@@ -12,7 +12,9 @@ before_install:
   - wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
   - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
   - sudo apt update
-  - sudo apt install -y mongodb-org
+  - sudo apt install -y --allow-downgrades mongodb-org=3.6.21 mongodb-org-server=3.6.21 mongodb-org-shell=3.6.21 mongodb-org-mongos=3.6.21 mongodb-org-tools=3.6.21
+  - sudo systemctl start mongod
+  - sudo systemctl status mongod
 
 before_script:
   - bundle exec rake assets:precompile
