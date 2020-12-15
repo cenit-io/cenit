@@ -7,7 +7,7 @@ rvm:
   - 2.5.5
 
 before_install:
-  - sudo apt install -y zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev nodejs git imagemagick libmagickwand-dev
+  - sudo apt install -y zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev imagemagick libmagickwand-dev
   #Install MongoDB Manually
   - wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
   - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
