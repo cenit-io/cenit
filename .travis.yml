@@ -22,3 +22,13 @@ before_script:
 
 script:
   - bundle exec rspec spec
+
+after_success:
+  #Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+  - docker build -t alejandro92/cenit:latest ./docker/cenit
+  - docker push alejandro92/cenit:latest
+
+  - docker build -t alejandro92/cenit:frontend ./docker/cenit_web
+  - docker push alejandro92/cenit:frontend
