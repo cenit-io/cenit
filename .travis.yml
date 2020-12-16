@@ -1,5 +1,8 @@
 sudo: required
 
+services:
+  - docker
+
 dist: bionic
 
 language: ruby
@@ -7,14 +10,17 @@ rvm:
   - 2.5.5
 
 before_install:
+  - docker pull mongo:3.6
+  - docker run -d -p 127.0.0.1:27017:27017 mongo:3.6 
+  - export DB_PORT=127.0.0.1:27017
   - sudo apt install -y zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev imagemagick libmagickwand-dev
   #Install MongoDB Manually
-  - wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
-  - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-  - sudo apt update
-  - sudo apt install -y --allow-downgrades mongodb-org=3.6.21 mongodb-org-server=3.6.21 mongodb-org-shell=3.6.21 mongodb-org-mongos=3.6.21 mongodb-org-tools=3.6.21
-  - sudo systemctl start mongod
-  - sudo systemctl status mongod
+  # - wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
+  # - echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+  # - sudo apt update
+  # - sudo apt install -y --allow-downgrades mongodb-org=3.6.21 mongodb-org-server=3.6.21 mongodb-org-shell=3.6.21 mongodb-org-mongos=3.6.21 mongodb-org-tools=3.6.21
+  # - sudo systemctl start mongod
+  # - sudo systemctl status mongod
 
 before_script:
   - bundle exec rake assets:precompile
