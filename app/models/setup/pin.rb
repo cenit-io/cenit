@@ -5,7 +5,7 @@ module Setup
 
     build_in_data_type
 
-    allow :read, :destroy
+    allow :read, :delete
 
     field :target_model_name, type: String
     field :target_id

@@ -17,7 +17,7 @@ module Setup
 
       build_in_data_type.excluding(:origin, :tenant)
 
-      shared_deny :destroy
+      shared_deny :delete
 
       trace_ignore TRACING_IGNORE_ATTRIBUTES
 

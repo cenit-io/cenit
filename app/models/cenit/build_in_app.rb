@@ -12,7 +12,7 @@ module Cenit
     build_in_data_type.with(:namespace, :name, :application_parameters)
     build_in_data_type.referenced_by(:namespace, :name, :_type).and(properties: { configuration: {} })
 
-    deny :destroy
+    deny :delete
 
     belongs_to :tenant, class_name: Tenant.name, inverse_of: nil
 

@@ -2,7 +2,7 @@ module Cenit
   module Access
     extend ActiveSupport::Concern
 
-    DEFAULT = [:create, :read, :update, :destroy]
+    DEFAULT = [:create, :read, :update, :delete]
 
     class_methods do
 

@@ -19,13 +19,13 @@ class Ability
           else
             can [:read, :update], User, id: user.id
 
-            can [:update, :destroy], Setup::CrossSharedCollection, owner_id: user.id
+            can [:update, :delete], Setup::CrossSharedCollection, owner_id: user.id
             can [:read, :update], Account, { '$or' => [
               { 'owner_id' => user.id },
               { '_id' => { '$in' => user.member_account_ids || [] } }
             ] }
-            can :destroy, Account, :id.in => user.account_ids - [user.account_id]
-            can :destroy, ::Cenit::OauthAccessToken
+            can :delete, Account, :id.in => user.account_ids - [user.account_id]
+            can :delete, ::Cenit::OauthAccessToken
             StandardUser
           end
 
@@ -107,9 +107,9 @@ class Ability
   class UserCommon
     extend CanCan::Ability
 
-    can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
+    can :delete, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
 
-    can :destroy, Setup::Task,
+    can :delete, Setup::Task,
         :status.in => Setup::Task::NON_ACTIVE_STATUS,
         :scheduler_id.in => Setup::Scheduler.where(activated: false).collect(&:id) + [nil]
 
@@ -211,7 +211,7 @@ class Ability
       ].each do |hash|
         hash.each do |keys, models|
           keys.delete(:simple_cross)
-          if [:update, :destroy].any? { |key| keys.include?(key) }
+          if [:update, :delete].any? { |key| keys.include?(key) }
             models.delete(Setup::CrossSharedCollection)
           end
         end
@@ -236,7 +236,7 @@ class Ability
     extend CanCan::Ability
 
     cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemReport]
-    cannot :destroy, Setup::Storage
+    cannot :delete, Setup::Storage
 
     can :read, Setup::CrossSharedCollection
 
@@ -265,12 +265,12 @@ class Ability
         ]
     can [:read, :create], Cenit::ActiveTenant
     can [:read, :update], Setup::Configuration
-    can :destroy, [Setup::Storage, Setup::CrossSharedCollection]
-    can :destroy, Setup::CenitDataType, origin: :tmp
+    can :delete, [Setup::Storage, Setup::CrossSharedCollection]
+    can :delete, Setup::CenitDataType, origin: :tmp
     can :read, RabbitConsumer
     can :read, :update, Setup::CrossSharedCollection
     can :read, Cenit::ApplicationId
-    can(:destroy, Cenit::ApplicationId) do |app_id|
+    can(:delete, Cenit::ApplicationId) do |app_id|
       app_id.app.nil?
     end
 
