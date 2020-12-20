@@ -9,14 +9,27 @@ module Setup
     end
 
     def new_from(data, options = {})
-      begin
-        data = JSON.parse(data) unless data.is_a?(Hash)
-        new_from_json(data, options)
-      rescue
-        new_from_xml(Nokogiri::XML(data))
+      json_data = (data.is_a?(Hash) && data) ||
+        begin
+          JSON.parse(data)
+        rescue
+          nil
+        end
+      if json_data
+        new_from_json(json_data, options)
+      else
+        xml_data =
+          begin
+            Nokogiri::XML(data)
+          rescue
+            nil
+          end
+        if xml_data
+          new_from_xml(Nokogiri::XML(data))
+        else
+          new_from_edi(data, options)
+        end
       end
-    rescue
-      new_from_edi(data, options)
     end
 
     def create_from(data, options = {})

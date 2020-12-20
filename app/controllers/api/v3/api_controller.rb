@@ -115,6 +115,12 @@ module Api::V3
         parser_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
       end
       parser = Parser.new(klass.data_type)
+      parser_options[:create_callback] = -> model {
+        fail Abort unless authorize_action(action: :create, klass: model)
+      }
+      parser_options[:update_callback] = -> record {
+        fail Abort unless authorize_action(action: :update, item: record)
+      }
       record = parser.create_from(request_data, parser_options)
       if record.errors.blank?
         if setup_viewport(:headers)
@@ -125,6 +131,8 @@ module Api::V3
       else
         render json: klass.pretty_errors(record), status: :unprocessable_entity
       end
+    rescue Abort
+      # Aborted!
     end
 
     def update
@@ -244,7 +252,7 @@ module Api::V3
         id = Account.current_id
       end
       if (@item = accessible_records.where(id: id).first)
-        true
+        @item
       else
         render json: { status: 'item not found' }, status: :not_found
         false
@@ -427,6 +435,45 @@ module Api::V3
       Template.with(item) { |template| template.to_hash(template_options) }
     end
 
+    def authorize_action(options = {})
+      action = options[:action] || @_action_name
+      success = true
+      if klass
+        action_symbol =
+          case action
+            when 'index', 'show'
+              :read
+            when 'new'
+              :create
+            else
+              action.to_sym
+          end
+        if @ability.can?(action_symbol, options[:item] || options[:klass] || @item || klass) &&
+          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, options[:klass] || klass))
+          @access_token.hit if @access_token
+        else
+          success = false
+          unless options[:skip_response]
+            error_description = 'The requested action is out of the access token scope'
+            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
+            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
+          end
+        end
+      else
+        success = false
+        unless options[:skip_response]
+          if Account.current
+            render json: { error: 'no model found' }, status: :not_found
+          else
+            error_description = 'The requested action is out of the access token scope'
+            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
+            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
+          end
+        end
+      end
+      success
+    end
+
     protected
 
     def authorize_account
@@ -475,44 +522,6 @@ module Api::V3
 
     def authorized_action?
       authorize_action(skip_response: true)
-    end
-
-    def authorize_action(options = {})
-      success = true
-      if klass
-        action_symbol =
-          case @_action_name
-            when 'index', 'show'
-              :read
-            when 'new'
-              :create
-            else
-              @_action_name.to_sym
-          end
-        if @ability.can?(action_symbol, @item || klass) &&
-          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, klass))
-          @access_token.hit if @access_token
-        else
-          success = false
-          unless options[:skip_response]
-            error_description = 'The requested action is out of the access token scope'
-            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
-            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
-          end
-        end
-      else
-        success = false
-        unless options[:skip_response]
-          if Account.current
-            render json: { error: 'no model found' }, status: :not_found
-          else
-            error_description = 'The requested action is out of the access token scope'
-            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
-            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
-          end
-        end
-      end
-      success
     end
 
     def exception_handler(exception)
@@ -625,6 +634,8 @@ module Api::V3
 
       SELF_RECORD_KEY = "[cenit]#{self}.self_record"
     end
+
+    class Abort < Exception; end
   end
 end
 
@@ -634,10 +645,17 @@ module Setup
     def handle_get_digest(controller)
       if (id = controller.request.headers['X-Record-Id'])
         controller.setup_request(namespace: ns_slug, model: slug, id: id)
-        controller.show if controller.find_item
+        controller.show if (item = controller.find_item) && controller.authorize_action(
+          action: :read,
+          item: item,
+          klass: records_model
+        )
       else
         controller.setup_request(namespace: ns_slug, model: slug)
-        controller.index
+        controller.index if controller.authorize_action(
+          action: :read,
+          klass: records_model
+        )
       end
     end
 
@@ -651,22 +669,24 @@ module Setup
       response =
         if query.count == 1
           item = query.first
-          if item.destroy
-            { body: nil }
-          else
-            {
-              json: records_model.pretty_errors(item),
-              status: :unprocessable_entity
-            }
+          if controller.authorize_action(action: :delete, item: item, klass: records_model)
+            if item.destroy
+              { body: nil }
+            else
+              {
+                json: records_model.pretty_errors(item),
+                status: :unprocessable_entity
+              }
+            end
           end
-        else
+        elsif controller.authorize_action(action: :delete, klass: records_model)
           execution = Deletion.process(model_name: records_model.to_s, selector: query.selector)
           {
             json: controller.to_hash(execution),
             status: :accepted
           }
         end
-      controller.render response
+      controller.render response if response
     end
 
     def digest_schema(request, options = {})

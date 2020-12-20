@@ -263,6 +263,9 @@ module Edi
             end
             if record
               return record if json['_reference'].to_b
+              if (update_callback = options[:update_callback])
+                update_callback.call(record)
+              end
               updating = true
               unless model == record.orm_model
                 model = record.orm_model
@@ -271,6 +274,9 @@ module Edi
               end
             else
               updating = false
+              if (create_callback = options[:create_callback])
+                create_callback.call(model)
+              end
               (record = model.new).instance_variable_set(:@dynamically_created, true)
             end
           else
