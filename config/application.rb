@@ -40,6 +40,13 @@ module Cenit
       end
     end
 
+    config.mongoid.logger.level =
+      begin
+        Logger.const_get(ENV['MONGOID_LOGGER_LEVEL'])
+      rescue
+        Logger::FATAL
+      end
+
     config.after_initialize do
 
       eager_load!
