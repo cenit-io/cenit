@@ -177,14 +177,14 @@ module Setup
         },
         start_at: {
           type: 'string',
-          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+          format: 'date-time'
         },
         frequency: {
           type: 'integer'
         },
         end_at: {
           type: 'string',
-          pattern: '^\d\d\d\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])$'
+          format: 'date-time'
         },
         max_repeat: {
           type: 'integer'
