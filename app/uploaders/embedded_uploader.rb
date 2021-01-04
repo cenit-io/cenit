@@ -16,7 +16,7 @@ class EmbeddedUploader < BasicUploader
         def embed_files
           if (mounters = instance_variable_get(:@_mounters))
             mounters.each do |field, mounter|
-              next unless mounter.uploader.is_a?(EmbeddedUploader)
+              next unless mounter.uploaders.any? { |uploader| uploader.is_a?(EmbeddedUploader) }
               i_flag = :"@embedding_#{field}_files"
               instance_variable_set(i_flag, true)
               send("store_#{field}!")
