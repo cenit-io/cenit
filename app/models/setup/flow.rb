@@ -394,7 +394,7 @@ module Setup
       (authorization_id = options[:authorization_id] || message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
-        webhook.target.with(connection).and(authorization).submit(options) do |response, template_parameters|
+        webhook.with(connection).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
                          data: response.body,
                          discard_events: discard_events,
@@ -438,7 +438,7 @@ module Setup
         records_processed = true
         next unless connections_present
         verbose_response =
-          webhook.target.with(connection).and(authorization).submit(
+          webhook.with(connection).and(authorization).submit(
             ->(template_parameters) {
               translation_options =
                 {
