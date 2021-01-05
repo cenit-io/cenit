@@ -2,13 +2,24 @@ class EmbeddedUploader < BasicUploader
 
   storage :embedded
 
-  def store_dir
-    "/#{model.class.to_s.underscore.gsub('/', '~')}/#{model.id}/#{mounted_as}"
+  def store_dir_for(record, field)
+    "/#{record.class.to_s.underscore.gsub('/', '~')}/#{record.id}/#{field}"
+  end
+
+  def to_hash(_options = {})
+    if present?
+      { url: "#{Cenit.homepage}/file/#{url}" }
+    else
+      {}
+    end
   end
 
   class << self
     def prepare_model(model)
       model.class_eval do
+
+        build_in_data_type.excluding(:files)
+
         field :files, type: Array
 
         before_save :embed_files

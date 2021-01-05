@@ -1,4 +1,5 @@
 class AccountUploader < BasicUploader
+  include GridFsFormatter
 
   storage :account_grid_fs
 
