@@ -213,7 +213,7 @@ module Api::V3
     end
 
     def digest
-      path = (params[:path] || '').split('/').map(&:presence).compact.join('_').presence
+      path = (params[:_digest_path] || '').split('/').map(&:presence).compact.join('_').presence
       path = path ? "digest_#{path}" : :digest
       if @item.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || @item.respond_to?(method = path)
         options =
