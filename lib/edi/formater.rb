@@ -495,8 +495,8 @@ module Edi
       case value
         when Time, Date, DateTime
           value = value.to_time
-          if  schema && schema['format'] == 'time'
-            value.strftime('%H:%M:%S')
+          if schema && schema['format'] == 'time'
+            value.strftime('%H:%M:%S.%L%:z')
           else
             value.iso8601
           end

@@ -52,7 +52,7 @@ class ApplicationController < ActionController::Base
     yield
   ensure
     optimize
-    if (account = Account.current)
+    if (account = Account.current) && account.changed?
       account.save(discard_events: true)
     end
     clean_thread_cache

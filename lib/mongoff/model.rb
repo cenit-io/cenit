@@ -323,7 +323,7 @@ module Mongoff
 
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) },
+      Date => ->(value) { DateTime.parse(value.to_s) },
       DateTime => ->(value) { DateTime.parse(value.to_s) },
       Time => ->(value) { Time.parse(value.to_s) },
 
