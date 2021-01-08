@@ -9,8 +9,6 @@ module Setup
       .referenced_by(:key)
       .and({ label: '{{key}}' })
 
-    deny :create
-
     field :key, type: String, as: :name
     field :description, type: String
     field :value
