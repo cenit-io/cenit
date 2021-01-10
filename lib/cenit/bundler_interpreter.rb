@@ -88,6 +88,7 @@ module Cenit
 
       def initialize(interpreter)
         @interpreter = interpreter
+        @bundling_stack = []
       end
 
       def algorithms
@@ -122,9 +123,11 @@ module Cenit
           else
             bundle_method = "bundled_#{algorithm.language}_code"
             if respond_to?(bundle_method)
+              @bundling_stack << symbol
               interpreter.instance_eval "define_singleton_method :#{symbol} do |*args|
                 #{send(bundle_method, algorithm)}
               end"
+              @bundling_stack.pop
               algorithms[symbol] = algorithm
               method = interpreter.method(symbol)
             else
@@ -159,7 +162,10 @@ module Cenit
                                                     links: links,
                                                     iteration_counter_prefix: "alg#{algorithm.id}_it",
                                                     invoke_counter_prefix: "alg#{algorithm.id}_invk")
-        links.each { |key, alg| bundle(key, alg) }
+        links.each do |key, alg|
+          next if @bundling_stack.include?(key)
+          bundle(key, alg)
+        end
         code
       rescue Exception => ex
         raise "Error bundling algorithm #{algorithm.custom_title}: #{ex.message}"
