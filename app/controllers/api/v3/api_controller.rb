@@ -732,7 +732,7 @@ module Setup
 
   Flow.class_eval do
 
-    def post_digest(request, options = {})
+    def post_digest(request, _options = {})
       begin
         message = JSON.parse(request.body)
         fail unless message.is_a?(Hash)
@@ -743,6 +743,33 @@ module Setup
       execution.reload
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    end
+  end
+
+  Algorithm.class_eval do
+
+    def post_digest(request, _options = {})
+      hash = input = JSON.parse(request.body.read)
+      if input.is_a?(Array)
+        hash = parameters.map { |p, index| [p.name, input[index]] }
+      else
+        input = parameters.map { |p| hash[p.name] }
+      end
+      Mongoff::Validator.validate_instance(
+        hash,
+        schema: configuration_schema,
+        data_type: self.class.data_type
+      )
+      execution = run_asynchronous(input)
+      execution.reload
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
       }
     end
   end
