@@ -8,7 +8,13 @@ class EmbeddedUploader < BasicUploader
 
   def to_hash(_options = {})
     if present?
-      { url: "#{Cenit.homepage}/file/#{url}" }
+      url = "file/#{self.url}".squeeze('//')
+      {
+        url: "#{Cenit.homepage}/#{url}",
+        filename: file.filename,
+        content_type: file.content_type,
+        size: file.size
+      }
     else
       {}
     end

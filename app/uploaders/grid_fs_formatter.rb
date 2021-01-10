@@ -6,9 +6,12 @@ module GridFsFormatter
 
   def to_hash(options = {})
     hash = {}
-    if present? && file && file.grid_file
-      hash[:storage_id] = file.grid_file.id.to_s
+    if present? && file && (f = file.grid_file)
+      hash[:storage_id] = f.id.to_s
       hash[:url] = "#{Cenit.homepage}#{url}"
+      hash[:filename] = f.filename.split('/').pop
+      hash[:content_type] = f.content_type
+      hash[:size] = f.length
       versions.each do |key, uploader|
         hash[key] = uploader.to_hash(options)
       end
