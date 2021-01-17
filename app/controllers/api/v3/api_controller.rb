@@ -31,57 +31,61 @@ module Api::V3
 
     def index
       setup_viewport
-      template_options.delete(:inspecting)
-      if (model_ignore = klass.index_ignore_properties).present?
-        template_options[:ignore] =
-          if (ignore_option = template_options[:ignore])
-            unless ignore_option.is_a?(Array)
-              ignore_option = ignore_option.to_s.split(',').collect(&:strip)
-            end
-            ignore_option + model_ignore
-          else
-            model_ignore
-          end
-      end
-      maximum_entries =
-        if (account = Account.current)
-          account.index_max_entries
-        else
-          Account::DEFAULT_INDEX_MAX_ENTRIES
-        end
-      template_options[:max_entries] =
-        if (max_entries = template_options[:max_entries])
-          max_entries = max_entries.to_i
-          if max_entries.zero? || max_entries > maximum_entries
-            maximum_entries
-          else
-            max_entries
-          end
-        else
-          maximum_entries
-        end
       items = select_items
-      items_data =
-        if get_limit.zero?
-          []
-        else
-          items.map do |item|
-            Template.with(item) do |template|
-              template.default_hash(template_options)
+      if (distinct = params[:format]&.match(/\Adistinct\((.+)\)\Z/))
+        json = klass.collection.distinct(distinct[1], items.selector)
+      else
+        template_options.delete(:inspecting)
+        if (model_ignore = klass.index_ignore_properties).present?
+          template_options[:ignore] =
+            if (ignore_option = template_options[:ignore])
+              unless ignore_option.is_a?(Array)
+                ignore_option = ignore_option.to_s.split(',').collect(&:strip)
+              end
+              ignore_option + model_ignore
+            else
+              model_ignore
+            end
+        end
+        maximum_entries =
+          if (account = Account.current)
+            account.index_max_entries
+          else
+            Account::DEFAULT_INDEX_MAX_ENTRIES
+          end
+        template_options[:max_entries] =
+          if (max_entries = template_options[:max_entries])
+            max_entries = max_entries.to_i
+            if max_entries.zero? || max_entries > maximum_entries
+              maximum_entries
+            else
+              max_entries
+            end
+          else
+            maximum_entries
+          end
+        items_data =
+          if get_limit.zero?
+            []
+          else
+            items.map do |item|
+              Template.with(item) do |template|
+                template.default_hash(template_options)
+              end
             end
           end
-        end
-      count = items.count
-      json = {
-        current_page: get_page,
-        count: count,
-        items: items_data,
-        data_type: {
-          (template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
+        count = items.count
+        json = {
+          current_page: get_page,
+          count: count,
+          items: items_data,
+          data_type: {
+            (template_options[:raw_properties] ? :_id : :id) => klass.data_type.id.to_s
+          }
         }
-      }
-      if get_limit.positive?
-        json[:total_pages] = (count * 1.0 / get_limit).ceil
+        if get_limit.positive?
+          json[:total_pages] = (count * 1.0 / get_limit).ceil
+        end
       end
       render json: json
     end
