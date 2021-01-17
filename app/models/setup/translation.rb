@@ -11,10 +11,17 @@ module Setup
     protected
 
     def translate_export(message)
-      result = translator.run(object_ids: object_ids_from(message),
-                              source_data_type: data_type_from(message),
-                              task: self,
-                              options: message[:options].deep_dup.with_indifferent_access)
+      options = {
+        object_ids: object_ids_from(message),
+        source_data_type: data_type_from(message),
+        task: self,
+        options: message[:options].deep_dup.with_indifferent_access
+      }
+      if (selector = message[:selector])
+        selector = JSON.parse(selector.to_s) if selector.is_a?(String)
+        options[:selector] = selector
+      end
+      result = translator.run(options)
       return unless result && Cenit::Utility.json_object?(result)
       attachment = Setup::Translation.attachment_for(data_type, translator, result)
       current_execution.attach(attachment)
@@ -57,17 +64,17 @@ module Setup
     class << self
 
       def attachment_for(data_type, translator, result)
-        title = (data_type && data_type.title) || translator.name
+        title = data_type&.title || translator.name
         file_name = "#{title.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}"
         file_name += ".#{translator.file_extension}" if translator.file_extension.present?
         {
           filename: file_name,
           contentType: translator.mime_type || 'application/octet-stream',
           body: case result
-                when Hash, Array
-                  JSON.pretty_generate(result)
-                else
-                  result.to_s
+                  when Hash, Array
+                    JSON.pretty_generate(result)
+                  else
+                    result.to_s
                 end
         }
       end

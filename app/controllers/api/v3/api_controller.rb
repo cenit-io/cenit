@@ -777,6 +777,28 @@ module Setup
       }
     end
   end
+
+  Template.class_eval do
+
+    def post_digest(request, _options = {})
+      hash = JSON.parse(request.body.read)
+      execution = Setup::Translation.process(
+        translator_id: id,
+        data_type_id: hash['data_type']['id'],
+        selector: hash['selector'].to_json,
+        skip_notification_level: true,
+        #options: @form_object.options
+      )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'
