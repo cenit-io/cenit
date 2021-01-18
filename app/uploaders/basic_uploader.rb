@@ -2,19 +2,15 @@ class BasicUploader < CarrierWave::Uploader::Base
   include CarrierWave::MiniMagick
 
   def store_dir
-    "/#{model.class.to_s.underscore.gsub('/', '~')}/#{mounted_as}/#{model.id}"
+    store_dir_for(model, mounted_as)
   end
 
-  def to_hash(options={})
-    hash = {}
-    if present? && file && file.grid_file
-      hash[:storage_id] = file.grid_file.id.to_s
-      hash[:url] = "#{Cenit.homepage}#{url}"
-      versions.each do |key, uploader|
-        hash[key] = uploader.to_hash(options)
-      end
-    end
-    hash.stringify_keys
+  def store_dir_for(record, field)
+    "/#{record.class.to_s.underscore.gsub('/', '~')}/#{field}/#{record.id}"
+  end
+
+  def path_for(record, field, filename)
+    "#{store_dir_for(record, field)}/#{filename}"
   end
 
   attr_accessor :file_attributes

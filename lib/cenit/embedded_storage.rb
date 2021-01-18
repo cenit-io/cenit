@@ -40,10 +40,11 @@ module Cenit
           index = files.length
           files << {}
         end
+        content_type = opts[:content_type] || file.content_type.presence
+        content_type = nil if content_type && content_type['invalid']
         files[index].merge!(
           filename: opts[:filename] || file.filename,
-          content_type: opts[:content_type] ||
-            file.content_type.presence ||
+          content_type: content_type ||
             MIME::Types.type_for(file.filename)[0].to_s.presence ||
             'application/octet-stream',
           data: BSON::Binary.new(file.read)
