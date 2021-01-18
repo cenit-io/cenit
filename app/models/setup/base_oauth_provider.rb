@@ -110,7 +110,7 @@ module Setup
     end
 
     def google_v4_refresh_token(authorization)
-      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh
         fail 'Missing client configuration' unless authorization.client
         post = Setup::Connection.post('https://www.googleapis.com/oauth2/v4/token')
         http_response = post.submit(
@@ -164,7 +164,7 @@ module Setup
     end
 
     def lazada_rest_api_refresh_token(authorization)
-      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_lazada_token_refresh
         client = authorization.client
         fail 'Missing client configuration' unless client
         fail 'Missing OAuth provider configuration' unless authorization.provider
