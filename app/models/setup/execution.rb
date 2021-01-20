@@ -3,7 +3,7 @@ module Setup
     include CenitScoped
     include Setup::AttachmentUploader
 
-    build_in_data_type.and(
+    build_in_data_type.including(:task).and(
       properties: {
         time_span: {
           type: 'number'
