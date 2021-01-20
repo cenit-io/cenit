@@ -846,7 +846,34 @@ module Setup
         ),
         selector: options['selector'].to_json,
         skip_notification_level: true,
-        #options: @form_object.options TODO Template options
+        #options: @form_object.options TODO Updater options
+        )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+
+  ConverterTransformation.class_eval do
+
+    def post_digest(request, _options = {})
+      options = JSON.parse(request.body.read)
+      execution = Setup::Translation.process(
+        translator_id: id,
+        data_type_id: (
+        options['target_data_type_id'] ||
+          options['data_type_id'] ||
+          ((data_type = options['data_type']) && data_type['id']) ||
+          target_data_type_id
+        ),
+        selector: options['selector'].to_json,
+        skip_notification_level: true,
+      #options: @form_object.options TODO Convert options
         )
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
