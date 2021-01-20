@@ -787,8 +787,31 @@ module Setup
         data_type_id: hash['data_type']['id'],
         selector: hash['selector'].to_json,
         skip_notification_level: true,
-        #options: @form_object.options
+        #options: @form_object.options TODO Template options
       )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+
+  ParserTransformation.class_eval do
+
+    def post_digest(request, options = {})
+      request.body.rewind
+      msg = {
+        translator_id: id,
+        data_type_id: options['target_data_type_id'] || options['data_type_id'] || target_data_type_id,
+        #decompress_content: decompress, TODO Parser options
+        data: request.body.read,
+        #options: @form_object.options
+      }
+      execution = Setup::DataImport.process(msg)
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
       }
