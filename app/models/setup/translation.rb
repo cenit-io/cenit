@@ -41,10 +41,17 @@ module Setup
 
     def simple_translate(message)
       if translator.try(:source_handler)
-        translator.run(object_ids: object_ids_from(message),
-                       data_type: data_type_from(message),
-                       task: self,
-                       options: message[:options].deep_dup.with_indifferent_access)
+        options = {
+          object_ids: object_ids_from(message),
+          data_type: data_type_from(message),
+          task: self,
+          options: message[:options].deep_dup.with_indifferent_access
+        }
+        if (selector = message[:selector])
+          selector = JSON.parse(selector.to_s) if selector.is_a?(String)
+          options[:selector] = selector
+        end
+        translator.run(options)
       else
         objects = objects_from(message)
         objects_count = objects.count

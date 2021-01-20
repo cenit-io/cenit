@@ -10,7 +10,10 @@ module Setup
 
     def objects_from(message)
       model = data_type_from(message).records_model
-      if (object_ids = object_ids_from(message)).present?
+      if (selector = message[:selector])
+        selector = JSON.parse(selector.to_s) if selector.is_a?(String)
+        model.where(selector)
+      elsif (object_ids = object_ids_from(message)).present?
         model.any_in(id: object_ids)
       else
         model.all

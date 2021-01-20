@@ -781,11 +781,16 @@ module Setup
   Template.class_eval do
 
     def post_digest(request, _options = {})
-      hash = JSON.parse(request.body.read)
+      options = JSON.parse(request.body.read)
       execution = Setup::Translation.process(
         translator_id: id,
-        data_type_id: hash['data_type']['id'],
-        selector: hash['selector'].to_json,
+        data_type_id: (
+          options['source_data_type_id'] ||
+            options['data_type_id'] ||
+              ((data_type = options['data_type']) && data_type['id']) ||
+                source_data_type_id
+        ),
+        selector: options['selector'].to_json,
         skip_notification_level: true,
         #options: @form_object.options TODO Template options
       )
@@ -805,7 +810,12 @@ module Setup
     def post_digest(request, options = {})
       msg = {
         translator_id: id,
-        data_type_id: options['target_data_type_id'] || options['data_type_id'] || target_data_type_id,
+        data_type_id: (
+          options['target_data_type_id'] ||
+            options['data_type_id'] ||
+              ((data_type = options['data_type']) && data_type['id']) ||
+                target_data_type_id
+        ),
         #decompress_content: decompress, TODO Parser options
         data: request.body.read,
         #options: @form_object.options
