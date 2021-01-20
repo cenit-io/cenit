@@ -217,6 +217,7 @@ module Api::V3
     end
 
     def digest
+      request.body.rewind
       path = (params[:_digest_path] || '').split('/').map(&:presence).compact.join('_').presence
       path = path ? "digest_#{path}" : :digest
       if @item.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || @item.respond_to?(method = path)
@@ -698,7 +699,6 @@ module Setup
         if request.get?
           merged_schema(options)
         else
-          request.body.rewind #TODO Do not run save_request_data for digest
           merge_schema(JSON.parse(request.body.read), options)
         end
       {
@@ -803,7 +803,6 @@ module Setup
   ParserTransformation.class_eval do
 
     def post_digest(request, options = {})
-      request.body.rewind
       msg = {
         translator_id: id,
         data_type_id: options['target_data_type_id'] || options['data_type_id'] || target_data_type_id,
@@ -831,7 +830,6 @@ module Mongoff
     File.class_eval do
 
       def post_digest(request, options = {})
-        request.body.rewind
         fill_from(options)
         self.data = request.body
         save
