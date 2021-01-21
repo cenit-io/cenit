@@ -2,6 +2,8 @@ module Setup
   class JsonDataType < DataType
     include Setup::SnippetCode
 
+    origins Setup::CrossOriginShared::DEFAULT_ORIGINS
+
     validates_presence_of :namespace
 
     legacy_code_attribute :schema

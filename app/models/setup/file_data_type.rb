@@ -2,6 +2,8 @@
 module Setup
   class FileDataType < DataType
 
+    origins Setup::CrossOriginShared::DEFAULT_ORIGINS
+
     validates_presence_of :namespace
 
     build_in_data_type.referenced_by(:namespace, :name).with(

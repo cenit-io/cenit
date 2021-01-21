@@ -12,8 +12,12 @@ module Setup
 
     TRACING_IGNORE_ATTRIBUTES = [:created_at, :updated_at, :creator_id, :updater_id, :tenant_id, :origin]
 
+    DEFAULT_ORIGINS = [
+      -> { Cenit::MultiTenancy.tenant_model.current && [:default, :owner] }, :shared
+    ]
+
     included do
-      origins -> { Cenit::MultiTenancy.tenant_model.current && [:default, :owner] }, :shared
+      origins *Setup::CrossOriginShared::DEFAULT_ORIGINS
 
       build_in_data_type.excluding(:origin, :tenant)
 
