@@ -218,20 +218,33 @@ module Api::V3
 
     def digest
       request.body.rewind
+      options =
+        begin
+          JSON.parse(request.headers['X-Digest-Options'])
+        rescue
+          nil
+        end
+      options = {} unless options.is_a?(Hash)
       path = (params[:_digest_path] || '').split('/').map(&:presence).compact.join('_').presence
       path = path ? "digest_#{path}" : :digest
+      no_logic = false
       if @item.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || @item.respond_to?(method = path)
-        options =
-          begin
-            JSON.parse(request.headers['X-Digest-Options'])
-          rescue
-            nil
-          end
-        options = {} unless options.is_a?(Hash)
         render @item.send(method, request, options)
       elsif @item.respond_to?(method = "handle_#{request.method.to_s.downcase}_#{path}")
         @item.send(method, self)
+      elsif @item.is_a?(Setup::CenitDataType)
+        model = @item.build_in.model
+        if model.respond_to?(method = "#{request.method.to_s.downcase}_#{path}") || model.respond_to?(method = path)
+          render model.send(method, request, options)
+        elsif model.respond_to?(method = "handle_#{request.method.to_s.downcase}_#{path}")
+          @item.send(method, self)
+        else
+          no_logic = true
+        end
       else
+        no_logic = true
+      end
+      if no_logic
         render json: {
           error: "No processable logic defined by #{@item.orm_model.data_type.custom_title}"
         }, status: :not_acceptable
@@ -910,6 +923,35 @@ module Mongoff
       def handle_get_digest(controller)
         controller.send_data(data, filename: filename, type: contentType)
       end
+    end
+  end
+end
+
+Cancelable.module_eval do
+
+  def digest_cancel(_request, options = {})
+    cancel
+    {
+      json: to_hash(options)
+    }
+  rescue
+    {
+      json: { error: $!.message },
+      status: :bad_request
+    }
+  end
+
+  ClassMethods.module_eval do
+    def digest_cancel_all(_request, options = {})
+      cancel_all
+      {
+        body: nil
+      }
+    rescue
+      {
+        json: { error: $!.message },
+        status: :bad_request
+      }
     end
   end
 end
