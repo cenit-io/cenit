@@ -1,6 +1,10 @@
 class RabbitConsumer
-  include Mongoid::Document
-  include Mongoid::Timestamps
+  include Setup::CenitUnscoped
+  include Cancelable
+
+  build_in_data_type
+
+  deny :all
 
   field :channel, type: String
   field :tag, type: String
@@ -22,7 +26,7 @@ class RabbitConsumer
 
   def executing_task
     if executor && task_id
-      Setup::Task.with(collection: Account.tenant_collection_name(Setup::Task, tenant: executor)).where(id: task_id).first
+      executor.switch { Setup::Task.where(id: task_id).first }
     end
   end
 
