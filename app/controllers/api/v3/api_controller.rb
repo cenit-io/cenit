@@ -942,8 +942,8 @@ Cancelable.module_eval do
   end
 
   ClassMethods.module_eval do
-    def digest_cancel_all(_request, options = {})
-      cancel_all
+    def digest_cancel(_request, options = {})
+      cancel_all(where(options['selector'] || {}))
       {
         body: nil
       }
