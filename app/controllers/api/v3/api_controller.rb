@@ -927,10 +927,14 @@ module Mongoff
   end
 end
 
-Cancelable.module_eval do
-
-  def digest_cancel(_request, options = {})
-    cancel
+{
+  cancel: Cancelable,
+  switch: Switchable
+}.each do |action, mod|
+  mod.module_eval <<-RUBY
+  
+  def digest_#{action}(_request, options = {})
+    #{action}
     {
       json: to_hash(options)
     }
@@ -942,8 +946,8 @@ Cancelable.module_eval do
   end
 
   ClassMethods.module_eval do
-    def digest_cancel(_request, options = {})
-      cancel_all(where(options['selector'] || {}))
+    def digest_#{action}(_request, options = {})
+      #{action}_all(where(options['selector'] || {}))
       {
         body: nil
       }
@@ -954,4 +958,5 @@ Cancelable.module_eval do
       }
     end
   end
+  RUBY
 end

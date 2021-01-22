@@ -1,6 +1,7 @@
 module Setup
   class Scheduler < Event
     include HashField
+    include Switchable
     # = Scheduler
     #
     # Are events triggered on a certain moment and can be optionally recurrent.
@@ -103,6 +104,14 @@ module Setup
 
     def deactivate
       update(activated: false) unless deactivated?
+    end
+
+    def switch
+      if activated?
+        deactivate
+      else
+        activate
+      end
     end
 
     def next_time
