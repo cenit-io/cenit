@@ -960,3 +960,29 @@ end
   end
   RUBY
 end
+
+::Script.class_eval do
+
+  def post_digest(request, _options = {})
+    hash = input = JSON.parse(request.body.read)
+    if input.is_a?(Array)
+      hash = parameters.map { |p, index| [p.name, input[index]] }
+    else
+      input = parameters.map { |p| hash[p.name] }
+    end
+    # TODO Validates input hash
+    execution = ::ScriptExecution.process(
+      script_id: id,
+      input: input,
+      skip_notification_level: true
+    )
+    {
+      json: execution.to_hash(include_id: true, include_blanks: false)
+    }
+  rescue
+    {
+      json: { '$': [$!.message] },
+      status: :unprocessable_entity
+    }
+  end
+end

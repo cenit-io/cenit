@@ -1,8 +1,15 @@
 class Script
-  include Mongoid::Document
-  include Mongoid::Timestamps
+  include Setup::CenitUnscoped
 
-  field :name
+  build_in_data_type.and(properties: {
+    code: {
+      contentMediaType: 'text/x-ruby'
+    }
+  })
+
+  deny :all
+
+  field :name, type: String
   field :description, type: String
   field :code, type: String
 
