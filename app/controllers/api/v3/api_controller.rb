@@ -751,10 +751,13 @@ module Setup
 
     def post_digest(request, _options = {})
       begin
-        message = JSON.parse(request.body)
+        message = JSON.parse(request.body.read)
         fail unless message.is_a?(Hash)
       rescue
         message = {}
+      end
+      if (selector = message['selector'])
+        message['selector'] = selector.to_json
       end
       execution = process(message.with_indifferent_access)
       execution.reload
