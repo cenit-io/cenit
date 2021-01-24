@@ -931,37 +931,40 @@ module Mongoff
 end
 
 {
-  cancel: Cancelable,
-  switch: Switchable
-}.each do |action, mod|
-  mod.module_eval <<-RUBY
-  
-  def digest_#{action}(_request, options = {})
-    #{action}
-    {
-      json: to_hash(options)
-    }
-  rescue
-    {
-      json: { error: $!.message },
-      status: :bad_request
-    }
+  get: {
+    cancel: Cancelable,
+    switch: Switchable
+  }
+}.each do |method, actions|
+  actions.each do |action, mod|
+    mod.module_eval <<-RUBY
+      def #{method}_digest_#{action}(_request, options = {})
+        #{action}
+        {
+          json: to_hash(options)
+        }
+      rescue
+        {
+          json: { error: $!.message },
+          status: :bad_request
+        }
+      end
+    
+      ClassMethods.module_eval do
+        def #{method}_digest_#{action}(_request, options = {})
+          #{action}_all(where(options['selector'] || {}))
+          {
+            body: nil
+          }
+        rescue
+          {
+            json: { error: $!.message },
+            status: :bad_request
+          }
+        end
+      end
+    RUBY
   end
-
-  ClassMethods.module_eval do
-    def digest_#{action}(_request, options = {})
-      #{action}_all(where(options['selector'] || {}))
-      {
-        body: nil
-      }
-    rescue
-      {
-        json: { error: $!.message },
-        status: :bad_request
-      }
-    end
-  end
-  RUBY
 end
 
 ::Script.class_eval do
