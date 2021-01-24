@@ -723,6 +723,43 @@ module Setup
         status: :bad_request
       }
     end
+
+    def get_digest_origins(_request, _options = {})
+      model = records_model
+      origins =
+        if model.is_a?(Class) && model < CrossOrigin::Document
+          model.origins
+        else
+          [:default]
+        end
+      {
+        body: origins.map(&:to_s)
+      }
+    rescue
+      {
+        json: { error: $!.message },
+        status: :bad_request
+      }
+    end
+
+    def post_digest_cross(request, _options = {})
+      fail 'Unable to cross' unless model.is_a?(Class) && model < CrossOrigin::Document
+      options = JSON.parse(request.body.read)
+      execution = Setup::Crossing.process(
+        data_type_id: id,
+        selector: options['selector'].to_json,
+        origin: options['origin'],
+        #TODO Cross dependencies option
+        )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
   end
 
   FileDataType.class_eval do
