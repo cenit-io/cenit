@@ -1,6 +1,9 @@
 module Api::V3
   class ApiController < ApplicationController
 
+    include OAuth2AccountAuthorization
+    include CorsCheck
+
     before_action :allow_origin_header
     before_action :authorize_account, except: [:new_user, :cors_check]
     before_action :save_request_data
@@ -11,23 +14,6 @@ module Api::V3
     rescue_from Exception, with: :exception_handler
 
     respond_to :json
-
-    def cors_check
-      cors_headers
-      render body: nil
-    end
-
-    def allow_origin_header
-      headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
-    end
-
-    def cors_headers
-      allow_origin_header
-      headers['Access-Control-Allow-Credentials'] = 'false'
-      headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, Authorization, X-Template-Options, X-Query-Options, X-Query-Selector, X-Digest-Options, X-Parser-Options, X-JSON-Path, X-Record-Id'
-      headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
-      headers['Access-Control-Max-Age'] = '1728000'
-    end
 
     def index
       setup_viewport
@@ -493,50 +479,6 @@ module Api::V3
     end
 
     protected
-
-    def authorize_account
-      Account.current = User.current = error_description = nil
-      if (auth_header = request.headers['Authorization'])
-        auth_header = auth_header.to_s.squeeze(' ').strip.split(' ')
-        if auth_header.length == 2
-          @access_token = access_token = Cenit::OauthAccessToken.where(token_type: auth_header[0], token: auth_header[1]).first
-          if access_token&.alive?
-            if (user = access_token.user)
-              User.current = user
-              if access_token.set_current_tenant!
-                access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
-                if access_grant
-                  @oauth_scope = access_grant.oauth_scope
-                else
-                  error_description = 'Access grant revoked or moved outside token tenant'
-                end
-              end
-            else
-              error_description = 'The token owner is no longer an active user'
-            end
-          else
-            error_description = 'Access token is expired or malformed'
-          end
-        else
-          error_description = 'Malformed authorization header'
-        end
-        if User.current && Account.current
-          @ability = Ability.new(User.current)
-          true
-        else
-          unless error_description
-            report = Setup::SystemReport.create(message: "Unable to locate tenant for authorization header #{auth_header}")
-            error_description = "Ask for support by supplying this code: #{report.id}"
-          end
-          response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="invalid_token",error_description=#{error_description})
-          render json: { error: 'invalid_token', error_description: error_description }, status: :unauthorized
-          false
-        end
-      else
-        @ability = Ability.new(nil)
-        true
-      end
-    end
 
     def authorized_action?
       authorize_action(skip_response: true)

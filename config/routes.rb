@@ -42,6 +42,7 @@ Cenit::Application.routes.draw do
   get 'captcha/:token', to: 'captcha#index'
   get '/file/:model/:id/:field', to: 'file#index'
   get '/file/:model/:id/:field/*file', to: 'file#index'
+  match '/file/:model/:id/:field/*file', to: 'file#cors_check', via: [:options]
 
   namespace :api do
     namespace :v1 do
