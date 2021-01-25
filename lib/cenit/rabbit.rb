@@ -19,6 +19,7 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
+        task_description = message[:task_description]
         auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
@@ -39,7 +40,10 @@ module Cenit
           if TaskToken.where(task_id: task.id).exists?
             Setup::SystemNotification.create(message: "Task #{task} already onboard, skipping requeuing (task ID: #{task.id})!", type: :warning)
           else
-            task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
+            task_update = {}
+            task_update[:auto_retry] = auto_retry unless task.auto_retry == auto_retry
+            task_update[:description] = task_description if task_description
+            task.update(task_update) unless task_update.empty?
             block.call(task) if block
             task_execution = task.queue_execution
             unless task.joining?

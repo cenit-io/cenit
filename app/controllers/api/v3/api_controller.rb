@@ -703,7 +703,7 @@ module Setup
       }
     end
 
-    def post_digest_pull_import(request, _options = {})
+    def post_digest_pull_import(request, options = {})
       model = records_model
       data =
         begin
@@ -722,7 +722,11 @@ module Setup
         collecting_property = Setup::CrossSharedCollection::COLLECTING_PROPERTIES.detect { |name| Setup::CrossSharedCollection.reflect_on_association(name).klass >= model }
         data = { collecting_property => data }.with_indifferent_access
       end
-      execution = Setup::PullImport.process(data: data.to_json, discard_collection: model != Setup::Collection)
+      execution = Setup::PullImport.process(
+        data: data.to_json,
+        discard_collection: model != Setup::Collection,
+        task_description: options['task_description']
+      )
       {
         body: execution.to_hash(include_id: true, include_blanks: false)
       }

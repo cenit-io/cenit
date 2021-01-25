@@ -17,6 +17,7 @@ module Setup
 
     # TODO Include instead the current execution ID
     build_in_data_type.excluding(:current_execution, :thread_token).and(
+      label: '{{description}}',
       properties: {
         status: {
           enum: STATUS.collect(&:to_s)
