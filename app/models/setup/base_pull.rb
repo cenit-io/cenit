@@ -25,7 +25,7 @@ module Setup
           pull_request_hash[:pull_parameters].merge!(pull_parameters)
           source_shared_collection.parametrize(pull_request_hash[:collection_data] || {}, pull_request_hash[:pull_parameters], keep_values: true)
         end
-        pulled_request_hash = Cenit::Actions.pull(source_shared_collection, pull_request_hash)
+        pulled_request_hash = self.class.pull(source_shared_collection, pull_request_hash)
         self.remove_pull_request = true
         {
           fixed_errors: :warning,

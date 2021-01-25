@@ -702,6 +702,56 @@ module Setup
         status: :unprocessable_entity
       }
     end
+
+    def post_digest_pull_import(request, _options = {})
+      model = records_model
+      data =
+        begin
+          JSON.parse(request.body.read)
+        rescue
+          fail 'Invalid JSON data'
+        end
+      data = [data] if data.is_a?(Hash)
+      if model == Setup::Collection
+        if data.length == 1
+          data = data[0]
+        else
+          fail 'Array data is not allowed for pulling collections'
+        end
+      else
+        collecting_property = Setup::CrossSharedCollection::COLLECTING_PROPERTIES.detect { |name| Setup::CrossSharedCollection.reflect_on_association(name).klass >= model }
+        data = { collecting_property => data }.with_indifferent_access
+      end
+      execution = Setup::PullImport.process(data: data.to_json, discard_collection: model != Setup::Collection)
+      {
+        body: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { error: $!.message },
+        status: :bad_request
+      }
+    end
+  end
+
+  PullImport.class_eval do
+
+    def post_digest_pull(_request, options = {})
+      message[:install] = options['install'].to_b if ask_for_install?
+      unless (pull_parameters = options['pull_parameters']).is_a?(Hash)
+        pull_parameters = {}
+      end
+      message[:pull_parameters] = pull_parameters
+      execution = self.retry
+      {
+        body: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { error: $!.message },
+        status: :bad_request
+      }
+    end
   end
 
   FileDataType.class_eval do
