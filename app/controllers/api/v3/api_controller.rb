@@ -965,6 +965,26 @@ module Setup
       }
     end
   end
+
+  Collection.class_eval do
+
+    def post_digest_share(request, _options = {})
+      # TODO Validate pull parameters
+      execution = Setup::CollectionSharing.process(
+        collection_id: id,
+        data: request.body.read
+      )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'

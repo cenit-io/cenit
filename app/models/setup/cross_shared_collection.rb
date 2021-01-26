@@ -102,14 +102,7 @@ module Setup
     end
 
     def ensure_shared_name
-      self.owner ||= Cenit::MultiTenancy.tenant_model.current.owner
-      shared_name = Setup::CrossSharedName.find_or_create_by(name: name)
-      if shared_name.owners.empty?
-        shared_name.owners << owner
-        shared_name.save
-      elsif shared_name.owners.exclude?(owner)
-        errors.add(:name, 'is already taken')
-      end
+      # TODO Include a validation logic for shared collections names
       errors.blank?
     end
 

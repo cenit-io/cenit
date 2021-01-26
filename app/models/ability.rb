@@ -235,7 +235,7 @@ class Ability
   class StandardUser < self
     extend CanCan::Ability
 
-    cannot :access, [Setup::CrossSharedName, Setup::DelayedMessage, Setup::SystemReport]
+    cannot :access, [Setup::DelayedMessage, Setup::SystemReport]
     cannot :delete, Setup::Storage
 
     can :read, Setup::CrossSharedCollection
@@ -254,7 +254,6 @@ class Ability
           Role,
           User,
           Account,
-          Setup::CrossSharedName,
           Cenit::BasicToken,
           Script,
           Setup::DelayedMessage,
