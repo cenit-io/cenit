@@ -4,6 +4,7 @@ module Setup
     include CrossOrigin::CenitDocument
     include CollectionBehavior
     include Taggable
+    include AsynchronousPersistence::Model
 
     origins -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
 

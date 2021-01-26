@@ -101,45 +101,70 @@ module Api::V3
     end
 
     def new
+      parser_options = self.parser_options.dup
       if klass.is_a?(Class) && klass < FieldsInspection
         parser_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
       end
-      parser = Parser.new(klass.data_type)
-      parser_options[:create_callback] = -> model {
-        fail Abort unless authorize_action(action: :create, klass: model)
-      }
-      parser_options[:update_callback] = -> record {
-        fail Abort unless authorize_action(action: :update, item: record)
-      }
-      record = parser.create_from(request_data, parser_options)
-      if record.errors.blank?
-        if setup_viewport(:headers)
-          render json: to_hash(record)
-        else
-          render body: nil
-        end
+      if klass.is_a?(Class) && klass < Setup::AsynchronousPersistence::Model
+        execution = Setup::AsynchronousPersistence.process(
+          parser_options: parser_options,
+          data_type_id: klass.data_type.id,
+          access_scope: @oauth_scope&.to_s,
+          data: request_data
+        )
+        render json: execution.to_hash(include_id: true, include_blanks: false), status: :accepted
       else
-        render json: klass.pretty_errors(record), status: :unprocessable_entity
+        parser = Parser.new(klass.data_type)
+        parser_options[:create_callback] = -> model {
+          fail Abort unless authorize_action(action: :create, klass: model)
+        }
+        parser_options[:update_callback] = -> record {
+          fail Abort unless authorize_action(action: :update, item: record)
+        }
+        record = parser.create_from(request_data, parser_options)
+        if record.errors.blank?
+          if setup_viewport(:headers)
+            render json: to_hash(record)
+          else
+            render body: nil
+          end
+        else
+          render json: klass.pretty_errors(record), status: :unprocessable_entity
+        end
       end
     rescue Abort
       # Aborted!
     end
 
     def update
+      parser_options = self.parser_options.dup
       parser_options[:add_only] = true
-      @item.fill_from(request_data, parser_options)
-      save_options = {}
-      if @item.class.is_a?(Class) && @item.class < FieldsInspection
-        save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
-      end
-      if Cenit::Utility.save(@item, save_options)
-        if setup_viewport(:headers)
-          render json: to_hash(@item)
-        else
-          render body: nil
-        end
+      async = klass.is_a?(Class) && klass < Setup::AsynchronousPersistence::Model
+      if async
+        execution = Setup::AsynchronousPersistence.process(
+          parser_options: parser_options,
+          data_type_id: klass.data_type.id,
+          record_id: @item.id,
+          access_scope: @oauth_scope&.to_s,
+          data: request_data,
+          inspect_fields: Account.current.nil? || !::User.current_super_admin?
+        )
+        render json: execution.to_hash(include_id: true, include_blanks: false), status: :accepted
       else
-        render json: klass.pretty_errors(@item), status: :unprocessable_entity
+        @item.fill_from(request_data, parser_options)
+        save_options = {}
+        if @item.class.is_a?(Class) && @item.class < FieldsInspection
+          save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+        end
+        if Cenit::Utility.save(@item, save_options)
+          if setup_viewport(:headers)
+            render json: to_hash(@item)
+          else
+            render body: nil
+          end
+        else
+          render json: klass.pretty_errors(@item), status: :unprocessable_entity
+        end
       end
     end
 
@@ -694,7 +719,8 @@ module Setup
         #TODO Cross dependencies option
         )
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -728,7 +754,8 @@ module Setup
         task_description: options['task_description']
       )
       {
-        body: execution.to_hash(include_id: true, include_blanks: false)
+        body: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -844,7 +871,8 @@ module Setup
         #options: @form_object.options TODO Template options
       )
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -871,7 +899,8 @@ module Setup
       }
       execution = Setup::DataImport.process(msg)
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -898,7 +927,8 @@ module Setup
         #options: @form_object.options TODO Updater options
         )
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -925,7 +955,8 @@ module Setup
       #options: @form_object.options TODO Convert options
         )
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
       }
     rescue
       {
@@ -1016,7 +1047,8 @@ end
       skip_notification_level: true
     )
     {
-      json: execution.to_hash(include_id: true, include_blanks: false)
+      json: execution.to_hash(include_id: true, include_blanks: false),
+      status: :accepted
     }
   rescue
     {

@@ -3,6 +3,7 @@ module Setup
     include CenitScoped
     include CollectionBehavior
     include Taggable
+    include AsynchronousPersistence::Model
 
     image_with AccountImageUploader
 
