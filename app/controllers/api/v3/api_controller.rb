@@ -765,23 +765,26 @@ module Setup
     end
   end
 
-  PullImport.class_eval do
+  [PullImport, SharedCollectionPull, ApiPull].each do |pull_model|
+    pull_model.class_eval do
 
-    def post_digest_pull(_request, options = {})
-      message[:install] = options['install'].to_b if ask_for_install?
-      unless (pull_parameters = options['pull_parameters']).is_a?(Hash)
-        pull_parameters = {}
+      def post_digest_pull(request, _options = {})
+        options = JSON.parse(request.body.read)
+        message[:install] = options['install'].to_b if ask_for_install?
+        unless (pull_parameters = options['pull_parameters']).is_a?(Hash)
+          pull_parameters = {}
+        end
+        message[:pull_parameters] = pull_parameters
+        execution = self.retry
+        {
+          body: execution.to_hash(include_id: true, include_blanks: false)
+        }
+      rescue
+        {
+          json: { error: $!.message },
+          status: :bad_request
+        }
       end
-      message[:pull_parameters] = pull_parameters
-      execution = self.retry
-      {
-        body: execution.to_hash(include_id: true, include_blanks: false)
-      }
-    rescue
-      {
-        json: { error: $!.message },
-        status: :bad_request
-      }
     end
   end
 
@@ -973,6 +976,25 @@ module Setup
       execution = Setup::CollectionSharing.process(
         collection_id: id,
         data: request.body.read
+      )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+
+  CrossSharedCollection.class_eval do
+
+    def post_digest_pull(request, _options)
+      data = JSON.parse(request.body.read)
+      execution = pull(
+        pull_parameters: data['pull_parameters'] || {}
       )
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
