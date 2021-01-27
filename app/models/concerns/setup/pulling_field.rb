@@ -13,7 +13,7 @@ module Setup
           klass = klass.constantize if klass.is_a?(String)
           klass.class_eval "def pull(message = {}, &block)
             message[:#{field}] = self
-            message[:task_description] ||= 'Pulling ' + self.name
+            message[:task_description] ||= 'Pulling ' + (try(:name) || try(:title))
             #{to_s}.process(message, &block)
           end"
           @pulling_field = field

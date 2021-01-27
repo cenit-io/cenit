@@ -989,22 +989,24 @@ module Setup
     end
   end
 
-  CrossSharedCollection.class_eval do
+  [CrossSharedCollection, ApiSpec].each do |model|
+    model.class_eval do
 
-    def post_digest_pull(request, _options)
-      data = JSON.parse(request.body.read)
-      execution = pull(
-        pull_parameters: data['pull_parameters'] || {}
-      )
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false),
-        status: :accepted
-      }
-    rescue
-      {
-        json: { '$': [$!.message] },
-        status: :unprocessable_entity
-      }
+      def post_digest_pull(request, _options)
+        data = JSON.parse(request.body.read)
+        execution = pull(
+          pull_parameters: data['pull_parameters'] || {}
+        )
+        {
+          json: execution.to_hash(include_id: true, include_blanks: false),
+          status: :accepted
+        }
+      rescue
+        {
+          json: { '$': [$!.message] },
+          status: :unprocessable_entity
+        }
+      end
     end
   end
 end
