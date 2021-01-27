@@ -1009,6 +1009,33 @@ module Setup
       end
     end
   end
+
+  Task.class_eval do
+
+    def post_digest_schedule(request, _options = {})
+      sch_data = request.body.read.strip
+      sch_data = sch_data.empty? ? {} : JSON.parse(sch_data)
+      scheduler =
+        if sch_data.empty?
+          nil
+        else
+            Setup::Scheduler.create_from_json!(sch_data)
+        end
+      execution = schedule(scheduler)
+      unless execution
+        fail "Can't #{scheduler ? 're-' : 'un'}schedule right now, the task is #{status}"
+      end
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'
