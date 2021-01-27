@@ -9,8 +9,15 @@ module Setup
 
     default_origin :app
 
-    build_in_data_type.with(:namespace, :name, :actions, :application_parameters)
-    build_in_data_type.referenced_by(:namespace, :name, :_type).and(properties: { configuration: {} })
+    build_in_data_type.with(:namespace, :name, :slug, :actions, :application_parameters)
+    build_in_data_type.referenced_by(:namespace, :name, :_type).and(
+      properties: {
+        registered: {
+          type: 'boolean'
+        },
+        configuration: {}
+      }
+    )
 
     additional_config_schema(
       properties: {
