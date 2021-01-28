@@ -24,7 +24,7 @@ module Cenit
           end
         end
       end
-      errors.add(:slug, 'is not valid') unless slug.to_s.underscore == slug
+      errors.add(:slug, 'is not valid') if slug && slug.to_s.underscore != slug
       errors.blank?
     end
 

@@ -29,7 +29,7 @@ module Setup
     end
 
     def provider
-      client && client.provider
+      client&.provider
     end
 
     def authorization_endpoint
