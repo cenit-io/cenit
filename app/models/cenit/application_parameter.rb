@@ -83,8 +83,11 @@ module Cenit
         else
           Setup::Application.parameter_type_schema(type)
         end
-      sch = (many ? { type: 'array', items: sch } : sch)
-      sch[:referenced] = true unless BASIC_TYPES.has_key?(type) || type.blank?
+      if many
+        referenced = sch.delete(:referenced)
+        sch = { type: 'array', items: sch }
+        sch[:referenced] = true if referenced
+      end
       sch[:group] = group if group
       sch[:description] = description if description.present?
       sch.deep_stringify_keys

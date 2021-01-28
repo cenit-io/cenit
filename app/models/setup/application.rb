@@ -15,7 +15,9 @@ module Setup
         registered: {
           type: 'boolean'
         },
-        configuration: {}
+        configuration: {
+          type: 'object'
+        }
       }
     )
 

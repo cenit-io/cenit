@@ -96,15 +96,21 @@ module Cenit
       end
 
       def parameter_type_schema(type)
-        {
-          '$ref': case (klass = Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass)
+        klass = Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass
+        klass = case klass
                   when Setup::RemoteOauthClient
                     Setup::OauthClient
                   when Setup::PlainWebhook
                     Setup::Webhook
                   else
                     klass
-                  end.to_s
+                end
+        {
+          referenced: true,
+          '$ref': {
+            namespace: klass.data_type.namespace,
+            name: klass.data_type.name
+          }
         }
       end
 
