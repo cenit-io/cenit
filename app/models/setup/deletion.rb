@@ -1,31 +1,12 @@
 module Setup
   class Deletion < Setup::Task
+    include BulkableTask
 
     build_in_data_type
 
-    def target_model_name
-      message[:model_name] || message['model_name']
-    end
-
-    def deletion_model
-      model_name = target_model_name
-      model =
-        begin
-          model_name.constantize
-        rescue
-          nil
-        end
-      unless model
-        if model_name.start_with?('Dt') && (data_type = Setup::DataType.where(id: model_name.from(2)).first)
-          model = data_type.records_model
-        end
-      end
-      model
-    end
-
     def run(message)
-      if (model = deletion_model)
-        scope = model.where(message[:selector])
+      if (model = data_type_from(message).records_model)
+        scope = objects_from(message)
         destroy_callback = [:before_destroy, :after_destroy].any? do |m|
           begin
             model.singleton_method(m)

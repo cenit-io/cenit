@@ -665,7 +665,10 @@ module Setup
             end
           end
         elsif controller.authorize_action(action: :delete, klass: records_model)
-          execution = Deletion.process(model_name: records_model.to_s, selector: query.selector)
+          execution = Deletion.process(
+            data_type_id: id,
+            selector: controller.query_selector.to_json
+          )
           {
             json: controller.to_hash(execution),
             status: :accepted
