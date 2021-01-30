@@ -19,7 +19,7 @@ module Edi
       def parse_json(data_type, content, options = {}, record = nil, model = nil)
         content = JSON.parse(content) unless content.is_a?(Hash)
         process_options(options)
-        do_parse_json(data_type, model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
+        do_parse_json(data_type, model || record&.orm_model || data_type.records_model, content.with_indifferent_access, options, (record && record.orm_model.schema) || (model && model.schema) || data_type.merged_schema, nil, record)
       end
 
       def parse_xml(data_type, content, options = {}, record = nil)
