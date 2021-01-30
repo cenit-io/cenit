@@ -1015,6 +1015,21 @@ module Setup
 
   Task.class_eval do
 
+    def get_digest_retry(_request, _options = {})
+      if (execution = self.retry)
+        {
+          json: execution.to_hash(include_id: true, include_blanks: false)
+        }
+      else
+        fail "Can't retry at this moment"
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+
     def post_digest_schedule(request, _options = {})
       sch_data = request.body.read.strip
       sch_data = sch_data.empty? ? {} : JSON.parse(sch_data)
