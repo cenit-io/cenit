@@ -43,7 +43,8 @@ module Cenit
             data.try(:to_json) || {}
           end
       end
-      @config = configuration_model.new_from_json(data)
+      @config = configuration_model.new
+      @config.from_json(data)
     end
 
     def configuration_model

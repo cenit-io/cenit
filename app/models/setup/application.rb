@@ -1,9 +1,6 @@
 module Setup
   class Application < OauthClient
-    include NamespaceNamed
-    include Slug
-    include Cenit::AppConfig
-    include Cenit::AppCommon
+    include Cenit::App
 
     origins :app
 

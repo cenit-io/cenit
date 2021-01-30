@@ -624,6 +624,30 @@ module Api::V3
   end
 end
 
+module Cenit
+  App.module_eval do
+
+    def post_digest_config(request, _options = {})
+      self.configuration = request.body.read
+      if save
+        {
+          body: nil
+        }
+      else
+        {
+          json: self.class.pretty_errors(self),
+          status: :unprocessable_entity
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+end
+
 module Setup
   DataType.class_eval do
 
@@ -1047,28 +1071,6 @@ module Setup
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
       }
-    rescue
-      {
-        json: { '$': [$!.message] },
-        status: :unprocessable_entity
-      }
-    end
-  end
-
-  Application.class_eval do
-
-    def post_digest_config(request, _options = {})
-      self.configuration = request.body.read
-      if save
-        {
-          body: nil
-        }
-      else
-        {
-          json: self.class.pretty_errors(self),
-          status: :unprocessable_entity
-        }
-      end
     rescue
       {
         json: { '$': [$!.message] },

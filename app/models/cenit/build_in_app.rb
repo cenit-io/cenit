@@ -1,16 +1,19 @@
 module Cenit
   class BuildInApp < ::Setup::OauthClient
-    include Setup::NamespaceNamed
-    include Setup::Slug
-    include AppConfig
-    include AppCommon
+    include App
 
     origins :admin
 
     default_origin :admin
 
-    build_in_data_type.with(:namespace, :name, :application_parameters)
-    build_in_data_type.referenced_by(:namespace, :name, :_type).and(properties: { configuration: {} })
+    build_in_data_type.with(:namespace, :name, :slug, :application_parameters)
+    build_in_data_type.referenced_by(:namespace, :name, :_type).and(
+      properties: {
+        configuration: {
+          type: 'object'
+        }
+      }
+    )
 
     deny :delete
 
@@ -37,7 +40,7 @@ module Cenit
     class << self
 
       def stored_properties_on(record)
-        stored = %w(namespace name identifier secret created_at updated_at)
+        stored = %w(namespace name slug identifier secret created_at updated_at)
         %w(application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored
