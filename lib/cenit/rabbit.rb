@@ -8,7 +8,7 @@ module Cenit
     class << self
 
       def maximum_active_tasks
-        @maximum__active_tasks ||= (ENV['BASE_MULTIPLIER_ACTIVE_TASKS'] || 50).to_i * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
+        @maximum__active_tasks ||= ENV.fetch('BASE_MULTIPLIER_ACTIVE_TASKS', 50).to_i * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
       end
 
       def tasks_quota(active_tenants = nil)
