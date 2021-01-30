@@ -721,8 +721,17 @@ module Setup
     def get_digest_origins(_request, _options = {})
       model = records_model
       origins =
-        if model.is_a?(Class) && model < CrossOrigin::Document
-          model.origins
+        if (model.is_a?(Class) && model < CrossOrigin::Document) || model == Collection
+          origins = model.origins.map(&:to_sym).map {|a| [a, a]}.to_h
+          unless User.current_super_admin?
+            origins.delete(:admin)
+            origins.delete(:temp)
+            origins.delete(:admin)
+          end
+          unless User.current_cross_shared?
+            origins.delete(:shared)
+          end
+          origins.keys
         else
           [:default]
         end
@@ -737,7 +746,10 @@ module Setup
     end
 
     def post_digest_cross(request, _options = {})
-      fail 'Unable to cross' unless model.is_a?(Class) && model < CrossOrigin::Document
+      fail 'Unable to cross' unless model.is_a?(Class) && (
+        model < CrossOrigin::Document ||
+        model == Collection
+      )
       options = JSON.parse(request.body.read)
       execution = Setup::Crossing.process(
         data_type_id: id,
