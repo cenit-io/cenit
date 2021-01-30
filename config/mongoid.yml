@@ -5,11 +5,11 @@ development:
     default:
       # Defines the name of the default database that Mongoid can connect to.
       # (required).
-      database: <%= ENV['DB_DEV'] || 'cenit_dev' %>
+      database: <%= ENV.fetch('DB_DEV', 'cenit_dev') %>
       # Provides the hosts the default session can connect to. Must be an array
       # of host:port pairs. (required)
       hosts:
-        - <%= ENV['DB_PORT'] || 'localhost:27017' %>
+        - <%= ENV.fetch('DB_PORT', 'localhost:27017') %>
       options:
         # Change whether the session persists in safe mode by default.
         # (default: false)
@@ -65,7 +65,7 @@ development:
 test:
   clients:
     default:
-      database: <%= ENV['DB_TEST'] || 'cenit_test' %>
+      database: <%= ENV.fetch('DB_TEST', 'cenit_test') %>
       hosts:
         - localhost:27017
       options:
