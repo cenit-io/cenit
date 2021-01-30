@@ -26,8 +26,12 @@ working_directory app_dir
 listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", backlog: 64
 
 # Loging
-stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"
-stdout_path "#{shared_dir}/log/unicorn.#{app_name}.stdout.log"
+if ENV['RAILS_LOG_TO_STDOUT']
+  logger Logger.new(STDOUT)
+else
+  stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"
+  stdout_path "#{shared_dir}/log/unicorn.#{app_name}.stdout.log"
+end
 
 # Set master PID location
 pid "#{shared_dir}/pids/unicorn.#{app_name}.pid"
