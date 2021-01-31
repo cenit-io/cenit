@@ -1065,6 +1065,23 @@ module Setup
     end
   end
 
+  CrossSharedCollection.class_eval do
+
+    def get_digest_reinstall(_request, _options = {})
+      execution = SharedCollectionReinstall.process(
+        shared_collection_id: id
+      )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+
   [CrossSharedCollection, ApiSpec].each do |model|
     model.class_eval do
 
