@@ -1,7 +1,19 @@
 module Cenit
   class ApplicationId
-    include Mongoid::Document
-    include Mongoid::Timestamps
+    include Setup::CenitUnscoped
+
+    build_in_data_type.and(
+      properties: {
+        name: {
+          type: 'string'
+        },
+        registered: {
+          type: 'boolean'
+        }
+      }
+    )
+
+    deny :all
 
     field :tenant_id
 

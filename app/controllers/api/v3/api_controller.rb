@@ -650,6 +650,28 @@ module Cenit
       }
     end
   end
+
+  ApplicationId.class_eval do
+
+    def get_digest_switch_trust(_request, options = {})
+      self.trusted = !trusted
+      if save
+        {
+          json: to_hash(options)
+        }
+      else
+        {
+          json: self.class.pretty_errors(self),
+          status: :unprocessable_entity
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 module Setup
