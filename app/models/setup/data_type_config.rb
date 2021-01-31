@@ -7,7 +7,6 @@ module Setup
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
 
-    field :navigation_link, type: Boolean
     field :trace_on_default, type: Boolean
 
     attr_readonly :data_type
@@ -15,14 +14,9 @@ module Setup
     validates_uniqueness_of :data_type
     validates_presence_of :data_type
 
-    after_initialize do
-      self.navigation_link = true if data_type.is_a?(Setup::CenitDataType)
-    end
-
     before_save :check_options
 
     def check_options
-      remove_attribute(:navigation_link) if data_type.is_a?(Setup::CenitDataType)
       if has_attribute?(:trace_on_default) && !tracing_option_available?
         remove_attribute(:trace_on_default)
         errors.add(:trace_on_default, 'is not available for the referred data type')
@@ -44,7 +38,7 @@ module Setup
 
     class << self
       def config_fields
-        %w(slug navigation_link trace_on_default)
+        %w(slug trace_on_default)
       end
     end
 

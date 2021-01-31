@@ -265,7 +265,11 @@ module Api::V3
     attr_reader :model
 
     def setup_request(options = {})
-      @klass = @ns_name = nil
+      if (@klass = options[:klass])
+        @ns_name = @klass.data_type.namespace
+      else
+        @ns_name = nil
+      end
       @ns_slug = options[:namespace] || params[:__ns_]
       @model = options[:model] || params[:__model_]
       @_id = options[:id] || params[:__id_]
@@ -538,7 +542,7 @@ module Api::V3
           else
             if @ns_name.nil?
               ns = Setup::Namespace.where(slug: @ns_slug).first
-              @ns_name = (ns && ns.name) || ''
+              @ns_name = ns&.name || ''
             end
             if @ns_name
               Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
@@ -653,14 +657,14 @@ module Setup
 
     def handle_get_digest(controller)
       if (id = controller.request.headers['X-Record-Id'])
-        controller.setup_request(namespace: ns_slug, model: slug, id: id)
+        controller.setup_request(namespace: ns_slug, klass: records_model, id: id)
         controller.show if (item = controller.find_item) && controller.authorize_action(
           action: :read,
           item: item,
           klass: records_model
         )
       else
-        controller.setup_request(namespace: ns_slug, model: slug)
+        controller.setup_request(namespace: ns_slug, klass: records_model)
         controller.index if controller.authorize_action(
           action: :read,
           klass: records_model
@@ -669,7 +673,7 @@ module Setup
     end
 
     def handle_post_digest(controller)
-      controller.setup_request(namespace: ns_slug, model: slug)
+      controller.setup_request(namespace: ns_slug, klass: records_model)
       controller.new
     end
 
