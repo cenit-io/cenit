@@ -1169,6 +1169,21 @@ end
   end
 end
 
+::Account.class_eval do
+
+  def delete_digest_shred(_request, _options = {})
+    clean_up
+    {
+      body: nil
+    }
+  rescue
+    {
+      json: { '$': [$!.message] },
+      status: :unprocessable_entity
+    }
+  end
+end
+
 ::Script.class_eval do
 
   def post_digest(request, _options = {})
