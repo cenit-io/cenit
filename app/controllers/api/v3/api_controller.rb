@@ -1026,6 +1026,19 @@ module Setup
         status: :unprocessable_entity
       }
     end
+
+    def delete_digest_shred(_request, _options = {})
+      execution = Setup::CollectionShredding.process(collection_id: id)
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
   end
 
   [CrossSharedCollection, ApiSpec].each do |model|
