@@ -1043,6 +1043,26 @@ module Setup
         status: :unprocessable_entity
       }
     end
+
+    def post_digest_push(request, _options = {})
+      options = JSON.parse(request.body.read)
+      execution = Setup::Push.process(
+        source_collection_id: id,
+        shared_collection_id: (
+          options['shared_collection_id'] ||
+            ((shared_collection = options['shared_collection']) && shared_collection['id'])
+        )
+      )
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
   end
 
   [CrossSharedCollection, ApiSpec].each do |model|
