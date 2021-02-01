@@ -672,6 +672,45 @@ module Cenit
       }
     end
   end
+
+  ActiveTenant.class_eval do
+    class << self
+
+      def get_digest_clean(_request, _options = {})
+        clean_all
+        {
+          body: nil
+        }
+      rescue
+        {
+          json: { '$': [$!.message] },
+          status: :unprocessable_entity
+        }
+      end
+
+      def get_digest_list(_request, _options = {})
+        hash = to_hash
+        active_tenants = ::Account.where(:id.in => hash.keys).to_a.map do |tenant|
+          {
+            tenant: {
+              _reference: true,
+              id: tenant.id.to_s,
+              name: tenant.name
+            },
+            tasks: hash[tenant.id.to_s]
+          }
+        end
+        {
+          json: active_tenants
+        }
+      rescue
+        {
+          json: { '$': [$!.message] },
+          status: :unprocessable_entity
+        }
+      end
+    end
+  end
 end
 
 module Setup
@@ -748,7 +787,7 @@ module Setup
       model = records_model
       origins =
         if (model.is_a?(Class) && model < CrossOrigin::Document) || model == Collection
-          origins = model.origins.map(&:to_sym).map {|a| [a, a]}.to_h
+          origins = model.origins.map(&:to_sym).map { |a| [a, a] }.to_h
           unless User.current_super_admin?
             origins.delete(:admin)
             origins.delete(:temp)
