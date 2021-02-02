@@ -17,7 +17,7 @@ class User
 
   rolify
 
-  build_in_data_type.with(:email, :name, :account).and(properties: {
+  build_in_data_type.with(:email, :name, :account, :roles).and(properties: {
     password: {
       type: 'string'
     }

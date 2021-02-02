@@ -1,5 +1,9 @@
 class Role
-  include Mongoid::Document
+  include Setup::CenitUnscoped
+
+  build_in_data_type.with(:name, :metadata)
+
+  deny :all
 
   has_and_belongs_to_many :users
   belongs_to :resource, polymorphic: true
