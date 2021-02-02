@@ -10,11 +10,7 @@ module Setup
       :name,
       :title,
       :_type,
-      :snippet,
-      :before_save_callbacks,
-      :after_save_callbacks,
-      :records_methods,
-      :data_type_methods
+      :snippet
     )
     build_in_data_type.and(
       abstract: true,

@@ -19,7 +19,10 @@ module Setup
     included do
       origins *Setup::CrossOriginShared::DEFAULT_ORIGINS
 
-      build_in_data_type.excluding(:origin, :tenant)
+      build_in_data_type
+        .excluding(:tenant)
+        .including_polymorphic(:origin)
+        .and_polymorphic(with_origin: true)
 
       shared_deny :delete
 

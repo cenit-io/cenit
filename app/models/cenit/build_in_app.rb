@@ -40,7 +40,7 @@ module Cenit
     class << self
 
       def stored_properties_on(record)
-        stored = %w(namespace name slug identifier secret created_at updated_at)
+        stored = %w(namespace name slug identifier secret origin created_at updated_at)
         %w(application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored

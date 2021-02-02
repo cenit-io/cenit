@@ -134,6 +134,34 @@ module Setup
       self
     end
 
+    def including_polymorphic(*fields)
+      @polymorphic_fields = (@polymorphic_fields || []) + fields.map(&:to_s)
+      self
+    end
+
+    def polymorphic_fields
+      fields = @polymorphic_fields || []
+      if (parent_build_in = BuildInDataType[model.superclass])
+        fields = fields + parent_build_in.polymorphic_fields
+      end
+      fields
+    end
+
+    def and_polymorphic(polymorphic_merge)
+      if polymorphic_merge
+        @polymorphic_merge = (@polymorphic_merge || {}).array_hash_merge(polymorphic_merge.deep_stringify_keys)
+      end
+      self
+    end
+
+    def polymorphic_to_merge
+      to_merge = @polymorphic_merge || {}
+      if (parent_build_in = BuildInDataType[model.superclass])
+        to_merge = to_merge.array_hash_merge(parent_build_in.polymorphic_to_merge)
+      end
+      to_merge
+    end
+
     def with(*fields)
       store_fields(:@with, *fields)
     end
@@ -247,12 +275,13 @@ module Setup
     def included?(name)
       [:@with, :@including, :@embedding, :@discarding].any? do |v|
         (v = instance_variable_get(v)) && v.include?(name)
-      end || !(@with || excluded?(name))
+      end || polymorphic_fields.include?(name) || !(@with || excluded?(name))
     end
 
     def build_schema
       @discarding ||= []
       schema = Mongoff::Model.base_schema.deep_merge('properties' => { 'id' => {} })
+      schema = schema.deep_reverse_merge(polymorphic_to_merge)
       properties = schema['properties']
       if model < ClassHierarchyAware
         if model.abstract?
@@ -299,43 +328,43 @@ module Setup
         next unless included?((relation_name = relation.name.to_s))
         property_schema =
           case relation
-          when Mongoid::Association::Embedded::EmbedsOne
-            {
-              '$ref': build_ref(relation.klass)
-            }
-          when Mongoid::Association::Embedded::EmbedsMany
-            {
-              type: 'array',
-              items: {
+            when Mongoid::Association::Embedded::EmbedsOne
+              {
                 '$ref': build_ref(relation.klass)
               }
-            }
-          when Mongoid::Association::Referenced::HasOne
-            {
-              '$ref': build_ref(relation.klass),
-              referenced: true,
-              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
-              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
-            }
-          when Mongoid::Association::Referenced::BelongsTo
-            if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+            when Mongoid::Association::Embedded::EmbedsMany
+              {
+                type: 'array',
+                items: {
+                  '$ref': build_ref(relation.klass)
+                }
+              }
+            when Mongoid::Association::Referenced::HasOne
               {
                 '$ref': build_ref(relation.klass),
                 referenced: true,
                 exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
                 export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
               }
-            end
-          when Mongoid::Association::Referenced::HasMany, Mongoid::Association::Referenced::HasAndBelongsToMany
-            {
-              type: 'array',
-              items: {
-                '$ref': build_ref(relation.klass)
-              },
-              referenced: true,
-              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
-              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
-            }
+            when Mongoid::Association::Referenced::BelongsTo
+              if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+                {
+                  '$ref': build_ref(relation.klass),
+                  referenced: true,
+                  exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
+                  export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+                }
+              end
+            when Mongoid::Association::Referenced::HasMany, Mongoid::Association::Referenced::HasAndBelongsToMany
+              {
+                type: 'array',
+                items: {
+                  '$ref': build_ref(relation.klass)
+                },
+                referenced: true,
+                exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
+                export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+              }
           end
         next unless property_schema
         property_schema.deep_stringify_keys!

@@ -9,16 +9,20 @@ module Setup
 
     origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared, :admin
 
-    build_in_data_type.including(:provider).and(
-      properties: {
+    build_in_data_type
+      .including(:provider)
+      .including_polymorphic(:origin)
+      .protecting(:identifier, :secret)
+      .referenced_by(:_type, :provider, :namespace, :name)
+      .and(properties: {
         identifier: {
           type: 'string'
         },
         secret: {
           type: 'string'
         }
-      }
-    ).protecting(:identifier, :secret).referenced_by(:_type, :provider, :namespace, :name)
+      })
+      .and_polymorphic(with_origin: true)
 
     field :name, type: String
     belongs_to :provider, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil
