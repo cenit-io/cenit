@@ -63,6 +63,15 @@ module Mongoid
           [
             Setup::CenitDataType
           ]
+
+      def insert_as_root
+        key = ::Mongo::Operation::KEYS_VALIDATION_KEY
+        current_keys_validation = Thread.current[key]
+        Thread.current[key] = false
+        super
+      ensure
+        Thread.current[key] = current_keys_validation
+      end
     end
   end
 end
