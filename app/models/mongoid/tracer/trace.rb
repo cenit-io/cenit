@@ -6,11 +6,16 @@ module Mongoid
       include Setup::CenitScoped
       include CrossOrigin::CenitDocument
 
-      Setup::Models.regist(self)
-
-      build_in_data_type.including(:created_at).and(
+      build_in_data_type.and(
+        label: '{{action}} at {{created_at | date: "%Y-%m-%d %H:%M"}}',
+        with_origin: true,
         properties: {
-          target: {}
+          target: {
+            type: 'object'
+          },
+          changes_set: {
+            type: 'object'
+          }
         }
       )
 
