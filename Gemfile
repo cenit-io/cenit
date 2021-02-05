@@ -100,7 +100,7 @@ gem 'aws-sdk', '~> 2.10.13'
 gem 'net-scp'
 gem 'net-sftp'
 
-gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
+gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git', branch: 'upgrading'
 gem 'diffy'
 gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'
