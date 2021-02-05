@@ -869,6 +869,42 @@ module Setup
     end
   end
 
+  [FileDataType, JsonDataType].each do |k|
+    k.class_eval do
+
+      def get_digest_config(_request, _options = {})
+        if (config = self.config).new_record?
+          config = {}
+        else
+          config = config.to_hash
+        end
+        {
+          json: config
+        }
+      rescue
+        {
+          json: { '$': [$!.message] },
+          status: :unprocessable_entity
+        }
+      end
+
+      def post_digest_config(request, _options = {})
+        hash = JSON.parse(request.body.read)
+        config.slug = hash['slug']
+        config.trace_on_default = hash['trace_on_default']
+        config.save!
+        {
+          json: config.to_hash(include_id: true)
+        }
+      rescue
+        {
+          json: { '$': [$!.message] },
+          status: :unprocessable_entity
+        }
+      end
+    end
+  end
+
   [PullImport, SharedCollectionPull, ApiPull].each do |pull_model|
     pull_model.class_eval do
 
