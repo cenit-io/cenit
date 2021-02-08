@@ -1241,6 +1241,55 @@ module Setup
       }
     end
   end
+
+  Application.class_eval do
+
+    def get_digest_access(_request, options = {})
+      access_grant = ::Cenit::OauthAccessGrant.where(
+        application_id_id: application_id_id
+      ).first
+      if access_grant
+        {
+          json: access_grant.to_hash(options)
+        }
+      else
+        {
+          body: nil,
+          status: :not_found
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+
+    def post_digest_access(request, options = {})
+      scope = ::Cenit::OauthScope.new(JSON.parse(request.body.read)['scope'])
+      fail 'Is not valid' unless scope.valid?
+      access_grant = ::Cenit::OauthAccessGrant.where(
+        application_id_id: application_id_id
+      ).first
+      if access_grant
+        access_grant.scope = scope.to_s
+      else
+        access_grant = ::Cenit::OauthAccessGrant.new(
+          application_id_id: application_id_id,
+          scope: scope.to_s
+        )
+      end
+      access_grant.save!
+      {
+        json: access_grant.to_hash(options)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'
