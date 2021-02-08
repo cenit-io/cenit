@@ -1289,6 +1289,40 @@ module Setup
         status: :unprocessable_entity
       }
     end
+
+    def get_digest_registration(_request, _options = {})
+      {
+        json: {
+          slug: application_id.slug.presence,
+          oauth_name: application_id.oauth_name.presence
+        }
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+
+    def post_digest_registration(request, options = {})
+      data = JSON.parse(request.body.read).with_indifferent_access
+      app_id = application_id
+      if app_id.regist_with(data).valid? && app_id.save
+        {
+          json: app_id.to_hash(options)
+        }
+      else
+        {
+          json: ::Cenit::ApplicationId.pretty_errors(app_id),
+          status: :unprocessable_entity
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
   end
 end
 

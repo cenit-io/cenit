@@ -42,10 +42,14 @@ module Setup
       super
     end
 
+    def registered
+      application_id&.registered
+    end
+
     class << self
 
       def stored_properties_on(record)
-        stored = %w(namespace name identifier secret created_at updated_at)
+        stored = %w(namespace name identifier registered secret created_at updated_at)
         %w(actions application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored
