@@ -112,7 +112,10 @@ module Cenit
     end
 
     def regist_with(data)
-      [:slug, :oauth_name, :redirect_uris].each { |field| send("#{field}=", data[field]) }
+      [:slug, :oauth_name, :redirect_uris].each do |field|
+        next unless data.key?(field)
+        send("#{field}=", data[field])
+      end
       self
     end
   end
