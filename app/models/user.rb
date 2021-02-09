@@ -17,11 +17,14 @@ class User
 
   rolify
 
-  build_in_data_type.with(:email, :name, :account, :roles).and(properties: {
-    password: {
-      type: 'string'
-    }
-  }).protecting(:password)
+  build_in_data_type
+    .with(:email, :name, :account, :roles, :super_admin_enabled)
+    .and(properties: {
+      password: {
+        type: 'string'
+      }
+    })
+    .protecting(:password)
 
   deny :all
 
