@@ -100,4 +100,5 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+require 'api_v3_helper'
 require 'rails_helper'
