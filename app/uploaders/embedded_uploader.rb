@@ -13,7 +13,8 @@ class EmbeddedUploader < BasicUploader
         url: "#{Cenit.homepage}/#{url}",
         filename: file.filename,
         content_type: file.content_type,
-        size: file.size
+        size: file.size,
+        metadata: file.metadata
       }
     else
       {}

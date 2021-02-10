@@ -12,6 +12,7 @@ module GridFsFormatter
       hash[:filename] = f.filename.split('/').pop
       hash[:content_type] = f.content_type
       hash[:size] = f.length
+      hash[:metadata] = f.metadata
       versions.each do |key, uploader|
         hash[key] = uploader.to_hash(options)
       end
