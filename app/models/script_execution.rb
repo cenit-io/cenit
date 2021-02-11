@@ -1,13 +1,17 @@
 class ScriptExecution < Setup::Task
 
-  agent_field :script
+  agent_field :script, :script_id
 
   default_origin :admin
 
   belongs_to :script, class_name: Script.to_s, inverse_of: nil
 
-  before_save do
-    self.script = Script.where(id: message['script_id']).first
+  def auto_description
+    if (script = agent_from_msg)
+      "Executing #{script.name}"
+    else
+      super
+    end
   end
 
   def maximum_resumes
@@ -15,9 +19,14 @@ class ScriptExecution < Setup::Task
   end
 
   def run(message)
-    if (script = Script.where(id: (script_id = message[:script_id])).first)
+    if (script = agent_from_msg)
+      result = script.run(self)
+      klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect do |type|
+        type && (result.class == type || result.class < type)
+      end
+      schema = Setup::BuildInDataType::SCHEMA_TYPE_MAP[klass]
       result =
-        case result = script.run(self)
+        case result
         when Hash, Array
           JSON.pretty_generate(result)
         else
@@ -26,9 +35,10 @@ class ScriptExecution < Setup::Task
       attachment =
         if result.present?
           {
-            filename: "#{script.name.collectionize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.txt",
+            filename: "#{script.name.collectionize.dasherize}_#{DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')}.txt",
             contentType: 'text/plain',
-            body: result
+            body: result,
+            metadata: { schema: schema }
           }
         else
           nil

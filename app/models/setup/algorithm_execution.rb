@@ -4,28 +4,34 @@ module Setup
     #
     # Task execution for an algorithm.
 
-    agent_field :algorithm
+    agent_field :algorithm, :algorithm_id
 
     build_in_data_type
 
     belongs_to :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
-    before_save do
-      self.algorithm = Setup::Algorithm.where(id: message['algorithm_id']).first
+    def auto_description
+      if (alg = agent_from_msg)
+        "Executing #{alg.custom_title}"
+      else
+        super
+      end
     end
 
     def run(message)
       algorithm_id = message[:algorithm_id]
-      if (algorithm = Setup::Algorithm.where(id: algorithm_id).first)
+      if (algorithm = agent_from_msg)
         result = algorithm.run(message[:input], self).capataz_slave
-        klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect { |type| type && result.class < type }
+        klass = Setup::BuildInDataType::SCHEMA_TYPE_MAP.keys.detect do |type|
+          type && (result.class == type || result.class < type)
+        end
         schema = Setup::BuildInDataType::SCHEMA_TYPE_MAP[klass]
         result =
           case result
-          when Hash, Array
-            JSON.pretty_generate(result)
-          else
-            result.to_s
+            when Hash, Array
+              JSON.pretty_generate(result)
+            else
+              result.to_s
           end
         attachment =
           if result.present?

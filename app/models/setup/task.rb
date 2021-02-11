@@ -323,6 +323,17 @@ module Setup
       self.class.agent_model
     end
 
+    def agent_from_msg
+      @agent_from_msg ||= self.class.agent_from(message)
+    end
+
+    def write_attribute(name, value)
+      if name.to_sym == self.class.agent_field
+        @agent_from_msg = nil
+      end
+      super
+    end
+
     class << self
 
       def current
@@ -350,9 +361,23 @@ module Setup
       def agent_field(*args)
         if args.length.positive?
           @agent_field = args[0]
+          if (@agent_id_msg_key = args[1])
+            before_save do
+              self.send("#{self.class.agent_field}=", agent_from_msg)
+            end
+          end
         else
           @agent_field || superclass.try(:agent_field)
         end
+      end
+
+      def agent_id_msg_key
+        @agent_id_msg_key || superclass.try(:agent_id_msg_key)
+      end
+
+      def agent_from(msg)
+        (key = agent_id_msg_key) &&
+          agent_model.where(id: msg[key]).first
       end
 
       def agent_model
