@@ -1,22 +1,35 @@
 class FileController < ApplicationController
 
   def index
-    file_path = request.path.from(request.path.index('/', 1))
     model = nil
     if (model_desc = params[:model])
       model = Object
       model_desc.split('~').each do |token|
         next unless model
-        model = model.const_get(token.camelize) rescue nil
+        model =
+          begin
+            model.const_get(token.camelize)
+          rescue
+            nil
+          end
       end
     end
-    if model &&
-       (record = model.where(id: params[:id]).first)
+    if model && (record = model.where(id: params[:id]).first)
       if authorization_adapter.can?(:show, record) || (model == User && params[:field] == 'picture') #TODO remove when authorize to view users profile
-        if (uploader = record.try(params[:field])).is_a?(CarrierWave::Uploader::Base) &&
-           (params[:file].nil? || (uploader = find_version(uploader, file_path))) &&
-           (content = uploader.read)
-          send_data content, type: uploader.file.content_type, disposition: 'inline'
+        uploader = record.try(field = params[:field])
+        if uploader.is_a?(BasicUploader)
+          if (filename = params[:file])
+            filename = "#{filename}.#{params[:format]}" if params[:format]
+          end
+          if (filename.nil? || (uploader = find_version(uploader, uploader.path_for(record, field, filename)))) &&
+            (content = uploader.read)
+            send_data content,
+                      filename: uploader.identifier,
+                      type: uploader.file.content_type,
+                      disposition: 'inline'
+          else
+            not_found
+          end
         else
           not_found
         end

@@ -114,4 +114,12 @@ Cenit.config do
                      ].min
 
   process_old_notifications((ENV['PROCESS_OLD_NOTIFICATIONS'] || :automatic).to_sym)
+
+  default_auth_token_length(( ENV['DEFAULT_AUTH_TOKEN_LENGTH'] || 60 ).to_i)
+
+  default_oauth_token_length(( ENV['DEFAULT_OAUTH_TOKEN_LENGTH'] || 60 ).to_i)
+
+  delay_time_for_token_refresh(( ENV['DELAY_TIME_FOR_TOKEN_REFRESH'] || 60 ).to_i)
+
+  delay_time_for_lazada_token_refresh(( ENV['DELAY_TIME_FOR_LAZADA_TOKEN_REFRESH'] || 12.hours ).to_i)
 end
