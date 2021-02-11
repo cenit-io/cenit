@@ -127,6 +127,7 @@ module Setup
     end
 
     def execute(options = {})
+      task_desc = description.presence || "Task ##{id}"
       if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
@@ -143,13 +144,13 @@ module Setup
         if running_status?
           self.resumes += 1
           fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > maximum_resumes
-          notify(message: "Restarting task ##{id} at #{time}", type: :notice)
+          notify(message: "Restarting #{task_desc} at #{time}", type: :notice)
         else
           self.attempts += 1
           self.progress = 0
           self.status = :running
           self.resumes = 0
-          notify(type: :info, message: "Task ##{id} started at #{time}")
+          notify(type: :info, message: "#{task_desc} started at #{time}")
         end
         Thread.current[:task_token] = thread_token.token
         current_execution.start(time: time)
@@ -165,17 +166,17 @@ module Setup
           run(message)
           time = Time.now
           if resuming_later?
-            finish(:paused, "Task ##{id} paused at #{time}", :notice, time)
+            finish(:paused, "#{task_desc} paused at #{time}", :notice, time)
           else
             self.state = {}
             self.progress = 100
-            finish(:completed, "Task ##{id} completed at #{time}", :info, time)
+            finish(:completed, "#{task_desc} completed at #{time}", :info, time)
           end
         else
           if before_run_ex
             finish(:failed, before_run_ex.message, :error, time)
           else
-            finish(:failed, "Task ##{id} wasn't executed!", :warning, time)
+            finish(:failed, "#{task_desc} wasn't executed!", :warning, time)
           end
         end
       end
@@ -190,7 +191,7 @@ module Setup
             contentType: 'plain/text',
             body: "#{ex.message}\n\n#{ex.backtrace.join("\n")}"
           }
-        finish(:failed, "Task ##{id} failed at #{time}: #{ex.message}", :error, time)
+        finish(:failed, "[#{ex.class}] #{ex.message&.capitalize}", :error, time)
       end
     ensure
       reload
@@ -216,18 +217,19 @@ module Setup
     end
 
     def unschedule
-      finish(:unscheduled, "Task ##{id} unscheduled at #{time = Time.now}", :warning, time)
+      task_desc = description.presence || "Task ##{id}"
+      finish(:unscheduled, "#{task_desc} unscheduled at #{time = Time.now}", :warning, time)
     end
 
     def notify(attrs_or_exception)
       notification =
         case attrs_or_exception
-        when Hash
-          Setup::SystemNotification.create_with(attrs_or_exception)
-        when Exception, StandardError
-          Setup::SystemNotification.create_from(attrs_or_exception)
-        else
-          nil
+          when Hash
+            Setup::SystemNotification.create_with(attrs_or_exception)
+          when Exception, StandardError
+            Setup::SystemNotification.create_from(attrs_or_exception)
+          else
+            nil
         end
       if notification
         notifications << notification
@@ -256,7 +258,8 @@ module Setup
     def retry(options = {})
       if can_retry?
         self.status = (status == :failed ? :retrying : :pending)
-        notify(type: :notice, message: "Task ##{id} #{options[:action] || 'executed'} at #{Time.now}")
+        task_desc = description.presence || "Task ##{id}"
+        notify(type: :notice, message: "#{task_desc} #{options[:action] || 'executed'} at #{Time.now}")
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end
@@ -404,22 +407,22 @@ module Setup
         clear_resume
         if auto_retry == :automatic
           resume_in case retries
-                    when 0
-                      '5s'
-                    when 1
-                      '1m'
-                    when 2
-                      '3m'
-                    when 3
-                      '5m'
-                    when 4
-                      '10m'
-                    when 5
-                      '30m'
-                    when 6
-                      '1h'
-                    else
-                      '1d'
+                      when 0
+                        '5s'
+                      when 1
+                        '1m'
+                      when 2
+                        '3m'
+                      when 3
+                        '5m'
+                      when 4
+                        '10m'
+                      when 5
+                        '30m'
+                      when 6
+                        '1h'
+                      else
+                        '1d'
                     end
         end
       end
