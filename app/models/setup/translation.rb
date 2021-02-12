@@ -2,8 +2,6 @@ module Setup
   class Translation < Setup::Task
     include Setup::TranslationCommon
 
-    agent_field :translator
-
     build_in_data_type
 
     deny :create, :update

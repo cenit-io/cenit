@@ -5,15 +5,35 @@ module Setup
     include Setup::BulkableTask
 
     included do
-      belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
 
-      before_save do
-        self.translator = Setup::Translator.where(id: message[:translator_id]).first if translator.blank?
+      agent_field :translator, :translator_id
+
+      belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
+    end
+
+    def auto_description
+      if (transformation = agent_from_msg)
+        action =
+          case transformation
+            when Template
+              'Exporting'
+            when UpdaterTransformation
+              'Updating'
+            when ConverterTransformation
+              'Converting'
+            when ParserTransformation
+              'Parsing'
+            else
+              "LEGACY #{transformation.type}"
+          end
+        "#{action} #{data_type_from(message)&.custom_title} with #{transformation.custom_title}"
+      else
+        super
       end
     end
 
     def run(message)
-      if (translator = Setup::Translator.where(id: (translator_id = message[:translator_id])).first)
+      if (translator = agent_from_msg)
         unless message[:options].is_a?(Hash)
           begin
             message[:options] = self.class.parse_options(message[:options].to_s)
