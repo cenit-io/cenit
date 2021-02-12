@@ -858,7 +858,7 @@ module Setup
         task_description: options['task_description']
       )
       {
-        body: execution.to_hash(include_id: true, include_blanks: false),
+        json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
       }
     rescue
@@ -917,7 +917,8 @@ module Setup
         message[:pull_parameters] = pull_parameters
         execution = self.retry
         {
-          body: execution.to_hash(include_id: true, include_blanks: false)
+          json: execution.to_hash(include_id: true, include_blanks: false),
+          status: :accepted
         }
       rescue
         {
