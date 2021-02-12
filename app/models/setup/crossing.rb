@@ -4,6 +4,8 @@ module Setup
   class Crossing < Setup::Task
     include Setup::BulkableTask
 
+    build_in_data_type
+
     def origin_from(message)
       origin = message['origin'].to_s.to_sym
       model = data_type_from(message).records_model
