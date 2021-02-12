@@ -49,7 +49,8 @@ module Setup
           notify(message: 'Skipping pull review', type: :warning)
           run(message)
         else
-          notify(message: 'Waiting for pull review', type: :notice)
+          self.progress = [progress, 45].max
+          notify(message: 'Waiting for pull review', type: :warning)
           resume_manually
         end
       end
