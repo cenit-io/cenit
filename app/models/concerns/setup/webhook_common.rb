@@ -211,6 +211,15 @@ module Setup
         else
           attachment = nil
         end
+        headers.each do |key, value|
+          headers[key] =
+            case value
+              when Array, Hash
+                value.to_json
+              else
+                value.to_s
+            end
+        end
         notification_model.create_with(
           message: JSON.pretty_generate(
             method: method,
@@ -220,8 +229,6 @@ module Setup
           attachment: attachment,
           skip_notification_level: options[:skip_notification_level] || options[:notify_request]
         )
-
-        headers.each { |key, value| headers[key] = value.to_s }
         msg = { headers: headers }
         msg[:body] = body if body
         msg[:timeout] = remaining_request_time
