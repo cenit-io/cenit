@@ -281,7 +281,6 @@ module Setup
     def build_schema
       @discarding ||= []
       schema = Mongoff::Model.base_schema.deep_merge('properties' => { 'id' => {} })
-      schema = schema.deep_reverse_merge(polymorphic_to_merge)
       properties = schema['properties']
       if model < ClassHierarchyAware
         if model.abstract?
@@ -374,6 +373,7 @@ module Setup
         properties[relation_name] = property_schema
       end
       schema['protected'] = @protecting if @protecting.present?
+      schema = schema.deep_reverse_merge(polymorphic_to_merge)
       schema = schema.deep_reverse_merge(@to_merge) if @to_merge
       schema
     end
