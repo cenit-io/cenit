@@ -1,18 +1,22 @@
 module Setup
   class FlowExecution < Setup::Task
 
-    agent_field :flow
+    agent_field :flow, :flow_id
 
     build_in_data_type
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil
 
-    before_save do
-      self.flow = Setup::Flow.where(id: message['flow_id']).first
+    def auto_description
+      if (flow = agent_from_msg)
+        "Processing #{flow.custom_title}"
+      else
+        super
+      end
     end
 
     def sources
-      (flow && flow.sources(message)) || []
+      flow&.sources(message) || []
     end
 
     def cyclic_execution(execution_graph, start_id, cycle = [])
@@ -28,7 +32,7 @@ module Setup
     end
 
     def run(message)
-      if (flow = Setup::Flow.where(id: (flow_id = message[:flow_id])).first)
+      if (flow = agent_from_msg)
         if flow.active
           unless (execution_graph = message[:execution_graph])
             execution_graph = message[:execution_graph] = {}
