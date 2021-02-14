@@ -33,8 +33,20 @@ module Setup
 
     def conforms(field, template_parameters = {}, base_hash = nil)
       templates = {}
-      send(field).each { |p| templates[p.key] = Liquid::Template.parse(p.value.to_s) }
-      try("other_#{field}_each".to_sym, template_parameters) { |key, value| templates[key] = value && Liquid::Template.parse(value) }
+      send(field).each do |p|
+        value = p.value
+        value =
+          case value
+            when Array, Hash
+              value.to_json
+            else
+              value.to_s
+          end
+        templates[p.key] = Liquid::Template.parse(value)
+      end
+      try("other_#{field}_each".to_sym, template_parameters) do |key, value|
+        templates[key] = value && Liquid::Template.parse(value)
+      end
       hash = base_hash || {}
       templates.each { |key, template| hash[key] = template && template.render(template_parameters.reverse_merge(template_parameters_hash)) }
       hash
