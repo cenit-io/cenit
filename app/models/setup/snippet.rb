@@ -130,7 +130,7 @@ module Setup
     )
 
     field :description, type: String
-    field :type, type: Symbol, default: :auto
+    field :type, type: StringifiedSymbol, default: :auto
     field :code, type: String, default: ''
 
     # TODO: has_and_belongs_to_many :tags, class_name: Setup::Tag.to_s, inverse_of: nil

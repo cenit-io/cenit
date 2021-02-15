@@ -28,13 +28,13 @@ module Setup
 
     field :message, type: Hash, default: {}
     field :description, type: String
-    field :status, type: Symbol, default: :pending
+    field :status, type: StringifiedSymbol, default: :pending
     field :progress, type: Float, default: 0
     field :attempts, type: Integer, default: 0
     field :succeded, type: Integer, default: 0
     field :retries, type: Integer, default: 0
     field :state, type: Hash, default: {}
-    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
+    field :auto_retry, type: StringifiedSymbol, default: -> { auto_retry_enum.first }
     field :resumes, type: Integer, default: 0
 
     belongs_to :current_execution, class_name: Setup::Execution.to_s, inverse_of: nil

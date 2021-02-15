@@ -8,7 +8,7 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :type, type: Symbol, default: -> { self.class.transformation_type }
+    field :type, type: StringifiedSymbol, default: -> { self.class.transformation_type }
 
     before_validation do
       if (type = self.class.transformation_type)

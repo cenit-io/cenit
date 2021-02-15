@@ -6,7 +6,7 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :schema_type, type: Symbol
+    field :schema_type, type: StringifiedSymbol
 
     def code_extension
       '.xsl'

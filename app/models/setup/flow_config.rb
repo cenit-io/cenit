@@ -10,7 +10,7 @@ module Setup
     field :notify_request, type: Boolean
     field :notify_response, type: Boolean
     field :discard_events, type: Boolean
-    field :auto_retry, type: Symbol
+    field :auto_retry, type: StringifiedSymbol
 
     attr_readonly :flow
 

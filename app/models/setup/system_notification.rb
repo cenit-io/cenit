@@ -9,7 +9,7 @@ module Setup
 
     attachment_uploader
 
-    field :type, type: Symbol, default: :error
+    field :type, type: StringifiedSymbol, default: :error
     field :message, type: String
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
 

@@ -11,7 +11,7 @@ module Setup
 
     attachment_uploader GridFsUploader
 
-    field :type, type: Symbol, default: :error
+    field :type, type: StringifiedSymbol, default: :error
     field :message, type: String
 
     belongs_to :tenant, class_name: Cenit::MultiTenancy.tenant_model_name, inverse_of: nil

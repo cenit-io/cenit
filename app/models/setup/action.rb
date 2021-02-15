@@ -18,7 +18,7 @@ module Setup
 
     embedded_in :app, class_name: Setup::Application.to_s, inverse_of: :actions
 
-    field :method, type: Symbol
+    field :method, type: StringifiedSymbol
     field :path, type: String, default: '/'
     field :priority, type: Integer, default: 0
 

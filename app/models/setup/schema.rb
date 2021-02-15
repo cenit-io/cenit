@@ -12,7 +12,7 @@ module Setup
     # TODO shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
-    field :schema_type, type: Symbol
+    field :schema_type, type: StringifiedSymbol
 
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 

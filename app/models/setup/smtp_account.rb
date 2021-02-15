@@ -8,7 +8,7 @@ module Setup
 
     field :user_name, type: String
     field :password, type: String
-    field :authentication, type: Symbol, default: :plain
+    field :authentication, type: StringifiedSymbol, default: :plain
     field :from, type: String
 
     validates_presence_of :provider

@@ -20,7 +20,7 @@ module Setup
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :executions
     has_and_belongs_to_many :notifications, class_name: Setup::SystemNotification.to_s, inverse_of: nil
 
-    field :status, type: Symbol, default: :pending
+    field :status, type: StringifiedSymbol, default: :pending
     field :started_at, type: DateTime
     field :completed_at, type: DateTime
 

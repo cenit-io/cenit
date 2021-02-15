@@ -5,7 +5,7 @@ module Setup
     transformation_types Setup::Template.concrete_class_hierarchy
 
     field :url, type: String
-    field :http_method, type: Symbol, default: :GET
+    field :http_method, type: StringifiedSymbol, default: :GET
     field :template_options, type: String
 
     def validates_configuration

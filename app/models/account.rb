@@ -45,7 +45,7 @@ class Account
   field :name, type: String
   field :meta, type: Hash, default: {}
 
-  field :notification_level, type: Symbol, default: :warning
+  field :notification_level, type: StringifiedSymbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
