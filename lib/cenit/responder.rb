@@ -8,13 +8,13 @@ module Cenit
         case summary
         when Exception
           Setup::SystemReport.create_from(summary)
-          self.code = 406
+          self.code = :unprocessable_entity
           "#{summary.class.to_s.split('::').collect(&:to_title).join('. ')}: #{summary.message}"
         when :unauthorized
-          self.code = 401
+          self.code = :unauthorized
           'Not authorized'
         else
-          self.code = 200
+          self.code = :ok
           summary.to_s
         end
     end

@@ -51,7 +51,7 @@ RSpec.configure do |config|
 
   config.include Warden::Test::Helpers
 
-  config.include Api::V3::ApiController::Test
+  config.include Api::V3::Test
 
   # RSpec Rails can automatically mix in different behaviours to your tests
   # based on their file location, for example enabling you to call `get` and
@@ -79,6 +79,10 @@ RSpec.configure do |config|
     test_user.accounts.first.switch
   end
   config.before(:each) do
+    unless ::User.current
+      ::User.current = ::User.all.first
+    end
+    ::User.current.accounts.first.switch
     #DatabaseCleaner.start
     #Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     # Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)

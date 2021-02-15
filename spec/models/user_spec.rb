@@ -2,10 +2,8 @@ require 'spec_helper'
 
 describe User do
 
-  DEFAULT_USER_EMAIL = ENV['DEFAULT_USER_EMAIL'] || 'support@cenit.io'
-
   it 'match the test user' do
-    expect(User.current.email).to eq(DEFAULT_USER_EMAIL)
+    expect(User.current.email).to eq(default_user.email)
   end
 
   it 'match the test tenant' do

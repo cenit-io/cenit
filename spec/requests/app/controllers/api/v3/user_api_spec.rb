@@ -6,7 +6,7 @@ describe Api::V3::ApiController, type: :request do
 
     it "successfully creates a user" do
 
-      request_data = { email: 'ada@mail.com' }
+      request_data = { email: 'ada@v3.api.cenit.io' }
 
       # The user does not exists
       user = User.where(email: request_data[:email]).first
@@ -52,7 +52,7 @@ describe Api::V3::ApiController, type: :request do
     it "successfully creates a user with name" do
       request_data = {
         name: 'Aldo',
-        email: 'aldo@mail.com'
+        email: 'aldo@v3.api.cenit.io'
       }
       user = create_user(request_data)
       expect(user.email).to eq(request_data[:email])
@@ -61,7 +61,7 @@ describe Api::V3::ApiController, type: :request do
 
     it "successfully creates a user with password" do
       request_data = {
-        email: 'bertha@mail.com',
+        email: 'bertha@v3.api.cenit.io',
         password: 'test1234'
       }
       user = create_user(request_data)
@@ -71,7 +71,7 @@ describe Api::V3::ApiController, type: :request do
 
 
     it "successfully creates a user with a valid token" do
-      user_data = { email: 'dan@mail.com' }
+      user_data = { email: 'dan@v3.api.cenit.io' }
       captcha_token = CaptchaToken.create!(email: user_data[:email], data: user_data)
 
       post api_v3_setup_user_path, params: {
@@ -100,10 +100,10 @@ describe Api::V3::ApiController, type: :request do
     end
 
     it "fails on user creation request with a mismatching token emails" do
-      email = 'dom@mail.com'
+      email = 'dom@v3.api.cenit.io'
       captcha_token = CaptchaToken.create!(
         email: email,
-        data: { email: 'wrong@mail.com' }
+        data: { email: 'wrong@v3.api.cenit.io' }
       )
 
       post api_v3_setup_user_path, params: {
@@ -119,7 +119,7 @@ describe Api::V3::ApiController, type: :request do
     end
 
     it "fails on user creation request with an invalid code" do
-      captcha_token = CaptchaToken.create!(data: { email: 'erik@mail.com' })
+      captcha_token = CaptchaToken.create!(data: { email: 'erik@v3.api.cenit.io' })
 
       post api_v3_setup_user_path, params: {
         token: captcha_token.token,
@@ -133,7 +133,7 @@ describe Api::V3::ApiController, type: :request do
     end
 
     it "fails on user creation request if code is missing" do
-      captcha_token = CaptchaToken.create!(data: { email: 'fred@mail.com' })
+      captcha_token = CaptchaToken.create!(data: { email: 'fred@v3.api.cenit.io' })
 
       post api_v3_setup_user_path, params: {
         token: captcha_token.token # no code
@@ -146,7 +146,7 @@ describe Api::V3::ApiController, type: :request do
     end
 
     it "fails on user creation request with an invalid token" do
-      captcha_token = CaptchaToken.create!(data: {email: 'fuzz@mail.com'})
+      captcha_token = CaptchaToken.create!(data: { email: 'fuzz@v3.api.cenit.io' })
 
       post api_v3_setup_user_path, params: {
         token: 'not valid',
@@ -157,6 +157,35 @@ describe Api::V3::ApiController, type: :request do
 
       body_hash = JSON.parse(response.body)
       expect(body_hash['token']).to eq(["is not valid"])
+    end
+  end
+
+  describe "GET /api/v3/setup/user/me" do
+
+    it "successfully retrieve the current user" do
+
+      app = ::Setup::Application.create!(namespace: 'Test', name: 'User')
+      access_grant = ::Cenit::OauthAccessGrant.create!(
+        application_id: app.application_id,
+        scope: 'read'
+      )
+
+      test_user = ::User.current
+      access = ::Cenit::OauthAccessToken.for(
+        app.application_id,
+        access_grant.scope,
+        test_user
+      )
+
+      # Request for the current user
+      get '/api/v3/setup/user/me', headers: {
+        Authorization: "Bearer #{access[:access_token]}"
+      }
+      expect(response).to have_http_status(:ok)
+
+      response_data = JSON.parse(response.body)
+      expect(response_data['id']).to eq(test_user.id.to_s)
+      expect(response_data['email']).to eq(test_user.email)
     end
   end
 end
