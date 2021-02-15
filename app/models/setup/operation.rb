@@ -4,7 +4,6 @@ module Setup
     build_in_data_type
       .including(:resource)
       .referenced_by(:resource, :method)
-      .and(abstract: true)
 
     deny :create
 

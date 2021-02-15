@@ -13,7 +13,6 @@ module Setup
       :snippet
     )
     build_in_data_type.and(
-      abstract: true,
       properties: {
         schema: {
           type: 'object'
