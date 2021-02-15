@@ -261,7 +261,7 @@ module Setup
         Date => { 'type' => 'string', 'format' => 'date' },
         String => { 'type' => 'string' },
         Symbol => { 'type' => 'string' },
-        Mongoid::StringifiedSymbol => { 'type' => 'string' },
+        Mongoid::StringifiedSymbol => { 'type' => 'string', 'format' => 'symbol' },
         nil => {},
         Object => {},
         Module => { 'type' => 'string' },

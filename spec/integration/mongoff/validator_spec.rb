@@ -152,6 +152,11 @@ describe Mongoff::Validator do
         format: 'byte'
       },
 
+      symbol: {
+        type: 'string',
+        format: 'symbol'
+      },
+
       int32: {
         type: 'integer',
         format: 'int32'
@@ -2450,6 +2455,16 @@ describe Mongoff::Validator do
             instance = data_type.new_from(byte: wrong_value)
             validator.soft_validates(instance)
             expect(instance.errors[:byte]).to include('is not base64 encoded')
+          end
+        end
+
+        context 'when validating a symbol string format' do
+
+          it "success validates symbol format as a simple string" do
+            instance = {
+              symbol: 'symbol format is just a string, the format is used by cenit for custom properties behavior'
+            }
+            expect { validator.validate_instance(instance, data_type: data_type) }.not_to raise_error
           end
         end
       end
