@@ -7,13 +7,7 @@ module Setup
     def run(message)
       if (model = data_type_from(message).records_model)
         scope = objects_from(message)
-        destroy_callback = [:before_destroy, :after_destroy].any? do |m|
-          begin
-            model.singleton_method(m)
-          rescue
-            false
-          end
-        end
+        destroy_callback = model.send(:get_callbacks, :destroy).present?
         if destroy_callback
           progress_step = 10
           step_size = scope.count / progress_step
