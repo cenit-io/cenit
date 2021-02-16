@@ -66,6 +66,12 @@ module Setup
       def namespace_enum
         Setup::Resource.namespace_enum
       end
+
+      def search_properties_selector(query)
+        {
+          :resource_id.in => Setup::Resource.search(query).limit(25).collect(&:id)
+        }
+      end
     end
 
     protected

@@ -275,7 +275,7 @@ module Api::V3
       @_id = options[:id] || params[:__id_]
       @format = options[:format] || params[:format]
       @path = options[:path] || "#{params[:path]}.#{params[:format]}" if params[:path] && params[:format]
-      query_selector
+      query_selector(options[:selector])
     end
 
     def find_item
@@ -366,14 +366,27 @@ module Api::V3
         end.with_indifferent_access
     end
 
-    def query_selector
+    def query_selector(selector = nil)
+      parse_query_params =
+        if selector
+          @criteria = nil
+        else
+          selector = request.headers['X-Query-Selector']
+          true
+        end
       @criteria ||=
         begin
-          unless (selector = Cenit::Utility.json_value_of(request.headers['X-Query-Selector'])).is_a?(Hash)
+          unless (selector = Cenit::Utility.json_value_of(selector)).is_a?(Hash)
             selector = {}
           end
           selector = selector.with_indifferent_access
-          selector.merge!(params.permit!.reject { |key, _| %w(controller action __ns_ __model_ __id_ format api).include?(key) })
+          if parse_query_params
+            selector.merge!(
+              params.permit!.reject do |key, _|
+                %w(controller action __ns_ __model_ __id_ format api _digest_path).include?(key)
+              end
+            )
+          end
           %w(page limit).each do |key|
             next unless selector.key?(key) && klass && !klass.property?(key)
             query_options[key] = selector.delete(key)
@@ -731,6 +744,19 @@ module Setup
           klass: records_model
         )
       end
+    end
+
+    def handle_get_digest_search(controller)
+      query = controller.params[:query]
+      controller.setup_request(
+        namespace: ns_slug,
+        klass: records_model,
+        selector: records_model.search_selector(query)
+      )
+      controller.index if controller.authorize_action(
+        action: :read,
+        klass: records_model
+      )
     end
 
     def handle_post_digest(controller)
