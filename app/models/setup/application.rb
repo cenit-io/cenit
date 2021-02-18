@@ -34,6 +34,10 @@ module Setup
 
     accepts_nested_attributes_for :actions, allow_destroy: true
 
+    def authentication_method
+      configuration['authentication_method'].to_s.underscore.gsub(/ +/, '_').to_sym
+    end
+
     def prepare_for_save
       if new_record?
         configuration['authentication_method'] ||= 'User credentials'
