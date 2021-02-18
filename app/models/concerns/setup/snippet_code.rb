@@ -12,6 +12,32 @@ module Setup
             edi: {
               discard: true
             }
+          },
+          default_snippet: {
+            referenced: true,
+            '$ref': {
+              namespace: 'Setup',
+              name: 'Snippet'
+            },
+            edi: {
+              discard: true
+            }
+          },
+          creator_access: {
+            type: 'boolean',
+            edi: {
+              discard: true
+            }
+          },
+          snippet_ref_binding: {
+            referenced: true,
+            '$ref': {
+              namespace: 'Setup',
+              name: 'Binding'
+            },
+            edi: {
+              discard: true
+            }
           }
         }
       )
@@ -21,6 +47,10 @@ module Setup
       trace_ignore :snippet_id
 
       before_save :check_snippet
+    end
+
+    def creator_access
+      creator == User.current
     end
 
     def code_key
