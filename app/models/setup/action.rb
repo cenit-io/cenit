@@ -8,7 +8,7 @@ module Setup
     METHODS = [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
 
     build_in_data_type.referenced_by(:method, :path).and(
-      label: '{{path}}',
+      label: '{{method | upcase}} {{path}}',
       properties: {
         method: {
           enum: METHODS.map(&:to_s)
