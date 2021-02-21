@@ -5,6 +5,12 @@ module Setup
 
     build_in_data_type
 
+    def auto_description
+      "Persisting #{target_data_type.name.to_title}"
+    rescue
+      super
+    end
+
     def target_data_type
       @target_data_type ||= (
       Setup::DataType.where(id: message['data_type_id']).first ||

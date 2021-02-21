@@ -782,7 +782,8 @@ module Setup
         elsif controller.authorize_action(action: :delete, klass: records_model)
           execution = Deletion.process(
             data_type_id: id,
-            selector: controller.query_selector.to_json
+            selector: controller.query_selector.to_json,
+            task_description: "Deleting #{name.to_title.pluralize}"
           )
           {
             json: controller.to_hash(execution),
@@ -846,6 +847,7 @@ module Setup
         data_type_id: id,
         selector: options['selector'].to_json,
         origin: options['origin'],
+        task_description: "Crossing #{name.to_title.pluralize}"
         #TODO Cross dependencies option
         )
       {
@@ -1142,7 +1144,8 @@ module Setup
       # TODO Validate pull parameters
       execution = Setup::CollectionSharing.process(
         collection_id: id,
-        data: request.body.read
+        data: request.body.read,
+        task_description: "Sharing collection #{name}"
       )
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
@@ -1156,7 +1159,10 @@ module Setup
     end
 
     def delete_digest_shred(_request, _options = {})
-      execution = Setup::CollectionShredding.process(collection_id: id)
+      execution = Setup::CollectionShredding.process(
+        collection_id: id,
+        task_description: "Shredding collection #{name}"
+      )
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1175,7 +1181,8 @@ module Setup
         shared_collection_id: (
           options['shared_collection_id'] ||
             ((shared_collection = options['shared_collection']) && shared_collection['id'])
-        )
+        ),
+        task_description: "Pushing #{name}"
       )
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
@@ -1193,7 +1200,8 @@ module Setup
 
     def get_digest_reinstall(_request, _options = {})
       execution = SharedCollectionReinstall.process(
-        shared_collection_id: id
+        shared_collection_id: id,
+        task_description: "Re-installing #{name}"
       )
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
