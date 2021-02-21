@@ -4,7 +4,27 @@ module Setup
 
     store_in collection: proc { Account.tenant_collection_prefix + '.files' }
 
-    build_in_data_type
+    build_in_data_type.and(properties: {
+      storer_data_type: {
+        referenced: true,
+        '$ref': {
+          namespace: 'Setup',
+          name: 'DataType'
+        },
+        edi: {
+          discard: true
+        },
+        virtual: true
+      },
+      storer_object: {
+        type: 'object',
+        virtual: true
+      },
+      storer_property: {
+        type: 'string',
+        virtual: true
+      }
+    })
 
     deny :create, :update
 
@@ -55,6 +75,12 @@ module Setup
 
     def storer_model
       (name = storer_name) && name.constantize
+    end
+
+    def storer_data_type
+      storer_model&.data_type
+    rescue
+      nil
     end
 
     def storer_property
