@@ -351,7 +351,7 @@ module Edi
                   record.send("#{property_name}=", nil)
                 end
               when 'object'
-                next unless updating || !property_model.modelable? || record.send(property_name).nil?
+                next unless updating || !property_model&.modelable? || record.send(property_name).nil?
                 if (property_value = json[name])
                   if property_model && property_value.is_a?(Hash) && property_value['_reference'] && ((property_value[:id].nil? && property_value[:_id].nil?) || options[:skip_refs_binding])
                     record.send("#{property_name}=", nil)
@@ -411,7 +411,7 @@ module Edi
                 record.send("#{content_property}=", [])
                 association = record.send(content_property)
                 property_model = model.property_model(content_property)
-                persist = property_model && property_model.persistable?
+                persist = property_model&.persistable?
                 json.each do |sub_value|
                   if persist && sub_value['_reference'] && ((sub_value[:id].nil? && sub_value[:_id].nil?) || options[:skip_refs_binding])
                     sub_value = Cenit::Utility.deep_remove(sub_value, '_reference')
