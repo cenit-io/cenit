@@ -334,9 +334,9 @@ module Setup
     protected
 
     def parse_ruby_code
-      logs = { errors: errors = [] }
+      logs = {}
       unless Capataz.rewrite(code, halt_on_error: false, logs: logs, locals: parameters.collect(&:name))
-        errors << 'with no valid Ruby syntax'
+        (logs[:errors] ||= []) << 'with no valid Ruby syntax'
       end
       logs
     end
