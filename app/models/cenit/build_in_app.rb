@@ -6,7 +6,7 @@ module Cenit
 
     default_origin :admin
 
-    build_in_data_type.with(:namespace, :name, :slug, :application_parameters)
+    build_in_data_type.with(:namespace, :name, :provider, :slug, :application_parameters)
     build_in_data_type.referenced_by(:namespace, :name, :_type).and(
       properties: {
         configuration: {
@@ -40,7 +40,7 @@ module Cenit
     class << self
 
       def stored_properties_on(record)
-        stored = %w(namespace name slug identifier secret origin created_at updated_at)
+        stored = %w(namespace name slug provider identifier secret origin created_at updated_at)
         %w(application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored

@@ -6,7 +6,7 @@ module Setup
 
     default_origin :app
 
-    build_in_data_type.with(:namespace, :name, :slug, :actions, :application_parameters)
+    build_in_data_type.with(:namespace, :name, :provider, :slug, :actions, :application_parameters)
     build_in_data_type.referenced_by(:namespace, :name, :_type).and(
       properties: {
         registered: {
@@ -53,7 +53,7 @@ module Setup
     class << self
 
       def stored_properties_on(record)
-        stored = %w(namespace name identifier registered secret created_at updated_at)
+        stored = %w(namespace name provider slug identifier registered secret created_at updated_at)
         %w(actions application_parameters).each { |f| stored << f if record.send(f).present? }
         stored << 'configuration'
         stored

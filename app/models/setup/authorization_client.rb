@@ -16,10 +16,12 @@ module Setup
       .referenced_by(:_type, :provider, :namespace, :name)
       .and(properties: {
         identifier: {
-          type: 'string'
+          type: 'string',
+          virtual: true
         },
         secret: {
-          type: 'string'
+          type: 'string',
+          virtual: true
         }
       })
       .and_polymorphic(with_origin: true)
@@ -46,7 +48,7 @@ module Setup
     end
 
     def scope_title
-      provider && provider.custom_title
+      provider&.custom_title
     end
 
     class << self

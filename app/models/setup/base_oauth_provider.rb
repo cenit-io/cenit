@@ -3,7 +3,38 @@ module Setup
 
     abstract_class true
 
-    build_in_data_type.referenced_by(:namespace, :name)
+    def self.response_type_enum
+      ['code']
+    end
+
+    def self.token_method_enum
+      %w(POST GET)
+    end
+
+    def self.refresh_token_strategy_enum
+      [
+        'Google v4',
+        'Intuit Reconnect API V1',
+        'Lazada REST API',
+        'custom',
+        'default',
+        'none'
+      ]
+    end
+
+    build_in_data_type
+      .referenced_by(:namespace, :name)
+      .and_polymorphic(properties: {
+        response_type: {
+          enum: response_type_enum
+        },
+        token_method: {
+          enum: token_method_enum
+        },
+        refresh_token_strategy: {
+          enum: refresh_token_strategy_enum
+        }
+      })
 
     field :response_type, type: String
     field :token_endpoint, type: String
@@ -19,34 +50,27 @@ module Setup
 
     before_save do
       case refresh_token_strategy
-      when :custom
-        errors.add(:refresh_token_algorithm, "can't be blank") unless refresh_token_algorithm
-      when :none
-        if refresh_token_algorithm
-          errors.add(:refresh_token_algorithm, 'not allowed')
-          self.refresh_token_algorithm = nil
-        end
+        when :custom
+          errors.add(:refresh_token_algorithm, "can't be blank") unless refresh_token_algorithm
+        when :none
+          if refresh_token_algorithm
+            errors.add(:refresh_token_algorithm, 'not allowed')
+            self.refresh_token_algorithm = nil
+          end
       end
       abort_if_has_errors
     end
 
     def response_type_enum
-      ['code']
+      self.class.response_type_enum
     end
 
     def token_method_enum
-      %w(POST GET)
+      self.class.token_method_enum
     end
 
     def refresh_token_strategy_enum
-      [
-        'Google v4',
-        'Intuit Reconnect API V1',
-        'Lazada REST API',
-        'custom',
-        'default',
-        'none'
-      ]
+      self.class.refresh_token_strategy_enum
     end
 
     def refresh_token(authorization)
