@@ -6,7 +6,7 @@ module Setup
     include WithTemplateParameters
 
     included do
-      field :authorized_at, type: Time
+      field :authorized_at, type: DateTime
 
       belongs_to :client, class_name: Setup::AuthorizationClient.to_s, inverse_of: nil
 
