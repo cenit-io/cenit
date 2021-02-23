@@ -747,11 +747,16 @@ module Setup
     end
 
     def handle_get_digest_search(controller)
-      query = controller.params[:query]
+      request_selector = controller.query_selector
+      query = request_selector.delete('query')
+      search_selector = records_model.search_selector(query)
+      unless request_selector.empty?
+        search_selector = { '$and' => [request_selector, search_selector] }
+      end
       controller.setup_request(
         namespace: ns_slug,
         klass: records_model,
-        selector: records_model.search_selector(query)
+        selector: search_selector
       )
       controller.index if controller.authorize_action(
         action: :read,
