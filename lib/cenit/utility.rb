@@ -409,7 +409,7 @@ module Cenit
             obj.each { |v| return false unless json_object?(v) } if options[:recursive]
             true
           else
-            [Integer, Float, String, TrueClass, FalseClass, Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
+            [Integer, BigDecimal, Float, String, TrueClass, FalseClass, Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
         end
       end
 
