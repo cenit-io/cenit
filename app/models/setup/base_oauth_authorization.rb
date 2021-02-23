@@ -6,7 +6,6 @@ module Setup
 
     abstract_class true
 
-    build_in_data_type.with(:namespace, :name, :client, :parameters, :template_parameters)
     build_in_data_type.referenced_by(:namespace, :name)
 
     field :access_token, type: String

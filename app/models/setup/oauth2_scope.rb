@@ -6,7 +6,9 @@ module Setup
 
     origins origins_config, :cenit
 
-    build_in_data_type.referenced_by(:name, :provider)
+    build_in_data_type
+      .referenced_by(:name, :provider)
+      .and(label: '{{provider.namespace}} | {{provider.name}} | {{name}}')
 
     field :name, type: String
     field :description, type: String
