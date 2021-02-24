@@ -3,7 +3,9 @@ module Setup
     include CenitScoped
     include Slug
 
-    build_in_data_type
+    build_in_data_type.and(
+      label: '{{data_type.namespace}} | {{data_type.name}} [config]'
+    )
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
 
@@ -45,11 +47,14 @@ module Setup
     protected
 
     def slug_candidate
-      data_type && data_type.name
+      data_type&.name
     end
 
     def slug_taken?(slug)
-      data_type && self.class.where(slug: slug).any? { |data_type_config| (dt = data_type_config.data_type) && !dt.eql?(data_type) && dt.namespace == data_type.namespace }
+      data_type &&
+        self.class.where(slug: slug).any? do |data_type_config|
+          (dt = data_type_config.data_type) && !dt.eql?(data_type) && dt.namespace == data_type.namespace
+        end
     end
 
   end

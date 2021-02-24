@@ -2,7 +2,9 @@ module Setup
   class FlowConfig
     include CenitScoped
 
-    build_in_data_type
+    build_in_data_type.and(
+      label: '{{flow.namespace}} | {{flow.name}} [config]'
+    )
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false
 
