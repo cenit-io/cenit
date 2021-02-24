@@ -2,7 +2,46 @@ module Setup
   class Binding
     include CenitScoped
 
-    build_in_data_type
+    build_in_data_type.and(
+      properties: {
+        binder_data_type: {
+          referenced: true,
+          '$ref': {
+            namespace: 'Setup',
+            name: 'DataType'
+          },
+          edi: {
+            discard: true
+          },
+          virtual: true
+        },
+        binder: {
+          type: 'object',
+          edi: {
+            discard: true
+          },
+          virtual: true
+        },
+        bind_data_type: {
+          referenced: true,
+          '$ref': {
+            namespace: 'Setup',
+            name: 'DataType'
+          },
+          edi: {
+            discard: true
+          },
+          virtual: true
+        },
+        bind: {
+          type: 'object',
+          edi: {
+            discard: true
+          },
+          virtual: true
+        }
+      }
+    )
 
     deny :create
 
@@ -43,7 +82,11 @@ module Setup
     end
 
     def binder_model
-      binder && binder.class
+      binder&.class
+    end
+
+    def binder_data_type
+      binder_model&.data_type
     end
 
     def bind
@@ -51,7 +94,11 @@ module Setup
     end
 
     def bind_model
-      bind && bind.class
+      bind&.class
+    end
+
+    def bind_data_type
+      bind_model&.data_type
     end
 
     def label
@@ -105,6 +152,11 @@ module Setup
         "#{binder.mongoid_root_class.to_s.split('::').last.underscore}_binder_id"
       end
 
+      def stored_properties_on(record)
+        stored = super
+        %w(binder_data_type binder bind_data_type bind).each { |prop| stored << prop }
+        stored
+      end
     end
   end
 end
