@@ -7,7 +7,36 @@ module Setup
     build_in_data_type
       .with(:key, :value, :description, :metadata)
       .referenced_by(:key)
-      .and({ label: '{{key}}' })
+      .and(
+        label: '{{key}}',
+        properties: {
+          parent_data_type: {
+            referenced: true,
+            '$ref': {
+              namespace: 'Setup',
+              name: 'DataType'
+            },
+            edi: {
+              discard: true
+            },
+            virtual: true
+          },
+          parent: {
+            type: 'object',
+            edi: {
+              discard: true
+            },
+            virtual: true
+          },
+          location: {
+            type: 'string',
+            edi: {
+              discard: true
+            },
+            virtual: true
+          }
+        }
+      )
 
     field :key, type: String, as: :name
     field :description, type: String
@@ -24,16 +53,27 @@ module Setup
     end
 
     def location
-      (r = parent_relation) && r.inverse_name
+      parent_relation&.inverse
     end
 
     def parent_model
-      (r = parent_relation) && r.klass
+      parent_relation&.klass
     end
 
     def parent
       (r = parent_relation) && send(r.name)
     end
 
+    def parent_data_type
+      parent_model&.data_type
+    end
+
+    class << self
+      def stored_properties_on(record)
+        stored = super
+        %w(parent_data_type parent location).each { |prop| stored << prop }
+        stored
+      end
+    end
   end
 end
