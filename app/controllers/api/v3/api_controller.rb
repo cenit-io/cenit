@@ -724,6 +724,62 @@ module Cenit
       end
     end
   end
+
+  OauthAccessGrant.class_eval do
+
+    def get_digest_tokens(_request, _options = {})
+      {
+        json: tokens.map do |token|
+          {
+            id: token.id.to_s,
+            token: token.token,
+            expires_at: token.expires_at
+          }
+        end
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+
+    def get_digest_token(_request, _options = {})
+      {
+        json: Cenit::OauthAccessToken.for(application_id, scope, ::User.current)
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+
+    def delete_digest_token(request, _options = {})
+      token = OauthAccessToken.where(id: request.params[:id], token: request.params[:token]).first
+      if token
+        if token.destroy
+          {
+            body: nil
+          }
+        else
+          {
+            json: OauthAccessToken.pretty_errors(token),
+            status: :unprocessable_entity
+          }
+        end
+      else
+        {
+          body: nil, status: :not_found
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 module Setup

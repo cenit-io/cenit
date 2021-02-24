@@ -3,8 +3,18 @@ module Cenit
     include Setup::CenitScoped
     include CrossOrigin::Document
 
-    # TODO Include App information field
-    build_in_data_type.with(:scope)
+    build_in_data_type
+      .with(:scope, :origin)
+      .and(
+        label: '{{app_name}} [access]',
+        properties: {
+          app_name: {
+            type: 'string',
+            virtual: true
+          }
+        },
+        with_origin: true
+      )
 
     deny :create
 
@@ -32,6 +42,10 @@ module Cenit
         errors.add(:scope, 'is not valid')
       end
       abort_if_has_errors
+    end
+
+    def app_name
+      application_id&.name
     end
 
     def oauth_scope
