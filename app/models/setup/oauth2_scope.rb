@@ -19,7 +19,7 @@ module Setup
     validates_uniqueness_of :name, scope: :provider
 
     def scope_title
-      provider && provider.custom_title
+      provider&.custom_title
     end
 
     def key
