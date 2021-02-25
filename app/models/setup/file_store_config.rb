@@ -4,7 +4,22 @@ module Setup
 
     deny :all
 
-    build_in_data_type
+    build_in_data_type.and(
+      properties: {
+        file_store: {
+          enum: Cenit.file_stores.map(&:to_s),
+          enumNames: Cenit.file_stores.map(&:label)
+        },
+        migration_enabled: {
+          type: 'boolean',
+          virtual: true
+        },
+        migration_in_progress: {
+          type: 'boolean',
+          virtual: true
+        }
+      }
+    )
 
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
@@ -43,6 +58,14 @@ module Setup
       @skip_migration_callback = options.delete(:skip_migration)
       super
       @skip_migration_callback = false
+    end
+
+    def migration_enabled
+      FileStoreMigration.enabled?
+    end
+
+    def migration_in_progress
+      FileStoreMigration.migrating?(data_type)
     end
 
     class << self

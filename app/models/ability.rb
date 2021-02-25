@@ -30,7 +30,7 @@ class Ability
           end
 
         if user.roles.any? { |role| Cenit.file_stores_roles.include?(role.name) }
-          can :edit, Setup::FileStoreConfig
+          can :update, Setup::FileStoreConfig
         end
 
         creator_id =
