@@ -2,7 +2,26 @@ module Setup
   class SmtpAccount < EmailChannel
     include CenitScoped
 
-    build_in_data_type.protecting(:password).referenced_by(:provider, :user_name, :_type)
+    AUTHENTICATION_OPTIONS = {
+      None: :none,
+      Plain: :plain,
+      Login: :login,
+      'Cram md5': :cram_md5
+    }
+
+    build_in_data_type
+      .protecting(:password)
+      .referenced_by(:provider, :user_name, :_type)
+      .and(properties: {
+        authentication: {
+          enum: AUTHENTICATION_OPTIONS.values.map(&:to_s),
+          enumNames: AUTHENTICATION_OPTIONS.keys.map(&:to_s),
+          default: 'plain'
+        },
+        email_address: {
+          type: 'string'
+        }
+      })
 
     belongs_to :provider, class_name: Setup::SmtpProvider.to_s, inverse_of: nil
 
@@ -11,7 +30,7 @@ module Setup
     field :authentication, type: StringifiedSymbol, default: :plain
     field :from, type: String
 
-    validates_presence_of :provider
+    validates_presence_of :provider, message: "couldn't be resolved"
     validates_uniqueness_of :user_name, scope: :provider
 
     delegate :address, :port, :domain, to: :provider, allow_nil: true
@@ -28,6 +47,18 @@ module Setup
       else
         self.namespace = self.name = nil
       end
+    end
+
+    def write_attribute(name, value)
+      if name.to_sym == :from
+        if (match = value.match(/\A([^@]+)@(.+)\Z/))
+          self.user_name ||= match[1]
+          self.provider ||= Setup::SmtpProvider.where(domain: match[2]).first
+        else
+          self.user_name ||= value
+        end
+      end
+      super
     end
 
     def email_address
@@ -48,15 +79,6 @@ module Setup
 
     def ready_to_save?
       provider.present?
-    end
-
-    def authentication_enum
-      {
-        None: :none,
-        Plain: :plain,
-        Login: :login,
-        'Cram md5': :cram_md5
-      }
     end
 
     def send_message(message)
