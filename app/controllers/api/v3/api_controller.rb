@@ -544,26 +544,34 @@ module Api::V3
     def get_data_type_by_slug(slug)
       if slug
         @data_types[slug] ||=
-          if @ns_slug == 'setup' || @ns_slug == 'cenit'
-            build_in_name =
-              if slug == 'trace'
-                Mongoid::Tracer::Trace.to_s
-              else
-                "#{@ns_slug.camelize}::#{slug.camelize}"
+          begin
+            build_in = nil
+            if @ns_slug == 'setup' || @ns_slug == 'cenit'
+              build_in_name =
+                if slug == 'trace'
+                  Mongoid::Tracer::Trace.to_s
+                else
+                  "#{@ns_slug.camelize}::#{slug.camelize}"
+                end
+              build_in =
+                Setup::BuildInDataType[build_in_name] ||
+                  Setup::BuildInDataType[slug.camelize] ||
+                  Setup::BuildInFileType[build_in_name]
+            end
+            build_in ||
+              begin
+                if @ns_name.nil?
+                  ns = Setup::Namespace.where(slug: @ns_slug).first
+                  @ns_name = ns&.name || ''
+                end
+                if @ns_name
+                  Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
+                    Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first ||
+                    Setup::DataType.where(namespace: @ns_name.camelize, name: slug.camelize).first
+                else
+                  nil
+                end
               end
-            Setup::BuildInDataType[build_in_name] || Setup::BuildInDataType[slug.camelize]
-          else
-            if @ns_name.nil?
-              ns = Setup::Namespace.where(slug: @ns_slug).first
-              @ns_name = ns&.name || ''
-            end
-            if @ns_name
-              Setup::DataType.where(namespace: @ns_name, slug: slug).first ||
-                Setup::DataType.where(namespace: @ns_name, slug: slug.singularize).first ||
-                Setup::DataType.where(namespace: @ns_name.camelize, name: slug.camelize).first
-            else
-              nil
-            end
           end
       else
         nil

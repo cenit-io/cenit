@@ -2,7 +2,7 @@
 module Setup
   class FileDataType < DataType
 
-    origins Setup::CrossOriginShared::DEFAULT_ORIGINS
+    origins Setup::CrossOriginShared::DEFAULT_ORIGINS, :cenit
 
     validates_presence_of :namespace
 
@@ -233,6 +233,10 @@ module Setup
     end
 
     delegate :file_store, :public_read, to: :file_store_config
+
+    def can_cross?(origin)
+      origin.to_sym != :cenit && self.origin != :cenit
+    end
 
     class << self
 

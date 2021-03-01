@@ -74,6 +74,8 @@ module Cenit
 
         Setup::CenitDataType.init!
 
+        Setup::BuildInFileType.init!
+
         Mongoff::Model.config do
           before_save ->(record) do
             record.updated_at = DateTime.now
@@ -150,7 +152,14 @@ module Cenit
           app_module.const_set(name.to_s, type)
           type.include(Setup::CenitScoped)
           type.build_in_data_type
-          type.class_eval(&spec)
+          type.class_eval(&spec) if spec
+        end
+        app_module.file_types_defs.each do |name, spec|
+          # File model def
+          type = Class.new
+          app_module.const_set(name.to_s, type)
+          type.include(Setup::BuildInFileType)
+          type.class_eval(&spec) if spec
         end
       end
     end

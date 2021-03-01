@@ -54,6 +54,10 @@ module Mongoff
       persistable?
     end
 
+    def type_polymorphic?
+      reflectable?
+    end
+
     def persistable?
       @persistable
     end

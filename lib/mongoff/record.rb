@@ -365,7 +365,7 @@ module Mongoff
     protected
 
     def prepare_attributes
-      document[:_type] = orm_model.to_s if orm_model.reflectable?
+      document[:_type] = orm_model.to_s if orm_model.type_polymorphic?
       @fields.each do |field, value|
         nested = (association = orm_model.associations[field]) && association.nested?
         if nested || document[field].nil?

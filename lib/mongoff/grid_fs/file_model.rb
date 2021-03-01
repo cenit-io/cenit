@@ -81,6 +81,10 @@ module Mongoff
         p
       end
 
+      def type_polymorphic?
+        false
+      end
+
       protected
 
       def initialize(data_type, options = {})
