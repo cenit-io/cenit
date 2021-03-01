@@ -1044,6 +1044,17 @@ module Setup
         status: :bad_request
       }
     end
+
+    def handle_get_digest_download(controller)
+      file = where(controller.query_selector).first
+      if file
+        controller.send_data(file.data, filename: file.filename, type: file.contentType)
+      else
+        controller.render body: nil, status: :not_found
+      end
+    rescue
+      controller.render json: { error: $!.message }, status: :bad_request
+    end
   end
 
   Flow.class_eval do
