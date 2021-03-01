@@ -875,12 +875,10 @@ module Setup
       model = records_model
       origins =
         if (model.is_a?(Class) && model < CrossOrigin::Document) || model == Collection
-          origins = model.origins.map(&:to_sym).map { |a| [a, a] }.to_h
-          unless User.current_super_admin?
-            origins.delete(:admin)
-            origins.delete(:temp)
-            origins.delete(:admin)
-          end
+          origins = model.origins
+                      .map(&:to_sym)
+                      .select { |origin| Crossing.authorized_crossing_origins.include?(origin) }
+                      .map { |a| [a, a] }.to_h
           unless User.current_cross_shared?
             origins.delete(:shared)
           end
