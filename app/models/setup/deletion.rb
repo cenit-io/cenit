@@ -7,7 +7,12 @@ module Setup
     def run(message)
       if (model = data_type_from(message).records_model)
         scope = objects_from(message)
-        destroy_callback = model.send(:get_callbacks, :destroy).present?
+        destroy_callback =
+          begin
+            model.send(:get_callbacks, :destroy).present?
+          rescue
+            false
+          end
         if destroy_callback
           progress_step = 10
           step_size = scope.count / progress_step
