@@ -66,7 +66,7 @@ module Mongoid
       end
 
       def persistable?
-        [Object, Setup].include?(parent)
+        [Object, Setup].include?(module_parent)
       end
 
       def all_collections_names
