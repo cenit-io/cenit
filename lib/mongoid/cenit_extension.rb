@@ -25,6 +25,7 @@ module Mongoid
 
     def abort_if_has_errors
       throw(:abort) unless errors.blank?
+      true
     end
   end
 
