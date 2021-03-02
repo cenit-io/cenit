@@ -1,21 +1,21 @@
 module Setup
-  class NotificationExecution < Setup::Task
+  class NotificationFlowExecution < Setup::Task
 
     agent_field :notification
 
     build_in_data_type
 
-    belongs_to :notification, class_name: Setup::Notification.name, inverse_of: nil
+    belongs_to :notification, class_name: Setup::NotificationFlow.name, inverse_of: nil
 
     before_save do
-      self.notification = Setup::Notification.where(id: message[:notification_id]).first
+      self.notification = Setup::NotificationFlow.where(id: message[:notification_id]).first
     end
 
     def run(message)
       notification_id = message[:notification_id]
-      notification = Setup::Notification.where(id: notification_id).first
+      notification = Setup::NotificationFlow.where(id: notification_id).first
 
-      fail "Notification with ID #{notification_id} not found" unless notification
+      fail "Notification flow with ID #{notification_id} not found" unless notification
 
       record = notification.data_type.where(id: message[:record_id]).first
 

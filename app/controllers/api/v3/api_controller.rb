@@ -1437,6 +1437,30 @@ module Setup
       }
     end
   end
+
+  EmailNotification.class_eval do
+
+    def self.get_digest_email_data_type(_request, _options = {})
+      if (data_type = Setup::Configuration.singleton_record.email_data_type)
+        {
+          json: {
+            id: data_type.id.to_s,
+            namespace: data_type.namespace,
+            name: data_type.name
+          }
+        }
+      else
+        {
+          body: nil
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
 end
 
 require 'mongoff/grid_fs/file'

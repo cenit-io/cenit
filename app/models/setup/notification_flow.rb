@@ -1,5 +1,5 @@
 module Setup
-  class Notification
+  class NotificationFlow
     include CenitScoped
     include NamespaceNamed
     include CustomTitle
@@ -31,7 +31,7 @@ module Setup
 
     def validates_configuration
       unless requires :data_type, :observers, :transformation
-        unless self.class.transformation_types.include?(transformation.class)
+        unless self.class.transformation_types.any? { |type| transformation.class < type || transformation.class == type }
           errors.add(:transformation, "type is not valid, #{self.class.transformation_types.collect(&:to_s).to_sentence(last_word_connector: ' or ')} expected")
         end
         errors.add(:transformation, 'data type mismatch') unless transformation.data_type.nil? || data_type == transformation.data_type
@@ -44,7 +44,7 @@ module Setup
         if args.length.positive?
           @transformation_types = args.flatten
         else
-          @transformation_types || (superclass.is_a?(Setup::Notification) ? superclass.transformation_types : [])
+          @transformation_types || (superclass.is_a?(Setup::NotificationFlow) ? superclass.transformation_types : [])
         end
       end
     end

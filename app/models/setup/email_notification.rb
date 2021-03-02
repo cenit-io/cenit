@@ -1,19 +1,23 @@
 module Setup
-  class EmailNotification < Setup::Notification
+  class EmailNotification < Setup::NotificationFlow
 
-    transformation_types Setup::Template.concrete_class_hierarchy, Setup::ConverterTransformation.concrete_class_hierarchy
+    transformation_types Setup::Template, Setup::ConverterTransformation
 
     belongs_to :email_channel, class_name: Setup::EmailChannel.to_s, inverse_of: nil
+    belongs_to :email_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     def validates_configuration
-      if super && !requires(:email_channel)
+      if super && !requires(:email_channel, :email_data_type)
         if transformation.is_a?(Setup::Converter)
+          unless transformation.source_data_type.eql?(data_type)
+            errors.add(:transformation, "wrong source data type, expected to be #{data_type.custom_title}")
+          end
           if email_data_type
             unless transformation.target_data_type.eql?(email_data_type)
               errors.add(:transformation, "wrong target data type, expected to be #{email_data_type.custom_title}")
             end
           else
-            errors.add(:transformation, 'of type converter can not be used since the email data type is not yet configured')
+            errors.add(:transformation, 'of type converter can not be used since the email data type is not configured')
           end
         end
       end
@@ -21,7 +25,9 @@ module Setup
     end
 
     def process(record)
-      fail 'Email data type not yet configured' unless email_data_type
+      email_data_type = self.email_data_type || Setup::Configuration.singleton_record.email_data_type
+
+      fail 'Email data type not configured' unless email_data_type
 
       message = transformation.run(source: record, discard_events: true)
       unless message.is_a?(email_data_type.records_model)
@@ -35,21 +41,6 @@ module Setup
       end
 
       email_channel.send_message(message)
-    end
-
-    def email_data_type
-      self.class.email_data_type
-    end
-
-    class << self
-
-      def email_data_type
-        Setup::Configuration.email_data_type
-      end
-
-      def email_data_type_id
-        Setup::Configuration.email_data_type_id
-      end
     end
   end
 end

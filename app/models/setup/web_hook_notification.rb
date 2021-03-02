@@ -1,8 +1,8 @@
 module Setup
-  class WebHookNotification < Setup::Notification
+  class WebHookNotification < Setup::NotificationFlow
     include Setup::TranslationCommon::ClassMethods
 
-    transformation_types Setup::Template.concrete_class_hierarchy
+    transformation_types Setup::Template
 
     field :url, type: String
     field :http_method, type: StringifiedSymbol, default: :GET
