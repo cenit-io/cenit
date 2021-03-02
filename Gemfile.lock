@@ -17,6 +17,12 @@ GIT
     cenit-config (0.0.1)
 
 GIT
+  remote: https://github.com/cenit-io/cenit-mime.git
+  revision: f4ebfc2d193787fc47cdaf754b49b4373b00a6c0
+  specs:
+    cenit-mime (0.0.1)
+
+GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
   revision: 160b2f3cbfaf8ec308cc7176bfe60f98002566c5
   branch: upgrading
@@ -568,6 +574,7 @@ DEPENDENCIES
   cenit-admin!
   cenit-build_in_apps!
   cenit-config!
+  cenit-mime!
   cenit-multi_tenancy!
   cenit-service!
   cenit-token!
