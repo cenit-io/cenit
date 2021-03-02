@@ -1,14 +1,18 @@
 module Setup
   class NotificationFlowExecution < Setup::Task
 
-    agent_field :notification
+    agent_field :notification, :notification_id
 
     build_in_data_type
 
     belongs_to :notification, class_name: Setup::NotificationFlow.name, inverse_of: nil
 
-    before_save do
-      self.notification = Setup::NotificationFlow.where(id: message[:notification_id]).first
+    def auto_description
+      if (notification = agent_from_msg) && notification.data_type
+        "Executing notification #{notification.custom_title} with #{notification.data_type.custom_title} ID: #{message[:record_id]}"
+      else
+        super
+      end
     end
 
     def run(message)
