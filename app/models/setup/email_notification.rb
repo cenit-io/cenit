@@ -7,7 +7,8 @@ module Setup
     belongs_to :email_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
     def validates_configuration
-      if super && !requires(:email_channel, :email_data_type)
+      super
+      unless requires(:email_channel, :email_data_type)
         if transformation.is_a?(Setup::Converter)
           unless transformation.source_data_type.eql?(data_type)
             errors.add(:transformation, "wrong source data type, expected to be #{data_type.custom_title}")
@@ -33,10 +34,10 @@ module Setup
       unless message.is_a?(email_data_type.records_model)
         message =
           case message
-          when Hash
-            email_data_type.create_from_json!(message, discard_events: true)
-          else
-            email_data_type.create_from!(message.to_s, discard_events: true)
+            when Hash
+              email_data_type.create_from_json!(message, discard_events: true)
+            else
+              email_data_type.create_from!(message.to_s, discard_events: true)
           end
       end
 

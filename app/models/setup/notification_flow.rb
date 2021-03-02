@@ -14,19 +14,11 @@ module Setup
 
     field :active, type: Boolean
 
-    before_save :ready_to_save!, :validates_configuration
+    before_save :validates_configuration
 
     # Virtual abstract method to process a data type record.
     def process(record)
       fail NotImplementedError
-    end
-
-    def ready_to_save!
-      throw(:abort) unless ready_to_save?
-    end
-
-    def ready_to_save?
-      !data_type.nil?
     end
 
     def validates_configuration
