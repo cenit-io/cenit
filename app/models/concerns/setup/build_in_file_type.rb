@@ -55,6 +55,14 @@ module Setup
           end
       end
 
+      def data_type_id
+        data_type&.id
+      end
+
+      def chunk_model
+        data_type.mongoff_model.chunk_model
+      end
+
       def schema
         data_type.schema
       end

@@ -1036,7 +1036,9 @@ module Setup
       readable.rewind
       file = create_from(readable, options)
       {
-        json: Api::V3::ApiController::Template.with(file) { |template| template.to_hash }
+        json: Api::V3::ApiController::Template.with(file) do |template|
+          template.to_hash(only: %w(id filename contentType length md5))
+        end
       }
     rescue Exception => ex
       {

@@ -110,7 +110,11 @@ module Setup
     end
 
     def records_model
-      (m = model) && m.is_a?(Class) ? m : @mongoff_model ||= create_mongoff_model
+      (m = model) && m.is_a?(Class) ? m : mongoff_model
+    end
+
+    def mongoff_model
+      @mongoff_model ||= create_mongoff_model
     end
 
     def model

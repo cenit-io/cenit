@@ -133,6 +133,22 @@ module Setup
       end
     end
 
+    alias_method :mogoff_model, :records_model
+
+    def records_model
+      build_in_model =
+        begin
+          [namespace, name].reject(&:empty?).join('::').constantize
+        rescue
+          nil
+        end
+      if build_in_model && build_in_model < BuildInFileType
+        build_in_model
+      else
+        super
+      end
+    end
+
     def new_from(string_or_readable, options = {})
       if options[:data_type_parser]
         super
