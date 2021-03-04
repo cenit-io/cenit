@@ -23,6 +23,10 @@ module Setup
 
     def validates_configuration
       unless requires :data_type, :observers, :transformation
+        mismatch_observers = observers.select { |observer| observer.data_type_id != data_type_id }
+        unless mismatch_observers.empty?
+          errors.add(:observers, "data type mismatch: #{observers.map(&:custom_title).to_sentence}")
+        end
         unless self.class.transformation_types.any? { |type| transformation.class < type || transformation.class == type }
           errors.add(:transformation, "type is not valid, #{self.class.transformation_types.collect(&:to_s).to_sentence(last_word_connector: ' or ')} expected")
         end
