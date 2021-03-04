@@ -89,7 +89,7 @@ module Setup
       mail.body = message.body
 
       if message.attachments.any?
-        attachments.each do |attachment|
+        message.attachments.each do |attachment|
           mail.add_file(
             filename: attachment.filename,
             content: attachment.data
