@@ -3,7 +3,14 @@ module Setup
     include WithSourceOptions
     include Setup::TranslationCommon::ClassMethods
 
-    build_in_data_type.and(properties: { mapping: { type: {} } }).excluding(:map_attributes).referenced_by(:namespace, :name)
+    build_in_data_type
+      .and(properties: {
+        mapping: {
+          type: 'object'
+        }
+      })
+      .excluding(:map_attributes)
+      .referenced_by(:namespace, :name)
 
     field :map_attributes, type: Hash, default: {}
 
@@ -47,12 +54,12 @@ module Setup
               end
             else
               case map_model.property_schema(k)['type']
-              when 'object'
-                value.delete(k) unless v.is_a?(Hash)
-              when 'array'
-                value.delete(k) unless v.is_a?(Array)
-              else
-                value.delete(k) unless v.is_a?(String)
+                when 'object'
+                  value.delete(k) unless v.is_a?(Hash)
+                when 'array'
+                  value.delete(k) unless v.is_a?(Array)
+                else
+                  value.delete(k) unless v.is_a?(String)
               end
             end
           else
@@ -98,7 +105,7 @@ module Setup
         transformation = sub_map.transformation
         options = parse_options(sub_map.options)
         target_association = target_data_type.records_model.associations[name]
-        target_model = target_association && target_association.klass
+        target_model = target_association&.klass
         sub_map_source_data_type =
           if sub_map.source == '$'
             source_data_type
@@ -107,7 +114,7 @@ module Setup
           end
         run_transformation(transformation, sub_map_source_data_type, sub_map_source, options) do |result, opts|
           unless target_model.nil? || (target_model.is_a?(Class) && result.is_a?(target_association.klass)) ||
-                 (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
+            (result.is_a?(Mongoff::Record) && result.is_a?(target_model))
             opts = opts.merge(discard_events: true).with_indifferent_access
             if transformation.type == :Export && target_model.data_type.is_a?(Setup::FileDataType)
               opts[:contentType] ||= transformation.mime_type
@@ -117,7 +124,7 @@ module Setup
             end
             result = target_model.data_type.new_from(result.to_s, opts)
           end
-          if target_association && target_association.many?
+          if target_association&.many?
             target.send(name) << result
           else
             target.send("#{name}=", result)
@@ -130,7 +137,7 @@ module Setup
     def run_transformation(transformation, source_data_type, source, options)
       source = [source] unless source.is_a?(Enumerable)
       if (transformation.type == :Export && transformation.try(:bulk_source)) ||
-         (transformation.type == :Conversion && transformation.try(:source_handler)) #TODO After remove legacy translators check try(:bulk_source) and try(:source_handler)
+        (transformation.type == :Conversion && transformation.try(:source_handler)) #TODO After remove legacy translators check try(:bulk_source) and try(:source_handler)
         r = transformation.run(source_data_type: source_data_type, objects: source, save_result: false, options: options)
         yield r, options if block_given?
       else
@@ -225,9 +232,9 @@ module Setup
           end
           if sub_map.errors.blank?
             target_association = target_data_type.records_model.associations[name]
-            if source_association && source_association.many? &&
-               (target_association.nil? || !target_association.many?) && # target_association is nil for file mappings
-               !transformation.try(:bulk_source)
+            if source_association&.many? &&
+              (target_association.nil? || !target_association.many?) && # target_association is nil for file mappings
+              !transformation.try(:bulk_source)
               sub_map.errors.add(:source, "is a many association and can not be mapped to #{target_data_type.custom_title} | #{schema['title'] || name.to_title} (which is not many) with the non bulk transformation #{transformation.custom_title}")
             end
             if (t_data_type = transformation.data_type).nil? || t_data_type == source_dt
