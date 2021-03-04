@@ -24,7 +24,7 @@ module Mongoff
           super
       end
 
-      def destroy
+      def destroy(options = {})
         destroy_file_stuff
         super
       end

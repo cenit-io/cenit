@@ -28,9 +28,9 @@ module Setup
           super
       end
 
-      def destroy(options)
+      def destroy(options = {})
         if (destroyed = super)
-          destroy_file_stuff(options)
+          destroy_file_stuff
         end
         destroyed
       end
