@@ -4,7 +4,14 @@ module Setup
 
     deny :all
 
-    build_in_data_type
+    build_in_data_type.and(
+      properties: {
+        live_publish_at: {
+          type: 'string',
+          format: 'date-time'
+        }
+      }
+    )
 
     field :message, type: String
     field :publish_at, type: DateTime
