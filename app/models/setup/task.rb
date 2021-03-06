@@ -15,7 +15,7 @@ module Setup
     NOT_RUNNING_STATUS = STATUS - RUNNING_STATUS
     FINISHED_STATUS = NOT_RUNNING_STATUS - [:pending]
 
-    build_in_data_type.excluding( :thread_token).and(
+    build_in_data_type.excluding(:thread_token).and(
       label: '{{description}}',
       properties: {
         status: {
@@ -56,14 +56,29 @@ module Setup
     before_save do
       message.delete(:task)
       self.description = auto_description if description.blank?
-      if scheduler && scheduler.origin != origin
-        errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
-      end
+      check_scheduler(scheduler, :to_errors)
       self.progress = progress.round(1)
       abort_if_has_errors
     end
 
     before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
+
+    def check_scheduler(scheduler, report = :none)
+      if scheduler&.origin != origin
+        error = "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected"
+        case report
+          when :to_errors
+            errors.add(:scheduler, error)
+          when :exception
+            fail "Scheduler #{error}"
+          else
+            # Nothing to do here
+        end
+        false
+      else
+        true
+      end
+    end
 
     def save(options = {})
       options[:inspect_fields] = thread_token.present? && Thread.current[:task_token] == thread_token.token
@@ -247,8 +262,8 @@ module Setup
       can_retry?
     end
 
-    def schedule(scheduler)
-      if can_schedule?
+    def schedule(scheduler, report = :none)
+      if can_schedule? && check_scheduler(scheduler, report)
         self.scheduler = scheduler
         self.retry(action: 'scheduled')
       end

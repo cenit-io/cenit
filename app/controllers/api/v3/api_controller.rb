@@ -1341,7 +1341,7 @@ module Setup
         else
           Setup::Scheduler.create_from_json!(sch_data)
         end
-      execution = schedule(scheduler)
+      execution = schedule(scheduler, :exception)
       unless execution
         fail "Can't #{scheduler ? 're-' : 'un'}schedule right now, the task is #{status}"
       end
