@@ -64,7 +64,7 @@ module Setup
     before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
 
     def check_scheduler(scheduler, report = :none)
-      if scheduler&.origin != origin
+      if scheduler && scheduler.origin != origin
         error = "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected"
         case report
           when :to_errors
