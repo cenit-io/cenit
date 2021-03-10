@@ -10,22 +10,26 @@ module Setup
 
     default_origin :owner
 
-    build_in_data_type.with(:title,
-                            :name,
-                            :shared_version,
-                            :authors,
-                            :summary,
-                            :categories,
-                            :pull_parameters,
-                            :pull_asynchronous,
-                            :pull_count,
-                            :dependencies,
-                            :readme,
-                            :image,
-                            :pull_data,
-                            :data,
-                            :swagger_spec,
-                            *COLLECTING_PROPERTIES).embedding(:categories)
+    build_in_data_type.with(
+      :title,
+      :origin,
+      :name,
+      :shared_version,
+      :authors,
+      :summary,
+      :categories,
+      :pull_parameters,
+      :pull_asynchronous,
+      :pull_count,
+      :dependencies,
+      :readme,
+      :image,
+      :pull_data,
+      :data,
+      :swagger_spec,
+      *COLLECTING_PROPERTIES
+    )
+    build_in_data_type.embedding(:categories).and(with_origin: true)
     build_in_data_type.discarding(:pull_data, *COLLECTING_PROPERTIES)
     build_in_data_type.referenced_by(:name, :shared_version)
 
@@ -79,12 +83,12 @@ module Setup
 
     def hash_attribute_read(name, value)
       case name
-      when 'data'
-        installed? ? generate_data : value
-      when 'pull_data'
-        installed? ? value : data
-      else
-        value
+        when 'data'
+          installed? ? generate_data : value
+        when 'pull_data'
+          installed? ? value : data
+        else
+          value
       end
     end
 
@@ -387,20 +391,20 @@ module Setup
 
     def clean_ids(value)
       case value
-      when Hash
-        if value['_reference']
-          Cenit::Utility.deep_remove(value, 'id')
-        else
-          h = {}
-          value.each do |key, sub_value|
-            h[key] = clean_ids(sub_value)
+        when Hash
+          if value['_reference']
+            Cenit::Utility.deep_remove(value, 'id')
+          else
+            h = {}
+            value.each do |key, sub_value|
+              h[key] = clean_ids(sub_value)
+            end
+            h
           end
-          h
-        end
-      when Array
-        value.collect(&method(:clean_ids))
-      else
-        value
+        when Array
+          value.collect(&method(:clean_ids))
+        else
+          value
       end
     end
 
