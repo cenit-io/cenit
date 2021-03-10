@@ -45,6 +45,7 @@ module Cenit
       end
 
       def public_url(file)
+        "#{Cenit.homepage}/public/#{Tenant.current_id}/#{file.orm_model.data_type_id}/#{file.id}"
       end
 
       def stored?(file)

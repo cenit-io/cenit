@@ -4,8 +4,8 @@ class FileController < ApplicationController
   include CorsCheck
 
   before_action :allow_origin_header
-  before_action :soft_authorize_account, except: [:cors_check]
-  before_action :check_user_signed_in, except: [:cors_check]
+  before_action :soft_authorize_account, except: [:cors_check, :public]
+  before_action :check_user_signed_in, except: [:cors_check, :public]
 
   def index
     model = nil
@@ -42,6 +42,31 @@ class FileController < ApplicationController
         end
       else
         unauthorized
+      end
+    else
+      not_found
+    end
+  end
+
+  def public
+    if (tenant = Tenant.where(id: params[:tenant_id]).first)
+      tenant.switch do
+        if (data_type = Setup::FileDataType.where(id: params[:data_type_id]).first)
+          if data_type.public_read
+            if (file = data_type.where(id: params[:file_id]).first)
+              send_data file.data,
+                        filename: file.filename,
+                        type: file.content_type,
+                        disposition: 'inline'
+            else
+              not_found
+            end
+          else
+            unauthorized
+          end
+        else
+          not_found
+        end
       end
     else
       not_found
