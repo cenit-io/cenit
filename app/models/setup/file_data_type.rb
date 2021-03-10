@@ -1,4 +1,3 @@
-
 module Setup
   class FileDataType < DataType
 
@@ -238,14 +237,14 @@ module Setup
     end
 
     def file_store_config
-      @_file_store_config ||=
-        begin
-          if new_record?
-            Setup::FileStoreConfig.new(data_type: self)
-          else
-            Setup::FileStoreConfig.find_or_create_by(data_type: self)
-          end
+      if new_record?
+        @_file_store_config ||= Setup::FileStoreConfig.new(data_type: self)
+      else
+        if @file_store_cache_disabled || !@_file_store_config
+          @_file_store_config = Setup::FileStoreConfig.find_or_create_by(data_type: self)
         end
+      end
+      @_file_store_config
     end
 
     delegate :file_store, :public_read, to: :file_store_config

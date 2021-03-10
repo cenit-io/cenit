@@ -42,17 +42,18 @@ module Setup
       include SchemaHandler
 
       def data_type
-        @data_type ||=
-          begin
-            namespace = to_s.split('::')
-            name = namespace.pop
-            namespace = namespace.join('::')
-            Setup::FileDataType.find_or_create_by!(
-              namespace: namespace,
-              name: name,
-              origin: :cenit
-            )
-          end
+        unless @data_type
+          namespace = to_s.split('::')
+          name = namespace.pop
+          namespace = namespace.join('::')
+          @data_type = Setup::FileDataType.find_or_create_by!(
+            namespace: namespace,
+            name: name,
+            origin: :cenit
+          )
+          @data_type.instance_variable_set(:@file_store_cache_disabled, true)
+        end
+        @data_type
       end
 
       def data_type_id
@@ -65,6 +66,22 @@ module Setup
 
       def schema
         data_type.schema
+      end
+
+      def stored_properties_on(file)
+        p = super
+        if data_type.public_read
+          p << 'public_url'
+        end
+        p
+      end
+
+      def public_by_default(*args)
+        if args.length == 0
+          @public_by_default
+        else
+          @public_by_default = args[0]
+        end
       end
     end
 
