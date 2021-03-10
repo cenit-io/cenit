@@ -13,7 +13,7 @@ module Setup
       field :length, type: Integer
       field :metadata, type: Hash
       field :uploadDate, type: DateTime
-      field :chunkSize, type: Integer
+      field :chunkSize, type: Integer, default: Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE
       field :md5, type: String
       field :aliases, type: Array
 
