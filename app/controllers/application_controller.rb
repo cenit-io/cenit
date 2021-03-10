@@ -16,7 +16,10 @@ class ApplicationController < ActionController::Base
 
   def index
     @apps =
-      Cenit::BuildInApp.all.map do |app|
+      Cenit::BuildInApp
+        .all
+        .select { |app| app.app_module.controller? }
+        .map do |app|
         {
           logo: app.configuration.logo,
           name: app.name,
