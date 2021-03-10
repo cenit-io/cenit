@@ -8,6 +8,9 @@ module Setup
     image_with AccountImageUploader
 
     unique_name
+
+    belongs_to :picture, class_name: Setup::PublicStorage.to_s, inverse_of: nil
+
     # TODO: Include Data data types on dependencies
     embeds_many :data, class_name: Setup::CollectionData.to_s, inverse_of: :setup_collection
 

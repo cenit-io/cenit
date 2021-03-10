@@ -55,7 +55,11 @@ module Mongoff
                                                }
                                              },
                                              metadata: {},
-                                             data: {},
+                                             data: {
+                                               edi: {
+                                                 discard: true
+                                               }
+                                             },
                                              encoding: {
                                                type: :string,
                                                enum: %w(encode64 strict_encode64 urlsafe_encode64)
