@@ -3,6 +3,7 @@ class FileController < ApplicationController
   include OAuth2AccountAuthorization
   include CorsCheck
 
+  before_action :check_user_signed_in
   before_action :allow_origin_header
   before_action :soft_authorize_account, except: [:cors_check]
 

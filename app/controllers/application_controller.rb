@@ -27,6 +27,12 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  def check_user_signed_in
+    unless User.current
+      redirect_to new_session_path(User, return_to: request.env['PATH_INFO'])
+    end
+  end
+
   def do_optimize
     Setup::Optimizer.save_namespaces
   end
