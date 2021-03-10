@@ -5,9 +5,10 @@ module Setup
     build_in_data_type
 
     def run(message)
-      if (model = data_type_from(message).records_model)
+      data_type = data_type_from(message)
+      if (model = data_type.records_model)
         scope = objects_from(message)
-        destroy_callback =
+        destroy_callback = data_type.is_a?(FileDataType) ||
           begin
             model.send(:get_callbacks, :destroy).present?
           rescue
