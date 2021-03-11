@@ -1,6 +1,6 @@
 module GridFsFormatter
 
-  def default_url
+  def url
     "/file/#{model.class.to_s.underscore.gsub('/', '~')}/#{model.id}/#{mounted_as}/#{identifier}"
   end
 
