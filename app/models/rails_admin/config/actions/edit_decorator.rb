@@ -56,7 +56,7 @@ module RailsAdmin
                     do_flash_process_result ::Setup::AsynchronousPersistence.process(
                       model_name: @abstract_model.model_name,
                       id: @object.id,
-                      attributes: @object.attributes,
+                      attributes: form_attributes,
                       options: save_options
                     )
                     true
