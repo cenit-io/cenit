@@ -8,7 +8,11 @@ module Setup
       mount_uploader :data, AccountUploader
 
       before_store do
-        store(message.delete(:data), on: data) unless data.present?
+        msg_data = message.delete(:data)
+        if msg_data.is_a?(BSON::Binary)
+          msg_data = msg_data.data
+        end
+        store(msg_data, on: data) unless data.present?
       end
     end
   end

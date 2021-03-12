@@ -1144,6 +1144,13 @@ module Setup
   ParserTransformation.class_eval do
 
     def post_digest(request, options = {})
+      readable =
+        if request.content_type.downcase == 'multipart/form-data'
+          request.params[:data] || request.params[:file] || fail('Missing data (or file) part')
+        else
+          request.body
+        end
+      readable.rewind
       msg = {
         translator_id: id,
         data_type_id: (
@@ -1153,7 +1160,7 @@ module Setup
                 target_data_type_id
         ),
         #decompress_content: decompress, TODO Parser options
-        data: request.body.read,
+        data: BSON::Binary.new(readable.read),
         #options: @form_object.options
       }
       execution = Setup::DataImport.process(msg)
