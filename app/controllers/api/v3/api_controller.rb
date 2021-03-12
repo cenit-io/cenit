@@ -929,14 +929,21 @@ module Setup
     end
 
     def post_digest_pull_import(request, options = {})
-      model = records_model
+      readable =
+        if request.content_type.downcase == 'multipart/form-data'
+          request.params[:data] || request.params[:file] || fail('Missing data (or file) part')
+        else
+          request.body
+        end
+      readable.rewind
       data =
         begin
-          JSON.parse(request.body.read)
+          JSON.parse(readable.read)
         rescue
           fail 'Invalid JSON data'
         end
       data = [data] if data.is_a?(Hash)
+      model = records_model
       if model == Setup::Collection
         if data.length == 1
           data = data[0]
