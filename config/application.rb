@@ -59,6 +59,8 @@ module Cenit
         User.with_role(Role.find_or_create_by(name: :super_admin).name).first ||
         User.create!(email: default_user_email, password: ENV['DEFAULT_USER_PASSWORD'] || 'password')
 
+      setup_build_in_apps_types
+
       unless ENV['SKIP_DB_INITIALIZATION'].to_b
         Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
@@ -69,8 +71,6 @@ module Cenit
         RabbitConsumer.where(alive: false).delete_all
 
         Capataz::Cache.clean
-
-        setup_build_in_apps_types
 
         Setup::CenitDataType.init!
 
@@ -146,11 +146,28 @@ module Cenit
 
     def self.setup_build_in_apps_types
       BuildInApps.apps_modules.each do |app_module|
+        types = {}
         app_module.document_types_defs.each do |name, spec|
+          options = app_module.types_options[name] || {}
           # Model def
-          type = Class.new
+          base = options[:base]
+          if base
+            base =
+              if types.key?(base)
+                types[base]
+              else
+                base.constantize
+              end
+          end
+          types[name] = type = Class.new(base || Object)
           app_module.const_set(name.to_s, type)
-          type.include(Setup::CenitScoped)
+          unless base
+            if !options.key?(:multi_tenant) || options[:multi_tenant]
+              type.include(Setup::CenitScoped)
+            else
+              type.include(Setup::CenitUnscoped)
+            end
+          end
           type.build_in_data_type
           type.class_eval(&spec) if spec
         end
