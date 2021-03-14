@@ -89,7 +89,7 @@ module Cenit
 
       def lock_key(key)
         key = prefixed(key)
-        if Cenit::Redis.exists(key)
+        if Cenit::Redis.exists?(key)
           false
         else
           Cenit::Redis.set(key, LOCKED)
@@ -98,7 +98,7 @@ module Cenit
       end
 
       def key_locked?(key)
-        Cenit::Redis.exists(prefixed(key))
+        Cenit::Redis.exists?(prefixed(key))
       end
 
       def unlock_key(key)
