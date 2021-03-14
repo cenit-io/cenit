@@ -114,7 +114,9 @@ module Cenit
       end
 
       unless ENV['SKIP_DB_INITIALIZATION'].to_b
-        setup_build_in_apps
+        apps = install_build_in_apps
+
+        setup_build_in(apps)
 
         Setup::Oauth2Provider.build_in_provider_id
 
@@ -181,7 +183,8 @@ module Cenit
       end
     end
 
-    def self.setup_build_in_apps
+    def self.install_build_in_apps
+      apps = []
       puts 'Creating build-in apps'
       BuildInApps.apps_modules.each do |app_module|
         namespace = app_module.to_s.split('::')
@@ -211,16 +214,24 @@ module Cenit
             tenant.meta[meta_key] = (tenant.meta[meta_key] || {}).merge('installed' => true)
             tenant.save
           end
-          puts "Setting up #{app_module}..."
-          tenant.switch do
-            app_module.setups.each do |setup_block|
-              app_module.instance_eval(&setup_block)
-            end
-          end
-          puts "App #{app_module} ready!"
+          apps << app
         else
           puts "Couldn't create build-in app #{app_module}: #{app.errors.full_messages.to_sentence}"
         end
+      end
+      apps
+    end
+
+    def self.setup_build_in(apps)
+      apps.each do |app|
+        app_module = app.app_module
+        puts "Setting up #{app_module}..."
+        app.tenant.switch do
+          app_module.setups.each do |setup_block|
+            app_module.instance_eval(&setup_block)
+          end
+        end
+        puts "App #{app_module} ready!"
       end
     end
   end
