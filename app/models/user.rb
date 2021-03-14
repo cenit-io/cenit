@@ -273,5 +273,13 @@ class User
       super_method.call
   end
 
+  def switch(&block)
+    current = ::User.current
+    ::User.current = self
+    account.switch(&block)
+  ensure
+    ::User.current = current if block
+  end
+
   protected :confirmation_required?
 end
