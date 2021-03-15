@@ -72,7 +72,7 @@ module Setup
 
       def default_file_store_for(file_data_type)
         if file_data_type && (model = file_data_type.records_model).is_a?(Class) && model < BuildInFileType
-          file_store_name = ENV.fetch("#{model}:file_store")
+          file_store_name = ENV["#{model}:file_store"]
           Cenit.file_stores.detect { |file_store| file_store.to_s == file_store_name } ||
             Cenit.default_file_store
         else
