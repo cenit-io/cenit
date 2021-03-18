@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
-  revision: 1e6f49efaf515c34d582d90f83a9a9cb11075e2e
+  revision: 2e38f40c00315d32a5382725845c935fb804cef3
   specs:
     cenit-build_in_apps (0.0.1)
 
