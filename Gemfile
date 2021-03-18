@@ -109,6 +109,7 @@ gem 'redis'
 gem 'net-ldap'
 
 gem 'cenit-build_in_apps', git: 'https://github.com/cenit-io/cenit-build_in_apps.git'
+gem 'cenit-oauth_app', git: 'https://github.com/cenit-io/cenit-oauth_app.git'
 gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'
 gem 'cenit-mime', git: 'https://github.com/cenit-io/cenit-mime.git'
 

@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/cenit-io/cenit-admin.git
-  revision: bdeca11e8b96ef55801e35d6024de28e0204c68d
+  revision: f5415714ed88b323d4904016b2017087b5d6086f
   specs:
     cenit-admin (0.0.1)
 
@@ -31,6 +31,12 @@ GIT
       cenit-config
       glebtv_mongoid_userstamp (>= 0.9.1)
       mongoid (>= 5.0.1)
+
+GIT
+  remote: https://github.com/cenit-io/cenit-oauth_app.git
+  revision: 6bfe25bc190a3c09ad75024a5e54aaa5c5b0ec7e
+  specs:
+    cenit-oauth_app (0.0.1)
 
 GIT
   remote: https://github.com/cenit-io/cenit-service.git
@@ -576,6 +582,7 @@ DEPENDENCIES
   cenit-config!
   cenit-mime!
   cenit-multi_tenancy!
+  cenit-oauth_app!
   cenit-service!
   cenit-token!
   codemirror-rails
