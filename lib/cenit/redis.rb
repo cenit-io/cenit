@@ -18,11 +18,11 @@ module Cenit
             else
               # Defauls values similar to the redis gem
               # https://github.com/redis/redis-rb/blob/master/lib/redis/client.rb#L10-L26
-              redis_host = ENV['REDIS_HOST'] || '127.0.0.1'
-              redis_port = (ENV['REDIS_PORT'] || 6379).to_i
-              redis_db = (ENV['REDIS_DB'] || 0).to_i
-              redis_password = ENV['REDIS_PASSWORD'] || nil
-              
+              redis_host = ENV.fetch('REDIS_HOST', '127.0.0.1')
+              redis_port = ENV.fetch('REDIS_PORT', 6379).to_i
+              redis_db = ENV.fetch('REDIS_DB', 0).to_i
+              redis_password = ENV['REDIS_PASSWORD']
+
               ::Redis.new(host: redis_host, port: redis_port, db: redis_db, password: redis_password)
             end
           client =
