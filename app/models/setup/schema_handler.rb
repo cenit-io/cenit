@@ -186,7 +186,7 @@ module Setup
                 schema = base_model.deep_merge(schema) { |_, ref_value, sch_value| Cenit::Utility.array_hash_merge(ref_value, sch_value) }
               end
             else
-              fail "contains an unresolved reference #{value}" unless options[:silent]
+              fail "contains an unresolved reference #{ref}" unless options[:silent]
             end
           end
         elsif options[:only_overriders]

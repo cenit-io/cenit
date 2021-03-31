@@ -29,7 +29,12 @@ module RailsAdmin
             begin
               # filename = params[:filename] + (params[:format] ? ".#{params[:format]}" : '')
               if (attachment = @object.attachment) && (file = attachment.file)
-                send_data(file.read, filename: file.filename, type: file.content_type)
+                send_data(
+                  file.read,
+                  filename: file.filename,
+                  type: file.content_type,
+                  disposition: 'inline'
+                )
               else
                 errors << "Attachment not found"
               end
