@@ -9,6 +9,10 @@ language: ruby
 rvm:
   - 2.5.5
 
+branches:
+  only:
+  - master
+
 before_install:
   - docker pull mongo:3.6
   - docker pull redis
