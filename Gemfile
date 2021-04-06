@@ -47,7 +47,7 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.2.0'
+gem 'rails_admin', '~> 1.4.3'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
