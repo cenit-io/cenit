@@ -182,7 +182,7 @@ GEM
     exception_notification (4.1.4)
       actionmailer (~> 4.0)
       activesupport (~> 4.0)
-    excon (0.59.0)
+    excon (0.79.0)
     execjs (2.7.0)
     factory_girl (4.5.0)
       activesupport (>= 3.0.0)
