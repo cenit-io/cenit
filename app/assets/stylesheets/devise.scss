@@ -38,9 +38,10 @@
         padding: 14px;
         border-radius: 6px;
         border: 0;
-        background: royalblue;
+        background: #437697;
         color: white;
         font-weight: 600;
+        font-size: small;
       }
 
       &.btn-danger {
@@ -80,7 +81,7 @@
       }
 
       &.link-primary {
-        color: royalblue;
+        color: #437697;
         font-weight: 600;
       }
     }
@@ -108,6 +109,38 @@
       width: 100%;
       border-bottom: solid 1px lightgrey;
       margin: 24px;
+    }
+
+    .text-separator {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      position: relative;
+      margin-top: 24px;
+
+      &::before {
+        border-top: 1px solid #adadad;
+        content: "";
+        height: 1px;
+        left: 0;
+        position: absolute;
+        top: 50%;
+        width: 100%;
+      }
+
+      .label {
+        background: #ffffff;
+        padding: 0 8px;
+        z-index: 0;
+      }
+    }
+
+    .question {
+      margin-top: 24px;
+
+      .label {
+        margin-right: 8px;
+      }
     }
 
     .avatar {

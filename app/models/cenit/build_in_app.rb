@@ -37,6 +37,10 @@ module Cenit
       "#{namespace}::#{name}".constantize
     end
 
+    def key
+      app_module.app_key
+    end
+
     class << self
 
       def stored_properties_on(record)

@@ -27,6 +27,10 @@ class BuildInAppBaseController < ApplicationController
     @app ||= app_module.app
   end
 
+  def configuration
+    app&.configuration
+  end
+
   def authorize(auth, parameters = {})
     case auth
     when Setup::CallbackAuthorization
@@ -68,7 +72,7 @@ class BuildInAppBaseController < ApplicationController
       routes << [method, path, options]
     end
 
-    METHODS = %w(get post).map(&:to_sym)
+    METHODS = %w(get post delete).map(&:to_sym)
 
     def method_missing(symbol, *args, &block)
       if METHODS.include?(symbol)
@@ -103,6 +107,7 @@ class BuildInAppBaseController < ApplicationController
   private
 
   def switch_to_tenant(&block)
+    User.current = app.tenant.owner
     app.tenant.switch(&block)
   end
 end

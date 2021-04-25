@@ -6,42 +6,21 @@ class SessionsController < Devise::SessionsController
 
   def new
     if (provider = params[:with])
-      state =
-        if (user_options = resource_params)
-          user_options
-        else
-          {}
-        end.to_json
-      client = OAuth2::Client.new(ENV['OPEN_ID_CLIENT_ID'], ENV['OPEN_ID_CLIENT_SECRET'], authorize_url: ENV['OPEN_ID_AUTH_URL'])
-      redirect_to client.auth_code.authorize_url(
-        scope: 'openid',
-        redirect_uri: ENV['OPEN_ID_REDIRECT_URI'],
-        state: state,
-        with: provider)
+      redirect_to "/app/#{::Cenit::OpenId.app_key}?with=#{provider}&redirect_uri=#{Cenit.homepage}#{session_path(resource_name)}"
     elsif (code = params[:code])
-      client = OAuth2::Client.new(ENV['OPEN_ID_CLIENT_ID'], ENV['OPEN_ID_CLIENT_SECRET'], token_url: ENV['OPEN_ID_TOKEN_URL'])
-      token = nil
-      begin
-        token = client.auth_code.get_token(code, redirect_uri: ENV['OPEN_ID_REDIRECT_URI'])
-      rescue Exception => ex
-        flash[:error] = ex.message
-      end
-      id_token = nil
-      if token && (id_token = token.params['id_token']) &&
-         (id_token = JWT.decode(id_token, nil, false, verfify_expiration: false)[0]) &&
-         id_token['email'].present? && id_token['email_verified']
-        resource = resource_class.find_or_create_by(email: id_token['email'])
+      if (user = ::Cenit::OpenId.get_user_by(code))
+        resource = resource_class.find_or_create_by(email: user.email)
         resource.confirmed_at ||= Time.now
         unless resource.encrypted_password.present?
           resource.password = Devise.friendly_token
         end
-        resource.given_name ||= id_token['given_name']
-        resource.family_name ||= id_token['family_name']
-        if resource.attributes['name'].blank? && id_token.key?('name')
-          resource.name = id_token['name']
+        resource.given_name ||= user.given_name
+        resource.family_name ||= user.family_name
+        if resource.attributes['name'].blank? && user.name
+          resource.name = user.name
         end
         unless resource.attributes['picture_url']
-          resource.picture_url = id_token['picture']
+          resource.picture_url = user.picture_url
         end
         resource.save
         set_flash_message(:notice, :signed_in) if is_flashing_format?
@@ -52,9 +31,7 @@ class SessionsController < Devise::SessionsController
         end
         sign_in_and_redirect resource
       else
-        if id_token
-          flash[:error] = 'It seems that your account at the selected provider is not confirmed so it can not be used for authentication'
-        end
+        flash[:error] = 'Invalid authentication code'
         super
       end
     elsif @auth_token_user

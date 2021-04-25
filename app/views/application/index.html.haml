@@ -6,7 +6,7 @@
 
     .flex.wrap.justify-content-space-around
       - @apps.each do |app|
-        %a.item.flex.column{href: app[:url], target: '_blank'}
+        %a.item.flex.column{href: app[:url]}
           = image_tag(app[:logo], alt: '', class: 'avatar small')
           .title
             = app[:name]

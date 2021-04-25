@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
-  revision: 2e38f40c00315d32a5382725845c935fb804cef3
+  revision: e3251470a68430bdcdb25f5e21f029dc2e35e6a0
   specs:
     cenit-build_in_apps (0.0.1)
 
@@ -34,9 +34,15 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth_app.git
-  revision: 6bfe25bc190a3c09ad75024a5e54aaa5c5b0ec7e
+  revision: 35567c6066ad04acafc6091d33fa8475c84b10a4
   specs:
     cenit-oauth_app (0.0.1)
+
+GIT
+  remote: https://github.com/cenit-io/cenit-open_id.git
+  revision: 96e8087ba121d92dd33fe8afc344467c1cd95b89
+  specs:
+    cenit-open_id (0.0.1)
 
 GIT
   remote: https://github.com/cenit-io/cenit-service.git
@@ -583,6 +589,7 @@ DEPENDENCIES
   cenit-mime!
   cenit-multi_tenancy!
   cenit-oauth_app!
+  cenit-open_id!
   cenit-service!
   cenit-token!
   codemirror-rails
