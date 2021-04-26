@@ -19,7 +19,7 @@ module Setup
       if options[:control]
         options[:control].view ||= ActionView::Base.new(nil, {}, options[:control].try(:controller))
       end
-      av = options[:control].try(:view) || ActionView::Base.new
+      av = options[:control].try(:view) || ViewRenderer.new
 
       av.render inline: code, handlers: 'erb', locals: options
     end
@@ -60,6 +60,17 @@ module Setup
         r = "____#{@val}"
         @val += 1
         r
+      end
+    end
+
+    class ViewRenderer < ActionView::Base
+
+      def initialize
+        super(ActionView::LookupContext.new([]), {}, nil)
+      end
+
+      def compiled_method_container
+        self.class
       end
     end
   end
