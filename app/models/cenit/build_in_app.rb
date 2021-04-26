@@ -35,6 +35,8 @@ module Cenit
 
     def app_module
       "#{namespace}::#{name}".constantize
+    rescue
+      nil
     end
 
     def key
