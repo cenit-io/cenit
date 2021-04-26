@@ -1,13 +1,11 @@
 
-.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+.responsive-box
   .flex.column.align-items-center.devise.box
     %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'full-width' }) do |f|
       - if (return_to = params[:return_to])
         - f.hidden_field :return_to, value: return_to
       = f.check_box :remember_me, style: 'display:none', value: '1', checked: 'checked'
-      - if (ENV['FEDERATION_SIGN_IN_AND_SIGN_UP'] || false).to_b
-        = render partial: 'devise/shared/social_buttons', locals: { form: f }
     - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
       = form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: 'full-width' }) do |f|
         = render partial: 'devise/shared/errors', locals: { resource: resource }
@@ -28,6 +26,11 @@
           =t('admin.registration.terms_preface')
           =link_to "#{Cenit.homepage}/terms", target: '_blank' do
             %span=t('admin.misc.terms')
-      .separator
 
-      = link_to "Already have an account", new_session_path(resource_name, { return_to: params[:return_to] }), class: 'link link-primary'
+      - if (providers = Cenit::OpenId.providers).present?
+        .text-separator
+          .label
+            = 'or continue with'
+        = render partial: 'cenit/open_id/form', locals: { redirect_uri: "#{Cenit.homepage}#{session_path(resource_name)}", providers: providers }
+
+      = render partial: 'devise/shared/sing_in'

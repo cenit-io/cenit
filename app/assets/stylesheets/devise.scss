@@ -1,11 +1,12 @@
+.responsive-box {
+  display: flex;
+  justify-content: center
+}
 
 .devise {
 
   &.box {
-    border: solid 1px lightgrey;
     padding: 40px;
-    border-radius: 8px;
-    width: 380px;
 
     .logo {
       background-image: url("logo_cenitsaas_web.png");
@@ -83,6 +84,10 @@
       &.link-primary {
         color: #437697;
         font-weight: 600;
+
+        &.small {
+          font-size: small;
+        }
       }
     }
 
@@ -254,6 +259,25 @@
         list-style: none;
         padding: 0;
       }
+    }
+  }
+}
+
+@media only screen and (min-width: 600px) {
+
+  .responsive-box {
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .devise {
+
+    &.box {
+      border: solid 1px lightgrey;
+      border-radius: 8px;
+      width: 380px;
     }
   }
 }

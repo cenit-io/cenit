@@ -1,4 +1,4 @@
-.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+.responsive-box
   .flex.column.align-items-center.devise.box
     %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'full-width' }) do |f|
@@ -20,7 +20,7 @@
           %button.btn.btn-primary.full-width
             =t('admin.session.submit')
       .flex.full-width.justify-flex-end
-        = link_to "Forgot password?", new_password_path(resource_name), class: 'link link-primary'
+        = link_to "Forgot password?", new_password_path(resource_name), class: 'link link-primary small'
 
     - if (providers = Cenit::OpenId.providers).present?
       .text-separator
@@ -28,8 +28,4 @@
           = 'or continue with'
       = render partial: 'cenit/open_id/form', locals: { redirect_uri: "#{Cenit.homepage}#{session_path(resource_name)}", providers: providers }
 
-    - unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
-      .question.flex.full-width.justify-content-center
-        .label
-          = "No account?"
-        = link_to "Create one", new_registration_path(resource_name, { return_to: params[:return_to] }), class: 'link link-primary'
+    = render partial: 'devise/shared/create_link'
