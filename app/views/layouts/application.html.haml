@@ -9,4 +9,7 @@
     = csrf_meta_tag
     = stylesheet_link_tag 'application', media: :all
   %body.margin-0
+    = javascript_include_tag 'application.js'
     = yield
+  :javascript
+    window.App.resize();

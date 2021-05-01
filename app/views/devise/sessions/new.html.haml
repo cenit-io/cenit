@@ -1,4 +1,4 @@
-.responsive-box
+.responsive-box.centered
   .flex.column.align-items-center.devise.box
     %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: session_path(resource_name), html: { role: 'form', class: 'full-width' }) do |f|
@@ -29,3 +29,5 @@
       = render partial: 'cenit/open_id/form', locals: { redirect_uri: "#{Cenit.homepage}#{session_path(resource_name)}", providers: providers }
 
     = render partial: 'devise/shared/create_link'
+
+= javascript_include_tag 'devise.js'

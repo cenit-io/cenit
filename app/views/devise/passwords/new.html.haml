@@ -1,4 +1,4 @@
-.responsive-box
+.responsive-box.centered
   .flex.column.align-items-center.devise.box
     %a.logo{href: '/'}
     = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'full-width' }) do |f|
@@ -15,3 +15,5 @@
     .separator
 
     = render partial: 'devise/shared/create_link'
+
+= javascript_include_tag 'devise.js'
