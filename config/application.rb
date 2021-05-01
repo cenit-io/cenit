@@ -49,15 +49,18 @@ module Cenit
 
     config.after_initialize do
 
-      eager_load!
-
-      Thread.current[:cenit_initializing] = true
-
       default_user_email = ENV['DEFAULT_USER_EMAIL'] || 'support@cenit.io'
 
       User.current = User.where(email: default_user_email).first ||
         User.with_role(Role.find_or_create_by(name: :super_admin).name).first ||
         User.create!(email: default_user_email, password: ENV['DEFAULT_USER_PASSWORD'] || 'password')
+
+      unless User.current.super_admin_enabled
+        puts "Enabling super admin access for user #{User.current.email}"
+        User.current.update!(super_admin_enabled: true)
+      end
+
+      eager_load!
 
       setup_build_in_apps_types
 
@@ -130,8 +133,6 @@ module Cenit
           end
         end
       end
-
-      Thread.current[:cenit_initializing] = nil
     end
 
     if Rails.env.production? &&

@@ -251,20 +251,27 @@ class User
       end
     end
 
-    def super_admin
-      all.select { |u| u.has_role? :super_admin }
+    def super_access?
+      Thread.current[:super_access] || current_super_admin?
+    end
+
+    def with_super_access
+      current_access = Thread.current[:super_access]
+      yield if block_given?
+    ensure
+      Thread.current[:super_access] = current_access
     end
 
     def current_number
-      (current && current.number) || 'XXXXXXX'
+      current&.number || 'XXXXXXX'
     end
 
     def current_token
-      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+      current&.token || 'XXXXXXXXXXXXXXXX'
     end
 
     def current_id
-      current && current.id
+      current&.id
     end
   end
 

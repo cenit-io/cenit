@@ -1,7 +1,7 @@
 module Setup
   class CenitDataType < DataType
 
-    origins :cenit, -> { (Cenit.initializing? || ::User.current_super_admin?) ? [:admin, :tmp] : nil }
+    origins :cenit, -> { ::User.super_access? ? [:admin, :tmp] : nil }
 
     default_origin :tmp
 

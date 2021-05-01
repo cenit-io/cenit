@@ -11,7 +11,7 @@ module Setup
     include ModelConfigurable
     include BuildIn
 
-    origins origins_config, :cenit, -> { (Cenit.initializing? || ::User.current_super_admin?) ? [:admin, :tmp] : nil }
+    origins origins_config, :cenit, -> { ::User.super_access? ? [:admin, :tmp] : nil }
 
     abstract_class true
 
