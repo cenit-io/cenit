@@ -77,7 +77,7 @@ class Account
 
   def check_creation_enabled
     unless @for_create
-      errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.current_super_admin?
+      errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.super_access?
     end
     errors.blank?
   end
@@ -192,7 +192,7 @@ class Account
   end
 
   def get_owner
-    fail 'Illegal access to tenant owner' unless User.current_super_admin?
+    fail 'Illegal access to tenant owner' unless User.super_access?
     owner
   end
 
@@ -204,7 +204,7 @@ class Account
 
     def find_where(expression)
       scope = all(expression)
-      unless User.current_super_admin?
+      unless User.super_access?
         user_id = (user = User.current) && user.id
         member_account_ids = user && user.member_account_ids
         scope = scope.and({ '$or' => [

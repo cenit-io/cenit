@@ -24,7 +24,9 @@ class BuildInAppBaseController < ApplicationController
   end
 
   def app
-    @app ||= app_module.app
+    @app ||= User.with_super_access do
+      app_module.app
+    end
   end
 
   def configuration
@@ -33,20 +35,20 @@ class BuildInAppBaseController < ApplicationController
 
   def authorize(auth, parameters = {})
     case auth
-    when Setup::CallbackAuthorization
-      if auth.save
-        cenit_token = CallbackAuthorizationToken.create(app_id: app.application_id, authorization: auth, data: {})
-        parameters[:cenit_token] = cenit_token
-        auth_url = auth.authorize_url(parameters)
-        cenit_token.save
-        session[:oauth_state] = cenit_token.token
-        redirect_to auth_url
+      when Setup::CallbackAuthorization
+        if auth.save
+          cenit_token = CallbackAuthorizationToken.create(app_id: app.application_id, authorization: auth, data: {})
+          parameters[:cenit_token] = cenit_token
+          auth_url = auth.authorize_url(parameters)
+          cenit_token.save
+          session[:oauth_state] = cenit_token.token
+          redirect_to auth_url
+        else
+          fail "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}"
+        end
       else
-        fail "Unable to authorize #{auth.custom_title}: #{auth.errors.full_messages.to_sentence}"
-      end
-    else
-      authorize_path = authorization_authorize_path(id: auth.id.to_s)
-      redirect_to "#{Cenit.homepage}#{authorize_path}"
+        authorize_path = authorization_authorize_path(id: auth.id.to_s)
+        redirect_to "#{Cenit.homepage}#{authorize_path}"
     end
   end
 

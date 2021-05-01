@@ -6,7 +6,7 @@ module Cenit
     before_save :authorize
 
     def authorize
-      errors.add(:base, 'You are not authorized to create/update Auth Tokens') unless ::User.current_super_admin?
+      errors.add(:base, 'You are not authorized to create/update Auth Tokens') unless ::User.super_access?
       abort_if_has_errors
     end
   end

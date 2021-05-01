@@ -40,7 +40,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-open_id.git
-  revision: 96e8087ba121d92dd33fe8afc344467c1cd95b89
+  revision: 70ea663956cc7a3dcac8f8ccc6a54be68842bb34
   specs:
     cenit-open_id (0.0.1)
 

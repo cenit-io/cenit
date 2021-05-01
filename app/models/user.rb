@@ -258,6 +258,7 @@ class User
 
     def with_super_access
       current_access = Thread.current[:super_access]
+      Thread.current[:super_access] = true
       yield if block_given?
     ensure
       Thread.current[:super_access] = current_access

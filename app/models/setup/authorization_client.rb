@@ -7,7 +7,13 @@ module Setup
 
     abstract_class true
 
-    origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared, :admin
+    origins(
+      :app,
+      :default,
+      -> { Cenit::MultiTenancy.tenant_model.current && :owner },
+      -> { ::User.super_access? ? :admin : nil },
+      :shared
+    )
 
     build_in_data_type
       .including(:provider)

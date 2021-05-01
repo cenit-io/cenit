@@ -2,11 +2,14 @@ module Cenit
   class BuildInApp < ::Setup::OauthClient
     include App
 
-    origins :admin
+    origins -> { ::User.super_access? ? :admin : nil }
 
     default_origin :admin
 
-    build_in_data_type.with(:namespace, :name, :provider, :slug, :application_parameters)
+    build_in_data_type
+      .on_origin(:admin)
+      .with(:namespace, :name, :provider, :slug, :application_parameters)
+
     build_in_data_type.referenced_by(:namespace, :name, :_type).and(
       properties: {
         configuration: {

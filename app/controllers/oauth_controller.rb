@@ -94,7 +94,7 @@ class OauthController < ApplicationController
     redirect_uri = authorization_show_path(id: :invalid_state_data)
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-       cenit_token.set_current_tenant! && (auth = cenit_token.authorization)
+       (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
       begin
         auth.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_uri =

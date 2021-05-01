@@ -5,7 +5,7 @@ module Setup
     include ClassHierarchyAware
     include CrossOrigin::CenitDocument
 
-    origins :default, -> { ::User.current_super_admin? ? :admin : nil }
+    origins :default, -> { ::User.super_access? ? :admin : nil }
 
     abstract_class true
 

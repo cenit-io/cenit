@@ -2,16 +2,18 @@ module Cenit
   class ApplicationId
     include Setup::CenitUnscoped
 
-    build_in_data_type.and(
-      properties: {
-        name: {
-          type: 'string'
-        },
-        registered: {
-          type: 'boolean'
+    build_in_data_type
+      .on_origin(:admin)
+      .and(
+        properties: {
+          name: {
+            type: 'string'
+          },
+          registered: {
+            type: 'boolean'
+          }
         }
-      }
-    )
+      )
 
     deny :all
 
@@ -77,7 +79,9 @@ module Cenit
     def app
       @app ||= tenant && tenant.switch do
         Setup::Application.where(application_id: self).first ||
-          Cenit::BuildInApp.where(application_id: self).first
+          User.with_super_access do
+            Cenit::BuildInApp.where(application_id: self).first
+          end
       end
     end
 

@@ -21,7 +21,7 @@ module Setup
     )
 
     def validates_for_destroy
-      if ::User.current_super_admin?
+      if ::User.super_access?
         unless origin == :tmp || (build_in_dt = build_in).nil?
           errors.add(:base, "#{custom_title} can not be destroyed because model #{build_in_dt.model} is present.")
         end
@@ -32,11 +32,11 @@ module Setup
     end
 
     def do_configure_when_save?
-      !new_record? && !::User.current_super_admin?
+      !new_record? && !::User.super_access?
     end
 
     def attribute_writable?(name)
-      ((name == 'name') && ::User.current_super_admin?) || super
+      ((name == 'name') && ::User.super_access?) || super
     end
 
     def data_type_name

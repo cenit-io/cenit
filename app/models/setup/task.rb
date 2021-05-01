@@ -5,7 +5,7 @@ module Setup
     include CrossOrigin::CenitDocument
     include FieldsInspection
 
-    origins :default, -> { ::User.current_super_admin? ? :admin : nil }
+    origins :default, -> { ::User.super_access? ? :admin : nil }
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     ACTIVE_STATUS = [:running, :retrying]

@@ -103,7 +103,7 @@ module Api::V3
     def new
       parser_options = self.parser_options.dup
       if klass.is_a?(Class) && klass < FieldsInspection
-        parser_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+        parser_options[:inspect_fields] = Account.current.nil? || !::User.super_access?
       end
       if klass.is_a?(Class) && klass < Setup::AsynchronousPersistence::Model
         execution = Setup::AsynchronousPersistence.process(
@@ -147,14 +147,14 @@ module Api::V3
           record_id: @item.id,
           access_scope: @oauth_scope&.to_s,
           data: request_data,
-          inspect_fields: Account.current.nil? || !::User.current_super_admin?
+          inspect_fields: Account.current.nil? || !::User.super_access?
         )
         render json: execution.to_hash(include_id: true, include_blanks: false), status: :accepted
       else
         @item.fill_from(request_data, parser_options)
         save_options = {}
         if @item.class.is_a?(Class) && @item.class < FieldsInspection
-          save_options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+          save_options[:inspect_fields] = Account.current.nil? || !::User.super_access?
         end
         if Cenit::Utility.save(@item, save_options)
           if setup_viewport(:headers)

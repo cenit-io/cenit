@@ -16,7 +16,7 @@ module Setup
       errors.add(:source_collection, "can't be blank") unless source_collection
 
       if shared_collection
-        unless ::User.current_super_admin?
+        unless ::User.super_access?
           errors.add(:shared_collection, "origin is not valid (#{shared_collection.origin})") unless shared_collection.origin == :owner
         end
       else

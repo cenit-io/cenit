@@ -83,7 +83,7 @@ module Api::V1
             options = @payload.create_options
             model = data_type.records_model
             if model.is_a?(Class) && model < FieldsInspection
-              options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+              options[:inspect_fields] = Account.current.nil? || !::User.super_access?
             end
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
@@ -116,7 +116,7 @@ module Api::V1
               options = @payload.create_options.merge(primary_field: @primary_field)
               model = data_type.records_model
               if model.is_a?(Class) && model < FieldsInspection
-                options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+                options[:inspect_fields] = Account.current.nil? || !::User.super_access?
               end
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type),

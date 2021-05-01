@@ -20,7 +20,7 @@ module Setup
             namespace.strip
           end
         self.name = name.to_s.strip
-        # unless ::User.current_super_admin?
+        # unless ::User.super_access?
         #   errors.add(:namespace, 'is reserved') if Cenit.reserved_namespaces.include?(namespace.downcase)
         # end TODO Implements reserved namespaces
         errors.blank?
