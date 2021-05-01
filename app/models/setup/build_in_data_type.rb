@@ -45,6 +45,10 @@ module Setup
       model.to_s
     end
 
+    def additional_properties?
+      false
+    end
+
     def records_methods
       []
     end
