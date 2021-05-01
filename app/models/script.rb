@@ -1,7 +1,7 @@
 class Script
   include Setup::CenitUnscoped
 
-  build_in_data_type.and(properties: {
+  build_in_data_type.on_origin(:admin).and(properties: {
     code: {
       contentMediaType: 'text/x-ruby'
     }

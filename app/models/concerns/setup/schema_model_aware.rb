@@ -8,10 +8,7 @@ module Setup
       end
 
       def schema
-        data_type = self.data_type
-        schema = data_type.merged_schema
-        schema_path.split('/').each { |token| schema = data_type.merge_schema(schema[token]) if token.present? }
-        schema
+        build_in_data_type.schema
       end
     end
   end

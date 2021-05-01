@@ -275,9 +275,9 @@ module Cenit
     end
 
     def can?(action, model)
-      return false unless (data_type = model.try(:data_type))
       method = (ACCESS_TOKENS.include?(action) && action) || nil
       return true if super_method?(method)
+      return false unless (data_type = model.try(:data_type))
       criteria = access_by_ids.criteria_for(method)
       criteria.present? && criteria['_id']['$in'].include?(data_type.id.to_s)
     end

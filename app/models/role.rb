@@ -1,7 +1,7 @@
 class Role
   include Setup::CenitUnscoped
 
-  build_in_data_type.with(:name, :metadata)
+  build_in_data_type.with(:name, :metadata).on_origin(:admin)
 
   deny :all
 

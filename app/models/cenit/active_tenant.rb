@@ -2,7 +2,7 @@ module Cenit
   class ActiveTenant
     include Setup::CenitUnscoped
 
-    build_in_data_type
+    build_in_data_type.on_origin(:admin)
 
     belongs_to :tenant, class_name: Account.to_s, inverse_of: nil
 

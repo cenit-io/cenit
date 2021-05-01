@@ -4,7 +4,7 @@ module Setup
 
     deny :all
 
-    build_in_data_type.and(
+    build_in_data_type.on_origin(:admin).and(
       properties: {
         live_publish_at: {
           type: 'string',

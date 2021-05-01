@@ -93,20 +93,22 @@ module Setup
       def init!
         do_configure = where(origin: :cenit).empty?
 
-        Setup::BuildInDataType.each(&:db_data_type)
+        Setup::BuildInDataType.each { |dt| dt.db_data_type(true) }
 
-        right_data_types_ids = []
+        right_data_types_ids = Hash.new { |h, k| h[k] = [] }
         wrong_data_types = []
         all.each do |data_type|
           if data_type.build_in
-            right_data_types_ids << data_type.id if do_configure
+            right_data_types_ids[data_type.build_in.origin_config || :cenit] << data_type.id if do_configure
           else
             wrong_data_types << "#{data_type.namespace}::#{data_type.name}"
           end
         end
 
         if do_configure
-          where(:id.in => right_data_types_ids).cross(:cenit)
+          right_data_types_ids.each do |origin, ids|
+            where(:id.in => ids).cross(origin)
+          end
         end
 
         unless wrong_data_types.empty?

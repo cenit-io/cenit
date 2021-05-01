@@ -2,7 +2,7 @@ class RabbitConsumer
   include Setup::CenitUnscoped
   include Cancelable
 
-  build_in_data_type
+  build_in_data_type.on_origin(:admin)
 
   deny :all
 

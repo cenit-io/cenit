@@ -18,6 +18,7 @@ class User
   rolify
 
   build_in_data_type
+    .on_origin(:admin)
     .with(:email, :name, :account, :roles, :super_admin_enabled)
     .and(properties: {
       password: {

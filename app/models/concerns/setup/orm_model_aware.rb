@@ -9,7 +9,7 @@ module Setup
     module ClassMethods
       def data_type
         if (build_in = BuildInDataType.build_ins[self.to_s])
-          build_in.request_db_data_type
+          build_in.request_db_data_type || build_in
         end
       end
     end

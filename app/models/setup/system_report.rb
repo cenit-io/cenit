@@ -7,7 +7,7 @@ module Setup
 
     deny :all
 
-    build_in_data_type
+    build_in_data_type.on_origin(:admin)
 
     attachment_uploader GridFsUploader
 

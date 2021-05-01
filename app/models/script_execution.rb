@@ -1,5 +1,7 @@
 class ScriptExecution < Setup::Task
 
+  build_in_data_type.on_origin(:admin)
+
   agent_field :script, :script_id
 
   default_origin :admin

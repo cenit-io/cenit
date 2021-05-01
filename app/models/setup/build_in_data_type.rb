@@ -12,11 +12,17 @@ module Setup
       RequestStore.store["[cenit]#{self}.db_data_type".to_sym] ||= db_data_type
     end
 
-    def db_data_type
+    def db_data_type(create = false)
       namespace = model.to_s.split('::')
       name = namespace.pop
       namespace = namespace.join('::')
-      Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
+      Setup::CenitDataType.where(namespace: namespace, name: name).first ||
+        (create && begin
+          Setup::CenitDataType.create!(namespace: namespace, name: name, origin: default_origin)
+        rescue
+          puts "Error persisting build-in data for #{model}"
+          raise $!
+        end)
     end
 
     def namespace
@@ -96,6 +102,21 @@ module Setup
 
     def schema
       @schema ||= build_schema
+    end
+
+    def origin_config
+      @origin
+    end
+
+    def default_origin
+      origin_config || CenitDataType.default_origin
+    end
+
+    def on_origin(*args)
+      if args.length != 0
+        @origin = args[0].to_sym
+      end
+      self
     end
 
     def find_data_type(ref, ns = namespace)

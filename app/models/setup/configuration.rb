@@ -3,7 +3,7 @@ module Setup
     include CenitUnscoped
     include Setup::Singleton
 
-    build_in_data_type
+    build_in_data_type.on_origin(:admin)
 
     deny :all
 
