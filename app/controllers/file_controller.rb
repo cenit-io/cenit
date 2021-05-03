@@ -76,7 +76,7 @@ class FileController < ApplicationController
   protected
 
   def authorization_adapter
-    @authorization_adapter ||= Ability.new(current_user)
+    @ability ||= Ability.new(User.current)
   end
 
   def find_version(uploader, path)
