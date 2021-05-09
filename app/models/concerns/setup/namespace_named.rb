@@ -6,6 +6,9 @@ module Setup
     include CustomTitle
 
     included do
+
+      build_in_data_type.and_polymorphic(label: '{{namespace}} | {{name}}')
+
       field :namespace, type: String
       field :name, type: String
 
