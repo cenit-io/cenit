@@ -158,11 +158,11 @@ class Account
   end
 
   def super_admin?
-    owner && owner.super_admin?
+    owner&.super_admin?
   end
 
   def sealed?
-    owner && owner.sealed?
+    owner&.sealed?
   end
 
   def clean_up

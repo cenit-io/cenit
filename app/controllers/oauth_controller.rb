@@ -95,6 +95,9 @@ class OauthController < ApplicationController
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
        (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
+      if User.current.has_role?(:super_admin)
+        User.current.super_admin_enabled = true
+      end
       begin
         auth.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_uri =

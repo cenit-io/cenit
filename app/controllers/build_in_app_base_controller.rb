@@ -110,6 +110,7 @@ class BuildInAppBaseController < ApplicationController
 
   def switch_to_tenant(&block)
     User.current = app.tenant.owner
+    User.current.super_admin_enabled = true
     app.tenant.switch(&block)
   end
 end
