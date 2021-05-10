@@ -76,12 +76,12 @@ module Mongoff
 
     def find(*args)
       case (docs = any_in(id: args).to_a).length
-      when 0
-        nil
-      when 1
-        docs[0]
-      else
-        docs
+        when 0
+          nil
+        when 1
+          docs[0]
+        else
+          docs
       end
     end
 
@@ -110,6 +110,7 @@ module Mongoff
       #For eager load mongoid compatibility which is not supported on mongoff
       self
     end
+
     # TODO to here
 
     private
@@ -181,12 +182,20 @@ module Mongoff
           value.id
         else
           case value
-          when Hash, Regexp
-            value
-          when Enumerable
-            value.collect { |v| model.mongo_value(v, field) }
-          else
-            model.mongo_value(value, field)
+            when Hash, Regexp
+              value
+            when Enumerable
+              value.collect { |v| model.mongo_value(v, field) }
+            else
+              if model.property?(field)
+                model.mongo_value(value, field)
+              else
+                begin
+                  value.class.evolve(value)
+                rescue
+                  value
+                end
+              end
           end
         end
       end

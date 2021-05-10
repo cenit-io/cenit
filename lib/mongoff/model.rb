@@ -309,7 +309,11 @@ module Mongoff
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
         else
-          BSON::ObjectId.from_string(value.to_s)
+          value = value.to_s
+          if (match = value.match(/\A\$oid#(.*\Z)/))
+            value = match[1]
+          end
+          BSON::ObjectId.from_string(value)
         end
       end,
 
