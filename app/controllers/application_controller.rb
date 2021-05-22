@@ -24,7 +24,7 @@ class ApplicationController < ActionController::Base
           {
             logo: app.configuration.logo,
             name: app.name,
-            url: "app/#{m.app_key}"
+            url: "/app/#{m.app_key}".squeeze('/')
           }
         end
       end
