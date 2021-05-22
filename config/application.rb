@@ -53,12 +53,17 @@ module Cenit
 
       User.current = User.where(email: default_user_email).first ||
         User.with_role(Role.find_or_create_by(name: :super_admin).name).first ||
-        User.create!(email: default_user_email, password: ENV['DEFAULT_USER_PASSWORD'] || 'password')
+        User.create!(
+          email: default_user_email,
+          password: ENV.fetch('DEFAULT_USER_PASSWORD', 'password')
+        )
 
       unless User.current.super_admin_enabled
         puts "Enabling super admin access for user #{User.current.email}"
         User.current.update!(super_admin_enabled: true)
       end
+
+      ::Setup::Configuration.check!
 
       eager_load!
 

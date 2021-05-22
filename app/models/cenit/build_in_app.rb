@@ -30,7 +30,8 @@ module Cenit
 
     def check_tenant
       unless tenant
-        self.tenant = Tenant.find_or_create_by!(name: name)
+        self.tenant = ::Setup::Configuration.default_build_in_tenant ||
+          Tenant.find_or_create_by!(name: name)
         application_id.update(tenant_id: tenant_id)
       end
       yield(self) if block_given?
