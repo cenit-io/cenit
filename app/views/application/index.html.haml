@@ -12,7 +12,7 @@
             = app[:name]
     .separator
 
-    - if User.current
+    - if current_user
       = link_to 'Logout', destroy_session_path(User, { return_to: params[:return_to] }), class: 'btn btn-danger'
     - else
       = link_to 'Login for more options', new_session_path(User, { return_to: params[:return_to] }), class: 'link link-primary'

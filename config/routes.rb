@@ -130,5 +130,16 @@ Cenit::Application.routes.draw do
     listener && listener.try(:on_route_draw, self)
   end
 
-  root to: 'application#index'
+  root_app_module =
+    begin
+      ENV['ROOT_APP'].constantize
+    rescue
+      nil
+    end
+
+  if root_app_module
+    root to: "#{root_app_module.controller_prefix}/main#index"
+  else
+    root to: 'application#index'
+  end
 end
