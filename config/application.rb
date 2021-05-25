@@ -52,7 +52,7 @@ module Cenit
           tenant.switch do
             ThreadToken.destroy_all
             Setup::Task.where(:status.in => Setup::Task::ACTIVE_STATUS).update_all(status: :broken)
-            Setup::Execution.where(:status.nin => Setup::Task::FINISHED_STATUS).update_all(status: :broken, completed_at: Time.now)
+            Setup::Execution.where(status: :running).update_all(status: :broken, completed_at: Time.now)
 
             Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
           end
