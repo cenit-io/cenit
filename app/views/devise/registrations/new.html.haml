@@ -21,10 +21,11 @@
         .control
           %button.btn.btn-primary.full-width
             =t('admin.registration.submit')
-        .terms
-          =t('admin.registration.terms_preface')
-          =link_to "#{Cenit.homepage}/terms", target: '_blank' do
-            %span=t('admin.misc.terms')
+        - if (terms_of_service_url = ENV.fetch('TERMS_OF_SERVICE_URL', nil))
+          .terms
+            =t('admin.registration.terms_preface')
+            =link_to terms_of_service_url, target: '_blank' do
+              %span=t('admin.misc.terms')
 
       - if (providers = Cenit::OpenId.providers).present?
         .text-separator
