@@ -69,13 +69,28 @@ module Mongoid
             Setup::CenitDataType
           ]
 
-      def insert_as_root
-        key = ::Mongo::Operation::KEYS_VALIDATION_KEY
-        current_keys_validation = Thread.current[key]
-        Thread.current[key] = false
-        super
-      ensure
-        Thread.current[key] = current_keys_validation
+      def insert_as_root(&block)
+        self.class.skip_keys_validation do
+          super(&block)
+        end
+      end
+
+      class << self
+
+        def skip_keys_validation
+          key = ::Mongo::Operation::KEYS_VALIDATION_KEY
+          current_keys_validation = Thread.current[key]
+          Thread.current[key] = false
+          yield if block_given?
+        ensure
+          Thread.current[key] = current_keys_validation
+        end
+
+        def with(*args, &block)
+          skip_keys_validation do
+             super(*args, &block)
+          end
+        end
       end
     end
   end
