@@ -917,6 +917,9 @@ module Setup
         task_description: "Crossing #{name.to_title.pluralize}"
         #TODO Cross dependencies option
         )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -959,6 +962,9 @@ module Setup
         discard_collection: model != Setup::Collection,
         task_description: options['task_description']
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1018,6 +1024,9 @@ module Setup
         end
         message[:pull_parameters] = pull_parameters
         execution = self.retry
+        if execution.is_a?(Setup::SystemNotification)
+          fail execution.message
+        end
         {
           json: execution.to_hash(include_id: true, include_blanks: false),
           status: :accepted
@@ -1078,11 +1087,21 @@ module Setup
       if (selector = message['selector'])
         message['selector'] = selector.to_json
       end
-      execution = process(message.with_indifferent_access)
-      execution.reload
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false)
-      }
+      begin
+        execution = process(message.with_indifferent_access)
+        if execution.is_a?(Setup::SystemNotification)
+          fail execution.message
+        end
+        execution.reload
+        {
+          json: execution.to_hash(include_id: true, include_blanks: false)
+        }
+      rescue
+        {
+          json: { error: $!.message },
+          status: :bad_request
+        }
+      end
     end
   end
 
@@ -1101,6 +1120,9 @@ module Setup
         data_type: self.class.data_type
       )
       execution = run_asynchronous(input)
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       execution.reload
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
@@ -1129,6 +1151,9 @@ module Setup
         skip_notification_level: true,
         #options: @form_object.options TODO Template options
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1164,6 +1189,9 @@ module Setup
         #options: @form_object.options
       }
       execution = Setup::DataImport.process(msg)
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1192,6 +1220,9 @@ module Setup
         skip_notification_level: true,
         #options: @form_object.options TODO Updater options
         )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1220,6 +1251,9 @@ module Setup
         skip_notification_level: true,
       #options: @form_object.options TODO Convert options
         )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1241,6 +1275,9 @@ module Setup
         data: request.body.read,
         task_description: "Sharing collection #{name}"
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1257,6 +1294,9 @@ module Setup
         collection_id: id,
         task_description: "Shredding collection #{name}"
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1278,6 +1318,9 @@ module Setup
         ),
         task_description: "Pushing #{name}"
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
         status: :accepted
@@ -1297,6 +1340,9 @@ module Setup
         shared_collection_id: id,
         task_description: "Re-installing #{name}"
       )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
+      end
       {
         json: execution.to_hash(include_id: true, include_blanks: false)
       }
@@ -1316,6 +1362,9 @@ module Setup
         execution = pull(
           pull_parameters: data['pull_parameters'] || {}
         )
+        if execution.is_a?(Setup::SystemNotification)
+          fail execution.message
+        end
         {
           json: execution.to_hash(include_id: true, include_blanks: false),
           status: :accepted
@@ -1333,6 +1382,9 @@ module Setup
 
     def get_digest_retry(_request, _options = {})
       if (execution = self.retry)
+        if execution.is_a?(Setup::SystemNotification)
+          fail execution.message
+        end
         {
           json: execution.to_hash(include_id: true, include_blanks: false)
         }
@@ -1358,6 +1410,9 @@ module Setup
       execution = schedule(scheduler, :exception)
       unless execution
         fail "Can't #{scheduler ? 're-' : 'un'}schedule right now, the task is #{status}"
+      end
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
       end
       {
         json: execution.to_hash(include_id: true, include_blanks: false),
@@ -1573,6 +1628,9 @@ end
       input: input,
       skip_notification_level: true
     )
+    if execution.is_a?(Setup::SystemNotification)
+      fail execution.message
+    end
     {
       json: execution.to_hash(include_id: true, include_blanks: false),
       status: :accepted
