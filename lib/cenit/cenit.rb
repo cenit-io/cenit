@@ -1,4 +1,5 @@
 require 'cenit/core_ext'
+require 'cenit/rabbit'
 
 module Cenit
   default_options service_url: '/service',
