@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
-  revision: e3251470a68430bdcdb25f5e21f029dc2e35e6a0
+  revision: b3bc744da7a224d7306ad46ed19ec6c2708f6c5b
   specs:
     cenit-build_in_apps (0.0.1)
 
@@ -155,8 +155,6 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     amq-protocol (2.3.2)
     ast (2.4.2)
-    autoprefixer-rails (10.2.4.0)
-      execjs
     aws-eventstream (1.1.1)
     aws-sdk (2.10.134)
       aws-sdk-resources (= 2.10.134)
@@ -168,11 +166,6 @@ GEM
     aws-sigv4 (1.2.3)
       aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.16)
-    bootstrap-sass (3.4.1)
-      autoprefixer-rails (>= 5.2.1)
-      sassc (>= 2.0.0)
-    bootstrap-wysihtml5-rails (0.3.3.8)
-      railties (>= 3.0)
     bson (4.12.0)
     bson_ext (1.5.1)
     builder (3.2.4)
@@ -236,7 +229,6 @@ GEM
       responders
       warden (~> 1.2.3)
     diff-lcs (1.4.4)
-    diffy (3.4.0)
     erubi (1.10.0)
     erubis (2.7.0)
     et-orbi (1.2.4)
@@ -581,8 +573,6 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk (~> 2.10.13)
-  bootstrap-sass
-  bootstrap-wysihtml5-rails (> 0.3.1.24)
   bson_ext
   builder
   bunny (~> 2.6)
@@ -607,7 +597,6 @@ DEPENDENCIES
   database_cleaner
   deface
   devise
-  diffy
   exception_notification
   factory_girl_rails
   ffaker

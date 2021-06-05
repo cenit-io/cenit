@@ -6,7 +6,6 @@ gem 'sass-rails'
 gem 'uglifier'
 gem 'coffee-rails'
 gem 'jquery-rails'
-gem 'bootstrap-sass'
 gem 'jbuilder'
 gem 'devise'
 gem 'rabl'
@@ -64,7 +63,6 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
-gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
@@ -101,7 +99,6 @@ gem 'net-scp'
 gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git', branch: 'upgrading'
-gem 'diffy'
 gem 'combine_pdf', '1.0.4'
 gem 'kaminari-mongoid'
 
