@@ -1,9 +1,10 @@
 .responsive-box {
   display: flex;
   align-items: baseline;
+  justify-content: center;
 
   &.centered {
-    align-items: center
+    align-items: center;
   }
 }
 
@@ -11,9 +12,10 @@
 
   &.box {
     padding: 40px;
+    width: 100%;
 
     .logo {
-      background-image: url("logo_cenitsaas_web.png");
+      background-image: url("/images/logo_cenitsaas_web.png");
       height: 40px;
       width: 80px;
       background-size: contain;
@@ -272,7 +274,6 @@
   .responsive-box {
     width: 100vw;
     height: 100vh;
-    justify-content: center;
   }
 
   .devise {

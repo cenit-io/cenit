@@ -34,5 +34,3 @@
         = render partial: 'cenit/open_id/form', locals: { redirect_uri: "#{Cenit.homepage}#{session_path(resource_name)}", providers: providers }
 
       = render partial: 'devise/shared/sing_in'
-
-= javascript_include_tag 'devise.js'
