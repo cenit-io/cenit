@@ -1,5 +1,6 @@
 require 'cenit/core_ext'
 require 'cenit/rabbit'
+require 'edi/parser'
 
 module Cenit
   default_options service_url: '/service',
