@@ -3,11 +3,12 @@ module Setup
     include SharedEditable
     include CustomTitle
     include BuildIn
-    include RailsAdmin::Models::Setup::Oauth2ScopeAdmin
 
     origins origins_config, :cenit
 
-    build_in_data_type.referenced_by(:name, :provider)
+    build_in_data_type
+      .referenced_by(:name, :provider)
+      .and(label: '{{provider.namespace}} | {{provider.name}} | {{name}}')
 
     field :name, type: String
     field :description, type: String
@@ -18,7 +19,7 @@ module Setup
     validates_uniqueness_of :name, scope: :provider
 
     def scope_title
-      provider && provider.custom_title
+      provider&.custom_title
     end
 
     def key

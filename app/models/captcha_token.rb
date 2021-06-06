@@ -8,7 +8,6 @@ class CaptchaToken < Cenit::BasicToken
 
   def ensure_token
     self.token = Devise.friendly_token unless token.present?
-    true
   end
 
   def generate_code
@@ -16,7 +15,6 @@ class CaptchaToken < Cenit::BasicToken
     code = ''
     (Cenit.captcha_length || 5).times { code += chars[rand(chars.length)] }
     self.code = code
-    true
   end
 
   def recode

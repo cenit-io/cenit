@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
 
   protect_from_forgery with: :null_session, if: -> { request.format.json? }
 
-  rescue_from CanCan::AccessDenied, RailsAdmin::ActionNotAllowed do |exception|
+  rescue_from CanCan::AccessDenied do |exception|
     if _current_user
       redirect_to main_app.root_path, alert: exception.message
     else
@@ -12,9 +12,31 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  around_filter :scope_current_account
+  around_action :scope_current_account
+
+  def index
+    @apps =
+      ::User.with_super_access do
+        Cenit::BuildInApps.apps_modules
+          .select(&:controller?)
+          .map do |m|
+          app = m.app
+          {
+            logo: app.configuration.logo,
+            name: app.name,
+            url: "/app/#{m.app_key}".squeeze('/')
+          }
+        end
+      end
+  end
 
   protected
+
+  def check_user_signed_in
+    unless User.current
+      redirect_to new_session_path(User, return_to: request.env['PATH_INFO'])
+    end
+  end
 
   def do_optimize
     Setup::Optimizer.save_namespaces
@@ -37,11 +59,11 @@ class ApplicationController < ActionController::Base
       current_user.account = current_user.accounts.first || Account.new_for_create(owner: current_user)
       current_user.save(validate: false)
     end
-    Account.current = current_user.account.target if signed_in?
+    Account.current = current_user.account if signed_in?
     yield
   ensure
     optimize
-    if (account = Account.current)
+    if (account = Account.current) && account.changed?
       account.save(discard_events: true)
     end
     clean_thread_cache

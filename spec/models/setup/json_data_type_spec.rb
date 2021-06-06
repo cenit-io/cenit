@@ -2,9 +2,9 @@ require 'rails_helper'
 
 describe Setup::JsonDataType do
 
-  TEST_NAMESPACE = 'JSON Data Type Test'
+  test_namespace = 'JSON Data Type Test'
 
-  SCHEMA_A = {
+  schema_a = {
     type: 'object',
     properties: {
       name: {
@@ -21,7 +21,7 @@ describe Setup::JsonDataType do
     }
   }
 
-  SCHEMA_B = {
+  schema_b = {
     type: 'object',
     properties: {
       name: {
@@ -32,24 +32,24 @@ describe Setup::JsonDataType do
   }
 
   before :all do
-    Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
       name: 'B',
-      schema: SCHEMA_B
+      schema: schema_b
     )
-    Setup::JsonDataType.create(
-      namespace: TEST_NAMESPACE,
+    Setup::JsonDataType.create!(
+      namespace: test_namespace,
       name: 'A',
-      schema: SCHEMA_A
+      schema: schema_a
     )
   end
 
   let! :data_type_a do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'A').first
+    Setup::DataType.where(namespace: test_namespace, name: 'A').first
   end
 
   let! :data_type_b do
-    Setup::DataType.where(namespace: TEST_NAMESPACE, name: 'B').first
+    Setup::DataType.where(namespace: test_namespace, name: 'B').first
   end
 
   let :a_indexed_properties do
@@ -60,7 +60,63 @@ describe Setup::JsonDataType do
     data_type_b.records_model.collection.indexes.collect { |index| index['key'].keys.first }
   end
 
+  context "when created" do
+
+    it 'prevents auto ID properties with falsy values' do
+      [nil, false].each do |value|
+        dt = Setup::JsonDataType.create(
+          namespace: test_namespace,
+          name: 'F',
+          schema: {
+            type: 'object',
+            properties: {
+              id: {
+                auto: value
+              }
+            }
+          }.deep_stringify_keys
+        )
+        expect(dt.errors[:schema]).to include('ID property auto mark should not be present or it should be true')
+      end
+    end
+
+    it 'prevents auto ID properties with truthy values' do
+      ['true', 1].each do |value|
+        dt = Setup::JsonDataType.create(
+          namespace: test_namespace,
+          name: 'T',
+          schema: {
+            type: 'object',
+            properties: {
+              id: {
+                auto: value
+              }
+            }
+          }.deep_stringify_keys
+        )
+        expect(dt.errors[:schema]).to include('ID property auto mark should be true')
+      end
+    end
+
+    it 'success if the auto ID property is set to true' do
+      dt = Setup::JsonDataType.create(
+        namespace: test_namespace,
+        name: 'True',
+        schema: {
+          type: 'object',
+          properties: {
+            id: {
+              auto: true
+            }
+          }
+        }.deep_stringify_keys
+      )
+      expect(dt.errors.blank?).to be true
+    end
+  end
+
   context "after created" do
+
     it 'creates a data base index for each unique property' do
       expect(b_indexed_properties).to eq(data_type_b.unique_properties)
       expect(a_indexed_properties).to eq(data_type_a.unique_properties)
@@ -69,8 +125,8 @@ describe Setup::JsonDataType do
 
   context "when updated" do
     it 'updates data base indexes to map unique properties' do
-      data_type_b.update(schema: SCHEMA_B.merge(properties: { name: { type: 'string', unique: false } }))
-      data_type_a.update(schema: SCHEMA_A.merge(properties: { name: { type: 'string', unique: false } }))
+      data_type_b.update!(schema: schema_b.merge(properties: { name: { type: 'string', unique: false } }))
+      data_type_a.update!(schema: schema_a.merge(properties: { name: { type: 'string', unique: false } }))
 
       expect(b_indexed_properties).to eq(data_type_b.unique_properties)
       expect(a_indexed_properties).to eq(data_type_a.unique_properties)

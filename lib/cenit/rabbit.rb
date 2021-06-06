@@ -8,7 +8,7 @@ module Cenit
     class << self
 
       def maximum_active_tasks
-        @maximum__active_tasks ||= 50 * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
+        @maximum__active_tasks ||= ENV.fetch('BASE_MULTIPLIER_ACTIVE_TASKS', 50).to_i * (ENV['UNICORN_CENIT_SERVER'].to_b ? Cenit.maximum_unicorn_consumers : 1)
       end
 
       def tasks_quota(active_tenants = nil)
@@ -19,6 +19,7 @@ module Cenit
 
       def enqueue(message, &block)
         message = message.with_indifferent_access
+        task_description = message[:task_description]
         auto_retry = message[:auto_retry].presence || Setup::Task.auto_retry_enum.first
         scheduler = message.delete(:scheduler)
         publish_at = message.delete(:publish_at)
@@ -39,7 +40,10 @@ module Cenit
           if TaskToken.where(task_id: task.id).exists?
             Setup::SystemNotification.create(message: "Task #{task} already onboard, skipping requeuing (task ID: #{task.id})!", type: :warning)
           else
-            task.update(auto_retry: auto_retry) unless task.auto_retry == auto_retry
+            task_update = {}
+            task_update[:auto_retry] = auto_retry unless task.auto_retry == auto_retry
+            task_update[:description] = task_description if task_description
+            task.update(task_update) unless task_update.empty?
             block.call(task) if block
             task_execution = task.queue_execution
             unless task.joining?
@@ -56,17 +60,19 @@ module Cenit
                   user: Cenit::MultiTenancy.user_model.current
                 )
                 message = token.token
-                if scheduler&.activated? || (publish_at && publish_at > Time.now) || Cenit::ActiveTenant.tasks_for_current > tasks_quota
+                delayed =
+                  channel.nil? || channel.closed? ||
+                    Cenit.delay_tasks ||
+                    scheduler&.activated? ||
+                    (publish_at && publish_at > Time.now) ||
+                    Cenit::ActiveTenant.tasks_for_current > tasks_quota
+                if delayed
                   Setup::DelayedMessage.create(message: message, publish_at: publish_at, scheduler: scheduler)
                 else
                   begin
                     channel_mutex.lock
-                    if channel.nil? || channel.closed?
-                      Setup::DelayedMessage.create(message: message)
-                    else
-                      Cenit::ActiveTenant.inc_tasks_for_current
-                      channel.default_exchange.publish(message, routing_key: queue.name)
-                    end
+                    Cenit::ActiveTenant.inc_tasks_for_current
+                    channel.default_exchange.publish(message, routing_key: queue.name)
                   ensure
                     channel_mutex.unlock
                   end
@@ -149,6 +155,11 @@ module Cenit
             end
           else
             Setup::SystemReport.create(message: "No task token for #{message_token}")
+            if Setup::DelayedMessage.purge_message(message_token)
+              Setup::SystemReport.create(type: :info, message: "Message purged: #{message_token}")
+            else
+              Setup::SystemReport.create(type: :warning, message: "Message #{message_token} could not be purged")
+            end
           end
         end
       rescue Exception => ex
@@ -159,26 +170,33 @@ module Cenit
 
       def init
         channel_mutex.lock
-        if @connection.nil? || @channel.nil? || @channel.closed?
-          unless @connection
-            @connection =
-              if (rabbit_url = ENV['RABBITMQ_BIGWIG_TX_URL']).present?
-                Bunny.new(rabbit_url)
-              else
-                Bunny.new(automatically_recover: true,
-                          user: Cenit.rabbit_mq_user,
-                          password: Cenit.rabbit_mq_password)
-              end
-            connection.start
+        if ENV['SKIP_RABBIT_MQ'].to_b
+          puts 'RabbitMQ SKIPPED'
+          false
+        else
+          if @connection.nil? || @channel.nil? || @channel.closed?
+            unless @connection
+              @connection =
+                if (rabbit_url = ENV['RABBITMQ_BIGWIG_TX_URL']).present?
+                  Bunny.new(rabbit_url)
+                else
+                  Bunny.new(
+                    automatically_recover: true,
+                    user: ENV['RABBIT_MQ_USER'],
+                    password: ENV['RABBIT_MQ_PASSWORD']
+                  )
+                end
+              connection.start
+            end
+
+            @channel ||= connection.create_channel
+            @channel.open if @channel.closed?
+            @channel.prefetch(1)
+
+            @queue ||= @channel.queue(Cenit.rabbit_mq_queue)
           end
-
-          @channel ||= connection.create_channel
-          @channel.open if @channel.closed?
-          @channel.prefetch(1)
-
-          @queue ||= @channel.queue(Cenit.rabbit_mq_queue)
+          true
         end
-        true
       rescue Exception => ex
         Setup::SystemNotification.create(message: msg = "Error connecting with RabbitMQ: #{ex.message}")
         puts msg
@@ -236,25 +254,33 @@ module Cenit
             end
           end
           puts "RABBIT CONSUMER '#{new_consumer.consumer_tag}' STARTED"
+          true
+        else
+          puts 'RabbitMQ consumer not started (RabbitMQ not initialized)'
+          false
         end
       rescue Exception => ex
-        Setup::SystemNotification.create(message: "Error subscribing rabbit consumer: #{ex.message}")
+        Setup::SystemNotification.create(message: "Error subscribing RabbitMQ consumer: #{ex.message}")
+        false
       end
 
       def start_scheduler
         if ENV['LOOKUP_SCHEDULER_OFF'].to_b || !init
           puts 'Lookup scheduler NOT STARTED'
+          false
         else
-          @scheduler_job = Rufus::Scheduler.new.interval "#{Cenit.scheduler_lookup_interval}s" do
-            lookup_messages
-          end
+          @scheduler_job = Rufus::Scheduler.new.interval(
+            "#{Cenit.scheduler_lookup_interval}s",
+            &method(:lookup_messages)
+          )
           puts 'Lookup scheduler STARTED'
+          true
         end
       end
 
       def lookup_messages(opts = {})
         channel_mutex.lock
-        unless channel.closed?
+        if channel && !channel.closed?
           dispatched_ids = []
           tenant_tasks = {}
           Cenit::ActiveTenant.each do |active_tenant|

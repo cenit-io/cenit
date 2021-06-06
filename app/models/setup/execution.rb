@@ -2,9 +2,8 @@ module Setup
   class Execution
     include CenitScoped
     include Setup::AttachmentUploader
-    include RailsAdmin::Models::Setup::ExecutionAdmin
 
-    build_in_data_type.and(
+    build_in_data_type.including(:task).and(
       properties: {
         time_span: {
           type: 'number'
@@ -14,14 +13,14 @@ module Setup
       }
     )
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow, :edit
+    deny :create, :update
 
-    attachment_uploader AccountUploader
+    attachment_uploader
 
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :executions
     has_and_belongs_to_many :notifications, class_name: Setup::SystemNotification.to_s, inverse_of: nil
 
-    field :status, type: Symbol, default: :pending
+    field :status, type: StringifiedSymbol, default: :pending
     field :started_at, type: DateTime
     field :completed_at, type: DateTime
 
@@ -29,10 +28,10 @@ module Setup
 
     before_save { self.agent_id ||= task.agent_id }
 
-    default_scope -> { desc(:created_at) }
+    default_scope -> { desc(:_id) }
 
     def label
-      (task && task.to_s) || "#{self.class.to_s.split('::').last.to_title} ##{id}"
+      task&.to_s || "#{self.class.to_s.split('::').last.to_title} ##{id}"
     end
 
     def start(options)

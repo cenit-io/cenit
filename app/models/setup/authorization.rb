@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include JsonMetadata
-    include RailsAdmin::Models::Setup::AuthorizationAdmin
 
     abstract_class true
 
@@ -12,7 +11,11 @@ module Setup
 
     field :authorized, type: Boolean
 
-    before_save :check
+    before_save :check!
+
+    def check!
+      throw(:abort) unless check
+    end
 
     def check
       errors.blank?

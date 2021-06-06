@@ -6,7 +6,6 @@ module ObserverTenantLookup
   included do
     before_save do
       @_changed_before_save = changed?
-      true
     end
 
     after_save :track_observer

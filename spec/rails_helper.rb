@@ -47,10 +47,12 @@ RSpec.configure do |config|
   end
 
   config.include RSpec::Matchers
-  config.include RailsAdmin::Engine.routes.url_helpers
   config.include FactoryGirl::Syntax::Methods
 
   config.include Warden::Test::Helpers
+
+  config.include Api::V3::Test
+
   # RSpec Rails can automatically mix in different behaviours to your tests
   # based on their file location, for example enabling you to call `get` and
   # `post` in specs under `spec/controllers`.
@@ -72,16 +74,18 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   config.before(:suite) do
     # DatabaseCleaner.strategy = :truncation
-    test_user = ::User.create!(email: 'test@cenit.io', password: '12345678')
+    test_user = ::User.all.first
     ::User.current = test_user
     test_user.accounts.first.switch
   end
   config.before(:each) do
+    unless ::User.current
+      ::User.current = ::User.all.first
+    end
+    ::User.current.accounts.first.switch
     #DatabaseCleaner.start
     #Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     # Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)
-    #RailsAdmin::Config.reset
-    #RailsAdmin::AbstractModel.reset
   end
   config.after(:each) do
     #Warden.test_reset!

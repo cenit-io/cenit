@@ -1,7 +1,6 @@
 module Setup
   class Push < Setup::Task
     include HashField
-    include RailsAdmin::Models::Setup::PushAdmin
 
     agent_field :source_collection
 
@@ -17,14 +16,14 @@ module Setup
       errors.add(:source_collection, "can't be blank") unless source_collection
 
       if shared_collection
-        unless ::User.current_super_admin?
+        unless ::User.super_access?
           errors.add(:shared_collection, "origin is not valid (#{shared_collection.origin})") unless shared_collection.origin == :owner
         end
       else
         errors.add(:shared_collection, "can't be blank")
       end
 
-      errors.blank?
+      abort_if_has_errors
     end
 
     def run(message)

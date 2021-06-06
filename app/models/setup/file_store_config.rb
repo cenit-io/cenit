@@ -1,16 +1,30 @@
 module Setup
   class FileStoreConfig
     include CenitScoped
-    include RailsAdmin::Models::Setup::FileStoreConfigAdmin
 
     deny :all
 
-    build_in_data_type
+    build_in_data_type.and(
+      properties: {
+        file_store: {
+          enum: Cenit.file_stores.map(&:to_s),
+          enumNames: Cenit.file_stores.map(&:label)
+        },
+        migration_enabled: {
+          type: 'boolean',
+          virtual: true
+        },
+        migration_in_progress: {
+          type: 'boolean',
+          virtual: true
+        }
+      }
+    )
 
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
-    field :file_store, type: Module, default: -> { Cenit.default_file_store }
-    field :public_read, type: Boolean, default: false
+    field :file_store, type: Module, default: -> { self.class.default_file_store_for(data_type) }
+    field :public_read, type: Boolean, default: -> { self.class.default_public_option_for(data_type) }
 
     attr_readonly :data_type
 
@@ -46,9 +60,32 @@ module Setup
       @skip_migration_callback = false
     end
 
+    def migration_enabled
+      FileStoreMigration.enabled?
+    end
+
+    def migration_in_progress
+      FileStoreMigration.migrating?(data_type)
+    end
+
     class << self
-      def file_store_enum
-        Cenit.file_stores.map { |fs| [fs.label, fs] }.to_h
+
+      def default_file_store_for(file_data_type)
+        if file_data_type && (model = file_data_type.records_model).is_a?(Class) && model < BuildInFileType
+          file_store_name = ENV["#{model}:file_store"]
+          Cenit.file_stores.detect { |file_store| file_store.to_s == file_store_name } ||
+            Cenit.default_file_store
+        else
+          Cenit.default_file_store
+        end
+      end
+
+      def default_public_option_for(file_data_type)
+        if file_data_type && (model = file_data_type.records_model).is_a?(Class) && model < BuildInFileType
+          model.public_by_default
+        else
+          false
+        end
       end
     end
   end

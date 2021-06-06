@@ -1,11 +1,17 @@
 module Setup
   class DelayedMessage
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::DelayedMessageAdmin
 
     deny :all
 
-    build_in_data_type
+    build_in_data_type.on_origin(:admin).and(
+      properties: {
+        live_publish_at: {
+          type: 'string',
+          format: 'date-time'
+        }
+      }
+    )
 
     field :message, type: String
     field :publish_at, type: DateTime
@@ -30,7 +36,7 @@ module Setup
             end
           end
       end
-      publish_at.present?
+      throw(:abort) unless publish_at.present?
     end
 
     after_save :send_to_adapter
@@ -79,6 +85,10 @@ module Setup
       def publish_time(delayed_message)
         delayed_message[:publish_at]
       end
+
+      def purge_message(message)
+        DelayedMessage.where(message: message).delete_all
+      end
     end
 
     module RedisAdapter
@@ -115,7 +125,10 @@ module Setup
       end
 
       def remove(delayed_message)
-        key = key_for(delayed_message)
+        remove_key(key_for(delayed_message))
+      end
+
+      def remove_key(key)
         Cenit::Redis.pipelined do |redis|
           redis.del key
           redis.zrem(SET_KEY, key)
@@ -159,6 +172,22 @@ module Setup
         seconds = Cenit::Redis.zscore(SET_KEY, key_for(delayed_message))
         seconds && Time.at(seconds.to_i).to_datetime
       end
+
+      def purge_message(message)
+        purged = false
+        all_keys.each do |key|
+          if (delayed_message = get(key))
+            if delayed_message[:message] == message
+              remove(delayed_message)
+              purged = true
+            end
+          else
+            remove_key(key)
+            purged = true
+          end
+        end
+        purged
+      end
     end
 
     class << self
@@ -175,6 +204,7 @@ module Setup
       delegate :reschedule,
                :for_each_ready,
                :publish_time,
+               :purge_message,
 
                to: :adapter
 

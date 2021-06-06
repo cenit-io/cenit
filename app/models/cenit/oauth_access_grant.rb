@@ -2,13 +2,21 @@ module Cenit
   class OauthAccessGrant
     include Setup::CenitScoped
     include CrossOrigin::Document
-    include RailsAdmin::Models::Cenit::OauthAccessGrantAdmin
 
-    # TODO Include App information field
-    build_in_data_type.with(:scope)
+    build_in_data_type
+      .with(:scope, :origin)
+      .and(
+        label: '{{app_name}} [access]',
+        properties: {
+          app_name: {
+            type: 'string',
+            virtual: true
+          }
+        },
+        with_origin: true
+      )
 
-    deny :all
-    allow :index, :show, :delete, :edit
+    deny :create
 
     origins :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }
 
@@ -33,11 +41,19 @@ module Cenit
       else
         errors.add(:scope, 'is not valid')
       end
-      errors.blank?
+      abort_if_has_errors
+    end
+
+    def app_name
+      application_id&.name
     end
 
     def oauth_scope
       Cenit::OauthScope.new(scope)
+    end
+
+    def tokens
+      OauthAccessToken.where(tenant: Account.current, application_id: application_id)
     end
 
     def clear_oauth_tokens

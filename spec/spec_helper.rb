@@ -16,6 +16,21 @@
 # users commonly want.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+#
+
+# Removing the ActiveRecord constant, because it is autloaded by
+# ActiveStorage. The presence of the ActiveRecord constant causes
+# rspec-rails to include extra fixture support, which results in:
+#
+#   ActiveRecord::ConnectionNotEstablished:
+#     No connection pool with 'primary' found.
+#
+begin
+  Object.send(:remove_const, :ActiveRecord)
+rescue
+  # That's Ok!
+end
+
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -38,7 +53,7 @@ RSpec.configure do |config|
   config.include Capybara::DSL, type: :request
 
   Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, {js_errors:true, port:44678+ENV['TEST_ENV_NUMBER'].to_i, phantomjs_options:['--proxy-type=none'], timeout:180})
+    Capybara::Poltergeist::Driver.new(app, { js_errors: true, port: 44678 + ENV['TEST_ENV_NUMBER'].to_i, phantomjs_options: ['--proxy-type=none'], timeout: 180 })
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
@@ -50,8 +65,8 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
-# The settings below are suggested to provide a good initial experience
-# with RSpec, but feel free to customize to your heart's content.
+  # The settings below are suggested to provide a good initial experience
+  # with RSpec, but feel free to customize to your heart's content.
 =begin
   # These two settings work together to allow you to limit a spec run
   # to individual examples or groups you care about by tagging them with
@@ -100,4 +115,5 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+require 'api_v3_helper'
 require 'rails_helper'

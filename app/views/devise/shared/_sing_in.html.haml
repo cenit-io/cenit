@@ -1,0 +1,5 @@
+- unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+  .question.flex.full-width.justify-content-center
+    .label
+      = "Already have an account?"
+    = link_to "Sing in", new_session_path(resource_name, { return_to: params[:return_to] }), class: 'link link-primary'

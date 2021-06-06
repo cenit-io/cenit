@@ -3,23 +3,34 @@ module Setup
     include CenitScoped
     include CrossOrigin::CenitDocument
     include CustomTitle
-    include RailsAdmin::Models::Setup::AuthorizationClientAdmin
     include ClassHierarchyAware
 
     abstract_class true
 
-    origins :app, :default, -> { Cenit::MultiTenancy.tenant_model.current && :owner }, :shared
+    origins(
+      :app,
+      :default,
+      -> { Cenit::MultiTenancy.tenant_model.current && :owner },
+      -> { ::User.super_access? ? :admin : nil },
+      :shared
+    )
 
-    build_in_data_type.including(:provider).and(
-      properties: {
+    build_in_data_type
+      .including(:provider)
+      .including_polymorphic(:origin)
+      .protecting(:identifier, :secret)
+      .referenced_by(:_type, :provider, :namespace, :name)
+      .and(properties: {
         identifier: {
-          type: 'string'
+          type: 'string',
+          virtual: true
         },
         secret: {
-          type: 'string'
+          type: 'string',
+          virtual: true
         }
-      }
-    ).protecting(:identifier, :secret).referenced_by(:_type, :provider, :namespace, :name)
+      })
+      .and_polymorphic(with_origin: true)
 
     field :name, type: String
     belongs_to :provider, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil
@@ -43,7 +54,7 @@ module Setup
     end
 
     def scope_title
-      provider && provider.custom_title
+      provider&.custom_title
     end
 
     class << self

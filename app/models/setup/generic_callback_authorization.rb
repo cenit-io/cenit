@@ -2,17 +2,8 @@ module Setup
   class GenericCallbackAuthorization < Authorization
     include CenitScoped
     include CallbackAuthorization
-    include RailsAdmin::Models::Setup::GenericCallbackAuthorizationAdmin
 
-    build_in_data_type.with(
-      :namespace,
-      :name,
-      :client,
-      :callback_resolver,
-      :parameters_signer,
-      :parameters,
-      :template_parameters
-    ).referenced_by(:namespace, :name)
+    build_in_data_type.referenced_by(:namespace, :name)
 
     belongs_to :callback_resolver, class_name: Setup::Algorithm.to_s, inverse_of: nil
     belongs_to :parameters_signer, class_name: Setup::Algorithm.to_s, inverse_of: nil

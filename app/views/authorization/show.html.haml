@@ -1,0 +1,12 @@
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    %a.logo{href: '/'}
+    %div{class: @errors.present? ? 'access-requested' : 'access-success'}
+      .label
+        = @authorization.custom_title
+      -  if @errors.present?
+        .action-description
+          %ul
+            - @errors.each do |error|
+              %li
+                = error

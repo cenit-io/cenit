@@ -51,6 +51,10 @@ Cenit::Application.configure do
   # Use a different logger for distributed setups.
   # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
 
+  if ENV['RAILS_LOG_TO_STDOUT'].present?
+    config.logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  end
+
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 
@@ -59,7 +63,7 @@ Cenit::Application.configure do
 
   # Precompile additional assets.
   # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
-  # config.assets.precompile += %w( search.js )
+  config.assets.precompile += %w( application.js devise.js )
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
@@ -81,16 +85,15 @@ Cenit::Application.configure do
   config.action_mailer.default_url_options = { host: ENV['HOST'] }
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: "smtp.gmail.com",
-    port: 587,
-    domain: 'cenitsaas.com',
-    user_name: ENV['GMAIL_USERNAME'],
-    password: ENV['GMAIL_PASSWORD'],
-    authentication: 'plain',
-    enable_starttls_auto: true  }
+    address: ENV.fetch('SMTP_ADDRESS', 'smtp.gmail.com'),
+    port: ENV.fetch('SMTP_PORT', 587).to_i,
+    domain: ENV.fetch('SMTP_DOMAIN', 'cenitsaas.com'),
+    user_name: ENV.fetch('SMTP_USER_NAME', ENV['GMAIL_USERNAME']),
+    password: ENV.fetch('SMTP_PASSWORD', ENV['GMAIL_PASSWORD']),
+    authentication: ENV.fetch('SMTP_AUTH_TYPE', 'plain'),
+    enable_starttls_auto: ENV.fetch('SMTP_TTLS_AUTO', 'true') == 'true'
+  }
 
   config.action_mailer.perform_deliveries = true
   config.action_mailer.raise_delivery_errors = true
-
-  config.assets.precompile += %w(codemirror* codemirror/**/* rails_admin/sync.js rails_admin/custom/admin.js)
 end

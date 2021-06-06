@@ -1,7 +1,8 @@
 module Mongoff
   module PrettyErrors
-    def pretty_errors(record)
+    def pretty_errors(record, stack = Set.new)
       return {} unless record
+      stack << record
       errors = record.errors.messages.dup.with_indifferent_access
       if errors.key?(:base) && !property?(:base)
         errors[:'$'] = errors.delete(:base)
@@ -9,26 +10,29 @@ module Mongoff
       properties.each do |name|
         next unless (model = property_model(name)) && model.modelable?
         errors[name] =
-          if (base_errors = errors[name])
+          if (base_errors = errors[name]).present?
             { '$': base_errors }
           else
             {}
           end
         if (associations[name.to_s] || associations[name.to_sym]).many?
-          association_errors = record.send(name).map do |associated|
-            model.pretty_errors(associated)
-          end
-          if association_errors.any?(&:present?)
-            errors[name]['errors'] = association_errors
+          record.send(name).each_with_index do |associated, index|
+            next if stack.include?(associated)
+            next unless (associated_errors = model.pretty_errors(associated, stack)).present?
+            errors[name][index] = associated_errors
           end
         else
-          association_errors = model.pretty_errors(record.send(name))
-          if association_errors.present?
-            errors[name]['errors'] = association_errors
+          associated = record.send(name)
+          unless stack.include?(associated)
+            association_errors = model.pretty_errors(associated, stack)
+            if association_errors.present?
+              errors[name].merge!(association_errors)
+            end
           end
         end
         errors.delete(name) if errors[name].blank?
       end
+      stack.delete(record)
       errors
     end
   end

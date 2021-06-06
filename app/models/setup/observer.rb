@@ -1,7 +1,6 @@
 module Setup
   class Observer < Event
     include TriggersFormatter
-    include RailsAdmin::Models::Setup::ObserverAdmin
     # = Observer
     #
     # Creation of new objects or changes in objects will result in events.
@@ -59,8 +58,8 @@ module Setup
           # Start flows
           Setup::Flow.where(active: true, event: e).each { |f| f.join_process(source_id: obj_now.id.to_s) }
           # Start notifications
-          Setup::Notification.where(active: true, observer_ids: { '$all' => [e.id] }).each do |n|
-            Setup::NotificationExecution.process(
+          Setup::NotificationFlow.where(active: true, observer_ids: { '$all' => [e.id] }).each do |n|
+            Setup::NotificationFlowExecution.process(
               notification_id: n.id,
               record_id: obj_now.id.to_s
             )
@@ -85,7 +84,7 @@ module Setup
       else
         errors.add(:base, 'Triggers or evaluator missing')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def check_name

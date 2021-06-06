@@ -1,51 +1,25 @@
-.user-auth.container
-  .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-    .panel.panel-default.oauth-authorize
-      .panel-heading.text-center
-        %span.cenit-logo
-          =image_tag 'logo_cenitsaas_web.png'
-        %span.cenit-hub{style: 'color: black;'}= 'Cenit IO'
-      .panel-body
-        - if @errors.present?
-          %h3
-            = 'Bad request'
-            - @errors.each do |error|
-              %li
-                = error
-        - else
-          - if current_user.picture
-            .col-xs-12.images-container
-              %span
-                = image_tag(@app_id.app.configuration.logo, alt: '', class: 'img-circle')
-              %span.user-img
-                = image_tag(current_user.picture_url, alt: '', class: 'img-circle')
-            %h4.text-center
-              = 'Application'
-              %label
-                = @app_id.name
-            - unless @grant_scope.blank?
-              .col-xs-12.actions.granted
-                .action-title
-                  %i.fa.fa-check
-                  %span
-                    = 'Already have access to:'
-                .action-description
-                  = render partial: 'oauth/description', locals: {scope: @grant_scope}
-            - unless @scope.blank?
-              .col-xs-12.actions.request
-                .action-title
-                  %i.fa.fa-question
-                  %span
-                    = 'Is requesting access to:'
-                .action-description
-                  = render partial: 'oauth/description', locals: {scope: @scope}
-      .panel-footer.clearfix
-        .text-center
-          = form_tag(url: oauth_authorize_path) do
-            = hidden_field_tag :token, @token
-            = button_tag 'Deny', name: :deny, class: 'btn btn-danger'
-            = button_tag 'Allow', name: :allow, class: 'btn btn-success'
-%script
-  $(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-  })
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    .logo
+    .flex.full-width.justify-content-center
+      = image_tag(@app_id.app.configuration.logo, alt: '', class: 'avatar')
+      = image_tag(current_user.picture_url, alt: '', class: 'avatar')
+    .app-name
+      = @app_id.name
+    - unless @grant_scope.blank?
+      .access-granted
+        .label
+          = 'Already have access to'
+        .action-description
+          = render partial: 'oauth/description', locals: {scope: @grant_scope}
+    - unless @scope.blank?
+      .access-requested
+        .label
+          = 'Is requesting access to'
+        .action-description
+          = render partial: 'oauth/description', locals: {scope: @scope}
+    .actions.full-width
+      = form_tag({url: oauth_authorize_path}, class: 'flex full-width justify-content-space-around margin-0') do
+        = hidden_field_tag :token, @token
+        = button_tag 'Deny', name: :deny, class: 'btn btn-danger'
+        = button_tag 'Allow', name: :allow, class: 'btn btn-success'

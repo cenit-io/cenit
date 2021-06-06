@@ -1,7 +1,6 @@
 module Setup
   class SharedCollectionPull < Setup::BasePull
     include PullingField
-    include RailsAdmin::Models::Setup::SharedCollectionPullAdmin
 
     agent_field :shared_collection
 
@@ -21,7 +20,7 @@ module Setup
     protected
 
     def ask_for_install?
-      ::User.current_super_admin? && !shared_collection.installed?
+      ::User.super_access? && !shared_collection.installed?
     end
 
   end

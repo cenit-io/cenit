@@ -1,10 +1,7 @@
 module Setup
   class DataTypeExpansion < Setup::Task
-    include RailsAdmin::Models::Setup::DataTypeExpansionAdmin
 
     build_in_data_type
-
-    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all
 
     def run(message)
       message = message.with_indifferent_access

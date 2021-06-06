@@ -9,6 +9,8 @@ module Setup
       else
         'xml' #TODO Infers html method from structure
       end
+    rescue
+      'text'
     end
 
     def render(xslt, xml)

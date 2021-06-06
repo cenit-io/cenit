@@ -53,10 +53,10 @@ class Hash
     each_pair do |key, value|
       if yield(self, key, value)
         case value
-        when Hash
-          value.each_deep_pair(&block)
-        when Array
-          value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
+          when Hash
+            value.each_deep_pair(&block)
+          when Array
+            value.each { |sub_value| sub_value.each_deep_pair(&block) if sub_value.is_a?(Hash) }
         end
       end
     end if block
@@ -106,7 +106,60 @@ class Hash
   end
 end
 
+class Numeric
+
+  def to_time_span(metric = :s)
+    v = self.abs.to_i
+    str = ''
+    h = {
+      ms: 1000,
+      s: 1000,
+      m: 60,
+      h: 60,
+      d: 24
+    }
+    current_metric = metric
+    h.keys.each do |m|
+      h.delete(m)
+      break if m == current_metric
+    end
+    scaled_v = 0
+    h.each do |m, scale|
+      if (scaled_v = v / scale).positive?
+        str = "#{v % scale}#{current_metric} #{str}"
+        v = scaled_v
+        current_metric = m
+      else
+        str = "#{v}#{current_metric} #{str}"
+        break
+      end
+    end
+    if scaled_v.positive?
+      str = "#{v}#{current_metric} #{str}"
+    end
+    str
+  end
+end
+
+require 'mongoid/criteria/queryable/extensions/string'
+
 class String
+
+  class << self
+    alias_method :mongoid_evolve, :evolve
+
+    def evolve(object)
+      if object.is_a?(String) && (match = object.match(/\A\$oid#(.*\Z)/))
+        begin
+          BSON::ObjectId.from_string(match[1])
+        rescue
+          mongoid_evolve(object)
+        end
+      else
+        mongoid_evolve(object)
+      end
+    end
+  end
 
   def to_title
     title =
@@ -174,12 +227,12 @@ class String
     end
     taken_method =
       case taken
-      when Hash
-        :key?
-      when Enumerable
-        :include?
-      else
-        nil
+        when Hash
+          :key?
+        when Enumerable
+          :include?
+        else
+          nil
       end
     if taken_method && taken.send(taken_method, str)
       i = 1
@@ -316,16 +369,16 @@ module MIME
           category, subtype = entity.contentType.split('/')
           entity =
             case category
-            when 'audio'
-              MIME::Audio
-            when 'image'
-              MIME::Image
-            when 'text'
-              MIME::Text
-            when 'video'
-              MIME::Video
-            else
-              MIME::Application
+              when 'audio'
+                MIME::Audio
+              when 'image'
+                MIME::Image
+              when 'text'
+                MIME::Text
+              when 'video'
+                MIME::Video
+              else
+                MIME::Application
             end.new(entity.data, subtype, { 'Content-Type' => entity.contentType, 'name' => entity.filename })
         end
         super
@@ -402,5 +455,23 @@ module Zip
     def read
       get_input_stream.read
     end
+  end
+end
+
+class Time # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
+  end
+end
+
+class DateTime # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
+  end
+end
+
+class Date # :nodoc:
+  def to_bson_id
+    BSON::ObjectId.from_string(to_i.to_s(16) + '0000000000000000')
   end
 end

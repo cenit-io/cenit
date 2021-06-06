@@ -12,7 +12,7 @@ config =
   rescue
     {}
   end
-listen 8080  
+listen 8080
 worker_processes config['UNICORN_WORKERS'] || 5
 preload_app config.key?('UNICORN_PRELOAD') ? config['UNICORN_PRELOAD'].to_b : true
 timeout config['UNICORN_TIMEOUT'] || 240
@@ -26,8 +26,12 @@ working_directory app_dir
 listen "#{shared_dir}/sockets/unicorn.#{app_name}.sock", backlog: 64
 
 # Loging
-stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"
-stdout_path "#{shared_dir}/log/unicorn.#{app_name}.stdout.log"
+if ENV['RAILS_LOG_TO_STDOUT']
+  logger Logger.new(STDOUT)
+else
+  stderr_path "#{shared_dir}/log/unicorn.#{app_name}.stderr.log"
+  stdout_path "#{shared_dir}/log/unicorn.#{app_name}.stdout.log"
+end
 
 # Set master PID location
 pid "#{shared_dir}/pids/unicorn.#{app_name}.pid"
@@ -52,13 +56,18 @@ after_fork do |server, worker|
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
   if worker.nr.zero?
-    Cenit::Rabbit.start_scheduler
-    Tenant.all.each do |tenant|
-      tenant.switch do
-        Setup::Scheduler.activated.each(&:start)
+    unless ENV['SKIP_DB_INITIALIZATION'].to_b
+      Tenant.all.each do |tenant|
+        tenant.switch do
+          Setup::Scheduler.activated.each(&:start)
+        end
       end
     end
-    Cenit::Hook.start
+    scheduler = Cenit::Rabbit.start_scheduler
+    data_sink = Cenit::Hook.start
+    unless scheduler || data_sink
+      Cenit::Rabbit.start_consumer
+    end
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
     Cenit::Rabbit.start_consumer
   end

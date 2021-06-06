@@ -7,7 +7,6 @@ class Account
   include FieldsInspection
   include TimeZoneAware
   include ObserverTenantLookup
-  include RailsAdmin::Models::AccountAdmin
 
   DEFAULT_INDEX_MAX_ENTRIES = 100
 
@@ -17,6 +16,12 @@ class Account
   build_in_data_type.protecting(:number, :authentication_token)
   build_in_data_type.and(
     properties: {
+      notification_level: {
+        enum: Setup::SystemNotification.type_enum
+      },
+      time_zone: {
+        enum: time_zone_enum
+      },
       number: {
         type: 'string',
         edi: {
@@ -40,7 +45,7 @@ class Account
   field :name, type: String
   field :meta, type: Hash, default: {}
 
-  field :notification_level, type: Symbol, default: :warning
+  field :notification_level, type: StringifiedSymbol, default: :warning
   field :notifications_listed_at, type: DateTime
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
@@ -72,7 +77,7 @@ class Account
 
   def check_creation_enabled
     unless @for_create
-      errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.current_super_admin?
+      errors.add(:base, 'Tenant creation is disabled') if Cenit.tenant_creation_disabled && !User.super_access?
     end
     errors.blank?
   end
@@ -85,7 +90,7 @@ class Account
     owner
   end
 
-  def read_attribute(name)
+  def read_raw_attribute(name)
     (!(value = super).nil? &&
 
       (new_record? || !self.class.build_in_data_type.protecting?(name) ||
@@ -98,7 +103,7 @@ class Account
     users << owner unless user_ids.include?(owner.id)
     super
     if new_record?
-      self.owner_id = (owner && owner.id) || User.current.id
+      self.owner_id = owner&.id || User.current.id
     end
     generate_number
     ensure_token
@@ -115,13 +120,12 @@ class Account
         end
       end
     end
-    true
   end
 
   def validates_configuration
     remove_attribute(:index_max_entries) if index_max_entries < DEFAULT_INDEX_MAX_ENTRIES
     validates_time_zone
-    errors.blank?
+    abort_if_has_errors
   end
 
   def default_time_zone
@@ -129,7 +133,7 @@ class Account
   end
 
   def time_zone_offset
-    super || (owner && owner.time_zone_offset)
+    super || owner&.time_zone_offset
   end
 
   def notification_level_enum
@@ -154,11 +158,11 @@ class Account
   end
 
   def super_admin?
-    owner && owner.super_admin?
+    owner&.super_admin?
   end
 
   def sealed?
-    owner && owner.sealed?
+    owner&.sealed?
   end
 
   def clean_up
@@ -188,7 +192,7 @@ class Account
   end
 
   def get_owner
-    fail 'Illegal access to tenant owner' unless User.current_super_admin?
+    fail 'Illegal access to tenant owner' unless User.super_access?
     owner
   end
 
@@ -200,7 +204,7 @@ class Account
 
     def find_where(expression)
       scope = all(expression)
-      unless User.current_super_admin?
+      unless User.super_access?
         user_id = (user = User.current) && user.id
         member_account_ids = user && user.member_account_ids
         scope = scope.and({ '$or' => [

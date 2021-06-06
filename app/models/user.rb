@@ -10,14 +10,22 @@ class User
   include FieldsInspection
   include TimeZoneAware
   include ObserverTenantLookup
-  include RailsAdmin::Models::UserAdmin
 
 
-  inspect_fields :name, :given_name, :family_name, :picture, :account_id, :api_account_id, :code_theme, :time_zone
+  inspect_fields :name, :given_name, :family_name, :picture, :encrypted_password,
+                 :account_id, :api_account_id, :code_theme, :time_zone
 
   rolify
 
-  build_in_data_type.with(:email, :name, :account)
+  build_in_data_type
+    .on_origin(:admin)
+    .with(:email, :name, :account, :roles, :super_admin_enabled)
+    .and(properties: {
+      password: {
+        type: 'string'
+      }
+    })
+    .protecting(:password)
 
   deny :all
 
@@ -31,6 +39,7 @@ class User
 
   devise :trackable, :validatable, :database_authenticatable, :recoverable, :confirmable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
+  devise :timeoutable if ENV['SESSION_TIMEOUT'].to_i > 0
 
   # Database authenticatable
   field :email, type: String, default: ''
@@ -75,7 +84,6 @@ class User
     if attributes['name'] && attributes['given_name'].present? && attributes['family_name'].present?
       remove_attribute(:name)
     end
-    true
   end
 
   validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
@@ -103,14 +111,14 @@ class User
     if ::Role.default_ids.any? { |id| role_ids.exclude?(id) }
       self.role_ids = (role_ids + ::Role.default_ids).uniq
     end
-    errors.blank?
+    abort_if_has_errors
   end
 
   def check_account
     unless account_id.nil? || super_admin? || accounts.where(id: account_id).exists? || member_account_ids.include?(account_id)
       errors.add(:account, 'is not valid')
     end
-    errors.blank?
+    abort_if_has_errors
   end
 
   def all_accounts
@@ -244,20 +252,28 @@ class User
       end
     end
 
-    def super_admin
-      all.select { |u| u.has_role? :super_admin }
+    def super_access?
+      Thread.current[:super_access] || current_super_admin?
+    end
+
+    def with_super_access
+      current_access = Thread.current[:super_access]
+      Thread.current[:super_access] = true
+      yield if block_given?
+    ensure
+      Thread.current[:super_access] = current_access
     end
 
     def current_number
-      (current && current.number) || 'XXXXXXX'
+      current&.number || 'XXXXXXX'
     end
 
     def current_token
-      (current && current.token) || 'XXXXXXXXXXXXXXXX'
+      current&.token || 'XXXXXXXXXXXXXXXX'
     end
 
     def current_id
-      current && current.id
+      current&.id
     end
   end
 
@@ -265,6 +281,14 @@ class User
     ENV['CONFIRMATION_REQUIRED'].to_b &&
       (super_method = method(__method__).super_method) &&
       super_method.call
+  end
+
+  def switch(&block)
+    current = ::User.current
+    ::User.current = self
+    account.switch(&block)
+  ensure
+    ::User.current = current if block
   end
 
   protected :confirmation_required?

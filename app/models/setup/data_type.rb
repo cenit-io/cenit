@@ -10,15 +10,19 @@ module Setup
     include ClassHierarchyAware
     include ModelConfigurable
     include BuildIn
-    include RailsAdmin::Models::Setup::DataTypeAdmin
 
-    origins origins_config, :cenit
+    origins origins_config, :cenit, -> { ::User.super_access? ? [:admin, :tmp] : nil }
 
     abstract_class true
 
-    build_in_data_type.with(:title, :name, :before_save_callbacks, :records_methods, :data_type_methods).referenced_by(:namespace, :name)
-
-    deny :delete, :new, :switch_navigation, :copy
+    build_in_data_type.with(
+      :title,
+      :name,
+      :before_save_callbacks,
+      :after_save_callbacks,
+      :records_methods,
+      :data_type_methods
+    ).referenced_by(:namespace, :name)
 
     config_with Setup::DataTypeConfig, only: :slug
 
@@ -33,6 +37,7 @@ module Setup
     field :title, type: String
 
     has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    has_and_belongs_to_many :after_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
     has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
@@ -43,10 +48,12 @@ module Setup
     end
 
     def validates_configuration
-      invalid_algorithms = []
-      before_save_callbacks.each { |algorithm| invalid_algorithms << algorithm unless algorithm.parameters.size == 1 }
-      if invalid_algorithms.present?
-        errors.add(:before_save_callbacks, "algorithms should receive just one parameter: #{invalid_algorithms.collect(&:custom_title).to_sentence}")
+      [:before_save_callbacks, :after_save_callbacks].each do |association|
+        invalid_algorithms = []
+        self.send(association).each { |algorithm| invalid_algorithms << algorithm unless algorithm.parameters.size == 1 }
+        if invalid_algorithms.present?
+          errors.add(association, "algorithms should receive just one parameter: #{invalid_algorithms.collect(&:custom_title).to_sentence}")
+        end
       end
       [:records_methods, :data_type_methods].each do |methods|
         by_name = Hash.new { |h, k| h[k] = 0 }
@@ -63,7 +70,7 @@ module Setup
       unless config.validate_slug
         config.errors.messages[:slug].each { |error| errors.add(:slug, error) }
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def clean_up
@@ -71,6 +78,10 @@ module Setup
     end
 
     def subtype?
+      false
+    end
+
+    def additional_properties?
       false
     end
 
@@ -99,12 +110,16 @@ module Setup
     end
 
     def records_model
-      (m = model) && m.is_a?(Class) ? m : @mongoff_model ||= create_mongoff_model
+      (m = model) && m.is_a?(Class) ? m : mongoff_model
+    end
+
+    def mongoff_model
+      @mongoff_model ||= create_mongoff_model
     end
 
     def model
       data_type_name.constantize
-    rescue
+    rescue Exception => _
       nil
     end
 

@@ -2,7 +2,6 @@ module Setup
   class RubyUpdater < UpdaterTransformation
     include WithSourceOptions
     include RubyCodeTransformation
-    include RailsAdmin::Models::Setup::RubyUpdaterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 

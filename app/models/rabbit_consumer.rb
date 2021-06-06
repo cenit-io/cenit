@@ -1,7 +1,10 @@
 class RabbitConsumer
-  include Mongoid::Document
-  include Mongoid::Timestamps
-  include RailsAdmin::Models::RabbitConsumerAdmin
+  include Setup::CenitUnscoped
+  include Cancelable
+
+  build_in_data_type.on_origin(:admin)
+
+  deny :all
 
   field :channel, type: String
   field :tag, type: String
@@ -23,7 +26,7 @@ class RabbitConsumer
 
   def executing_task
     if executor && task_id
-      Setup::Task.with(collection: Account.tenant_collection_name(Setup::Task, tenant: executor)).where(id: task_id).first
+      executor.switch { Setup::Task.where(id: task_id).first }
     end
   end
 
@@ -37,5 +40,12 @@ class RabbitConsumer
 
   def cancelled?
     !alive
+  end
+
+  class << self
+
+    def cancel_all(scope = all)
+      scope.update_all(alive: false)
+    end
   end
 end

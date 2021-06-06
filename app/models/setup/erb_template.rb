@@ -2,7 +2,6 @@ module Setup
   class ErbTemplate < Template
     include BulkableTransformation
     include SnippetCodeTemplate
-    include RailsAdmin::Models::Setup::ErbTemplateAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 
@@ -20,7 +19,7 @@ module Setup
       if options[:control]
         options[:control].view ||= ActionView::Base.new(nil, {}, options[:control].try(:controller))
       end
-      av = options[:control].try(:view) || ActionView::Base.new
+      av = options[:control].try(:view) || ViewRenderer.new
 
       av.render inline: code, handlers: 'erb', locals: options
     end
@@ -32,9 +31,9 @@ module Setup
       gs = Gensym.new
       marks = []
       res = code.gsub(pattern) do
-        match_1 = Regexp.last_match[1]
-        match_2 = Regexp.last_match[2]
-        match_3 = Regexp.last_match[3]
+        match_1 = ::Regexp.last_match[1]
+        match_2 = ::Regexp.last_match[2]
+        match_3 = ::Regexp.last_match[3]
         mark = gs.gen
         marks << mark.to_sym
         rb << match_2.strip.gsub(/\n/, ';').squeeze(';') + " ; #{mark}"
@@ -61,6 +60,17 @@ module Setup
         r = "____#{@val}"
         @val += 1
         r
+      end
+    end
+
+    class ViewRenderer < ActionView::Base
+
+      def initialize
+        super(ActionView::LookupContext.new([]), {}, nil)
+      end
+
+      def compiled_method_container
+        self.class
       end
     end
   end

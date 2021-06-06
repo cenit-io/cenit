@@ -1,9 +1,15 @@
 class Script
-  include Mongoid::Document
-  include Mongoid::Timestamps
-  include RailsAdmin::Models::ScriptAdmin
+  include Setup::CenitUnscoped
 
-  field :name
+  build_in_data_type.on_origin(:admin).and(properties: {
+    code: {
+      contentMediaType: 'text/x-ruby'
+    }
+  })
+
+  deny :all
+
+  field :name, type: String
   field :description, type: String
   field :code, type: String
 
@@ -11,7 +17,7 @@ class Script
 
   before_save do
     errors.add(:code, "can't be blank") if code.blank?
-    errors.blank?
+    abort_if_has_errors
   end
 
   def parameters

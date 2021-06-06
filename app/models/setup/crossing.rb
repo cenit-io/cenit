@@ -3,7 +3,8 @@ require 'cenit/cross_tracing_criteria'
 module Setup
   class Crossing < Setup::Task
     include Setup::BulkableTask
-    include RailsAdmin::Models::Setup::CrossingAdmin
+
+    build_in_data_type
 
     def origin_from(message)
       origin = message['origin'].to_s.to_sym
@@ -43,7 +44,7 @@ module Setup
     class << self
 
       def authorized_crossing_origins
-        if ::User.current_super_admin?
+        if ::User.super_access?
           CrossOrigin.names
         else
           [:default, :owner]

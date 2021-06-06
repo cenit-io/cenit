@@ -12,7 +12,6 @@ module Setup
     include TriggersFormatter
     include ThreadAware
     include ModelConfigurable
-    include RailsAdmin::Models::Setup::FlowAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
     build_in_data_type.and(
@@ -61,11 +60,13 @@ module Setup
 
     has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
 
+    field :data_type_id, type: BSON::ObjectId
+
     validates_numericality_in_presence_of :lot_size, greater_than_or_equal_to: 1
 
     config_with Setup::FlowConfig
 
-    before_save :validates_configuration, :check_scheduler
+    before_save :validates_configuration, :check_scheduler, :set_data_type_id
 
     after_save :schedule_task
 
@@ -148,7 +149,7 @@ module Setup
       if (bad_callbacks = after_process_callbacks.select { |c| c.parameters.size != 1 }).present?
         errors.add(:after_process_callbacks, "contains algorithms with unexpected parameter size: #{bad_callbacks.collect(&:custom_title).to_sentence}")
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def reject_message(field = nil)
@@ -176,7 +177,7 @@ module Setup
     end
 
     def own_data_type
-      (translator && translator.data_type) || custom_data_type
+      translator&.data_type || custom_data_type
     end
 
     def using_data_type(data_type)
@@ -189,6 +190,10 @@ module Setup
 
     def data_type
       @_data_type || own_data_type
+    end
+
+    def set_data_type_id
+      self.data_type_id = own_data_type&.id;
     end
 
     def data_type_scope_enum
@@ -293,12 +298,27 @@ module Setup
       end
     end
 
-    def sources(message)
-      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
-      if object_ids
-        data_type.records_model.any_in(id: object_ids)
+    def selector_from(message)
+      if (selector = message[:selector])
+        if selector.is_a?(Hash) || selector.is_a?(Array)
+          selector
+        else
+          JSON.parse(selector)
+        end
       else
-        data_type.records_model.all
+        nil
+      end
+    rescue
+      nil
+    end
+
+    def sources(message)
+      if (selector = selector_from(message))
+        data_type.where(selector)
+      elsif (ids = source_ids_from(message))
+        data_type.where(:_id.in => ids)
+      else
+        data_type.all
       end
     end
 
@@ -316,7 +336,6 @@ module Setup
       else
         @scheduler_checked = false
       end
-      true
     end
 
     def schedule_task
@@ -327,11 +346,21 @@ module Setup
       unless (options = message[:options]).is_a?(Hash)
         options = {}
       end
-      object_ids = ((obj_id = message[:source_id]) && [obj_id]) || source_ids_from(message)
       task = message[:task]
       if translator.try(:source_handler)
+        translator_options = {
+          discard_events: discard_events,
+          task: task,
+          data_type: data_type,
+          options: options
+        }
+        if (selector = selector_from(message))
+          translator_options[:selector] = selector
+        else
+          translator_options[:object_ids] = source_ids_from(message)
+        end
         begin
-          translator.run(object_ids: object_ids, discard_events: discard_events, task: task, data_type: data_type, options: options)
+          translator.run(translator_options)
         rescue Exception => ex
           msg = "Error source handling translation of records of type '#{data_type.custom_title}' with '#{translator.custom_title}': #{ex.message}"
           if task
@@ -341,11 +370,7 @@ module Setup
           end
         end
       else
-        if object_ids
-          data_type.records_model.any_in(id: object_ids)
-        else
-          data_type.records_model.all
-        end.each do |obj|
+        sources(message).each do |obj|
           begin
             translator.run(object: obj, discard_events: discard_events, task: message[:task], data_type: data_type, options: options)
           rescue Exception => ex
@@ -396,7 +421,7 @@ module Setup
       (authorization_id = options[:authorization_id] || message[:authorization_id]) && Setup::Authorization.where(id: authorization_id).first
       ) || self.authorization
       verbose_response =
-        webhook.target.with(connection).and(authorization).submit(options) do |response, template_parameters|
+        webhook.with(connection).and(authorization).submit(options) do |response, template_parameters|
           translator.run(target_data_type: data_type,
                          data: response.body,
                          discard_events: discard_events,
@@ -419,14 +444,8 @@ module Setup
 
     def translate_export(message, &block)
       limit = translator.try(:bulk_source) ? lot_size || 1000 : 1
-      max =
-        if (object_ids = source_ids_from(message))
-          object_ids.size
-        elsif data_type
-          data_type.count
-        else
-          0
-        end - 1
+      source_scope = sources(message)
+      max = source_scope.count - 1
       translation_options = nil
       connections_present = true
       records_processed = false
@@ -440,11 +459,10 @@ module Setup
         records_processed = true
         next unless connections_present
         verbose_response =
-          webhook.target.with(connection).and(authorization).submit(
+          webhook.with(connection).and(authorization).submit(
             ->(template_parameters) {
               translation_options =
                 {
-                  object_ids: object_ids,
                   source_data_type: data_type,
                   offset: offset,
                   limit: limit,
@@ -453,6 +471,11 @@ module Setup
                   parameters: template_parameters,
                   task: message[:task]
                 }
+              if (selector = selector_from(message))
+                translation_options[:selector] = selector
+              else
+                translation_options[:object_ids] = source_ids_from(message)
+              end
               if (options = message[:template_options]).is_a?(Hash)
                 translation_options[:options] = options
               end

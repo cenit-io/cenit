@@ -12,11 +12,17 @@ module Setup
       RequestStore.store["[cenit]#{self}.db_data_type".to_sym] ||= db_data_type
     end
 
-    def db_data_type
+    def db_data_type(create = false)
       namespace = model.to_s.split('::')
       name = namespace.pop
       namespace = namespace.join('::')
-      Setup::CenitDataType.find_or_create_by(namespace: namespace, name: name)
+      Setup::CenitDataType.where(namespace: namespace, name: name).first ||
+        (create && begin
+          Setup::CenitDataType.create!(namespace: namespace, name: name, origin: default_origin)
+        rescue
+          puts "Error persisting build-in data for #{model}"
+          raise $!
+        end)
     end
 
     def namespace
@@ -39,6 +45,10 @@ module Setup
       model.to_s
     end
 
+    def additional_properties?
+      false
+    end
+
     def records_methods
       []
     end
@@ -48,6 +58,10 @@ module Setup
     end
 
     def before_save_callbacks
+      []
+    end
+
+    def after_save_callbacks
       []
     end
 
@@ -94,6 +108,21 @@ module Setup
       @schema ||= build_schema
     end
 
+    def origin_config
+      @origin
+    end
+
+    def default_origin
+      origin_config || CenitDataType.default_origin
+    end
+
+    def on_origin(*args)
+      if args.length != 0
+        @origin = args[0].to_sym
+      end
+      self
+    end
+
     def find_data_type(ref, ns = namespace)
       BuildInDataType.build_ins[ref] ||
         Setup::DataType.find_data_type(ref, ns)
@@ -128,6 +157,34 @@ module Setup
         @to_merge = (@to_merge || {}).array_hash_merge(to_merge.deep_stringify_keys)
       end
       self
+    end
+
+    def including_polymorphic(*fields)
+      @polymorphic_fields = (@polymorphic_fields || []) + fields.map(&:to_s)
+      self
+    end
+
+    def polymorphic_fields
+      fields = @polymorphic_fields || []
+      if (parent_build_in = BuildInDataType[model.superclass])
+        fields = fields + parent_build_in.polymorphic_fields
+      end
+      fields
+    end
+
+    def and_polymorphic(polymorphic_merge)
+      if polymorphic_merge
+        @polymorphic_merge = (@polymorphic_merge || {}).array_hash_merge(polymorphic_merge.deep_stringify_keys)
+      end
+      self
+    end
+
+    def polymorphic_to_merge
+      to_merge = @polymorphic_merge || {}
+      if (parent_build_in = BuildInDataType[model.superclass])
+        to_merge = to_merge.array_hash_merge(parent_build_in.polymorphic_to_merge)
+      end
+      to_merge
     end
 
     def with(*fields)
@@ -229,6 +286,7 @@ module Setup
         Date => { 'type' => 'string', 'format' => 'date' },
         String => { 'type' => 'string' },
         Symbol => { 'type' => 'string' },
+        Mongoid::StringifiedSymbol => { 'type' => 'string', 'format' => 'symbol' },
         nil => {},
         Object => {},
         Module => { 'type' => 'string' },
@@ -243,12 +301,29 @@ module Setup
     def included?(name)
       [:@with, :@including, :@embedding, :@discarding].any? do |v|
         (v = instance_variable_get(v)) && v.include?(name)
-      end || !(@with || excluded?(name))
+      end || polymorphic_fields.include?(name) || !(@with || excluded?(name))
     end
 
     def build_schema
       @discarding ||= []
-      schema = { 'type' => 'object', 'properties' => properties = { } }
+      schema = Mongoff::Model.base_schema.deep_merge('properties' => { 'id' => {} })
+      properties = schema['properties']
+      if model < ClassHierarchyAware
+        if model.abstract?
+          schema['abstract'] = true
+          schema['descendants'] = (model.class_hierarchy - [model]).map do |sub_model|
+            data_type = sub_model.data_type
+            {
+              id: data_type.id.to_s,
+              namespace: data_type.namespace,
+              name: data_type.name,
+              abstract: sub_model.abstract?
+            }.stringify_keys
+          end
+        end
+      else
+        properties.delete('_type')
+      end
       schema[:referenced_by.to_s] = Cenit::Utility.stringfy(@referenced_by) if @referenced_by
       model.fields.each do |field_name, field|
         next unless !field.is_a?(Mongoid::Fields::ForeignKey) && included?(field_name.to_s)
@@ -270,51 +345,51 @@ module Setup
           root_schema: schema)
       end
       model.reflect_on_all_associations(:embeds_one,
-        :embeds_many,
-        :has_one,
-        :belongs_to,
-        :has_many,
-        :has_and_belongs_to_many).each do |relation|
+                                        :embeds_many,
+                                        :has_one,
+                                        :belongs_to,
+                                        :has_many,
+                                        :has_and_belongs_to_many).each do |relation|
         next unless included?((relation_name = relation.name.to_s))
         property_schema =
-          case relation.macro
-          when :embeds_one
-            {
-              '$ref': build_ref(relation.klass)
-            }
-          when :embeds_many
-            {
-              type: 'array',
-              items: {
+          case relation
+            when Mongoid::Association::Embedded::EmbedsOne
+              {
                 '$ref': build_ref(relation.klass)
               }
-            }
-          when :has_one
-            {
-              '$ref': build_ref(relation.klass),
-              referenced: true,
-              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
-              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
-            }
-          when :belongs_to
-            if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+            when Mongoid::Association::Embedded::EmbedsMany
+              {
+                type: 'array',
+                items: {
+                  '$ref': build_ref(relation.klass)
+                }
+              }
+            when Mongoid::Association::Referenced::HasOne
               {
                 '$ref': build_ref(relation.klass),
                 referenced: true,
                 exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
                 export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
               }
-            end
-          when :has_many, :has_and_belongs_to_many
-            {
-              type: 'array',
-              items: {
-                '$ref': build_ref(relation.klass)
-              },
-              referenced: true,
-              exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
-              export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
-            }
+            when Mongoid::Association::Referenced::BelongsTo
+              if (@including && @including.include?(relation_name.to_s)) || relation.inverse_of.nil?
+                {
+                  '$ref': build_ref(relation.klass),
+                  referenced: true,
+                  exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
+                  export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+                }
+              end
+            when Mongoid::Association::Referenced::HasMany, Mongoid::Association::Referenced::HasAndBelongsToMany
+              {
+                type: 'array',
+                items: {
+                  '$ref': build_ref(relation.klass)
+                },
+                referenced: true,
+                exclusive: (@exclusive_referencing && @exclusive_referencing.include?(relation_name)).to_b,
+                export_embedded: (@embedding && @embedding.include?(relation_name)).to_b
+              }
           end
         next unless property_schema
         property_schema.deep_stringify_keys!
@@ -324,6 +399,7 @@ module Setup
         properties[relation_name] = property_schema
       end
       schema['protected'] = @protecting if @protecting.present?
+      schema = schema.deep_reverse_merge(polymorphic_to_merge)
       schema = schema.deep_reverse_merge(@to_merge) if @to_merge
       schema
     end

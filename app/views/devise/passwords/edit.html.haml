@@ -1,4 +1,4 @@
-.user-auth.container
+.responsive-box.centered.user-auth.container
   .col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
     .panel.panel-default.text-center
       .panel-heading
@@ -11,7 +11,7 @@
         .form-top
           = t('admin.forgotten.edit_title')
         = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f|
-          = devise_error_messages!
+          = render 'devise/shared/error_messages', resource: resource
           = f.hidden_field :reset_password_token
           .field.text-justify
             = f.label :password, "New password"
@@ -24,5 +24,3 @@
       .panel-footer.clearfix
         .pull-left
           = render "devise/shared/links"
-
-

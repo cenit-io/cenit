@@ -1,16 +1,24 @@
 module Setup
   class Action
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::ActionAdmin
     # = Action
     #
     # Actions HTTP Method.
 
-    build_in_data_type.referenced_by(:method, :path)
+    METHODS = [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+
+    build_in_data_type.referenced_by(:method, :path).and(
+      label: '{{method | upcase}} {{path}}',
+      properties: {
+        method: {
+          enum: METHODS.map(&:to_s)
+        }
+      }
+    )
 
     embedded_in :app, class_name: Setup::Application.to_s, inverse_of: :actions
 
-    field :method, type: Symbol
+    field :method, type: StringifiedSymbol
     field :path, type: String, default: '/'
     field :priority, type: Integer, default: 0
 
@@ -26,7 +34,7 @@ module Setup
     validates_format_of :path, with: %r{\A(\/:?(\w|-)+)*(\/(\*)?)?\Z}
 
     def method_enum
-      [:get, :post, :put, :delete, :patch, :copy, :head, :options, :link, :unlink, :purge, :lock, :unlock, :propfind]
+      METHODS
     end
 
     attr_reader :path_params, :request_path, :control

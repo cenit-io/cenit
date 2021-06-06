@@ -1,7 +1,8 @@
 module Setup
   class JsonDataType < DataType
     include Setup::SnippetCode
-    include RailsAdmin::Models::Setup::JsonDataTypeAdmin
+
+    origins Setup::CrossOriginShared::DEFAULT_ORIGINS
 
     validates_presence_of :namespace
 
@@ -9,7 +10,18 @@ module Setup
 
     trace_include :schema
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :title, :_type, :snippet, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(
+      :namespace,
+      :name,
+      :title,
+      :_type,
+      :snippet,
+      :discard_additional_properties,
+      :before_save_callbacks,
+      :after_save_callbacks,
+      :records_methods,
+      :data_type_methods
+    )
     build_in_data_type.and(
       properties: {
         schema: {
@@ -20,10 +32,6 @@ module Setup
       }
     )
 
-    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :bulk_expand, :simple_expand, :copy, :switch_navigation, :data_type_config
-
-    shared_deny :simple_delete_data_type, :bulk_delete_data_type, :simple_expand, :bulk_expand
-
     DEFAULT_SCHEMA = {
       type: 'object',
       properties: {
@@ -33,16 +41,24 @@ module Setup
       }
     }.deep_stringify_keys
 
+    field :discard_additional_properties, type: Boolean, default: true
+
     after_initialize do
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
     end
 
+    def save_self_before_refs
+      true
+    end
+
     def validates_configuration
-      super && validate_model && check_indices &&
-        begin
-          remove_attribute(:schema)
-          true
-        end
+      super
+      remove_attribute(:schema) if validate_model && check_indices
+      abort_if_has_errors
+    end
+
+    def additional_properties?
+      !discard_additional_properties
     end
 
     def code=(code)
@@ -81,6 +97,7 @@ module Setup
     def schema=(sch)
       old_schema = schema
       sch = JSON.parse(sch.to_s) unless sch.is_a?(Hash)
+      sch = sch.deep_stringify_keys
       self.code = JSON.pretty_generate(sch)
       @schema = sch
     rescue
@@ -145,7 +162,7 @@ module Setup
           begin
             json_schema, _ = validate_schema
             fail Exception, 'defines invalid property name: _type' if object_schema?(json_schema) && json_schema['properties'].key?('_type')
-            self.schema = check_properties(JSON.parse(json_schema.to_json), skip_id: true)
+            self.schema = check_properties(JSON.parse(json_schema.to_json), skip_id_refactoring: true)
           rescue Exception => ex
             errors.add(:schema, ex.message)
           end
@@ -157,6 +174,7 @@ module Setup
         end
       else
         errors.add(:schema_code, 'is not a valid JSON value')
+        errors.add(:schema, 'is not a valid JSON value')
       end
       errors.blank?
     end
@@ -212,7 +230,7 @@ module Setup
     def validate_schema
       # check_type_name(self.name)
       self.schema = JSON.parse(schema) unless schema.is_a?(Hash)
-      JSON::Validator.validate!(File.read(File.dirname(__FILE__) + '/schema.json'), schema.to_json)
+      ::Mongoff::Validator.validate(schema)
       embedded_refs = {}
       if schema['type'] == 'object'
         check_schema(schema, self.name, defined_types = [], embedded_refs, schema)

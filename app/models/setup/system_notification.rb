@@ -2,15 +2,14 @@ module Setup
   class SystemNotification
     include CenitScoped
     include SystemNotificationCommon
-    include RailsAdmin::Models::Setup::SystemNotificationAdmin
 
-    build_in_data_type
+    build_in_data_type.including(:task)
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert
+    deny :create, :update
 
-    attachment_uploader AccountUploader
+    attachment_uploader
 
-    field :type, type: Symbol, default: :error
+    field :type, type: StringifiedSymbol, default: :error
     field :message, type: String
     belongs_to :task, class_name: Setup::Task.to_s, inverse_of: :notifications
 
@@ -19,19 +18,18 @@ module Setup
 
     before_save :check_notification_level, :assign_execution_thread
 
-    after_save :process_old_notifications
+    after_save :process_old_notifications if Cenit.process_old_notifications == :automatic
 
     def process_old_notifications
       self.class.process_old_notifications(type)
     end
 
     def check_notification_level
-      @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+      throw(:abort) unless @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
     end
 
     def assign_execution_thread
       self.task = Setup::Task.current unless self.task.present?
-      true
     end
 
     def skip_notification_level(skip)

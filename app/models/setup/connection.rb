@@ -5,7 +5,6 @@ module Setup
     include WithTemplateParameters
     include AuthorizationHandler
     include ModelConfigurable
-    include RailsAdmin::Models::Setup::ConnectionAdmin
 
     build_in_data_type.referenced_by(:namespace, :name).excluding(:connection_roles)
     build_in_data_type.and(
@@ -38,7 +37,8 @@ module Setup
     class << self
 
       def respond_to?(*args)
-        Setup::Webhook.method_enum.include?(args.first) || super
+        args[0] == :del ||
+          Setup::Webhook.method_enum.include?(args[0]) || super
       end
 
       def webhook_for(method, url)
@@ -62,6 +62,7 @@ module Setup
       end
 
       def method_missing(symbol, *args)
+        symbol = :delete if symbol == :del
         if Setup::Webhook.method_enum.include?(symbol)
           if args.length == 1 && (url = args[0]).is_a?(String)
             webhook_for(symbol, url)

@@ -2,7 +2,6 @@ module Setup
   class LegacyTranslator < Translator
     include ReqRejValidator
     include SnippetCode
-    include RailsAdmin::Models::Setup::LegacyTranslatorAdmin
     # = Translator
     #
     # A translator defines a logic for data manipulation
@@ -11,7 +10,7 @@ module Setup
 
     legacy_code_attribute :transformation
 
-    field :type, type: Symbol, default: -> { self.class.transformation_type }
+    field :type, type: StringifiedSymbol, default: -> { self.class.transformation_type }
 
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
@@ -77,7 +76,7 @@ module Setup
           rejects(:source_handler) unless style == 'ruby'
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def type_enum
@@ -88,7 +87,7 @@ module Setup
       if style == 'ruby'
         Capataz.validate(code).each { |error| errors.add(:code, error) }
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def reject_message(field = nil)

@@ -22,6 +22,10 @@ module Mongoid
       errors.add(:base, report.message)
       false
     end
+
+    def abort_if_has_errors
+      throw(:abort) unless errors.blank?
+    end
   end
 
   module CenitExtension
@@ -41,12 +45,12 @@ module Mongoid
         if success_block
           args =
             case success_block.arity
-            when 0
-              []
-            when 1
-              [value]
-            else
-              [value, success_type]
+              when 0
+                []
+              when 1
+                [value]
+              else
+                [value, success_type]
             end
           success_block.call(*args)
         end
@@ -62,7 +66,7 @@ module Mongoid
       end
 
       def persistable?
-        [Object, Setup].include?(parent)
+        [Object, Setup].include?(module_parent)
       end
 
       def all_collections_names
@@ -102,7 +106,7 @@ module Mongoid
         properties = Set.new
         begin
           data_type.schema['properties'].keys.each do |key|
-            properties << key unless record[key].nil? && record.send(key).nil?
+            properties << key unless record[key].nil? && record.try(key).nil?
           end
         rescue
           properties.clear
@@ -126,7 +130,12 @@ module Mongoid
                                     :has_many,
                                     :has_and_belongs_to_many,
                                     :belongs_to).each do |relation|
-          block.yield(name: relation.name, embedded: relation.embedded?, many: relation.many?) unless relation.macro == :belongs_to && relation.inverse_of.present?
+          unless relation.macro == :belongs_to && relation.inverse_of.present?
+            block.yield(
+              name: relation.name,
+              embedded: relation.embedded?,
+              many: relation.many?)
+          end
         end
       end
 
@@ -142,8 +151,9 @@ module Mongoid
         if property?(name)
           name
         else
-          name = name.to_s.gsub(/_id(s)?\Z/, '')
-          if (name = [name.pluralize, name].detect { |n| property?(n) })
+          match = name.to_s.match(/\A(.+)(_id(s)?)\Z/)
+          name = match && "#{match[1]}#{match[3]}"
+          if property?(name)
             name
           else
             nil

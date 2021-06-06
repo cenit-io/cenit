@@ -1,9 +1,54 @@
 module Cenit
   class ApplicationParameter
     include Setup::CenitScoped
-    include RailsAdmin::Models::Cenit::ApplicationParameterAdmin
 
-    build_in_data_type.referenced_by(:name)
+    BASIC_TYPES =
+      {
+        integer: 'integer',
+        number: 'number',
+        boolean: 'boolean',
+        string: 'string',
+        object: 'object',
+        json: { oneOf: [{ type: 'object' }, { type: 'array' }] }
+      }.deep_stringify_keys
+
+    def self.type_enum
+      BASIC_TYPES.keys.to_a + Setup::Application.additional_parameter_types
+    end
+
+    build_in_data_type.referenced_by(:name).and(
+      properties: {
+        type: {
+          enum: [
+            'integer',
+            'number',
+            'boolean',
+            'string',
+            'object',
+            'Namespace',
+            'Flow',
+            'Translator',
+            'Event',
+            'Algorithm',
+            'Application',
+            'Snippet',
+            'Connection role',
+            'Resource',
+            'Operation',
+            'Webhook',
+            'Connection',
+            'Data type',
+            'Schema',
+            'Custom validator',
+            'Authorization',
+            'Oauth provider',
+            'Oauth client',
+            'Generic client',
+            'Oauth 2 scope'
+          ]
+        }
+      }
+    )
 
     field :name, type: String
     field :type, type: String
@@ -25,20 +70,6 @@ module Cenit
       group.to_s
     end
 
-    BASIC_TYPES =
-      {
-        integer: 'integer',
-        number: 'number',
-        boolean: 'boolean',
-        string: 'string',
-        object: 'object',
-        json: { oneOf: [{ type: 'object' }, { type: 'array' }] }
-      }.deep_stringify_keys
-
-    def type_enum
-      BASIC_TYPES.keys.to_a + Setup::Application.additional_parameter_types
-    end
-
     def group_enum
       (application && application.application_parameters.collect(&:group).uniq.select(&:present?)) || []
     end
@@ -52,8 +83,11 @@ module Cenit
         else
           Setup::Application.parameter_type_schema(type)
         end
-      sch = (many ? { type: 'array', items: sch } : sch)
-      sch[:referenced] = true unless BASIC_TYPES.has_key?(type) || type.blank?
+      if many
+        referenced = sch.delete(:referenced)
+        sch = { type: 'array', items: sch }
+        sch[:referenced] = true if referenced
+      end
       sch[:group] = group if group
       sch[:description] = description if description.present?
       sch.deep_stringify_keys

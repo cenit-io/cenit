@@ -1,17 +1,29 @@
 module Setup
-  class WebHookNotification < Setup::Notification
-    include RailsAdmin::Models::Setup::WebHookNotificationAdmin
+  class WebHookNotification < Setup::NotificationFlow
     include Setup::TranslationCommon::ClassMethods
 
-    transformation_types Setup::Template.concrete_class_hierarchy
+    HOOK_METHODS = %w(GET POST PUSH DELETE).map(&:to_sym)
+
+    build_in_data_type.and(
+      properties: {
+        hook_method: {
+          enum: HOOK_METHODS.map(&:to_s)
+        }
+      }
+    )
+
+    transformation_types Setup::Template
 
     field :url, type: String
-    field :http_method, type: Symbol, default: :GET
+    field :hook_method, type: StringifiedSymbol, default: :POST
     field :template_options, type: String
 
+    validates_inclusion_of :hook_method, in: HOOK_METHODS
+
     def validates_configuration
+      super
       self.template_options = template_options.to_s.strip
-      if super && !requires(:url, :http_method)
+      unless requires(:url, :hook_method)
         if template_options.present?
           begin
             parse_options(template_options)
@@ -22,7 +34,7 @@ module Setup
           remove_attribute(:template_options)
         end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def process(record)
@@ -37,13 +49,7 @@ module Setup
       if (mime_type = transformation.mime_type)
         msg[:contentType] = mime_type
       end
-      Setup::Connection.send(http_method.to_s.downcase, url).submit(msg)
-    end
-
-    class << self
-      def http_method_enum
-        [:GET, :POST, :PUSH, :DELETE]
-      end
+      Setup::Connection.send(hook_method.to_s.downcase, url).submit(msg)
     end
   end
 end

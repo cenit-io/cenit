@@ -83,7 +83,7 @@ module Api::V1
             options = @payload.create_options
             model = data_type.records_model
             if model.is_a?(Class) && model < FieldsInspection
-              options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+              options[:inspect_fields] = Account.current.nil? || !::User.super_access?
             end
             if (record = data_type.send(@payload.create_method,
                                         @payload.process_item(item, data_type),
@@ -116,7 +116,7 @@ module Api::V1
               options = @payload.create_options.merge(primary_field: @primary_field)
               model = data_type.records_model
               if model.is_a?(Class) && model < FieldsInspection
-                options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
+                options[:inspect_fields] = Account.current.nil? || !::User.super_access?
               end
               if (record = data_type.send(@payload.create_method,
                                           @payload.process_item(item, data_type),
@@ -310,7 +310,7 @@ module Api::V1
 
     def cors_header
       headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || 'http://localhost:3000'
-      headers['Access-Control-Allow-Credentials'] = false
+      headers['Access-Control-Allow-Credentials'] = 'false'
       headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Accept, Content-Type, X-Tenant-Access-Key, X-Tenant-Access-Token, X-User-Access-Key, X-User-Access-Token'
       headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE, OPTIONS'
       headers['Access-Control-Max-Age'] = '1728000'

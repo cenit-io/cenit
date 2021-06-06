@@ -4,12 +4,15 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include CrossOrigin::CenitDocument
-    include RailsAdmin::Models::Setup::EventAdmin
 
-    origins :default, -> { ::User.current_super_admin? ? :admin : nil }
+    origins :default, -> { ::User.super_access? ? :admin : nil }
 
     abstract_class true
 
-    build_in_data_type.with(:name).referenced_by(:namespace, :name).excluding(:origin)
+    build_in_data_type
+      .with(:name)
+      .including_polymorphic(:origin)
+      .referenced_by(:namespace, :name)
+      .and_polymorphic(with_origin: true)
   end
 end

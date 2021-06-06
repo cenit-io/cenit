@@ -1,6 +1,6 @@
 class OauthController < ApplicationController
 
-  before_filter { warden.authenticate! scope: :user if check_params }
+  before_action { warden.authenticate! scope: :user if check_params }
 
   def index
     skip_consent = false
@@ -91,24 +91,27 @@ class OauthController < ApplicationController
   end
 
   def callback
-    redirect_uri = rails_admin.index_path(Setup::Authorization.to_s.underscore.tr('/', '~'))
+    redirect_uri = authorization_show_path(id: :invalid_state_data)
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-       cenit_token.set_current_tenant! && (authorization = cenit_token.authorization)
+       (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
+      if User.current.has_role?(:super_admin)
+        User.current.super_admin_enabled = true
+      end
       begin
-        authorization.metadata[:redirect_token] = redirect_token = Devise.friendly_token
+        auth.metadata[:redirect_token] = redirect_token = Devise.friendly_token
         redirect_uri =
           if (app = cenit_token.app_id) && (app = app.app)
-            callback_authorization_id = authorization.metadata[:callback_authorization_id] ||
-                                        authorization.metadata['callback_authorization_id'] ||
-                                        authorization.id
-            callback_params = authorization.metadata[:callback_authorization_params] ||
-                              authorization.metadata['callback_authorization_params']
+            callback_authorization_id = auth.metadata[:callback_authorization_id] ||
+                                        auth.metadata['callback_authorization_id'] ||
+                                        auth.id
+            callback_params = auth.metadata[:callback_authorization_params] ||
+                              auth.metadata['callback_authorization_params']
             unless callback_params.is_a?(Hash)
               callback_params = {}
             end
             callback_params[:redirect_token] = redirect_token
-            if app.authentication_method == :user_credentials
+            if app.is_a?(::Setup::Application) && app.authentication_method == :user_credentials
               callback_params[:'X-User-Access-Key'] = Tenant.current.owner.number
               callback_params[:'X-User-Access-Token'] = Tenant.current.owner.token
             end
@@ -116,14 +119,15 @@ class OauthController < ApplicationController
           elsif (token_data = cenit_token.data).is_a?(Hash) && token_data.key?('redirect_uri')
             token_data['redirect_uri']
           else
-            rails_admin.show_path(model_name: authorization.class.to_s.underscore.tr('/', '~'), id: authorization.id.to_s) + "?redirect_token=#{redirect_token}"
+            # TODO redirect_token is not useful here
+            authorization_show_path(id: auth.id.to_s) + "?redirect_token=#{redirect_token}"
           end
         resolve_params = params.reject { |k, _| %w(controller action).include?(k) }
-        if authorization.accept_callback?(resolve_params)
+        if auth.accept_callback?(resolve_params)
           resolve_params[:cenit_token] = cenit_token
-          authorization.resolve!(resolve_params)
+          auth.resolve!(resolve_params)
         else
-          authorization.cancel!
+          auth.cancel!
         end
       rescue Exception => ex
         json_params =

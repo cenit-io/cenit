@@ -1,9 +1,7 @@
 module Setup
   class Oauth2Authorization < Setup::BaseOauthAuthorization
     include CenitScoped
-    include RailsAdmin::Models::Setup::Oauth2AuthorizationAdmin
 
-    build_in_data_type.with(:namespace, :name, :provider, :client, :parameters, :template_parameters, :scopes)
     build_in_data_type.referenced_by(:namespace, :name)
 
     has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil

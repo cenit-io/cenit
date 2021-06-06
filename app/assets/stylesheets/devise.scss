@@ -1,0 +1,287 @@
+.responsive-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+
+  &.centered {
+    align-items: center;
+  }
+}
+
+.devise {
+
+  &.box {
+    padding: 40px;
+    width: 100%;
+
+    .logo {
+      background-image: url("/images/logo_cenitsaas_web.png");
+      height: 40px;
+      width: 80px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .control + .control {
+      margin-top: 16px;
+    }
+
+    .form-control {
+      width: 100%;
+      border-radius: 6px;
+      padding: 14px;
+      border: solid 1px lightgrey;
+    }
+
+    .btn {
+
+      cursor: pointer;
+
+      &, &:hover, &:visited, &:link, &:active {
+        text-decoration: none;
+      }
+
+      &.btn-primary {
+        padding: 14px;
+        border-radius: 6px;
+        border: 0;
+        background: #437697;
+        color: white;
+        font-weight: 600;
+        font-size: small;
+      }
+
+      &.btn-danger {
+        padding: 14px;
+        border-radius: 6px;
+        border: 0;
+        background: darkred;
+        color: white;
+        font-weight: 600;
+      }
+
+      &.btn-success {
+        padding: 14px;
+        border-radius: 6px;
+        border: 0;
+        background: forestgreen;
+        color: white;
+        font-weight: 600;
+      }
+
+      &.link {
+        padding: 14px 40px;
+        border-radius: 6px;
+        border: 0;
+        background: forestgreen;
+        color: white;
+        font-weight: 600;
+      }
+    }
+
+    .link {
+
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &.link-primary {
+        color: #437697;
+        font-weight: 600;
+
+        &.small {
+          font-size: small;
+        }
+      }
+    }
+
+    .recaptcha {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .terms {
+      margin-top: 8px;
+      text-align: right;
+      font-size: small;
+      font-weight: 100;
+      color: darkslategray;
+
+      a {
+        font-weight: 600;
+        color: darkslategray;
+      }
+    }
+
+    .separator {
+      height: 0;
+      width: 100%;
+      border-bottom: solid 1px lightgrey;
+      margin: 24px;
+    }
+
+    .text-separator {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      position: relative;
+      margin-top: 24px;
+
+      &::before {
+        border-top: 1px solid #adadad;
+        content: "";
+        height: 1px;
+        left: 0;
+        position: absolute;
+        top: 50%;
+        width: 100%;
+      }
+
+      .label {
+        background: #ffffff;
+        padding: 0 8px;
+        z-index: 0;
+      }
+    }
+
+    .question {
+      margin-top: 24px;
+
+      .label {
+        margin-right: 8px;
+      }
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      padding: 16px;
+      border: solid 1px lightgrey;
+      background: transparent;
+      border-radius: 50%;
+
+      & + .avatar {
+        margin-left: -16px;
+      }
+
+      &.small {
+        width: 50px;
+        height: 50px;
+        padding: 8px;
+      }
+    }
+
+    .app-name {
+      font-size: 24px;
+      font-weight: 600;
+      padding: 16px;
+    }
+
+    .access-granted {
+      border: solid 1px orangered;
+      width: 100%;
+      margin-bottom: 40px;
+
+      .label {
+        padding: 8px;
+        color: darkred;
+        background: #fcf1dc;
+        font-weight: 600;
+        text-align: center;
+        text-transform: uppercase;
+      }
+    }
+
+    .access-requested {
+      border: solid 1px darkred;
+      width: 100%;
+
+      .label {
+        padding: 8px;
+        color: darkred;
+        background: #ffddee;
+        font-weight: 600;
+        text-align: center;
+        text-transform: uppercase;
+      }
+    }
+
+    .access-success {
+      border: solid 1px forestgreen;
+      width: 100%;
+
+      .label {
+        padding: 8px;
+        color: forestgreen;
+        background: #ccddee;
+        font-weight: 600;
+        text-align: center;
+        text-transform: uppercase;
+      }
+    }
+
+    .actions {
+      margin-top: 40px;
+    }
+
+    .item {
+      padding: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: 8px;
+
+      & + .item {
+        margin-left: 8px;
+      }
+
+      &:hover {
+        background: aliceblue;
+      }
+
+      .title {
+        text-align: center;
+        padding-top: 8px;
+      }
+    }
+
+    .list-item {
+      padding: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: 8px;
+
+      &:hover {
+        background: aliceblue;
+      }
+    }
+
+    .errors {
+      color: red;
+      padding: 8px;
+
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 600px) {
+
+  .responsive-box {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .devise {
+
+    &.box {
+      border: solid 1px lightgrey;
+      border-radius: 8px;
+      width: 380px;
+    }
+  }
+}

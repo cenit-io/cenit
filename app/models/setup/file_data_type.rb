@@ -1,14 +1,31 @@
-require 'stringio'
-
 module Setup
   class FileDataType < DataType
-    include RailsAdmin::Models::Setup::FileDataTypeAdmin
+
+    origins Setup::CrossOriginShared::DEFAULT_ORIGINS, :cenit
 
     validates_presence_of :namespace
 
-    build_in_data_type.referenced_by(:namespace, :name).with(:namespace, :name, :id_type, :title, :slug, :_type, :validators, :schema_data_type, :events, :before_save_callbacks, :records_methods, :data_type_methods)
+    build_in_data_type.referenced_by(:namespace, :name).with(
+      :namespace,
+      :name,
+      :id_type,
+      :title,
+      :slug,
+      :_type,
+      :validators,
+      :schema_data_type,
+      :before_save_callbacks,
+      :after_save_callbacks,
+      :records_methods,
+      :data_type_methods
+    )
     build_in_data_type.and(
       properties: {
+        id_type: {
+          enum: %w(default integer string),
+          enumNames: %w(Default Integer String),
+          default: 'default'
+        },
         schema: {
           edi: {
             discard: true
@@ -17,9 +34,7 @@ module Setup
       }
     )
 
-    allow :new, :import, :pull_import, :bulk_cross, :simple_cross, :download_file, :copy, :switch_navigation, :data_type_config
-
-    shared_deny :simple_delete_data_type, :bulk_delete_data_type
+    # TODO shared_deny :simple_delete_data_type, :bulk_delete_data_type
 
     field :id_type, type: String, default: -> { self.class.id_type_enum.values.first }
 
@@ -117,12 +132,33 @@ module Setup
       end
     end
 
+    alias_method :mogoff_model, :records_model
+
+    def records_model
+      build_in_model =
+        begin
+          [namespace, name].reject(&:empty?).join('::').constantize
+        rescue
+          nil
+        end
+      if build_in_model && build_in_model < BuildInFileType
+        build_in_model
+      else
+        super
+      end
+    end
+
     def new_from(string_or_readable, options = {})
       if options[:data_type_parser]
         super
       else
         options.reverse_merge!(default_attributes)
-        file = records_model.new(options.select { |key, _| %w(filename contentType metadata).include?(key.to_s) })
+        attrs = options.select { |key, _| %w(filename contentType metadata).include?(key.to_s) }
+        if (id = (options['_id'] || options['id']))
+          attrs['id'] = id
+        end
+        file = (id && !options['add_new'] && records_model.where(_id: id).first) || records_model.new
+        file.assign_attributes(attrs)
         file.data = string_or_readable
         file
       end
@@ -201,17 +237,21 @@ module Setup
     end
 
     def file_store_config
-      @_file_store_config ||=
-        begin
-          if new_record?
-            Setup::FileStoreConfig.new(data_type: self)
-          else
-            Setup::FileStoreConfig.find_or_create_by(data_type: self)
-          end
+      if new_record?
+        @_file_store_config ||= Setup::FileStoreConfig.new(data_type: self)
+      else
+        if @file_store_cache_disabled || !@_file_store_config
+          @_file_store_config = Setup::FileStoreConfig.find_or_create_by(data_type: self)
         end
+      end
+      @_file_store_config
     end
 
     delegate :file_store, :public_read, to: :file_store_config
+
+    def can_cross?(origin)
+      origin.to_sym != :cenit && self.origin != :cenit
+    end
 
     class << self
 

@@ -1,9 +1,10 @@
 module Setup
   class Oauth2Provider < Setup::BaseOauthProvider
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::Oauth2ProviderAdmin
 
-    build_in_data_type.referenced_by(:namespace, :name).excluding(:origin, :tenant)
+    build_in_data_type
+      .referenced_by(:namespace, :name)
+      .excluding(:origin, :tenant)
 
     field :scope_separator, type: String
 
@@ -23,7 +24,13 @@ module Setup
 
       def build_in_provider_id
         unless @build_in_provider_id
-          oauth_provider = Setup::Oauth2Provider.find_or_create_by(namespace: 'Cenit', name: 'OAuth')
+          basic_attrs = {
+            namespace: 'Cenit',
+            name: 'OAuth',
+            origin: :cenit
+          }
+          oauth_provider = Setup::Oauth2Provider.where(basic_attrs).first ||
+            Setup::Oauth2Provider.new(basic_attrs)
           @build_in_provider_id = oauth_provider.id
           oauth_provider.authorization_endpoint = "#{Cenit.homepage}#{Cenit.oauth_path}/authorize"
           oauth_provider.token_endpoint =
@@ -45,20 +52,17 @@ module Setup
                 body: JSON.pretty_generate(oauth_provider.changes)
               }
             )
-            oauth_provider.save
-          end
-          unless oauth_provider.origin == :cenit
-            Setup::SystemReport.create(
-              message: "Cenit OAuth 2.0 provider configuration crossed from #{oauth_provider.origin} to cenit",
-              type: :warning
-            )
-            oauth_provider.cross(:cenit)
+            oauth_provider.save!
           end
           scopes = Cenit::OauthScope::NON_ACCESS_TOKENS +
-                   Cenit::OauthScope::ACCESS_TOKENS.collect { |method| "#{method} {{#{method}}}" } +
-                   ['{{scope}}']
+            Cenit::OauthScope::ACCESS_TOKENS.collect { |method| "#{method} {{#{method}}}" } +
+            ['{{scope}}']
           scopes.each do |scope_name|
-            Setup::Oauth2Scope.find_or_create_by(origin: :cenit, provider_id: oauth_provider.id, name: scope_name)
+            Setup::Oauth2Scope.find_or_create_by!(
+              provider: oauth_provider,
+              name: scope_name,
+              origin: :cenit
+            )
           end
         end
         @build_in_provider_id

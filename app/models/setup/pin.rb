@@ -2,12 +2,10 @@ module Setup
   class Pin
     include CenitScoped
     include DynamicValidators
-    include RailsAdmin::Models::Setup::PinAdmin
 
     build_in_data_type
 
-    deny :all
-    allow :index, :show, :delete
+    allow :read, :delete
 
     field :target_model_name, type: String
     field :target_id
@@ -19,7 +17,7 @@ module Setup
     before_save do
       self.target_model_name = trace.target_model.mongoid_root_class.to_s
       self.target_id = trace.target_id
-      errors.blank?
+      abort_if_has_errors
     end
 
     delegate :target_model, :target, to: :trace, allow_nil: true

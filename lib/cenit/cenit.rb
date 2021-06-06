@@ -1,4 +1,6 @@
 require 'cenit/core_ext'
+require 'cenit/rabbit'
+require 'edi/parser'
 
 module Cenit
   default_options service_url: '/service',
@@ -6,10 +8,6 @@ module Cenit
                   rabbit_mq_queue: lambda { Mongoid.default_client.database.name }
 
   class << self
-
-    def initializing?
-      Thread.current[:cenit_initializing]
-    end
 
     def http_proxy
       if (address = http_proxy_address) && (port = http_proxy_port)
@@ -91,6 +89,12 @@ module Cenit
 
     def fail(*several_variants)
       super
+    end
+
+    def attachment_uploader_for(model)
+      ENV["#{model}:attachment:uploader"].to_s.constantize
+    rescue
+      AccountUploader
     end
   end
 end

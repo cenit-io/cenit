@@ -1,19 +1,17 @@
 module Setup
   class Category
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::CategoryAdmin
 
     build_in_data_type.and(
       properties: {
-        _id: {
+        id: {
           type: 'string',
           edi: { segment: 'id' }
         }
       }
     )
 
-    deny :all
-    allow :index, :show, :simple_export, :export
+    allow :read
 
     field :_id, type: String
     field :title, type: String

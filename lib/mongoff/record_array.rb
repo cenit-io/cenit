@@ -6,6 +6,7 @@ module Mongoff
     attr_reader :model, :array, :referenced, :parent
 
     def initialize(model, array, referenced, parent)
+      @null = !array
       array ||= []
       @parent = parent
       @model = model
@@ -28,12 +29,16 @@ module Mongoff
         @records << record
         array[index] =
           if referenced
-            record && record.id
+            record&.id
           else
             item
           end
       end
       @changed = false
+    end
+
+    def null?
+      @null
     end
 
     def set_not_new_record
@@ -87,6 +92,7 @@ module Mongoff
           end
         end
         @changed = true
+        @null = false
       else
         raise Exception.new("Invalid value #{item}")
       end

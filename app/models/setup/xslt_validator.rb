@@ -1,13 +1,12 @@
 module Setup
   class XsltValidator < CustomValidator
     include SnippetCode
-    include RailsAdmin::Models::Setup::XsltValidatorAdmin
 
     legacy_code_attribute :xslt
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :schema_type, type: Symbol
+    field :schema_type, type: StringifiedSymbol
 
     def code_extension
       '.xsl'

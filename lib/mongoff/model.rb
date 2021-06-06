@@ -1,5 +1,3 @@
-require 'json-schema/schema/cenit_reader'
-require 'json-schema/validators/mongoff'
 
 module Mongoff
   class Model
@@ -19,6 +17,17 @@ module Mongoff
 
     def schema_name
       to_s
+    end
+
+    def data_type_id
+      case @data_type_id
+      when Setup::DataType
+        @data_type_id.id
+      when Setup::BuildInDataType
+        @data_type_id.db_data_type.id
+      else
+        @data_type_id
+      end
     end
 
     def data_type
@@ -43,6 +52,10 @@ module Mongoff
 
     def reflectable?
       persistable?
+    end
+
+    def type_polymorphic?
+      reflectable?
     end
 
     def persistable?
@@ -118,7 +131,9 @@ module Mongoff
       record.document.each_key do |field|
         if property?(field)
           properties << field.to_s
-        elsif (field = property_for_attribute(field.to_s))
+        elsif (property = property_for_attribute(field.to_s))
+          properties << property.to_s
+        elsif data_type.additional_properties?
           properties << field.to_s
         end
       end
@@ -258,7 +273,7 @@ module Mongoff
     def attribute_key(field, field_metadata = {})
       field_metadata[:model] ||= property_model(field)
       model = field_metadata[:model]
-      if model && model.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
+      if model&.persistable? && (schema = (field_metadata[:schema] ||= property_schema(field)))['referenced']
         ((schema['type'] == 'array') ? field.to_s.singularize + '_ids' : "#{field}_id").to_sym
       else
         field.to_s == 'id' ? :_id : field.to_sym
@@ -269,8 +284,9 @@ module Mongoff
       if property?(name)
         name
       else
-        name = name.to_s.gsub(/_id(s)?\Z/, '')
-        if (name = [name.pluralize, name].detect { |n| property?(n) })
+        match = name.to_s.match(/\A(.+)(_id(s)?)\Z/)
+        name = match && "#{match[1]}#{match[3]}"
+        if property?(name)
           name
         else
           nil
@@ -293,7 +309,11 @@ module Mongoff
         if (id = value.try(:id)).is_a?(BSON::ObjectId)
           id
         else
-          BSON::ObjectId.from_string(value.to_s)
+          value = value.to_s
+          if (match = value.match(/\A\$oid#(.*\Z)/))
+            value = match[1]
+          end
+          BSON::ObjectId.from_string(value)
         end
       end,
 
@@ -311,7 +331,7 @@ module Mongoff
 
       Integer => ->(value) { value.to_s.to_i },
       Float => ->(value) { value.to_s.to_f },
-      Date => ->(value) { Date.parse(value.to_s) },
+      Date => ->(value) { DateTime.parse(value.to_s) },
       DateTime => ->(value) { DateTime.parse(value.to_s) },
       Time => ->(value) { Time.parse(value.to_s) },
 
@@ -348,18 +368,24 @@ module Mongoff
         end
       success_value = nil
       success_type = nil
+      conversion_value = nil
+      conversion_type = nil
       types.each do |type|
-        break unless success_value.nil?
+        break if success_type
         if value.is_a?(type)
           success_value = value
           success_type = type
-        else
+        elsif !conversion_type
           begin
-            success_value = CONVERSION[type].call(value)
-            success_type = type
+            conversion_value = CONVERSION[type].call(value)
+            conversion_type = type
           rescue Exception
           end
         end
+      end
+      if !success_type && conversion_type
+        success_value = conversion_value
+        success_type = conversion_type
       end
       if success_type && success_block
         args =
@@ -374,13 +400,6 @@ module Mongoff
         success_block.call(*args)
       end
       success_value
-    end
-
-    def fully_validate_against_schema(value, options = {})
-      JSON::Validator.fully_validate(schema, value, options.merge(version: :mongoff,
-                                                                  schema_reader: JSON::Schema::CenitReader.new(data_type),
-                                                                  errors_as_objects: true,
-                                                                  data_type: data_type))
     end
 
     class << self
@@ -480,6 +499,22 @@ module Mongoff
       self.class.for(options)
     end
 
+    def model_name
+      @model_name ||= ActiveModel::Name.new(nil, nil, name)
+    end
+
+    def human_attribute_name(attribute, _ = {})
+      attribute.to_s.titleize
+    end
+
+    def method_defined?(*args)
+      property?(args[0])
+    end
+
+    def relations
+      associations
+    end
+
     protected
 
     def initialize(data_type, options = {})
@@ -523,7 +558,7 @@ module Mongoff
     end
 
     def check_referenced_schema(schema, check_for_array = true)
-      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by).include?(key) })
+      if schema.is_a?(Hash) && (schema = schema.reject { |key, _| %w(types contextual_params data filter group xml unique title description edi format example enum readOnly default visible referenced_by maxProperties minProperties auto export_embedded exclusive).include?(key) })
         property_dt = nil
         ns = data_type.namespace
         if (ref = schema['$ref']).is_a?(Array)

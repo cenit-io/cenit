@@ -1,13 +1,32 @@
 module Setup
   class Storage
     include CenitUnscoped
-    include RailsAdmin::Models::Setup::StorageAdmin
 
     store_in collection: proc { Account.tenant_collection_prefix + '.files' }
 
-    build_in_data_type
+    build_in_data_type.and(properties: {
+      storer_data_type: {
+        referenced: true,
+        '$ref': {
+          namespace: 'Setup',
+          name: 'DataType'
+        },
+        edi: {
+          discard: true
+        },
+        virtual: true
+      },
+      storer_object: {
+        type: 'object',
+        virtual: true
+      },
+      storer_property: {
+        type: 'string',
+        virtual: true
+      }
+    })
 
-    deny :copy, :new, :edit, :translator_update, :import, :convert, :delete_all, :simple_export
+    deny :create, :update
 
 
     field :filename, type: String
@@ -15,7 +34,36 @@ module Setup
     field :length, type: Integer
     field :metadata
 
-    after_destroy { self.class.chunks_collection.find(files_id: id).delete_many }
+    after_destroy { chunks.delete_many }
+
+    def identifier
+      filename
+    end
+
+    def content_type
+      contentType
+    end
+
+    def chunks
+      self.class.chunks_collection.find(files_id: id)
+    end
+
+    def read
+      data = ''
+      hash = {}
+      c = 0
+      chunks.each do |chunk|
+        n = chunk['n']
+        if n == c
+          data += chunk['data'].data
+          c += 1
+        else
+          hash[n] = chunk['data'].data
+        end
+      end
+      hash.keys.sort.each { |n| data += hash[n] }
+      data
+    end
 
     def storage_name
       name_components.last
@@ -27,6 +75,12 @@ module Setup
 
     def storer_model
       (name = storer_name) && name.constantize
+    end
+
+    def storer_data_type
+      storer_model&.data_type
+    rescue
+      nil
     end
 
     def storer_property

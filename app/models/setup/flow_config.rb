@@ -1,12 +1,10 @@
 module Setup
   class FlowConfig
     include CenitScoped
-    include RailsAdmin::Models::Setup::FlowConfigAdmin
 
-    deny :all
-    allow :index, :show, :new, :edit, :delete, :delete_all
-
-    build_in_data_type
+    build_in_data_type.and(
+      label: '{{flow.namespace}} | {{flow.name}} [config]'
+    )
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false
 
@@ -14,7 +12,7 @@ module Setup
     field :notify_request, type: Boolean
     field :notify_response, type: Boolean
     field :discard_events, type: Boolean
-    field :auto_retry, type: Symbol
+    field :auto_retry, type: StringifiedSymbol
 
     attr_readonly :flow
 
@@ -24,7 +22,7 @@ module Setup
     before_save do
       self.discard_events = nil if (t = flow.translator).nil? || (t.type == :Export && flow.response_translator.blank?)
       remove_attribute(:auto_retry) if auto_retry.blank?
-      errors.blank?
+      abort_if_has_errors
     end
 
     def auto_retry_enum

@@ -1,6 +1,9 @@
 class Role
-  include Mongoid::Document
-  include RailsAdmin::Models::RoleAdmin
+  include Setup::CenitUnscoped
+
+  build_in_data_type.with(:name, :metadata).on_origin(:admin)
+
+  deny :all
 
   has_and_belongs_to_many :users
   belongs_to :resource, polymorphic: true

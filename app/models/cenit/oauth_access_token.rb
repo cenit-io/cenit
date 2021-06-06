@@ -7,12 +7,17 @@ module Cenit
   class OauthAccessToken < BasicToken
     include OauthGrantToken
 
-    field :token_type, type: Symbol, default: :Bearer
+    field :token_type, type: StringifiedSymbol, default: :Bearer
 
     validates_inclusion_of :token_type, in: [:Bearer]
 
     def hit
       # Nothing here
+    end
+
+    def get_tenant
+      (access_grant&.origin == :owner &&
+        (user&.account || tenant&.owner&.account)) || super
     end
 
     class << self
@@ -63,7 +68,7 @@ module Cenit
             end
           end
           # TODO: Include other OpenID scopes
-          payload_inspector.call(:email) if scope.email? && user.confirmed?
+          payload_inspector.call(:email) if scope.email? && (app_id.trusted? || user.confirmed?)
           if scope.profile?
             [
               :name,

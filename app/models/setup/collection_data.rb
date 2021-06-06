@@ -1,7 +1,6 @@
 module Setup
   class CollectionData
     include CenitScoped
-    include RailsAdmin::Models::Setup::CollectionDataAdmin
 
     build_in_data_type.excluding(:data_type).and('properties' => {
                                                    'namespace' => { 'type' => 'string' },
@@ -43,7 +42,7 @@ module Setup
 
     class << self
       def stored_properties_on(_record)
-        %w(namespace name records)
+        %w(namespace name records created_at updated_at)
       end
     end
 

@@ -4,9 +4,8 @@ module Setup
     include ClassHierarchyAware
     include CrossOrigin::CenitDocument
     include FieldsInspection
-    include RailsAdmin::Models::Setup::TaskAdmin
 
-    origins :default, -> { ::User.current_super_admin? ? :admin : nil }
+    origins :default, -> { ::User.super_access? ? :admin : nil }
 
     STATUS = [:pending, :running, :failed, :completed, :retrying, :broken, :unscheduled, :paused]
     ACTIVE_STATUS = [:running, :retrying]
@@ -16,8 +15,8 @@ module Setup
     NOT_RUNNING_STATUS = STATUS - RUNNING_STATUS
     FINISHED_STATUS = NOT_RUNNING_STATUS - [:pending]
 
-    # TODO Include instead the current execution ID
-    build_in_data_type.excluding(:current_execution).and(
+    build_in_data_type.excluding(:thread_token).and(
+      label: '{{description}}',
       properties: {
         status: {
           enum: STATUS.collect(&:to_s)
@@ -25,17 +24,17 @@ module Setup
       }
     )
 
-    deny :copy, :new, :translator_update, :import, :convert, :send_to_flow
+    deny :create, :update
 
     field :message, type: Hash, default: {}
     field :description, type: String
-    field :status, type: Symbol, default: :pending
+    field :status, type: StringifiedSymbol, default: :pending
     field :progress, type: Float, default: 0
     field :attempts, type: Integer, default: 0
     field :succeded, type: Integer, default: 0
     field :retries, type: Integer, default: 0
     field :state, type: Hash, default: {}
-    field :auto_retry, type: Symbol, default: -> { auto_retry_enum.first }
+    field :auto_retry, type: StringifiedSymbol, default: -> { auto_retry_enum.first }
     field :resumes, type: Integer, default: 0
 
     belongs_to :current_execution, class_name: Setup::Execution.to_s, inverse_of: nil
@@ -57,14 +56,29 @@ module Setup
     before_save do
       message.delete(:task)
       self.description = auto_description if description.blank?
-      if scheduler && scheduler.origin != origin
-        errors.add(:scheduler, "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected")
-      end
+      check_scheduler(scheduler, :to_errors)
       self.progress = progress.round(1)
-      errors.blank?
+      abort_if_has_errors
     end
 
     before_destroy { NON_ACTIVE_STATUS.include?(status) && (scheduler.nil? || scheduler.deactivated?) }
+
+    def check_scheduler(scheduler, report = :none)
+      if scheduler && scheduler.origin != origin
+        error = "with incompatible origin (#{scheduler.origin}), #{origin} origin is expected"
+        case report
+          when :to_errors
+            errors.add(:scheduler, error)
+          when :exception
+            fail "Scheduler #{error}"
+          else
+            # Nothing to do here
+        end
+        false
+      else
+        true
+      end
+    end
 
     def save(options = {})
       options[:inspect_fields] = thread_token.present? && Thread.current[:task_token] == thread_token.token
@@ -115,32 +129,42 @@ module Setup
     end
 
     def queue_execution
-      if current_execution && current_execution.status == :pending
+      if current_execution&.status == :pending
         current_execution
       else
         new_execution
       end
     end
 
+    def maximum_resumes
+      Cenit.maximum_task_resumes
+    end
+
     def execute(options = {})
+      task_desc = description.presence || "Task ##{id}"
       if running? || !Cenit::Locker.lock(self)
         notify(message: "Executing task ##{id} at #{Time.now} but it is already running")
       else
         thread_token.destroy if thread_token.present?
         self.thread_token = ThreadToken.create
         self.retries += 1 if status == :retrying || status == :failed
-        self.current_execution = Setup::Execution.find(options[:execution_id])
+        self.current_execution =
+          begin
+            Setup::Execution.find(options[:execution_id])
+          rescue
+            queue_execution
+          end
         time = Time.now
         if running_status?
           self.resumes += 1
-          fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > Cenit.maximum_task_resumes
-          notify(message: "Restarting task ##{id} at #{time}", type: :notice)
+          fail Broken, "Maximum task resumes exceeded (#{resumes})" if resumes > maximum_resumes
+          notify(message: "Restarting #{task_desc} at #{time}", type: :notice)
         else
           self.attempts += 1
           self.progress = 0
           self.status = :running
           self.resumes = 0
-          notify(type: :info, message: "Task ##{id} started at #{time}")
+          notify(type: :info, message: "#{task_desc} started at #{time}")
         end
         Thread.current[:task_token] = thread_token.token
         current_execution.start(time: time)
@@ -156,17 +180,17 @@ module Setup
           run(message)
           time = Time.now
           if resuming_later?
-            finish(:paused, "Task ##{id} paused at #{time}", :notice, time)
+            finish(:paused, "#{task_desc} paused at #{time}", :notice, time)
           else
             self.state = {}
             self.progress = 100
-            finish(:completed, "Task ##{id} completed at #{time}", :info, time)
+            finish(:completed, "#{task_desc} completed at #{time}", :info, time)
           end
         else
           if before_run_ex
             finish(:failed, before_run_ex.message, :error, time)
           else
-            finish(:failed, "Task ##{id} wasn't executed!", :warning, time)
+            finish(:failed, "#{task_desc} wasn't executed!", :warning, time)
           end
         end
       end
@@ -181,7 +205,7 @@ module Setup
             contentType: 'plain/text',
             body: "#{ex.message}\n\n#{ex.backtrace.join("\n")}"
           }
-        finish(:failed, "Task ##{id} failed at #{time}: #{ex.message}", :error, time)
+        finish(:failed, "[#{ex.class}] #{ex.message&.capitalize}", :error, time)
       end
     ensure
       reload
@@ -207,18 +231,19 @@ module Setup
     end
 
     def unschedule
-      finish(:unscheduled, "Task ##{id} unscheduled at #{time = Time.now}", :warning, time)
+      task_desc = description.presence || "Task ##{id}"
+      finish(:unscheduled, "#{task_desc} unscheduled at #{time = Time.now}", :warning, time)
     end
 
     def notify(attrs_or_exception)
       notification =
         case attrs_or_exception
-        when Hash
-          Setup::SystemNotification.create_with(attrs_or_exception)
-        when Exception, StandardError
-          Setup::SystemNotification.create_from(attrs_or_exception)
-        else
-          nil
+          when Hash
+            Setup::SystemNotification.create_with(attrs_or_exception)
+          when Exception, StandardError
+            Setup::SystemNotification.create_from(attrs_or_exception)
+          else
+            nil
         end
       if notification
         notifications << notification
@@ -237,8 +262,8 @@ module Setup
       can_retry?
     end
 
-    def schedule(scheduler)
-      if can_schedule?
+    def schedule(scheduler, report = :none)
+      if can_schedule? && check_scheduler(scheduler, report)
         self.scheduler = scheduler
         self.retry(action: 'scheduled')
       end
@@ -247,7 +272,8 @@ module Setup
     def retry(options = {})
       if can_retry?
         self.status = (status == :failed ? :retrying : :pending)
-        notify(type: :notice, message: "Task ##{id} #{options[:action] || 'executed'} at #{Time.now}")
+        task_desc = description.presence || "Task ##{id}"
+        notify(type: :notice, message: "#{task_desc} #{options[:action] || 'executed'} at #{Time.now}")
         Cenit::Rabbit.enqueue(message.merge(task: self))
       end
     end
@@ -311,6 +337,17 @@ module Setup
       self.class.agent_model
     end
 
+    def agent_from_msg
+      @agent_from_msg ||= self.class.agent_from(message)
+    end
+
+    def write_attribute(name, value)
+      if name.to_sym == self.class.agent_field
+        @agent_from_msg = nil
+      end
+      super
+    end
+
     class << self
 
       def current
@@ -338,9 +375,23 @@ module Setup
       def agent_field(*args)
         if args.length.positive?
           @agent_field = args[0]
+          if (@agent_id_msg_key = args[1])
+            before_save do
+              self.send("#{self.class.agent_field}=", agent_from_msg)
+            end
+          end
         else
           @agent_field || superclass.try(:agent_field)
         end
+      end
+
+      def agent_id_msg_key
+        @agent_id_msg_key || superclass.try(:agent_id_msg_key)
+      end
+
+      def agent_from(msg)
+        (key = agent_id_msg_key) &&
+          agent_model.where(id: msg[key]).first
       end
 
       def agent_model
@@ -395,22 +446,22 @@ module Setup
         clear_resume
         if auto_retry == :automatic
           resume_in case retries
-                    when 0
-                      '5s'
-                    when 1
-                      '1m'
-                    when 2
-                      '3m'
-                    when 3
-                      '5m'
-                    when 4
-                      '10m'
-                    when 5
-                      '30m'
-                    when 6
-                      '1h'
-                    else
-                      '1d'
+                      when 0
+                        '5s'
+                      when 1
+                        '1m'
+                      when 2
+                        '3m'
+                      when 3
+                        '5m'
+                      when 4
+                        '10m'
+                      when 5
+                        '30m'
+                      when 6
+                        '1h'
+                      else
+                        '1d'
                     end
         end
       end

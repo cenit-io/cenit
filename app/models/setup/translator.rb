@@ -3,13 +3,12 @@ module Setup
     include CrossOriginShared
     include NamespaceNamed
     include ClassHierarchyAware
-    include RailsAdmin::Models::Setup::TranslatorAdmin
 
     abstract_class true
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :type, type: Symbol, default: -> { self.class.transformation_type }
+    field :type, type: StringifiedSymbol, default: -> { self.class.transformation_type }
 
     before_validation do
       if (type = self.class.transformation_type)
@@ -21,7 +20,7 @@ module Setup
 
     def validates_configuration
       errors.add(:type, 'is not valid') unless self.class.type_enum.include?(type)
-      errors.blank?
+      abort_if_has_errors
     end
 
     def data_type

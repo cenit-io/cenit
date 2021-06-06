@@ -1,10 +1,40 @@
 module Setup
   class BaseOauthProvider < AuthorizationProvider
-    include RailsAdmin::Models::Setup::BaseOauthProviderAdmin
 
     abstract_class true
 
-    build_in_data_type.referenced_by(:namespace, :name)
+    def self.response_type_enum
+      ['code']
+    end
+
+    def self.token_method_enum
+      %w(POST GET)
+    end
+
+    def self.refresh_token_strategy_enum
+      [
+        'Google v4',
+        'Intuit Reconnect API V1',
+        'Lazada REST API',
+        'custom',
+        'default',
+        'none'
+      ]
+    end
+
+    build_in_data_type
+      .referenced_by(:namespace, :name)
+      .and_polymorphic(properties: {
+        response_type: {
+          enum: response_type_enum
+        },
+        token_method: {
+          enum: token_method_enum
+        },
+        refresh_token_strategy: {
+          enum: refresh_token_strategy_enum
+        }
+      })
 
     field :response_type, type: String
     field :token_endpoint, type: String
@@ -20,34 +50,27 @@ module Setup
 
     before_save do
       case refresh_token_strategy
-      when :custom
-        errors.add(:refresh_token_algorithm, "can't be blank") unless refresh_token_algorithm
-      when :none
-        if refresh_token_algorithm
-          errors.add(:refresh_token_algorithm, 'not allowed')
-          self.refresh_token_algorithm = nil
-        end
+        when :custom
+          errors.add(:refresh_token_algorithm, "can't be blank") unless refresh_token_algorithm
+        when :none
+          if refresh_token_algorithm
+            errors.add(:refresh_token_algorithm, 'not allowed')
+            self.refresh_token_algorithm = nil
+          end
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def response_type_enum
-      ['code']
+      self.class.response_type_enum
     end
 
     def token_method_enum
-      %w(POST GET)
+      self.class.token_method_enum
     end
 
     def refresh_token_strategy_enum
-      [
-        'Google v4',
-        'Intuit Reconnect API V1',
-        'Lazada REST API',
-        'custom',
-        'default',
-        'none'
-      ]
+      self.class.refresh_token_strategy_enum
     end
 
     def refresh_token(authorization)
@@ -72,8 +95,8 @@ module Setup
     end
 
     def default_refresh_token(authorization)
-      if (refresh_token = authorization.refresh_token) &&
-         (authorization.authorized_at.nil? || (authorization.authorized_at + (authorization.token_span || 0) < Time.now - 60))
+      if (refresh_token = authorization.refresh_token) && (authorization.authorized_at.nil? || (
+          authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh))
         fail 'Missing client configuration' unless (client = authorization.client)
         http_response = HTTMultiParty.post(
           authorization.token_endpoint,
@@ -110,7 +133,7 @@ module Setup
     end
 
     def google_v4_refresh_token(authorization)
-      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh
         fail 'Missing client configuration' unless authorization.client
         post = Setup::Connection.post('https://www.googleapis.com/oauth2/v4/token')
         http_response = post.submit(
@@ -164,7 +187,7 @@ module Setup
     end
 
     def lazada_rest_api_refresh_token(authorization)
-      unless authorization.authorized_at + authorization.token_span > Time.now - 60
+      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_lazada_token_refresh
         client = authorization.client
         fail 'Missing client configuration' unless client
         fail 'Missing OAuth provider configuration' unless authorization.provider

@@ -1,10 +1,11 @@
 module Setup
   class Operation < Webhook
-    include RailsAdmin::Models::Setup::OperationAdmin
-    build_in_data_type.including(:resource).referenced_by(:resource, :method)
 
-    deny :all
-    allow :show, :edit, :delete
+    build_in_data_type
+      .including(:resource)
+      .referenced_by(:resource, :method)
+
+    deny :create
 
     belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :operations
 
@@ -12,6 +13,8 @@ module Setup
 
     field :description, type: String
     field :method, type: String
+
+    validates_uniqueness_of :method, scope: :resource
 
     parameters :parameters, :headers
 
@@ -28,23 +31,23 @@ module Setup
     end
 
     def scope_title
-      resource && resource.custom_title
+      resource&.custom_title
     end
 
     def namespace
-      (resource && resource.namespace) || ''
+      resource&.namespace || ''
     end
 
     def path
-      resource && resource.path
+      resource&.path
     end
 
     def template_parameters
-      (resource && resource.template_parameters) || []
+      resource&.template_parameters || []
     end
 
     def name
-      "#{method.to_s.upcase} #{resource && resource.custom_title}"
+      "#{method.to_s.upcase} #{resource&.custom_title}"
     end
 
     def label
@@ -56,12 +59,18 @@ module Setup
     end
 
     def connections
-      (resource && resource.connections).presence || super
+      resource&.connections.presence || super
     end
 
     class << self
       def namespace_enum
         Setup::Resource.namespace_enum
+      end
+
+      def search_properties_selector(query)
+        {
+          :resource_id.in => Setup::Resource.search(query).limit(25).collect(&:id)
+        }
       end
     end
 

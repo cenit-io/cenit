@@ -1,3 +1,5 @@
+Cenit::BuildInApps.build_controllers_from(BuildInAppBaseController)
+
 Cenit::Application.routes.draw do
   devise_for :users, controllers: {
     sessions: 'sessions',
@@ -6,14 +8,6 @@ Cenit::Application.routes.draw do
   } do
     get 'sign_out', to: 'users/sessions#destroy', as: :destroy_user_session
   end
-
-  root to: 'rails_admin/main#dashboard'
-  get ':group/dashboard', to: 'rails_admin/main#dashboard', as: :dashboard_group
-  get 'dashboard', to: 'rails_admin/main#dashboard'
-  get 'terms', to: 'rails_admin/main#dashboard'
-
-  get 'explore/:api', to: 'api#explore', as: :explore_api
-  post 'write/:api', to: 'api#write', as: :write_api
 
   service_path =
     if Cenit.service_path.present?
@@ -29,7 +23,6 @@ Cenit::Application.routes.draw do
     Cenit.routed_service_url(Cenit.homepage + service_path)
   end
 
-
   oauth_path =
     if Cenit.oauth_path.present?
       "/#{Cenit.oauth_path}".squeeze('/')
@@ -42,10 +35,16 @@ Cenit::Application.routes.draw do
   get "#{oauth_path}/callback", to: 'oauth#callback'
   post "#{oauth_path}/token", to: 'oauth#token'
 
+  get '/authorization/:id', to: 'authorization#show', as: 'authorization_show'
+  get '/authorization/:id/authorize', to: 'authorization#authorize', as: 'authorization_authorize'
+
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
-  get '/file/:model/:field/:id', to: 'file#index'
-  get '/file/:model/:field/:id/*file(.:format)', to: 'file#index'
+  get '/file/:model/:id/:field', to: 'file#index'
+  get '/file/:model/:id/:field/*file', to: 'file#index'
+  match '/file/:model/:id/:field/*file', to: 'file#cors_check', via: [:options]
+  get 'public/:tenant_id/:data_type_id/:file_id', to: 'file#public'
+  match 'public/:tenant_id/:data_type_id/:file_id', to: 'file#cors_check', via: [:options]
 
   post 'hook/:slug', to: 'hook#digest'
   post 'hook/:slug/:access_token', to: 'hook#digest'
@@ -95,11 +94,20 @@ Cenit::Application.routes.draw do
       get '/:__ns_/:__model_', to: 'api#index', defaults: { format: 'json' }
       get '/:__ns_/:__model_/:__id_', to: 'api#show', defaults: { format: 'json' }
       post '/:__ns_/:__model_/:__id_', to: 'api#update'
-      match '/:__ns_/:__model_/:__id_/digest', to: 'api#digest', via: [:get, :post]
-      match '/:__ns_/:__model_/:__id_/digest/*path', to: 'api#digest', via: [:get, :post]
+      match '/:__ns_/:__model_/:__id_/digest', to: 'api#digest', via: [:get, :post, :delete]
+      match '/:__ns_/:__model_/:__id_/digest/*_digest_path', to: 'api#digest', via: [:get, :post, :delete]
       delete '/:__ns_/:__model_/:__id_', to: 'api#destroy'
       match '/*path', to: 'api#cors_check', via: [:options]
     end
+  end
+
+  Cenit::BuildInApps.controllers.each do |key, controller|
+    match "/app/#{key}/*path", to: "#{controller.app_module.controller_prefix}/main#cors_check", via: [:options]
+    controller.routes.each do |route|
+      method, path, options = route
+      match "/app/#{key}/#{path}".squeeze('/'), to: "#{controller.app_module.controller_prefix}/main##{options[:to]}", via: method
+    end
+    get "/app/#{key}".squeeze('/'), to: 'application#index'
   end
 
   match '/app/*path', to: 'app#cors_check', via: [:options]
@@ -107,21 +115,12 @@ Cenit::Application.routes.draw do
   match 'app/:id_or_ns/:app_slug' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
   match 'app/:id_or_ns/:app_slug/*path' => 'app#index', via: ::Setup::Webhook::SYM_METHODS
 
-  get 'remote_shared_collection/:id', to: 'rails_admin/main#remote_shared_collection'
-  get 'remote_shared_collection/:id/pull', to: 'rails_admin/main#remote_shared_collection'
-
   namespace :contact_us do
     controller :contacts do
       post '/contacts' => :create
       get :thanks
     end
   end
-
-  mount RailsAdmin::Engine => '/', as: 'rails_admin'
-
-  match '/:model_name/:id/swagger/*path' => 'rails_admin/main#swagger', via: [:all]
-
-  get '/:model_name/*id', to: 'rails_admin/main#show'
 
   Cenit.options.keys.grep(/:route:draw:listener\Z/).each do |source_key|
     if (listener = Cenit[source_key]).is_a?(String)
@@ -133,5 +132,18 @@ Cenit::Application.routes.draw do
         end
     end
     listener && listener.try(:on_route_draw, self)
+  end
+
+  root_app_module =
+    begin
+      ENV['ROOT_APP'].constantize
+    rescue
+      nil
+    end
+
+  if root_app_module
+    root to: "#{root_app_module.controller_prefix}/main#index"
+  else
+    root to: 'application#index'
   end
 end

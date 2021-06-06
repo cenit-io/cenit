@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include TriggersFormatter
     include CustomTitle
-    include RailsAdmin::Models::Setup::FilterAdmin
 
     build_in_data_type.referenced_by(:namespace, :name)
 
@@ -39,7 +38,7 @@ module Setup
       else
         errors.add(:base, 'Triggers missing')
       end
-      errors.blank?
+      abort_if_has_errors
     end
 
     def check_name

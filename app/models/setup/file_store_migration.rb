@@ -1,19 +1,22 @@
 module Setup
   class FileStoreMigration < Setup::Task
-    include RailsAdmin::Models::Setup::FileStoreMigrationAdmin
 
-    agent_field :data_type
+    agent_field :data_type, :data_type_id
 
     build_in_data_type
 
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
-    before_save do
-      self.data_type = Setup::FileDataType.where(id: message[:data_type_id]).first unless data_type
+    def auto_description
+      if (file_type = agent_from_msg)
+        "Executing #{file_type.custom_title}"
+      else
+        super
+      end
     end
 
     def run(message)
-      if (data_type = Setup::FileDataType.where(id: (data_type_id = message[:data_type_id])).first)
+      if (data_type = agent_from_msg)
         begin
           config = data_type.file_store_config
           total = data_type.all.count.to_f

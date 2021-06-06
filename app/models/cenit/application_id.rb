@@ -1,18 +1,31 @@
 module Cenit
   class ApplicationId
-    include Mongoid::Document
-    include Mongoid::Timestamps
-    include RailsAdmin::Models::Cenit::ApplicationIdAdmin
+    include Setup::CenitUnscoped
+
+    build_in_data_type
+      .on_origin(:admin)
+      .and(
+        properties: {
+          name: {
+            type: 'string'
+          },
+          registered: {
+            type: 'boolean'
+          }
+        }
+      )
+
+    deny :all
 
     field :tenant_id
 
     field :identifier, type: String
     field :oauth_name, type: String
     field :slug, type: String, default: ''
+    field :trusted, type: Boolean
 
     validates_length_of :oauth_name, within: 6..20, allow_nil: true
     validates_length_of :slug, maximum: 255
-    validates_format_of :slug, with: /\A([a-z][a-z0-9]*([_-][a-z0-9]+)?)?\Z/
 
     validate do
       [:oauth_name, :slug].each do |field|
@@ -25,6 +38,7 @@ module Cenit
           end
         end
       end
+      errors.add(:slug, 'is not valid') if slug && slug.to_s.underscore != slug
       errors.blank?
     end
 
@@ -37,7 +51,7 @@ module Cenit
           app.errors.full_messages.each { |error| errors.add(:base, "Invalid configuration: #{error}") }
         end
       end
-      errors.blank?
+      throw :abort unless errors.blank?
     end
 
     before_destroy do
@@ -47,6 +61,10 @@ module Cenit
       else
         true
       end
+    end
+
+    def trusted?
+      trusted
     end
 
     def tenant
@@ -60,12 +78,15 @@ module Cenit
 
     def app
       @app ||= tenant && tenant.switch do
-        Setup::Application.where(application_id: self).first
+        Setup::Application.where(application_id: self).first ||
+          User.with_super_access do
+            Cenit::BuildInApp.where(application_id: self).first
+          end
       end
     end
 
     def name
-      oauth_name.presence || (app && app.oauth_name)
+      oauth_name.presence || app&.oauth_name
     end
 
     def redirect_uris
@@ -95,7 +116,10 @@ module Cenit
     end
 
     def regist_with(data)
-      [:slug, :oauth_name, :redirect_uris].each { |field| send("#{field}=", data[field]) }
+      [:slug, :oauth_name, :redirect_uris].each do |field|
+        next unless data.key?(field)
+        send("#{field}=", data[field])
+      end
       self
     end
   end

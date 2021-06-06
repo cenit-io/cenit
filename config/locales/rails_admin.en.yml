@@ -104,6 +104,7 @@ en:
         send_to_flow_help: "Choose the flow to send models data"
         action_name: "Send"
         selector_label: "Send to flow"
+        doing: 'Flow sending'
       test_transformation:
         title: "Test transformation"
         menu: "Test transformation"
@@ -149,6 +150,8 @@ en:
         submit: "Import"
         done: "created"
         doing: "import"
+      export:
+        doing: "Export"
       pull_import:
         title: "Pull import"
         menu: "Pull import"
@@ -210,6 +213,14 @@ en:
         will_be_deleted: "objects will be deleted"
         done: "deleted"
         doing: "deletion"
+      cancel_all:
+        title: "Cancel all"
+        menu: "Cancel all"
+        breadcrumb: "Cancel all"
+        are_you_sure: "Are you sure you want to cancel all the %{model_label_plural}?"
+        will_be_cancelled: "objects will be cancelled"
+        done: "cancelled"
+        doing: "canceling"
       trash:
         title: "Trash collection '%{object_label}'"
         menu: "Trash collection"
@@ -348,6 +359,12 @@ en:
         breadcrumb: "Download"
         submit: "Download"
         done: "downloaded"
+      attachment:
+        title: "Download attachment"
+        menu: "Download attachment"
+        breadcrumb: "Download attachment"
+        submit: "Download attachment"
+        done: "Attachment downloaded"
       simple_delete_data_type:
         title: "Delete %{model_label} '%{object_label}'"
         menu: "Delete"
@@ -474,6 +491,20 @@ en:
         submit: "Regist"
         done: "registered"
         doing: "registering"
+      access:
+        title: "Access"
+        menu: "Access"
+        breadcrumb: "Access"
+        submit: "Access"
+        done: "giving access"
+        doing: "giving access"
+      token:
+        title: "Get Access Token"
+        menu: "Get Access Token"
+        breadcrumb: "Get Access Token"
+        submit: "Get Access Token"
+        done: "generating Access Token"
+        doing: "generating Access Token"
       algorithm_dependencies:
         title: "Dependencies"
         menu: "Dependencies"
@@ -483,13 +514,6 @@ en:
         menu: "Rest API"
         breadcrumb: "Rest API"
         hint: "Generate command for access to API of this action."
-      notebooks:
-        title: "Notebooks"
-        menu: "Notebooks"
-        breadcrumb: "Notebooks"
-      notebooks_root:
-        menu: "Notebooks"
-        breadcrumb: "Notebooks"
       notifications:
         title: "Notifications"
         menu: "Notifications"
@@ -574,6 +598,10 @@ en:
         menu: "Compare"
         breadcrumb: "Compare"
         done: "merged"
+      trust:
+        menu: 'Trust'
+      untrust:
+        menu: 'Untrust'
     form:
       flow:
         source_data_type: 'Source data type'

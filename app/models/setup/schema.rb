@@ -4,16 +4,15 @@ module Setup
   class Schema < Validator
     include SnippetCode
     include Setup::FormatValidator
-    include RailsAdmin::Models::Setup::SchemaAdmin
 
     legacy_code_attribute :schema
 
     build_in_data_type.with(:namespace, :uri, :snippet).referenced_by(:namespace, :uri)
 
-    shared_deny :simple_generate, :bulk_generate
+    # TODO shared_deny :simple_generate, :bulk_generate
 
     field :uri, type: String
-    field :schema_type, type: Symbol
+    field :schema_type, type: StringifiedSymbol
 
     belongs_to :schema_data_type, class_name: Setup::JsonDataType.to_s, inverse_of: nil
 
@@ -74,11 +73,11 @@ module Setup
               JSON.parse(data.to_s)
             end
         end
-        JSON::Validator.fully_validate(JSON.parse(schema),
-                                       data,
-                                       version: :mongoff,
-                                       schema_reader: JSON::Schema::CenitReader.new(self),
-                                       strict: true)
+        Mongoff::Validator.validate_instance(
+          data,
+          schema: JSON.parse(schema),
+          data_type: self.class.data_type
+        )
         []
       when :xml_schema
         unless data.is_a?(Nokogiri::XML::Document)

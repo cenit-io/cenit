@@ -6,9 +6,8 @@ gem 'sass-rails'
 gem 'uglifier'
 gem 'coffee-rails'
 gem 'jquery-rails'
-gem 'bootstrap-sass'
 gem 'jbuilder'
-gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: '3-stable'
+gem 'devise'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
@@ -47,7 +46,6 @@ end
 
 gem 'mongoid'
 gem 'bson_ext'
-gem 'rails_admin', '~> 1.1.1'
 
 gem 'httparty'
 gem 'bunny', '~> 2.6'
@@ -57,6 +55,7 @@ gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
 gem 'rubyzip'
+gem 'prawn-rails'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
@@ -64,7 +63,6 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
-gem 'bootstrap-wysihtml5-rails', '> 0.3.1.24'
 
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
@@ -76,7 +74,7 @@ gem 'exception_notification'
 gem 'mime'
 gem 'deface'
 
-gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git'
+gem 'cross_origin', git: 'https://github.com/macarci/cross_origin.git', branch: 'upgrading'
 
 gem 'lodash-rails'
 gem 'identicon'
@@ -84,9 +82,9 @@ gem 'identicon'
 gem 'language_sniffer'
 
 gem 'cenit-config', git: 'https://github.com/cenit-io/cenit-config.git'
-gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git'
-gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git'
-gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git'
+gem 'cenit-multi_tenancy', git: 'https://github.com/cenit-io/cenit-multi_tenancy.git', branch: 'upgrading'
+gem 'cenit-token', git: 'https://github.com/cenit-io/cenit-token.git', branch: 'upgrading'
+gem 'cenit-service', git: 'https://github.com/cenit-io/cenit-service.git', branch: 'upgrading'
 
 gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 
@@ -100,11 +98,18 @@ gem 'aws-sdk', '~> 2.10.13'
 gem 'net-scp'
 gem 'net-sftp'
 
-gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git'
-gem 'diffy'
+gem 'mongoid-tracer', git: 'https://github.com/macarci/mongoid-tracer.git', branch: 'upgrading'
 gem 'combine_pdf', '1.0.4'
+gem 'kaminari-mongoid'
 
 gem 'redis'
+gem 'net-ldap'
+
+gem 'cenit-build_in_apps', git: 'https://github.com/cenit-io/cenit-build_in_apps.git'
+gem 'cenit-oauth_app', git: 'https://github.com/cenit-io/cenit-oauth_app.git'
+gem 'cenit-open_id', git: 'https://github.com/cenit-io/cenit-open_id.git'
+gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'
+gem 'cenit-mime', git: 'https://github.com/cenit-io/cenit-mime.git'
 
 custom_gemfile_name = 'custom_Gemfile'
 

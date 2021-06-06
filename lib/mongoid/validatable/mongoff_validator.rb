@@ -7,7 +7,11 @@ module Mongoid
       def validate_each(record, attribute, value)
         begin
           model = options[:model]
-          JSON::Validator.validate!(model.schema, value, schema_reader: JSON::Schema::CenitReader.new(model.data_type))
+          Mongoff::Validator.validate_instance(
+            value,
+            schema: model.schema,
+            data_type: model.data_type
+          )
         rescue Exception => ex
           record.errors.add(attribute, ex.message)
         end if value

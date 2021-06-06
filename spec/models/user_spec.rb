@@ -1,8 +1,9 @@
 require 'spec_helper'
 
 describe User do
+
   it 'match the test user' do
-    expect(User.current.email).to eq('test@cenit.io')
+    expect(User.current.email).to eq(default_user.email)
   end
 
   it 'match the test tenant' do

@@ -3,13 +3,21 @@ module Mongoff
     class FileModel < Mongoff::Model
 
       MINIMUM_CHUNK_SIZE = 2 ** 18
-      MAXIMUM_CHUNK_SIZE = 2 ** 20
+      MAXIMUM_CHUNK_SIZE = 15 * 2 ** 20
 
       SCHEMA = Cenit::Utility.stringfy({
                                          type: :object,
+                                         label: '{{filename}}',
                                          properties:
                                            {
-                                             _id: {},
+                                             _id: {
+                                               unique: true,
+                                               title: 'Id',
+                                               description: 'Required',
+                                               edi: {
+                                                 segment: 'id'
+                                               }
+                                             },
                                              filename: {
                                                title: 'File name',
                                                type: :string
@@ -32,7 +40,7 @@ module Mongoff
                                                type: :integer,
                                                minimum: MINIMUM_CHUNK_SIZE,
                                                maximum: MAXIMUM_CHUNK_SIZE,
-                                               default: MINIMUM_CHUNK_SIZE,
+                                               default: MAXIMUM_CHUNK_SIZE,
                                                edi: {
                                                  discard: true
                                                }
@@ -47,7 +55,11 @@ module Mongoff
                                                }
                                              },
                                              metadata: {},
-                                             data: {},
+                                             data: {
+                                               edi: {
+                                                 discard: true
+                                               }
+                                             },
                                              encoding: {
                                                type: :string,
                                                enum: %w(encode64 strict_encode64 urlsafe_encode64)
@@ -71,6 +83,10 @@ module Mongoff
           p << 'public_url'
         end
         p
+      end
+
+      def type_polymorphic?
+        false
       end
 
       protected

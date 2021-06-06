@@ -4,7 +4,6 @@ module Setup
     include NamespaceNamed
     include ClassHierarchyAware
     include SharedEditable
-    include RailsAdmin::Models::Setup::ValidatorAdmin
 
     abstract_class true
 
@@ -13,7 +12,7 @@ module Setup
     before_save :validates_configuration
 
     def validates_configuration
-      errors.blank?
+      abort_if_has_errors
     end
 
     def validate_data(_data)

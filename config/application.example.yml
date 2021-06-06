@@ -1,29 +1,46 @@
-SHOW_SLACK_BADGE: "true"
-JUPYTER_NOTEBOOKS: "true"
-JUPYTER_NOTEBOOKS_URL: "//{your-cenit-jupyter-notebooks}.herokuapp.com"
-GITHUB_OAUTH_TOKEN: "{GITHUB_OAUTH_TOKEN}"
-DB_PROD: "{DB_PROD}"
-OAUTH_TOKEN_END_POINT: "embedded"
-RELIC_LICENSE_KEY: "{RELIC_LICENSE_KEY}"
-GOOGLE_ANALYTIC_ID: "{GOOGLE_ANALYTIC_ID}"
-PORTAL_URL: 'https://cenit-portal.herokuapp.com'
-DOCS_URL: 'https://cenit-io.github.io'
-API_DOC_URL: 'https://cenit-io.github.io'
-OPEN_ID_CLIENT_ID: "{OPEN_ID_CLIENT_ID}"
-OPEN_ID_CLIENT_SECRET: "{OPEN_ID_CLIENT_SECRET}"
-OPEN_ID_AUTH_URL: "https://cenit.io/app/open_id/sign_in"
-OPEN_ID_REDIRECT_URI: "https://cenit.io/users/sign_in"
-OPEN_ID_TOKEN_URL: "https://cenit.io/app/open_id/sign_in/token"
-EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share bulk_pull
-RABBITMQ_BIGWIG_TX_URL: "{RABBITMQ_BIGWIG_TX_URL}"
-NOTIFIER_EMAIL: "{NOTIFIER_EMAIL}"
-EXCEPTION_RECIPIENTS: "{List of emails}"
-RABBIT_MQ_USER: "{RABBIT_MQ_USER}"
-RABBIT_MQ_PASSWORD: "{RABBIT_MQ_PASSWORD}"
+default:
+  MONGODB_URI: "{MONGODB_URI}"
+  UNICORN_WORKERS: 6
+  REDIS_HOST: redis
 
-# AMAZON SIMPLE STORAGE SERVICE.
-AWS_ACCESS_KEY_ID: "{AWSS3 Access ID}"
-AWS_SECRET_ACCESS_KEY: "{AWSS3 Access Key}"
+cenit_frontend:
+  BASE_MULTIPLIER_ACTIVE_TASKS: 50
+  SCHEDULER_LOOKUP_INTERVAL: 8
+  MAXIMUM_UNICORN_CONSUMERS: 6
+  UNICORN_CENIT_SERVER: true
+  SKIP_DB_INITIALIZATION: true
+  SKIP_RABBIT_MQ: true
+  MAXIMUM_UNICORN_CONSUMERS: 0
+  ENABLE_RERECAPTCHA: false
 
-# CenitIO slug of application to manager plans, customers and subscriptions.
-SUBSCRIPTIONS_APP: "cenit-io-subscriptions"
+cenit_background:
+  MAXIMUM_UNICORN_CONSUMERS: 6
+  UNICORN_CENIT_SERVER: true
+  ENABLE_RERECAPTCHA: false
+  BASE_MULTIPLIER_ACTIVE_TASKS: 50
+  SCHEDULER_LOOKUP_INTERVAL: 8
+  UNICORN_WORKERS: 6
+  MAXIMUM_UNICORN_CONSUMERS: 6
+  RABBITMQ_BIGWIG_TX_URL: "{RABBITMQ_BIGWIG_TX_URL}"
+
+optionals:
+  SHOW_SLACK_BADGE: "true"
+  GITHUB_OAUTH_TOKEN: "{GITHUB_OAUTH_TOKEN}"
+  OAUTH_TOKEN_END_POINT: "embedded"
+  RELIC_LICENSE_KEY: "{RELIC_LICENSE_KEY}"
+  GOOGLE_ANALYTIC_ID: "{GOOGLE_ANALYTIC_ID}"
+  EXCLUDED_ACTIONS: simple_share bulk_share simple_cross_share bulk_cross_share bulk_pull
+
+  # Notifications
+  NOTIFIER_EMAIL: "{NOTIFIER_EMAIL}"
+  EXCEPTION_RECIPIENTS: "{List of emails}"
+
+  # AMAZON SIMPLE STORAGE SERVICE.
+  DEFAULT_FILE_STORE: Cenit::FileStore::AwsS3Default
+  AWS_S3_BUCKET_PREFIX:
+  AWS_ACCESS_KEY_ID: "{AWSS3 Access ID}"
+  AWS_SECRET_ACCESS_KEY: "{AWSS3 Access Key}"
+
+  # GMAIL
+  GMAIL_USERNAME: "{email}"
+  GMAIL_PASSWORD: "{password}"

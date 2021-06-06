@@ -17,17 +17,26 @@ module Mongoff
       @document = BSON::Document.new
       @fields = {}
       @new_record = new_record || false
+      initialize_attrs(model, attributes)
+      if !@document.key?('_id') && ((id_schema = model.property_schema(:_id)).nil? || !id_schema.key?('type') || id_schema['auto'])
+        @document[:_id] = BSON::ObjectId.new
+        if id_schema && id_schema['type'] == 'string'
+          @document[:_id] = @document[:_id].to_s
+        end
+      end
+      @changed = false
+    end
+
+    def initialize_attrs(model, attributes)
       model.properties_schemas.each do |property, schema|
         if @document[property].nil? && !(value = schema['default']).nil?
           self[property] = value
         end
       end
       assign_attributes(attributes)
-      unless (id_schema = model.property_schema(:_id)) && id_schema.key?('type')
-        @document[:_id] ||= BSON::ObjectId.new
-      end
-      @changed = false
     end
+
+    protected :initialize_attrs
 
     def attributes
       prepare_attributes
@@ -88,15 +97,16 @@ module Mongoff
       raise Exception.new('Invalid data') unless save(options)
     end
 
-    def validate
+    def validate(options = {})
       unless @validated
-        # Mongoff::Validator.soft_validates(self, skip_nulls: true)
         errors.clear
-        orm_model.fully_validate_against_schema(attributes).each do |error|
-          errors.add(:base, error[:message])
-        end
+        do_validate(options)
         @validated = true
       end
+    end
+
+    def do_validate(options = {})
+      Mongoff::Validator.soft_validates(self, skip_nulls: true)
     end
 
     def valid?
@@ -108,7 +118,7 @@ module Mongoff
       field = field.to_sym
       attribute_key = orm_model.attribute_key(field, model: property_model = orm_model.property_model(field))
       value = @fields[field] || document[attribute_key]
-      if property_model && property_model.modelable?
+      if property_model&.modelable?
         @fields[field] ||=
           if (association = orm_model.associations[field.to_s]).many?
             RecordArray.new(property_model, value, association.referenced?, self)
@@ -171,7 +181,7 @@ module Mongoff
       attribute_key = orm_model.attribute_key(field, field_metadata = {})
       field_metadata_2 = {}
       attribute_assigning = !orm_model.property?(attribute_key) && attribute_key == field &&
-                            (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
+        (field = orm_model.properties.detect { |property| orm_model.attribute_key(property, field_metadata_2 = {}) == attribute_key }).present?
       field =
         if field
           field_metadata = field_metadata_2 if field_metadata.blank?
@@ -198,7 +208,7 @@ module Mongoff
           end
           field_array
         else
-          if property_model && property_model.modelable?
+          if property_model&.modelable?
             mongo_value = []
             value.each do |v|
               property_model.mongo_value(v, :id) do |mongo_v|
@@ -324,16 +334,48 @@ module Mongoff
       end
     end
 
+    def safe_send(key)
+      self[key]
+    end
+
+    def class
+      orm_model
+    end
+
+    def ruby_class
+      method(:class).super_method.call
+    end
+
+    def associations
+      self.class.associations
+    end
+
+    def to_model
+      self
+    end
+
+    def model_name
+      orm_model.model_name
+    end
+
+    def to_key
+      [id]
+    end
+
     protected
 
     def prepare_attributes
-      document[:_type] = orm_model.to_s if orm_model.reflectable?
+      document[:_type] = orm_model.to_s if orm_model.type_polymorphic?
       @fields.each do |field, value|
         nested = (association = orm_model.associations[field]) && association.nested?
         if nested || document[field].nil?
           attribute_key = orm_model.attribute_key(field)
           if value.is_a?(RecordArray)
-            document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
+            if value.null?
+              document.delete(attribute_key)
+            else
+              document[attribute_key] = value.collect { |v| nested ? v.attributes : v.id }
+            end
           else
             document[attribute_key] = nested ? value.attributes : value.id unless value.nil?
           end
@@ -364,11 +406,31 @@ module Mongoff
       success
     end
 
+    def after_save_callbacks
+      success = true
+      if (data_type = (model = orm_model).data_type).records_model == model
+        data_type.after_save_callbacks.each do |callback|
+          next unless success
+          success &&=
+            begin
+              callback.run(self).present?
+            rescue Exception => ex
+              Setup::SystemNotification.create(
+                message: "Error running after save callback '#{callback.custom_title}' on record #'#{id}' of type ' #{orm_model.data_type.custom_title}': #{ex.message}")
+              false
+            end
+        end
+      end
+      success
+    end
+
     def run_callbacks_and
       begin
         if Model.before_save.call(self) && before_save_callbacks
-          yield if block_given?
-          Model.after_save.call(self)
+          if block_given? && yield
+            after_save_callbacks
+            Model.after_save.call(self)
+          end
         end
       rescue Exception => ex
         errors.add(:base, ex.message)

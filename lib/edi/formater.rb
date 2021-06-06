@@ -97,7 +97,6 @@ module Edi
         include_id ||= (value.include?(:id) || value.include?(:_id)) if include_id.nil? && option != :ignore
       end
       [:only].each { |option| options.delete(option) if options[option].empty? }
-      options[:inspected_records] = Set.new
       options[:stack] = []
       options[:include_id] = include_id.respond_to?(:call) ? include_id : include_id.to_b
       if (viewport = options[:viewport])
@@ -124,16 +123,16 @@ module Edi
       value = value.to_s.split(' ').map do |seq|
         seq.chars.inject([]) do |a, char|
           case char
-          when '{', '}'
-            a << char
-          else
-            case (last = a.pop)
             when '{', '}'
-              a << last
               a << char
             else
-              a << (last || '') + char
-            end
+              case (last = a.pop)
+                when '{', '}'
+                  a << last
+                  a << char
+                else
+                  a << (last || '') + char
+              end
           end
           a
         end
@@ -155,18 +154,18 @@ module Edi
       previous_token = nil
       until seq.empty?
         case (token = seq.shift)
-        when '{'
-          if previous_token
-            hash[previous_token] = token_hash = {}
-            parse_viewport_seq(seq, token_hash)
+          when '{'
+            if previous_token
+              hash[previous_token] = token_hash = {}
+              parse_viewport_seq(seq, token_hash)
+            else
+              raise "Unexpected token '{'"
+            end
+          when '}'
+            break
           else
-            raise "Unexpected token '{'"
-          end
-        when '}'
-          break
-        else
-          hash[token] = true
-          previous_token = token
+            hash[token] = true
+            previous_token = token
         end
       end
     end
@@ -235,66 +234,66 @@ module Edi
                   (options[:only] && !options[:only].include?(name.to_sym) && !included_anyway)
         end
         case property_schema['type']
-        when 'array'
-          property_value = record.send(property_name)
-          xml_opts = property_schema['xml'] || {}
-          if xml_opts['attribute']
-            property_value = property_value && property_value.collect(&:to_s).join(' ')
-            attr[name] = property_value if !property_value.blank? || options[:with_blanks] || required.include?(property_name)
-          elsif xml_opts['simple_type']
-            elements << (e = xml_doc.create_element(name))
-            e << property_value && property_value.collect(&:to_s).join(' ')
-          elsif property_model && property_model.modelable?
-            property_schema = data_type.merge_schema(property_schema['items'] || {})
-            json_objects = []
-            property_value.each do |sub_record|
-              if Cenit::Utility.json_object?(sub_record)
-                json_objects << sub_record
-              else
-                elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options, namespaces)
-              end
-            end if property_value
-            unless json_objects.empty?
-              elements << Nokogiri::XML({ property_name => json_objects }.to_xml(dasherize: false)).root.first_element_child
-            end
-          else
-            elements << Nokogiri::XML({ name => property_value }.to_xml(dasherize: false)).root.first_element_child
-          end
-        when 'object'
-          if property_model && property_model.modelable?
-            elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, nil, options, namespaces)
-          else
-            elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
-          end
-        else
-          value = property_schema['default'] if (value = record.send(property_name)).nil?
-          unless value.nil?
+          when 'array'
+            property_value = record.send(property_name)
             xml_opts = property_schema['xml'] || {}
             if xml_opts['attribute']
-              attr[name] = value if !value.nil? || options[:with_blanks] || required.include?(property_name)
-            elsif xml_opts['content']
-              if content.nil?
-                content = value
-                content_property = property_name
-              else
-                raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
+              property_value = property_value && property_value.collect(&:to_s).join(' ')
+              attr[name] = property_value if !property_value.blank? || options[:with_blanks] || required.include?(property_name)
+            elsif xml_opts['simple_type']
+              elements << (e = xml_doc.create_element(name))
+              e << property_value && property_value.collect(&:to_s).join(' ')
+            elsif property_model&.modelable?
+              property_schema = data_type.merge_schema(property_schema['items'] || {})
+              json_objects = []
+              property_value.each do |sub_record|
+                if Cenit::Utility.json_object?(sub_record)
+                  json_objects << sub_record
+                else
+                  elements << record_to_xml_element(data_type, property_schema, sub_record, xml_doc, nil, options, namespaces)
+                end
+              end if property_value
+              unless json_objects.empty?
+                elements << Nokogiri::XML({ property_name => json_objects }.to_xml(dasherize: false)).root.first_element_child
               end
             else
-              elements << Nokogiri::XML({ name => value }.to_xml(dasherize: false)).root.first_element_child
+              elements << Nokogiri::XML({ name => property_value }.to_xml(dasherize: false)).root.first_element_child
             end
-          end
+          when 'object'
+            if property_model&.modelable?
+              elements << record_to_xml_element(data_type, property_schema, record.send(property_name), xml_doc, nil, options, namespaces)
+            else
+              elements << Nokogiri::XML({ name => record.send(property_name) }.to_xml(dasherize: false)).root.first_element_child
+            end
+          else
+            value = property_schema['default'] if (value = record.send(property_name)).nil?
+            unless value.nil?
+              xml_opts = property_schema['xml'] || {}
+              if xml_opts['attribute']
+                attr[name] = value if !value.nil? || options[:with_blanks] || required.include?(property_name)
+              elsif xml_opts['content']
+                if content.nil?
+                  content = value
+                  content_property = property_name
+                else
+                  raise Exception.new("More than one content property found: '#{content_property}' and '#{property_name}'")
+                end
+              else
+                elements << Nokogiri::XML({ name => value }.to_xml(dasherize: false)).root.first_element_child
+              end
+            end
         end
       end
       element = xml_doc.create_element(element_name, attr)
       if elements.empty?
         content =
           case content
-          when NilClass
-            []
-          when Hash
-            Nokogiri::XML(content.to_xml).root.element_children
-          else
-            [json_value(content, options).to_s]
+            when NilClass
+              []
+            when Hash
+              Nokogiri::XML(content.to_xml).root.element_children
+            else
+              [json_value(content, options, schema).to_s]
           end
         content.each { |e| element << e }
       else
@@ -314,12 +313,7 @@ module Edi
         end
       return nil unless model
       schema = model.schema
-      key_properties =
-        if (key_properties = schema['referenced_by'])
-          key_properties.dup
-        else
-          []
-        end
+      key_properties = schema['referenced_by']&.dup || (options[:with_references] && ['_id']) || []
       json =
         if viewport.nil? && key_properties.present?
           if referenced
@@ -331,9 +325,10 @@ module Edi
           referenced = false
           {}
         end
-      unless referenced
-        return nil if options[:inspected_records].include?(record) || options[:stack].include?(record)
-        options[:inspected_records] << record
+      if !referenced && options[:stack].include?(record)
+        result = { '_reference' => true }
+        do_store(result, 'id', record.id, {})
+        return result
       end
       options[:stack] << record
       if (include_id = options[:include_id]).respond_to?(:call)
@@ -350,7 +345,7 @@ module Edi
           key_properties.delete(property_name)
           next
         end
-        property_schema = model.property_schema(property_name)
+        property_schema = model.property_schema(property_name) || {}
         property_model = model.property_model(property_name)
         name = property_name
         if !options[:raw_properties] && property_schema['edi']
@@ -390,56 +385,56 @@ module Edi
           end
         end
         case property_schema['type']
-        when 'array'
-          referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
-          if (value = record.send(property_name))
-            next if max_entries && value.size > max_entries
-            sub_max_entries = max_entries && (max_entries - value.size)
-            sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries.positive?
-            new_value = []
-            value.each do |sub_record|
-              next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-              new_value << record_to_hash(
-                sub_record,
-                options,
-                referenced_items,
-                property_model,
-                sub_max_entries,
-                property_viewport
-              )
+          when 'array'
+            referenced_items = can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded']
+            if (value = record.send(property_name)) && !value.try(:null?)
+              next if max_entries && value.size > max_entries
+              sub_max_entries = max_entries && (max_entries - value.size)
+              sub_max_entries = 1 unless sub_max_entries.nil? || sub_max_entries.positive?
+              new_value = []
+              value.each do |sub_record|
+                next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
+                new_value << record_to_hash(
+                  sub_record,
+                  options,
+                  referenced_items,
+                  property_model,
+                  sub_max_entries,
+                  property_viewport
+                )
+              end
+            else
+              new_value = nil
+              sub_max_entries = max_entries
             end
+            do_store(json, name, new_value, options, property_schema, key_properties.include?(property_name))
+            max_entries = sub_max_entries
+          when 'object'
+            sub_record = record.send(property_name)
+            next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
+            value = record_to_hash(
+              sub_record,
+              options,
+              can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'],
+              property_model,
+              max_entries && max_entries - 1,
+              property_viewport
+            )
+            entries = do_store(json, name, value, options, property_schema, key_properties.include?(property_name))
+            max_entries -= entries if max_entries
           else
-            new_value = nil
-            sub_max_entries = max_entries
-          end
-          do_store(json, name, new_value, options, key_properties.include?(property_name))
-          max_entries = sub_max_entries
-        when 'object'
-          sub_record = record.send(property_name)
-          next if inspecting && (scope = options[:inspect_scope]) && !scope.include?(sub_record)
-          value = record_to_hash(
-            sub_record,
-            options,
-            can_be_referenced && property_schema['referenced'] && !property_schema['export_embedded'],
-            property_model,
-            max_entries && max_entries - 1,
-            property_viewport
-          )
-          entries = do_store(json, name, value, options, key_properties.include?(property_name))
-          max_entries -= entries if max_entries
-        else
-          begin
-            if (value = record.send(property_name)).nil?
-              value = (protected ? nil : record[property_name])
+            begin
+              if (value = record.send(property_name)).nil?
+                value = (protected ? nil : record[property_name])
+              end
+            rescue
+              value = nil
             end
-          rescue
-            value = nil
-          end
-          if value.nil?
-            value = property_schema['default']
-          end
-          entries = do_store(json, name, value, options, key_properties.include?(property_name)) #TODO Default values should came from record attributes
-          max_entries -= entries if max_entries
+            if value.nil?
+              value = property_schema['default']
+            end
+            entries = do_store(json, name, value, options, property_schema, key_properties.include?(property_name)) #TODO Default values should came from record attributes
+            max_entries -= entries if max_entries
         end
       end
       if (options[:inspecting].include?(:_type) ||
@@ -463,7 +458,7 @@ module Edi
       end
     end
 
-    def do_store(json, key, value, options, store_anyway = false)
+    def do_store(json, key, value, options, schema = {}, store_anyway = false)
       if options[:nqnames]
         key = key.to_s.split(':').last
       end
@@ -485,7 +480,7 @@ module Edi
         end
       else
         value = value.to_s if [BSON::ObjectId, Symbol].any? { |klass| value.is_a?(klass) }
-        value = json_value(value, options)
+        value = json_value(value, options, schema)
         if store_anyway || !(value.nil? || value.try(:empty?)) || options[:include_blanks] #TODO String blanks!
           k = json.key?(key) ? 0 : 1
           json[key] = value
@@ -496,25 +491,30 @@ module Edi
       end
     end
 
-    def json_value(value, options)
+    def json_value(value, options, schema)
       case value
-      when Time
-        value.strftime('%H:%M:%S')
-      when Date, DateTime, Class, Module
-        value.to_s
-      else
-        if Cenit::Utility.json_object?(value)
-          value
-        else
-          options = options.dup
-          if (hash = value.try(:to_hash, options))
-            hash
-          elsif (json = value.try(:to_json, options))
-            JSON.parse(json.to_s) rescue json.to_s
+        when Time, Date, DateTime
+          value = value.to_time
+          if schema && schema['format'] == 'time'
+            value.strftime('%H:%M:%S.%L%:z')
           else
-            value.to_s
+            value.iso8601
           end
-        end
+        when Class, Module
+          value.to_s
+        else
+          if Cenit::Utility.json_object?(value)
+            value
+          else
+            options = options.dup
+            if (hash = value.try(:to_hash, options))
+              hash
+            elsif (json = value.try(:to_json, options))
+              JSON.parse(json.to_s) rescue json.to_s
+            else
+              value.to_s
+            end
+          end
       end
     end
 
@@ -538,7 +538,7 @@ module Edi
         next if property_schema['edi'] && property_schema['edi']['discard']
         if (property_model = record.orm_model.property_model(property_name)) && property_model.modelable?
           if property_schema['type'] == 'array'
-            if sub_values = record.send(property_name)
+            if (sub_values = record.send(property_name))
               property_schema = data_type.merge_schema(property_schema['items'])
               sub_values.each do |sub_record|
                 output.concat(record_to_edi(data_type, options, property_schema, sub_record, property_name))
@@ -632,16 +632,16 @@ class Hash
 
   def normalize_nested_query(value, prefix, unsafe)
     case value
-    when Array
-      value.map do |v|
-        normalize_nested_query(v, "#{prefix}[]", unsafe)
-      end.flatten.sort
-    when Hash
-      value.map do |k, v|
-        normalize_nested_query(v, prefix ? "#{prefix}[#{k}]" : k, unsafe)
-      end.flatten.sort
-    else
-      [escape(prefix, unsafe), escape(value, unsafe)] * '='
+      when Array
+        value.map do |v|
+          normalize_nested_query(v, "#{prefix}[]", unsafe)
+        end.flatten.sort
+      when Hash
+        value.map do |k, v|
+          normalize_nested_query(v, prefix ? "#{prefix}[#{k}]" : k, unsafe)
+        end.flatten.sort
+      else
+        [escape(prefix, unsafe), escape(value, unsafe)] * '='
     end
   end
 
