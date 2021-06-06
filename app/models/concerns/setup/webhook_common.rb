@@ -415,6 +415,8 @@ module Setup
         template_parameters['treebase']).presence ||
         ((path = uri.path.presence) && path.split('/').map(&:presence).compact.join(','))
 
+      base =  CGI::unescape(base)
+
       search_options = { base: base }
 
       if (filter = uri.filter)
