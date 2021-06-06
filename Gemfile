@@ -16,6 +16,7 @@ gem 'unicorn', '4.9.0'
 gem 'xmldsig'
 gem 'spreadsheet'
 gem 'peddler'
+gem 'puma'
 
 group :doc do
   gem 'sdoc', require: false
