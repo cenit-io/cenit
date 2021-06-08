@@ -1,0 +1,1 @@
+!function(){function e(e){n.forEach(e=>e.setAttribute("disabled","true")),document.getElementById("openid_with_parameter").value=e.target.value,t.submit()}const t=document.getElementById("openid_form"),n=Array.from(document.getElementById("openid_social").children).map(e=>e.children[0]);n.forEach(t=>t.addEventListener("click",e))}();

@@ -1,0 +1,1 @@
+Array.from(document.getElementsByClassName("responsive-box")).forEach(e=>Array.from(e.getElementsByClassName("devise box")).forEach(t=>window.App.addResizeListener(()=>{const n=t.getBoundingClientRect(),s=Math.max(document.documentElement.clientHeight||0,window.innerHeight||0);n.height>s?e.classList.remove("centered"):e.classList.add("centered")})));
