@@ -36,3 +36,4 @@ after_success:
 
   - docker build -t cenitgroup/cenitio:frontend ./docker/cenit_web
   - docker push cenitgroup/cenitio:frontend
+  
