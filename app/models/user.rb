@@ -31,6 +31,7 @@ class User
 
   devise :trackable, :validatable, :database_authenticatable, :recoverable, :confirmable
   devise :registerable unless ENV['UNABLE_REGISTERABLE'].to_b
+  devise :timeoutable if ENV['SESSION_TIMEOUT'].to_i > 0
 
   # Database authenticatable
   field :email, type: String, default: ''
