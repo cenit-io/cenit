@@ -19,7 +19,13 @@ module Mongoid
       super
     rescue Exception => ex
       report = Setup::SystemReport.create_from(ex)
-      errors.add(:base, report.message)
+      if report
+        errors.add(:base, report.message)
+      else
+        puts "Exception report could not be created, here's the error: #{ex.message}"
+        puts ex.backtrace
+        errors.add(:base, ex.message)
+      end
       false
     end
 
