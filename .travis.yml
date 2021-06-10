@@ -31,9 +31,9 @@ after_success:
   #Log in to the Docker CLI
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-  - docker build -t cenitgroup/cenitio:backend-${TRAVIS_COMMIT} ./docker/cenit
-  - docker push cenitgroup/cenitio:backend-${TRAVIS_COMMIT}
+  - docker build -t cenitgroup/cenitio:backend-${TRAVIS_COMMIT::7} ./docker/cenit
+  - docker push cenitgroup/cenitio:backend-${TRAVIS_COMMIT::7}
 
-  - docker build -t cenitgroup/cenitio:frontend-${TRAVIS_COMMIT} ./docker/cenit_web
-  - docker push cenitgroup/cenitio:frontend-${TRAVIS_COMMIT}
+  - docker build -t cenitgroup/cenitio:frontend-${TRAVIS_COMMIT::7} ./docker/cenit_web
+  - docker push cenitgroup/cenitio:frontend-${TRAVIS_COMMIT::7}
   
