@@ -15,6 +15,7 @@ branches:
   - travis_configuration
 
 before_install:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker pull mongo:3.6
   - docker pull redis
   - docker run -d -p 127.0.0.1:27017:27017 mongo:3.6
