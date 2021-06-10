@@ -12,6 +12,7 @@ rvm:
 branches:
   only:
   - master
+  - travis_configuration
 
 before_install:
   - docker pull mongo:3.6
