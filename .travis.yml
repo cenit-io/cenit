@@ -31,11 +31,12 @@ script:
 
 after_success:
   #Log in to the Docker CLI
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  #- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
+  #New Relic Build
   - docker build -t cenitgroup/backend:newrelic-centos-${TRAVIS_COMMIT::7} ./docker/newrelic-centos
   - docker push cenitgroup/backend:newrelic-centos-${TRAVIS_COMMIT::7}
 
-  - docker build -t cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7} ./docker/newrelic-centos/ui
+  - docker build -t cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/newrelic-centos/ui
   - docker push cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7}
   
