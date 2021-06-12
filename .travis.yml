@@ -12,7 +12,6 @@ rvm:
 branches:
   only:
   - master
-  - travis_configuration
 
 before_install:
   #Log in to the Docker CLI
