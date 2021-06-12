@@ -14,11 +14,6 @@ branches:
   - master
   - travis_configuration
 
-addons:
-  apt:
-    packages:
-      - docker-ce
-
 before_install:
   #Log in to the Docker CLI
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
