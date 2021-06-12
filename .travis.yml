@@ -3,7 +3,7 @@ sudo: required
 services:
   - docker
 
-dist: bionic
+dist: focal
 
 language: ruby
 rvm:
@@ -13,6 +13,11 @@ branches:
   only:
   - master
   - travis_configuration
+
+addons:
+  apt:
+    packages:
+      - docker-ce
 
 before_install:
   #Log in to the Docker CLI
@@ -32,15 +37,15 @@ script:
 
 after_success:
   #New Relic Build
-  - docker build -t cenitgroup/backend:newrelic-centos-${TRAVIS_COMMIT::7} ./docker/newrelic-centos
-  - docker image push cenitgroup/backend:newrelic-centos-${TRAVIS_COMMIT::7}
+  #- docker build -t cenitgroup/backend:newrelic-centos-${TRAVIS_COMMIT::7} ./docker/newrelic-centos
 
-  - docker build -t cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/newrelic-centos/ui
-  - docker image push cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7}
+  #- docker build -t cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/newrelic-centos/ui
 
   #Ubuntu Build
   - docker build -t cenitgroup/backend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/backend:${TRAVIS_COMMIT::7} ./docker/ubuntu
-  - docker image push cenitgroup/backend:ubuntu-${TRAVIS_COMMIT::7} cenitgroup/backend:${TRAVIS_COMMIT::7}
 
-  - docker build -t cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/frontend:${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
-  - docker image push cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} cenitgroup/frontend:${TRAVIS_COMMIT::7}
+  #- docker build -t cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/frontend:${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
+
+  #Pushing all
+  - docker image push --all-tags cenitgroup/backend
+  #- docker image push --all-tags cenitgroup/frontend
