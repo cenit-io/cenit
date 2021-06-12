@@ -13,7 +13,7 @@ ENV PATH /usr/local/bin:$PATH
 RUN yum -y install \
         epel-release 
 RUN yum update -y; \
-	curl -sL https://rpm.nodesource.com/setup_10.x | bash -; \
+	curl -sL https://rpm.nodesource.com/setup_14.x | bash -; \
 	yum -y install \
 	jemalloc-devel \
 	make \
