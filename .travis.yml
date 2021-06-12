@@ -36,9 +36,9 @@ after_success:
   - docker build -t cenitgroup/frontend:newrelic-centos-${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/newrelic-centos/ui
 
   #Ubuntu Build
-  - docker build -t cenitgroup/backend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/backend:${TRAVIS_COMMIT::7} ./docker/ubuntu
+  - docker build -t cenitgroup/backend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/backend:latest ./docker/ubuntu
 
-  - docker build -t cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/frontend:${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
+  - docker build -t cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/frontend:latest --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
 
   #Pushing all
   - docker image push --all-tags cenitgroup/backend
