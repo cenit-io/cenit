@@ -42,5 +42,5 @@ after_success:
   - docker build -t cenitgroup/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitgroup/frontend:${TRAVIS_COMMIT::7} --build-arg COMMIT_VERSION=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
 
   #Pushing all
-  - docker image push --all-tags cenitgroup/backend
-  - docker image push --all-tags cenitgroup/frontend
+  - docker image push -a cenitgroup/backend
+  - docker image push -a cenitgroup/frontend
