@@ -420,7 +420,30 @@ module Setup
         search_options[:attributes] = attributes.split(',')
       end
 
-      ldap.search(search_options).to_json
+      begin
+        ldap.search(search_options).to_json
+      rescue
+        Setup::SystemNotification.create_with(
+          message: "LDAP error: #{$!.message}",
+          attachment: {
+            filename: "ldap.json",
+            body: JSON.pretty_generate(
+              uri: uri,
+              auth: {
+                method: auth_method,
+                username: username,
+                password: password
+              },
+              search_options: {
+                base: base,
+                filter: filter,
+                attributes: attributes
+              }
+            )
+          }
+        )
+        raise $!
+      end
     end
 
     def process_ftp(opts)
