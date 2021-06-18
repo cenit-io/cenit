@@ -1,2 +1,6 @@
 .git
+<<<<<<< HEAD
 .dockerignore
+=======
+.dockerignore
+>>>>>>> 01be4bdf (Add container based on Ubuntu)
