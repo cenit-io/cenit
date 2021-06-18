@@ -1,4 +1,5 @@
-FROM alejandro92/cenit:latest
+ARG COMMIT
+FROM cenitio/backend:newrelic-${COMMIT}
 
 ENV SKIP_DB_INITIALIZATION=true
 ENV SKIP_RABBIT_MQ=true
