@@ -1,6 +1,6 @@
 ARG COMMIT
 ARG BRANCH=master
-FROM spdiam/cenit:backend-${BRANCH}-${COMMIT}
+FROM spdiam/cenit:backend-newrelic-${BRANCH}-${COMMIT}
 
 ENV SKIP_DB_INITIALIZATION=true
 ENV SKIP_RABBIT_MQ=true
