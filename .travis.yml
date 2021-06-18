@@ -12,8 +12,11 @@ rvm:
 branches:
   only:
   - master
+  - travis_configuration
 
 before_install:
+  #Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker pull mongo:3.6
   - docker pull redis
   - docker run -d -p 127.0.0.1:27017:27017 mongo:3.6
@@ -28,8 +31,6 @@ script:
   - bundle exec rspec spec
 
 after_success:
-  #Log in to the Docker CLI
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   - docker build -t cenitgroup/cenitio:latest ./docker/cenit
   - docker push cenitgroup/cenitio:latest
