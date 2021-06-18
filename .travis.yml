@@ -31,9 +31,13 @@ script:
   - bundle exec rspec spec
 
 after_success:
+  #Build image based on New Relic CLI
+  - docker build -t cenitio/backend:newrelic-${TRAVIS_COMMIT::7} ./docker/newrelic
+  - docker build -t cenitio/frontend:newrelic-${TRAVIS_COMMIT::7}  --build-arg COMMIT=${TRAVIS_COMMIT::7} ./docker/newrelic/ui
 
-  - docker build -t cenitgroup/cenitio:latest ./docker/cenit
-  - docker push cenitgroup/cenitio:latest
+  - docker build -t cenitio/backend:ubuntu-${TRAVIS_COMMIT::7} -t cenitio/backend:latest ./docker/ubuntu
+  - docker build -t cenitio/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitio/frontend:latest --build-arg COMMIT=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui
 
-  - docker build -t cenitgroup/cenitio:frontend ./docker/cenit_web
-  - docker push cenitgroup/cenitio:frontend
+  #Pushing containers
+  - docker push --all-tags cenitio/backend
+  - docker push --all-tags cenitio/frontend
