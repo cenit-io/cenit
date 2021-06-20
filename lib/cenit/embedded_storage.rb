@@ -50,7 +50,7 @@ module Cenit
         files[index].merge!(
           filename: filename,
           content_type: content_type ||
-            MIME::Types.type_for(filename)[0].to_s.presence ||
+            ::MIME::Types.type_for(filename)[0].to_s.presence ||
             'application/octet-stream',
           data: BSON::Binary.new(file.read),
           metadata: opts[:metadata]

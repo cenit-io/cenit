@@ -166,7 +166,7 @@ module Mongoff
       end
 
       def extract_content_type(filename)
-        mime_type = MIME::Types.type_for(::File.basename(filename.to_s)).first
+        mime_type = ::MIME::Types.type_for(::File.basename(filename.to_s)).first
         mime_type ? mime_type.to_s : self[:contentType]
       end
 

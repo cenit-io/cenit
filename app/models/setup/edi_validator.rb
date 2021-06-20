@@ -19,7 +19,7 @@ module Setup
     end
 
     def content_type_enum
-      MIME::Types.inject([]) { |types, t| types << t.to_s }
+      ::MIME::Types.inject([]) { |types, t| types << t.to_s }
     end
 
     def data_format

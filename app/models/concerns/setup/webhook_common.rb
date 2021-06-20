@@ -507,7 +507,7 @@ module Setup
     def build_attachment(hash)
       unless hash.key?(:filename)
         filename = hash[:base_name] || DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')
-        if (content_type = hash[:contentType]) && (types = MIME::Types[content_type])
+        if (content_type = hash[:contentType]) && (types = ::MIME::Types[content_type])
           types.each do |type|
             if (ext = type.extensions.first)
               filename = "#{filename}.#{ext}"

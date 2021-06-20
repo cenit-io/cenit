@@ -151,12 +151,12 @@ module Setup
     end
 
     def mime_type_enum
-      EXPORT_MIME_FILTER[style] || MIME::Types.inject([]) { |types, t| types << t.to_s }
+      EXPORT_MIME_FILTER[style] || ::MIME::Types.inject([]) { |types, t| types << t.to_s }
     end
 
     def file_extension_enum
       extensions = []
-      if (types = MIME::Types[mime_type])
+      if (types = ::MIME::Types[mime_type])
         types.each { |type| extensions.concat(type.extensions) }
       end
       extensions.uniq
