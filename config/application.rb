@@ -206,6 +206,9 @@ module Cenit
           app_id.trusted = true
           app_id.save!
           app_module.instance_variable_set(:@app_id, app.id)
+          app_module.initializers.each do |initializer_block|
+            app_module.instance_eval(&initializer_block)
+          end
           tenant = app.tenant
           meta_key = "app_#{app.id}"
           if (tenant.meta[meta_key] || {})['installed']

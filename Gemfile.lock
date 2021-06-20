@@ -6,7 +6,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
-  revision: b3bc744da7a224d7306ad46ed19ec6c2708f6c5b
+  revision: 31369fdcaf871938f4178d311a2230f760afc5cc
   specs:
     cenit-build_in_apps (0.0.1)
 
@@ -657,4 +657,4 @@ RUBY VERSION
    ruby 2.5.5p157
 
 BUNDLED WITH
-   2.1.4
+   2.2.19
