@@ -147,6 +147,13 @@ class Ability
           models << model if model_allowed.include?(action)
         end
       end
+      Setup::Models.all.each do |model|
+        next unless model < Setup::ClassHierarchyAware
+        if model.abstract_class
+          allowed_hash[:create].delete(model)
+          allowed_hash[:update].delete(model)
+        end
+      end
       allowed_hash.each do |key, models|
         allowed_hash[key] = models.reject { |model| models.any? { |m| model < m } }
       end
@@ -156,31 +163,29 @@ class Ability
       }.each do |collector_method, hash|
         Setup::Models.all.each do |model|
           next unless model < Setup::CrossOriginShared
-          model.send(collector_method) do |actions|
-            actions.each do |action|
+          model.send(collector_method) do |model_actions|
+            model_actions.each do |action|
               next if model.denied_actions.include?(action)
-              if actions.include?(action)
-                models = allowed_hash[action]
-                root = model
-                stack = []
-                while root && models.exclude?(root)
-                  stack << root
-                  root = root.superclass
-                  root = nil unless root.include?(Mongoid::Document)
-                end
-                if root
-                  while root
-                    models.delete(root)
-                    if stack.empty?
-                      hash[key] << root
-                    else
-                      models.concat(root.subclasses)
-                    end
-                    root = stack.pop
+              models = allowed_hash[action]
+              root = model
+              stack = []
+              while root && models.exclude?(root)
+                stack << root
+                root = root.superclass
+                root = nil unless root.include?(Mongoid::Document)
+              end
+              if root
+                while root
+                  models.delete(root)
+                  if stack.empty?
+                    hash[key] << root
+                  else
+                    models.concat(root.subclasses)
                   end
-                else
-                  hash[key] << model
+                  root = stack.pop
                 end
+              else
+                hash[key] << model
               end
             end
           end
@@ -223,7 +228,7 @@ class Ability
 
       allowed_hash.each do |keys, models|
         can keys, models
-    end
+      end
 
       shared_denied_hash.each do |keys, models|
         can keys, models, { 'origin' => 'default' }
@@ -235,7 +240,16 @@ class Ability
   class StandardUser < self
     extend CanCan::Ability
 
-    cannot :access, [Setup::DelayedMessage, Setup::SystemReport]
+    cannot :access, [
+      Setup::Configuration,
+      ::Role,
+      ::Script,
+      ::ScriptExecution,
+      Cenit::ActiveTenant,
+      ::RabbitConsumer,
+      Setup::DelayedMessage,
+      Setup::SystemReport
+    ]
     cannot :delete, Setup::Storage
 
     can :read, Setup::CrossSharedCollection
@@ -272,6 +286,7 @@ class Ability
     can(:delete, Cenit::ApplicationId) do |app_id|
       app_id.app.nil?
     end
+    can [:read, :update], Cenit::BuildInApp
 
     # can :simple_cross, Setup::CrossSharedCollection, installed: true
     # can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
@@ -281,17 +296,5 @@ class Ability
     extend CanCan::Ability
 
     can :read, Setup::CrossSharedCollection
-    can :read, Setup::Models.all.to_a -
-      [
-        User,
-        Account,
-        Setup::Namespace,
-        Setup::DataTypeConfig,
-        Setup::FlowConfig,
-        Setup::ConnectionConfig,
-        Setup::Pin,
-        Setup::Binding,
-        Setup::Parameter
-      ]
   end
 end
