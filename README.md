@@ -19,23 +19,23 @@
 
 # Cenit IO [(https://cenit.io)](https://cenit.io)
 
-Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particular valuable to embrace a pervasive integration approach.
+Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
 
 To install and learn more about the platform check the [documentation](https://cenit-io.github.io/docs)
 
 ## Why
 
-The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services and, increasingly, the IoT is fertile ground for the growth of integration platform adoption.
+The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services, and increasingly, the IoT is fertile ground for the growth of integration platform adoption.
 
 Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. iPaaS platforms are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest from the general public.
 
-The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing to rethink organizational models and technology platforms to an approach to pervasive integration.
+The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing us to rethink organizational models and technology platforms to an approach to pervasive integration.
 
-None of the vendor leaders in the market really offers a completely open and transparent solution, with the freedom to use, customize or modified without restriction. We believe that is one of the keys to a wide adoption, and it is relevant in making the decision to use on-premise.
+None of the vendor leaders in the market offers a completely open and transparent solution, with the freedom to use, customize, or modified without restriction. We believe that is one of the keys to wide adoption, and it is relevant in deciding to use on-premise.
 
 ## Value
 
-Cenit makes it possible that benefits of a modern iPaaS can be accessible to the small and midsize organizations, It is particularly valuable to embrace as a strategic component of a pervasive integration approach that allows a complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
+Cenit makes it possible that the benefits of a modern iPaaS can be accessible to the small and midsize organizations, It is particularly valuable to embrace as a strategic component of a pervasive integration approach that allows complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
 
 ## How
 
@@ -54,15 +54,15 @@ Cenit makes it possible that benefits of a modern iPaaS can be accessible to the
 
 * **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
 
-* **Third party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
+* **Third-party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
 
 
 ## Data Pipelines between APIs
 
-It allows the creation of custom data pipelines to process, storage and move data between APIs. The flows could be trigger by data events or be scheduled.
+It allows the creation of custom data pipelines to process, store and move data between APIs. The flows could be trigger by data events or be scheduled.
 
 There are now over 200 pre-built integration collections shared out of the box to connect with online internet services,
-fulfillment solutions, accounting, communications, ERP, multi-channels, etc.
+fulfillment solutions, accounting, communications, ERP, multi-channel, etc.
 
 [see this video for more details](https://youtu.be/IOEbTtEv8MQ)
 
@@ -83,13 +83,13 @@ An example of integration data flow (Fancy <=> Shipstation):
 ## Stack
 
 * Ruby
-* Mongodb
+* MongoDB
 * RabbitMQ
 * Redis
 
 ## Contributing
 
-Cenit IO is an open source project and we encourage contributions.
+Cenit IO is an open-source project and we encourage contributions.
 
 In the spirit of [free software](http://www.fsf.org/licensing/essays/free-sw.html), **everyone** is encouraged to help
 improve this project.
@@ -105,9 +105,9 @@ Here are some ways **you** can contribute:
 
 ## To the Community
 
-Since the challenge is great, we have to build the solution in community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
+Since the challenge is great, we have to build the solution in the community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
 
-We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
+We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors, or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
 
 ## Screenshots
 
