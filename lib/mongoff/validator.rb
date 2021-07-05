@@ -59,8 +59,8 @@ module Mongoff
       if instance&.instance_variable_defined?(:@__soft_errors) &&
         (soft_errors = instance.remove_instance_variable(:@__soft_errors)) &&
         instance.errors.blank?
-        soft_errors.each do |error|
-          instance.errors.add(:base, "property #{error.attribute} #{error.message}")
+        soft_errors.each do |attr, message|
+          instance.errors.add(:base, "property #{attr} #{message}")
         end
       end
     end
