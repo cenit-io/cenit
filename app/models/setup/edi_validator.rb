@@ -8,7 +8,7 @@ module Setup
 
     field :content_type, type: String
 
-    # field :infers_field_separtor, type:  Boolean
+    # field :infers_field_separtor, type:  Mongoid::Boolean
     # field :field_separator, type: String
     # field :segment_separator, type: String
 

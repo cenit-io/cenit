@@ -44,7 +44,7 @@ module Setup
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    field :nil_data_type, type: Boolean
+    field :nil_data_type, type: Mongoid::Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
     belongs_to :scope_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil

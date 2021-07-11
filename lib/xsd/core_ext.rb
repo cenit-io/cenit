@@ -1,4 +1,4 @@
-[String, Integer, Float, Boolean, Date, DateTime, Time].each do |klass|
+[String, Integer, Float, Mongoid::Boolean, Date, DateTime, Time].each do |klass|
   klass.class_eval("
     def self.to_json_schema
       {'$ref' => #{klass.name}}

@@ -52,7 +52,7 @@ module Cenit
 
     field :name, type: String
     field :type, type: String
-    field :many, type: Boolean
+    field :many, type: Mongoid::Boolean
     field :group, type: String
     field :description, type: String
 

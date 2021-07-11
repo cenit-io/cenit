@@ -34,7 +34,7 @@ module Setup
     build_in_data_type.with(:namespace, :name, :expression, :activated).referenced_by(:namespace, :name)
 
     hash_field :expression
-    field :activated, type: Boolean, default: false
+    field :activated, type: Mongoid::Boolean, default: false
 
     has_many :delayed_messages, class_name: Setup::DelayedMessage.to_s, inverse_of: :scheduler
 

@@ -5,7 +5,7 @@ module Setup
     include WithSourceOptions
 
     included do
-      field :bulk_source, type: Boolean
+      field :bulk_source, type: Mongoid::Boolean
 
       before_save do
         remove_attribute(:bulk_source) unless bulk_source

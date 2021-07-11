@@ -3,7 +3,7 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-      field :discard_events, type: Boolean
+      field :discard_events, type: Mongoid::Boolean
     end
 
     def before_create(record)

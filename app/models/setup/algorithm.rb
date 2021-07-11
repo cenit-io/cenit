@@ -32,9 +32,9 @@ module Setup
     accepts_nested_attributes_for :parameters, allow_destroy: true
     accepts_nested_attributes_for :call_links, allow_destroy: true
 
-    field :store_output, type: Boolean
+    field :store_output, type: Mongoid::Boolean
     belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
-    field :validate_output, type: Boolean
+    field :validate_output, type: Mongoid::Boolean
     field :parameters_size, type: Integer
 
     before_save :validate_parameters, :validate_code, :validate_output_processing

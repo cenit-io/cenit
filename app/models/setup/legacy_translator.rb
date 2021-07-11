@@ -15,19 +15,19 @@ module Setup
     belongs_to :source_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
     belongs_to :target_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
 
-    field :discard_events, type: Boolean
+    field :discard_events, type: Mongoid::Boolean
     field :style, type: String
 
     field :mime_type, type: String
     field :file_extension, type: String
-    field :bulk_source, type: Boolean, default: false
+    field :bulk_source, type: Mongoid::Boolean, default: false
 
-    field :source_handler, type: Boolean
+    field :source_handler, type: Mongoid::Boolean
 
     belongs_to :source_exporter, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :target_importer, class_name: Setup::Translator.to_s, inverse_of: nil
 
-    field :discard_chained_records, type: Boolean
+    field :discard_chained_records, type: Mongoid::Boolean
 
     before_save :validates_configuration, :validates_code
 

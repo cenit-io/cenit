@@ -54,8 +54,8 @@ module Setup
     image_with ImageUploader
     field :logo_background, type: String
 
-    field :installed, type: Boolean, default: false
-    field :pull_asynchronous, type: Boolean, default: true
+    field :installed, type: Mongoid::Boolean, default: false
+    field :pull_asynchronous, type: Mongoid::Boolean, default: true
 
     before_validation do
       self.shared_version ||= '0.0.1'
