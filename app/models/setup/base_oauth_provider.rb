@@ -82,6 +82,12 @@ module Setup
       end
     end
 
+    def is_time_to_refresh?(authorization, refresh_delay = Cenit.delay_time_for_token_refresh.seconds)
+      authorization.authorized_at.nil? || (
+        (authorization.authorized_at + authorization.token_span.to_i.seconds - refresh_delay) < Time.now
+      )
+    end
+
     def none_refresh_token(authorization)
     end
 
@@ -95,8 +101,7 @@ module Setup
     end
 
     def default_refresh_token(authorization)
-      if (refresh_token = authorization.refresh_token) && (authorization.authorized_at.nil? || (
-          authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh))
+      if (refresh_token = authorization.refresh_token) && is_time_to_refresh?(authorization)
         fail 'Missing client configuration' unless (client = authorization.client)
         http_response = HTTMultiParty.post(
           authorization.token_endpoint,
@@ -133,14 +138,14 @@ module Setup
     end
 
     def google_v4_refresh_token(authorization)
-      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_token_refresh
+      if (refresh_token = authorization.refresh_token) && is_time_to_refresh?(authorization)
         fail 'Missing client configuration' unless authorization.client
         post = Setup::Connection.post('https://www.googleapis.com/oauth2/v4/token')
         http_response = post.submit(
           headers: { 'Content-Type' => 'application/x-www-form-urlencoded' },
           body: {
             grant_type: :refresh_token,
-            refresh_token: authorization.refresh_token,
+            refresh_token: refresh_token,
             client_id: authorization.client.get_identifier,
             client_secret: authorization.client.get_secret
           }.to_param,
@@ -187,7 +192,7 @@ module Setup
     end
 
     def lazada_rest_api_refresh_token(authorization)
-      if authorization.authorized_at + (authorization.token_span || 0) - Time.now < Cenit.delay_time_for_lazada_token_refresh
+      if is_time_to_refresh?(authorization, Cenit.delay_time_for_lazada_token_refresh)
         client = authorization.client
         fail 'Missing client configuration' unless client
         fail 'Missing OAuth provider configuration' unless authorization.provider
