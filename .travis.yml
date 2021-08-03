@@ -12,7 +12,6 @@ branches:
   only:
   - master
   - develop
-  - travis_configuration
 
 before_install:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -40,8 +39,8 @@ after_success:
       echo $TRAVIS_COMMIT | docker build -t cenitio/frontend:ubuntu-${TRAVIS_COMMIT::7} -t cenitio/frontend:latest --build-arg COMMIT=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui;
     else
       echo $TRAVIS_COMMIT $TRAVIS_BRANCH;
-      echo $TRAVIS_COMMIT $TRAVIS_BRANCH | docker build -t cenitio/backend:${TRAVIS_BRANCH}-${TRAVIS_COMMIT::7} ./docker/ubuntu;
-      echo $TRAVIS_COMMIT $TRAVIS_BRANCH | docker build -t cenitio/frontend:ubuntu-${TRAVIS_COMMIT::7} --build-arg COMMIT=${TRAVIS_COMMIT::7} ./docker/ubuntu/ui;
+      echo $TRAVIS_COMMIT $TRAVIS_BRANCH | docker build -t cenitio/backend:${TRAVIS_BRANCH}-${TRAVIS_COMMIT::7} --build-arg BRANCH=${TRAVIS_BRANCH} ./docker/ubuntu;
+      echo $TRAVIS_COMMIT $TRAVIS_BRANCH | docker build -t cenitio/frontend:${TRAVIS_BRANCH}-${TRAVIS_COMMIT::7} --build-arg COMMIT=${TRAVIS_COMMIT::7} --build-arg IMAGE=${TRAVIS_BRANCH} ./docker/ubuntu/ui;
     fi
 
   #Pushing containers

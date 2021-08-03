@@ -1,5 +1,6 @@
 ARG COMMIT
-FROM cenitio/backend:ubuntu-${COMMIT}
+ARG IMAGE=ubuntu
+FROM cenitio/backend:${IMAGE}-${COMMIT}
 
 ENV SKIP_DB_INITIALIZATION=true
 ENV SKIP_RABBIT_MQ=true

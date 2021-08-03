@@ -1,4 +1,5 @@
 FROM ruby:2.5.5
+ARG BRANCH=master
 
 # Install dependencies:
 #   - build-essential: To ensure certain gems can be compiled
@@ -25,7 +26,7 @@ RUN set -x; \
   libxslt1-dev
 
 
-RUN git clone --single-branch --branch master https://github.com/cenit-io/cenit.git /var/www/cenit
+RUN git clone --single-branch --branch $BRANCH https://github.com/cenit-io/cenit.git /var/www/cenit
 
 ENV RAILS_ROOT /var/www/cenit
 
