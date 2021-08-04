@@ -24,7 +24,7 @@ RSpec.describe Api::V3::ApiController, type: :request do
 
     context "successful retrieve all existing json_data_type "  do
       let(:access_token) do
-        app = ::Setup::Application.create!(namespace: 'Test', name: 'User')
+        app = ::Setup::Application.create!(namespace: 'Test', name: 'json_data_type')
         access_grant = ::Cenit::OauthAccessGrant.create!(
             application_id: app.application_id,
             scope: 'read'
