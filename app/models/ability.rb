@@ -112,7 +112,7 @@ class Ability
   class UserCommon
     extend CanCan::Ability
 
-    can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS
+    can :destroy, Setup::Execution, :status.in => Setup::Task::FINISHED_STATUS + [:pending]
 
     can :destroy, Setup::Task,
         :status.in => Setup::Task::NON_ACTIVE_STATUS,
