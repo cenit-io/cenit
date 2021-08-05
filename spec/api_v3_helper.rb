@@ -26,6 +26,35 @@ module Api
         response_data = JSON.parse(response.body)
         User.find(response_data['id'])
       end
+
+      def json_response
+        @json_response ||= JSON.parse(response.body, symbolize_names: true)
+    end
+
+    def header_token_authorization
+        @header_token_authorization ||= create_acces_app
+    end
+    
+    def create_acces_app
+        search_app = ::Setup::Application.where(namespace: 'Test', name: 'ApiV3').first
+        app = search_app ? search_app : ::Setup::Application.create!(namespace: 'Test', name: 'ApiV3')
+        
+        access_grant = ::Cenit::OauthAccessGrant.create!(
+            application_id: app.application_id,
+            scope: 'read'
+        )
+
+        test_user = ::User.current
+        access = ::Cenit::OauthAccessToken.for(
+          app.application_id,
+          access_grant.scope,
+          test_user
+        )
+
+         return header_token = {
+          Authorization: "Bearer #{access[:access_token]}"
+        }
+    end
     end
   end
 end
