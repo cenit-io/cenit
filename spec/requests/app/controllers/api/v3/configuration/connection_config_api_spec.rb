@@ -4,7 +4,7 @@ RSpec.describe Api::V3::ApiController, type: :request do
   describe "GET /api/v3/setup/connection_config.json" do
     context "fail retrieve all existing Connection configs"  do
       it "with missing header request" do
-        get '/api/v3/setup/connection_config.json', as: :json
+        get '/api/v3/setup/connection_config.json'
         expect(response).to have_http_status(:forbidden)
         expect(json_response[:error]).to eq("insufficient_scope")
         expect(json_response[:error_description]).to eq("The requested action is out of the access token scope")

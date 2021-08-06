@@ -5,7 +5,7 @@ RSpec.describe Api::V3::ApiController, type: :request do
 
     context "Fail retrieve all existing Storages"  do
       it "with missing header request" do
-        get '/api/v3/setup/storage.json', as: :json
+        get '/api/v3/setup/storage.json'
         expect(response).to have_http_status(:forbidden)
         expect(json_response[:error]).to eq("insufficient_scope")
         expect(json_response[:error_description]).to eq("The requested action is out of the access token scope")

@@ -5,7 +5,7 @@ RSpec.describe Api::V3::ApiController, type: :request do
 
     context "fail retrieve all existing json_data_type "  do
       it "with missing header request" do
-        get '/api/v3/setup/json_data_type', as: :json
+        get '/api/v3/setup/json_data_type'
         expect(response).to have_http_status(:forbidden)
         expect(json_response[:error]).to eq("insufficient_scope")
         expect(json_response[:error_description]).to eq("The requested action is out of the access token scope")
