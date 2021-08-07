@@ -80,9 +80,13 @@ module Cenit
 
         Capataz::Cache.clean
 
-        Setup::CenitDataType.init!
+      end
 
-        Setup::BuildInFileType.init!
+      Setup::CenitDataType.init!
+
+      Setup::BuildInFileType.init!
+
+      unless ENV['SKIP_DB_INITIALIZATION'].to_b
 
         Mongoff::Model.config do
           before_save ->(record) do
