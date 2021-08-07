@@ -121,10 +121,12 @@ module Cenit
         end
       end
 
-      unless ENV['SKIP_DB_INITIALIZATION'].to_b
-        apps = install_build_in_apps
 
-        setup_build_in(apps)
+      apps = install_build_in_apps
+
+      setup_build_in(apps)
+
+      unless ENV['SKIP_DB_INITIALIZATION'].to_b
 
         Setup::Oauth2Provider.build_in_provider_id
 
