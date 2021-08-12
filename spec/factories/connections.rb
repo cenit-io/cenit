@@ -8,4 +8,10 @@ FactoryGirl.define do
     name 'Store II'
     url 'http://localhost:3002/cenit'
   end
+
+  factory :stores_connection, class: Setup::Connection do
+    sequence(:name) { |n| "Store #{n}" }
+    url 'http://localhost:3002/cenit'
+  end
+
 end
