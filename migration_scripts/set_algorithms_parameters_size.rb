@@ -1,4 +1,4 @@
-Mongoid.default_client.database.collection_names(name: /setup_algorithms\Z/).each do |collection_name|
+Mongoid.default_client.database.collection_names(filter: { name: /setup_algorithms\Z/ }).each do |collection_name|
   collection = Mongoid.default_client[collection_name.to_s.to_sym]
   collection.find.each do |alg|
     collection.update_one(

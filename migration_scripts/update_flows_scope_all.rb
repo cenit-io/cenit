@@ -1,4 +1,4 @@
-Mongoid.default_client.database.collection_names(name: /setup_flows\Z/).each do |collection_name|
+Mongoid.default_client.database.collection_names(filter: { name: /setup_flows\Z/ }).each do |collection_name|
   collection = Mongoid.default_client[collection_name.to_s.to_sym]
   flows_ids = collection.find.select do |flow|
     (flow['data_type_scope'] || '').start_with?('All')
