@@ -5,6 +5,13 @@ RSpec.describe Api::V3::ApiController, type: :request do
     namespace = model_name_array.first.downcase
     underscore_model_name = model_name_array.last.underscore
 
+    return if underscore_model_name === 'attachment' ||
+              underscore_model_name === 'message' ||
+              underscore_model_name === 'config' ||
+              underscore_model_name === 'code' ||
+              underscore_model_name === 'public_storage' ||
+              underscore_model_name === 'cross_shared_collection'
+
     if namespace == "setup" || namespace == "cenit"
       describe "GET /api/v3/#{namespace}/#{underscore_model_name}" do
         context "fail retrieve all existing #{underscore_model_name}" do
