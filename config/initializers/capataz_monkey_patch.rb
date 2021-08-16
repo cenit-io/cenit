@@ -1,3 +1,5 @@
+require 'cenit/redis'
+
 module Capataz
   class << self
 
