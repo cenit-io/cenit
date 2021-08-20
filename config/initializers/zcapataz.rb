@@ -66,7 +66,7 @@ Capataz.config do
 
   allow_on Time, [:strftime, :at, :year, :month, :day, :mday, :wday, :hour, :min, :sec, :now, :to_i, :utc, :getlocal, :gm, :gmtime, :local]
 
-  allow_on DateTime, [:parse, :strftime, :strptime]
+  allow_on DateTime, [:parse, :strftime, :strptime, :now]
 
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 
