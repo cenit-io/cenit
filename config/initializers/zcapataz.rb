@@ -50,7 +50,7 @@ Capataz.config do
 
   allow_on MIME::Text, [:new_text]
 
-  allow_on JSON, [:parse, :pretty_generate]
+  allow_on JSON, [:parse, :generate, :pretty_generate]
 
   allow_on Psych, [:load, :add_domain_type]
 
