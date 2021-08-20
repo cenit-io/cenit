@@ -180,7 +180,7 @@ Capataz.config do
   end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug, :title, :where, :all, :build_indices] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :==, :errors, :destroy, :new_record?].include?(method)
+    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :save!, :all, :where, :orm_model, :==, :errors, :destroy, :new_record?].include?(method)
     return false if instance.orm_model.data_type.records_methods.any? { |alg| alg.name == method.to_s }
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')
