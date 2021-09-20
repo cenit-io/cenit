@@ -384,6 +384,7 @@ module Mongoff
     end
 
     def before_save_callbacks
+      puts "before_save_callbacks...."
       success = true
       if (data_type = (model = orm_model).data_type).records_model == model
         data_type.before_save_callbacks.each do |callback|
@@ -403,6 +404,8 @@ module Mongoff
               false
             end
         end
+      else
+        puts 'Data type orm_model mismatch'
       end
       success
     end
