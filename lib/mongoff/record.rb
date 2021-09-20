@@ -429,8 +429,12 @@ module Mongoff
     end
 
     def run_callbacks_and
+      puts 'Running callbacks'
       begin
-        if Model.before_save.call(self) && before_save_callbacks
+        unless (default_passed = Model.before_save.call(self))
+          puts 'Default callback not passed!'
+        end
+        if default_passed && before_save_callbacks
           if block_given? && yield
             after_save_callbacks
             Model.after_save.call(self)
