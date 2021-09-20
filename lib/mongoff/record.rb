@@ -384,7 +384,6 @@ module Mongoff
     end
 
     def before_save_callbacks
-      puts "before_save_callbacks...."
       success = true
       if (data_type = (model = orm_model).data_type).records_model == model
         data_type.before_save_callbacks.each do |callback|
@@ -404,8 +403,6 @@ module Mongoff
               false
             end
         end
-      else
-        puts 'Data type orm_model mismatch'
       end
       success
     end
@@ -429,12 +426,9 @@ module Mongoff
     end
 
     def run_callbacks_and
-      puts 'Running callbacks'
       begin
-        unless (default_passed = Model.before_save.call(self))
-          puts 'Default callback not passed!'
-        end
-        if default_passed && before_save_callbacks
+        puts "-> #{Model.before_save}"
+        if Model.before_save.call(self) && before_save_callbacks
           if block_given? && yield
             after_save_callbacks
             Model.after_save.call(self)
