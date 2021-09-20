@@ -11,8 +11,8 @@ module Mongoff
       if orm_model.persistable? && errors.blank?
         begin
           instance_variable_set(:@discard_event_lookup, true) if options[:discard_events]
+          puts "running_callbacks..."
           run_callbacks_and do
-            puts "Inserting_or_updating..."
             insert_or_update(options)
           end
           true
