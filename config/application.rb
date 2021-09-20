@@ -92,7 +92,6 @@ module Cenit
 
         Mongoff::Model.config do
           before_save ->(record) do
-            puts 'Setting timestamps...'
             record.updated_at = DateTime.now
             if record.new_record?
               record.created_at = record.updated_at

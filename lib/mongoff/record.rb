@@ -427,7 +427,6 @@ module Mongoff
 
     def run_callbacks_and
       begin
-        puts "-> #{Model.before_save}"
         if Model.before_save.call(self) && before_save_callbacks
           if block_given? && yield
             after_save_callbacks
