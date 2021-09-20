@@ -36,6 +36,7 @@ module Mongoid
         data_type&.records_model ||
           if (match = target_model_name.match(/\ADt(.+)\Z/))
             if (data_type = Setup::DataType.where(id: match[1]).first)
+              puts "DT #{match[1]} / #{target_model_name} -> #{data_type}"
               data_type.records_model
             else
               fail "Data type with ID #{match[1]} does not exist"
