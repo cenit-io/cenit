@@ -84,7 +84,8 @@ class Ability
   def can?(action, subject, *extra_args)
     return true if action == :digest
     if action == :json_edit
-      subject.is_a?(Mongoff::Record) && !subject.is_a?(Mongoff::GridFs::File)
+      (subject.is_a?(Mongoff::Record) && !subject.is_a?(Mongoff::GridFs::File)) ||
+        subject.is_a?(Setup::Observer)
     elsif (action == :simple_cross && crossing_models.exclude?(subject.is_a?(Class) ? subject : subject.class)) ||
           (subject == ScriptExecution && (user.nil? || !user.super_admin?))
       false
