@@ -1,6 +1,6 @@
 ARG COMMIT
-ARG IMAGE=ubuntu
-FROM cenitio/backend:${IMAGE}-${COMMIT}
+ARG BRANCH=master
+FROM spdiam/cenit:backend-${BRANCH}-${COMMIT}
 
 ENV SKIP_DB_INITIALIZATION=true
 ENV SKIP_RABBIT_MQ=true

@@ -1,0 +1,52 @@
+name: Container build
+on:
+  push:
+      branches:
+        - master
+        - develop
+  pull_request:
+      branches:
+        - master
+        - develop
+jobs:
+  build-container:
+    name: Build Backend and Frontend Containers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Branch Names
+        id: branch-name
+        uses: tj-actions/branch-names@v5
+
+      - name: Short SHA
+        id: short-sha
+        uses: benjlevesque/short-sha@v1.2
+
+      - name: Build and push Docker backend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: backend-${{ steps.branch-name.outputs.current_branch }}-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/Dockerfile
+          buildArgs: "BRANCH=develop"
+      
+      - name: Build and push Docker frontend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: frontend-${{ steps.branch-name.outputs.current_branch }}-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/ui/Dockerfile
+          buildArgs: "BRANCH=develop, COMMIT=${{ steps.short-sha.outputs.sha }}"
