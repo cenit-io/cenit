@@ -35,18 +35,60 @@ jobs:
 
       - name: Build and push Docker backend image
         uses: mr-smithers-excellent/docker-build-push@v5
+        if: steps.branch-name.outputs.current_branch == 'master'
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: backend-blue-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/Dockerfile
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
+      
+      - name: Build and push Docker frontend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        if: steps.branch-name.outputs.current_branch == 'master'
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: frontend-blue-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/ui/Dockerfile
+          buildArgs: "BRANCH=blue, COMMIT=${{ steps.short-sha.outputs.sha }}"
+
+      - name: Build and push Docker backend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        if: steps.branch-name.outputs.current_branch == 'develop'
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: backend-red-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/Dockerfile
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
+
+      - name: Build and push Docker frontend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        if: steps.branch-name.outputs.current_branch == 'develop'
+        with:
+          image: spdiam/cenit
+          registry: docker.io
+          tags: frontend-red-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/ui/Dockerfile
+          buildArgs: "BRANCH=red, COMMIT=${{ steps.short-sha.outputs.sha }}"
+
+      - name: Build and push Docker backend image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        if: ( steps.branch-name.outputs.current_branch != 'develop' ) && ( steps.branch-name.outputs.current_branch != 'master' )
         with:
           image: spdiam/cenit
           registry: docker.io
           tags: backend-${{ steps.branch-name.outputs.current_branch }}-${{ steps.short-sha.outputs.sha }}
           dockerfile: docker/ubuntu/Dockerfile
-          buildArgs: "BRANCH=develop"
-      
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
+
       - name: Build and push Docker frontend image
         uses: mr-smithers-excellent/docker-build-push@v5
+        if: ( steps.branch-name.outputs.current_branch != 'develop' ) && ( steps.branch-name.outputs.current_branch != 'master' )
         with:
           image: spdiam/cenit
           registry: docker.io
           tags: frontend-${{ steps.branch-name.outputs.current_branch }}-${{ steps.short-sha.outputs.sha }}
           dockerfile: docker/ubuntu/ui/Dockerfile
-          buildArgs: "BRANCH=develop, COMMIT=${{ steps.short-sha.outputs.sha }}"
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}, COMMIT=${{ steps.short-sha.outputs.sha }}"
