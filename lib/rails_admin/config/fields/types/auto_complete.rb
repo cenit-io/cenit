@@ -17,7 +17,7 @@ module RailsAdmin
 
           register_instance_option :source do
             [
-              { value: 'support@cenit.io', text: 'Cenit IO' }
+              { value: 'support@secuto.io', text: 'Secuto IO' }
             ]
           end
 

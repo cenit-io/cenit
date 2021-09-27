@@ -14680,7 +14680,7 @@ ul.main-menu > li a {
     padding: 13px 0 13px 15px;
     font-size: 14px;
     color: white;
-    background-color: #3d4046;
+    background-color: #f24352;
     border-top: 1px solid #dfdfdf;
     text-decoration: none;
 }
@@ -14764,7 +14764,7 @@ ul.main-menu > li > a,
     position: absolute;
     float: none;
     z-index: 999;
-    background-color: #3d4046;
+    background-color: #f24352;
     border-top: solid 1px white;
 }
 
@@ -14853,7 +14853,7 @@ ul.main-menu > li > a,
     left: 0;
     float: none;
     z-index: 999;
-    background-color: #3d4046;
+    background-color: #f24352;
     border-top: solid 1px white;
     width: 100%;
     margin-right: 0;
@@ -14988,7 +14988,7 @@ body.focus-mode .left-sidebar {
     width: 25px;
     height: 25px;
     position: relative;
-    color: #3D4046;
+    color: #f24352;
     padding: 4px;
     background-color: white;
     cursor: pointer;
@@ -15505,7 +15505,7 @@ body.sidebar-float .content-wrapper {
     background-color: #eeeeee;
 }
 .widget .widget-header a {
-    color: #3d4046;
+    color: #f24352;
     padding-left: 5px;
     display: inline-block;
 }
@@ -16555,7 +16555,7 @@ fieldset[disabled] .btn-default.active {
 
 .popover .popover-content {
     font-size: 14px;
-    color: #3d4046;
+    color: #f24352;
 }
 
 /* bootstrap progress bar */
@@ -21812,7 +21812,7 @@ ul.subdomain-menu > li a {
     padding: 13px 0 13px 15px;
     font-size: 14px;
     color: white;
-    background-color: #3d4046;
+    background-color: #f24352;
     border-top: 1px solid #dfdfdf;
     text-decoration: none;
 }

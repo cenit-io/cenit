@@ -57,7 +57,7 @@ ul#main-accordion {
 }
 
 .navbar-fixed-top .container-fluid {
-  background: #3D4046;
+  background: #f24352;
 }
 
 #secondary-navigation .navbar-right {
@@ -73,7 +73,7 @@ ul#main-accordion {
 #tenant-nav > li.dropdown.open > a,
 #help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
-  color: #3D4046;
+  color: #f24352;
 }
 
 a#sign-basic-link, a#sign-in-link, a#sign-out-link {
@@ -210,7 +210,7 @@ ul.drawer {
   left: 100%;
   width: 250px;
   height: calc(100vh - 100%);
-  background-color: #3D4046;
+  background-color: #f24352;
   transition: all .5s ease-in-out;
   padding: 6px;
   margin: 0;
@@ -251,7 +251,7 @@ ul.drawer li a span {
   position: absolute;
   width: calc(100% - 12px);
   bottom: 20px;
-  background-color: #3D4046;
+  background-color: #f24352;
 }
 
 .social-links a {
@@ -267,7 +267,7 @@ ul.drawer li a span {
   padding-left: 40px;
   transition: all 0.5s ease;
   position: relative;
-  background: #3d4046;
+  background: #f24352;
   padding-top: 50px;
   height: 100vh;
   overflow: hidden;
@@ -314,7 +314,7 @@ ul.drawer li a span {
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.5s ease;
-  background: #3d4046 !important;
+  background: #f24352 !important;
   border-right: none;
 }
 
@@ -445,7 +445,7 @@ ul.drawer li a span {
 }
 
 .navbar-header {
-  .cenit-logo {
+  .secuto-logo {
     display: inline-block;
     position: relative;
     top: -4px;
@@ -503,7 +503,7 @@ div#subdomain-toggle {
 
 ul#main-accordion {
   padding: 6px;
-  background: #3d4046;
+  background: #f24352;
   > li.no-childrens {
     a {
       &.active {
@@ -644,7 +644,7 @@ ul#main-accordion .panel-heading .nav-icon {
 #sidebar-wrapper .social-links {
   position: absolute;
   bottom: 0;
-  background-color: #3d4046;
+  background-color: #f24352;
   width: 100%;
   text-align: center;
   padding: 12px;
@@ -778,7 +778,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 .user-auth .field input:-webkit-autofill {
-  box-shadow: 0 0 0 1000px #3d4046 inset;
+  box-shadow: 0 0 0 1000px #f24352 inset;
   -webkit-text-fill-color: white !important;
 }
 
@@ -814,7 +814,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 .user-auth .field input.form-control:focus {
-  box-shadow: 0 0 0 1000px #3d4046 inset;
+  box-shadow: 0 0 0 1000px #f24352 inset;
 }
 
 .user-auth .actions .btn-xs {
@@ -1304,7 +1304,7 @@ ul#main-accordion .panel-heading .nav-icon {
     padding: 15px;
     &.next {
       padding: 0;
-      color: #3d4046;
+      color: #f24352;
       i {
         top: 10px;
         position: relative;
@@ -1922,7 +1922,7 @@ div#subdomain-panel {
   [class$='bulb'] {
     height: 100%;
   }
-  .cenit-logo {
+  .secuto-logo {
     @media(min-width: 768px) {
       padding-top: 10%;
     }
@@ -2793,7 +2793,7 @@ li.no-childrens {
 }
 
 .popover-title {
-  background: #3d4046;
+  background: #f24352;
   color: white;
   font-weight: bold;
 }
@@ -2845,7 +2845,7 @@ li.no-childrens {
 }
 
 footer {
-  background: #3d4046;
+  background: #f24352;
   padding-top: 70px;
   padding-bottom: 30px;
   -webkit-font-smoothing: antialiased;
@@ -3106,11 +3106,11 @@ button#model-nav-xs {
 
 #sidebar-wrapper {
   .panel-collapse {
-    background: #3d4046;
+    background: #f24352;
   }
   .panel-default > .panel-heading {
 
-    background-color: #3d4046;
+    background-color: #f24352;
 
   }
 }
