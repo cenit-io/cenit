@@ -4,10 +4,12 @@ on:
       branches:
         - master
         - develop
+        - staging
   pull_request:
       branches:
         - master
         - develop
+        - staging
 jobs:
   build-container:
     name: Build Backend and Frontend Containers
@@ -35,7 +37,7 @@ jobs:
 
       - name: Build and push Docker backend image
         uses: mr-smithers-excellent/docker-build-push@v5
-        if: steps.branch-name.outputs.current_branch == 'master'
+        if: steps.branch-name.outputs.current_branch == 'staging'
         with:
           image: spdiam/cenit
           registry: docker.io
@@ -45,7 +47,7 @@ jobs:
       
       - name: Build and push Docker frontend image
         uses: mr-smithers-excellent/docker-build-push@v5
-        if: steps.branch-name.outputs.current_branch == 'master'
+        if: steps.branch-name.outputs.current_branch == 'staging'
         with:
           image: spdiam/cenit
           registry: docker.io
@@ -55,27 +57,7 @@ jobs:
 
       - name: Build and push Docker backend image
         uses: mr-smithers-excellent/docker-build-push@v5
-        if: steps.branch-name.outputs.current_branch == 'develop'
-        with:
-          image: spdiam/cenit
-          registry: docker.io
-          tags: backend-red-${{ steps.short-sha.outputs.sha }}
-          dockerfile: docker/ubuntu/Dockerfile
-          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
-
-      - name: Build and push Docker frontend image
-        uses: mr-smithers-excellent/docker-build-push@v5
-        if: steps.branch-name.outputs.current_branch == 'develop'
-        with:
-          image: spdiam/cenit
-          registry: docker.io
-          tags: frontend-red-${{ steps.short-sha.outputs.sha }}
-          dockerfile: docker/ubuntu/ui/Dockerfile
-          buildArgs: "BRANCH=red, COMMIT=${{ steps.short-sha.outputs.sha }}"
-
-      - name: Build and push Docker backend image
-        uses: mr-smithers-excellent/docker-build-push@v5
-        if: ( steps.branch-name.outputs.current_branch != 'develop' ) && ( steps.branch-name.outputs.current_branch != 'master' )
+        if: steps.branch-name.outputs.current_branch != 'staging'
         with:
           image: spdiam/cenit
           registry: docker.io
@@ -85,7 +67,7 @@ jobs:
 
       - name: Build and push Docker frontend image
         uses: mr-smithers-excellent/docker-build-push@v5
-        if: ( steps.branch-name.outputs.current_branch != 'develop' ) && ( steps.branch-name.outputs.current_branch != 'master' )
+        if: steps.branch-name.outputs.current_branch != 'staging'
         with:
           image: spdiam/cenit
           registry: docker.io
