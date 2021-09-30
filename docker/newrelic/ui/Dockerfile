@@ -1,5 +1,6 @@
 ARG COMMIT
-FROM cenitio/backend:newrelic-${COMMIT}
+ARG BRANCH=master
+FROM spdiam/cenit:backend-${BRANCH}-${COMMIT}
 
 ENV SKIP_DB_INITIALIZATION=true
 ENV SKIP_RABBIT_MQ=true
