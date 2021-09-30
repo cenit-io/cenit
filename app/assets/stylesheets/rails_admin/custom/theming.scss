@@ -57,7 +57,7 @@ ul#main-accordion {
 }
 
 .navbar-fixed-top .container-fluid {
-  background: #f24352;
+  background: #94252e;
 }
 
 #secondary-navigation .navbar-right {
@@ -73,7 +73,7 @@ ul#main-accordion {
 #tenant-nav > li.dropdown.open > a,
 #help-nav > li.dropdown.open > a,
 #user-nav > li.dropdown.open > a {
-  color: #f24352;
+  color: #94252e;
 }
 
 a#sign-basic-link, a#sign-in-link, a#sign-out-link {
@@ -210,7 +210,7 @@ ul.drawer {
   left: 100%;
   width: 250px;
   height: calc(100vh - 100%);
-  background-color: #f24352;
+  background-color: #94252e;
   transition: all .5s ease-in-out;
   padding: 6px;
   margin: 0;
@@ -251,7 +251,7 @@ ul.drawer li a span {
   position: absolute;
   width: calc(100% - 12px);
   bottom: 20px;
-  background-color: #f24352;
+  background-color: #94252e;
 }
 
 .social-links a {
@@ -267,7 +267,7 @@ ul.drawer li a span {
   padding-left: 40px;
   transition: all 0.5s ease;
   position: relative;
-  background: #f24352;
+  background: #94252e;
   padding-top: 50px;
   height: 100vh;
   overflow: hidden;
@@ -314,7 +314,7 @@ ul.drawer li a span {
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.5s ease;
-  background: #f24352 !important;
+  background: #94252e !important;
   border-right: none;
 }
 
@@ -503,7 +503,7 @@ div#subdomain-toggle {
 
 ul#main-accordion {
   padding: 6px;
-  background: #f24352;
+  background: #94252e;
   > li.no-childrens {
     a {
       &.active {
@@ -644,7 +644,7 @@ ul#main-accordion .panel-heading .nav-icon {
 #sidebar-wrapper .social-links {
   position: absolute;
   bottom: 0;
-  background-color: #f24352;
+  background-color: #94252e;
   width: 100%;
   text-align: center;
   padding: 12px;
@@ -778,7 +778,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 .user-auth .field input:-webkit-autofill {
-  box-shadow: 0 0 0 1000px #f24352 inset;
+  box-shadow: 0 0 0 1000px #94252e inset;
   -webkit-text-fill-color: white !important;
 }
 
@@ -814,7 +814,7 @@ ul#main-accordion .panel-heading .nav-icon {
 }
 
 .user-auth .field input.form-control:focus {
-  box-shadow: 0 0 0 1000px #f24352 inset;
+  box-shadow: 0 0 0 1000px #94252e inset;
 }
 
 .user-auth .actions .btn-xs {
@@ -1304,7 +1304,7 @@ ul#main-accordion .panel-heading .nav-icon {
     padding: 15px;
     &.next {
       padding: 0;
-      color: #f24352;
+      color: #94252e;
       i {
         top: 10px;
         position: relative;
@@ -2793,7 +2793,7 @@ li.no-childrens {
 }
 
 .popover-title {
-  background: #f24352;
+  background: #94252e;
   color: white;
   font-weight: bold;
 }
@@ -2845,7 +2845,7 @@ li.no-childrens {
 }
 
 footer {
-  background: #f24352;
+  background: #94252e;
   padding-top: 70px;
   padding-bottom: 30px;
   -webkit-font-smoothing: antialiased;
@@ -3106,11 +3106,11 @@ button#model-nav-xs {
 
 #sidebar-wrapper {
   .panel-collapse {
-    background: #f24352;
+    background: #94252e;
   }
   .panel-default > .panel-heading {
 
-    background-color: #f24352;
+    background-color: #94252e;
 
   }
 }
