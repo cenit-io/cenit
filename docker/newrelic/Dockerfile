@@ -34,7 +34,7 @@ COPY --from=rubybuild /usr/local /usr/local
 
 RUN gem update --system
 
-RUN git clone --single-branch --branch master https://github.com/cenit-io/cenit.git /var/www/cenit
+RUN git clone --single-branch --branch master https://github.com/gospd/cenit.git /var/www/cenit
 
 WORKDIR /var/www/cenit
 

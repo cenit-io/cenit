@@ -26,7 +26,7 @@ RUN set -x; \
   libxslt1-dev
 
 
-RUN git clone --single-branch --branch $BRANCH https://github.com/TFAssKID/cenit.git /var/www/cenit
+RUN git clone --single-branch --branch $BRANCH https://github.com/gospd/cenit.git /var/www/cenit
 
 ENV RAILS_ROOT /var/www/cenit
 
