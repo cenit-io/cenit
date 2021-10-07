@@ -1,15 +1,12 @@
-name: Container build
+name: Container build - Push action
 on:
   push:
       branches:
         - master
         - develop
         - staging
-  pull_request:
-      branches:
-        - master
-        - develop
-        - staging
+        - integration-test
+
 jobs:
   build-container:
     name: Build Backend and Frontend Containers
@@ -17,7 +14,16 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
+      - name: Wait on check
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Integration test for Cenit'
+          repo-token: ${{ secrets.ACCESS_GITHUB_TOKEN }}
+          wait-interval: 10
+
       - name: Checkout repository
         uses: actions/checkout@v2
       
