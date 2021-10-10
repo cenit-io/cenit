@@ -187,7 +187,7 @@ module Mongoff
             when Enumerable
               value.collect { |v| model.mongo_value(v, field) }
             else
-              if model.property?(field)
+              if model.property?(field) && !model.property_model?(field)
                 model.mongo_value(value, field)
               else
                 begin
