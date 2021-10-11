@@ -7,7 +7,7 @@ module Mongoff
 
     def initialize(model)
       super(Aliases.new(model), Hash.new { |h, k| h[k] = Serializer.new(model, k) })
-      @selector = Selector.new(aliases, serializers)
+      @selector = Mongoff::Selector.new(aliases, serializers)
       @model = model
       yield(self) if block_given?
     end
