@@ -14,7 +14,7 @@ en:
       password: 'Password'
       pass_confirm: 'Password confirmation'
     session:
-      new: 'sign in'
+      new: 'Legacy Sign In'
       register: "Don't have a user?"
       new_title: 'Continue with'
       submit: 'Log in'
