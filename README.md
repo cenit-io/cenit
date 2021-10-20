@@ -111,13 +111,13 @@ We encourage the community to join the initiative and contribute to the dissemin
 
 ## Screenshots
 
-![dashboard](https://user-images.githubusercontent.com/4213488/40578423-8b132dc6-60c8-11e8-8754-e3d4f3fa95df.png)
+![menu](https://user-images.githubusercontent.com/81880890/138016967-c57c2dfb-7f1a-49e2-a266-24cb3312acd1.png)
 
-![flows](https://user-images.githubusercontent.com/4213488/40578271-dad7e700-60c5-11e8-9eb3-0d1b75c69461.png)
+![tenants](https://user-images.githubusercontent.com/81880890/138016971-58acec6d-7397-4f16-85bc-6aa995fb2021.png)
 
-![swagger](https://user-images.githubusercontent.com/4213488/40578290-4ca8697c-60c6-11e8-979f-b953d5dfb30c.png)
+![cenit_type](https://user-images.githubusercontent.com/81880890/138016964-a537ce74-892a-4583-a7da-deb762876b86.png)
 
-![open_api_directory](https://user-images.githubusercontent.com/4213488/40578339-41b5f844-60c7-11e8-8676-26a4ee494582.png)
+![mobile_view](https://user-images.githubusercontent.com/81880890/138016966-5c0006b7-017c-44f0-b916-73f8d4ef2395.png)
 
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
