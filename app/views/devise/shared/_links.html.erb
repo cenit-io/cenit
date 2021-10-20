@@ -2,7 +2,7 @@
   <%= link_to "Log in", new_session_path(resource_name) %><br/>
 <% end -%>
 
-<%- if devise_mapping.registerable? && controller_name != 'registrations' %>
+<%- if devise_mapping.registerable? && controller_name != 'registrations' && params[:return_to].to_s =~ /\/app\/ecapi/%>
   <%= link_to "Sign up", new_registration_path(resource_name, { return_to: params[:return_to] }) %><br/>
 <% end -%>
 
