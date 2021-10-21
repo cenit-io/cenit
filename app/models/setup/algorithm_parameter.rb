@@ -98,24 +98,25 @@ module Setup
     end
 
     def default_ruby
-      if many
+      if default.present?
+        JSON.parse(default).to_s
+      elsif many
         '[]'
       else
-        default.presence ||
-          case type
-          when 'integer'
-            '0'
-          when 'number'
-            '0.0'
-          when 'boolean'
-            'false'
-          when 'string'
-            '""'
-          when 'object'
-            '{}'
-          else
-            'nil'
-          end
+        case type
+        when 'integer'
+          '0'
+        when 'number'
+          '0.0'
+        when 'boolean'
+          'false'
+        when 'string'
+          '""'
+        when 'object'
+          '{}'
+        else
+          'nil'
+        end
       end
     end
 
