@@ -99,7 +99,7 @@ module Setup
 
     def default_ruby
       if default.present?
-        JSON.parse(default).to_s
+        JSON.parse(default).inspect
       elsif many
         '[]'
       else
