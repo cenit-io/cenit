@@ -23,6 +23,12 @@ module Cenit
       ensure
         @grid_file = nil
       end
+
+      def delete
+        if grid_file
+          grid_file.destroy
+        end
+      end
     end
 
     def store!(file)
