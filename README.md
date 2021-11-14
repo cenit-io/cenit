@@ -54,7 +54,7 @@ Cenit makes it possible that the benefits of a modern iPaaS can be accessible to
 
 * **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
 
-* **Third-party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
+* **Third-party service integrations**: Directory of Shared Collections to connect services as ERP / Fulfilment / Marketing / Communication.
 
 
 ## Data Pipelines between APIs
