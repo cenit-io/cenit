@@ -83,16 +83,13 @@
           html+= "<li>#{key}</li>"
         else
           next unless (count = value.count) > 0
-          max_data_type_to_show = 3
-          config = RailsAdmin.config(::Setup::DataType)
-          am = config.abstract_model
+          max_data_type_to_show = 100
           if count > max_data_type_to_show
             i = 0
             first_links = []
             value.each do |dt|
               if i < max_data_type_to_show
-                label = dt.send(config.object_label_method)
-                link = link_to(label, rails_admin.show_path(model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), id: dt.id),target: '_blank')
+                link = "<b>#{dt.custom_title}</b>"
                 first_links.push(link)
                 i+=1
               else
@@ -102,14 +99,10 @@
             end
             first_links = first_links.to_sentence(options = { last_word_connector: ', ' })
 
-            message = "<span>Showing data types for #{key} method</span>"
-            filter_token = Cenit::Token.create(data: { criteria: value.selector, message: message }, token_span: 1.hours)
-            link_more = link_to("more", rails_admin.index_path(model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), filter_token: filter_token.token), target: '_blank' )
-            links = "#{first_links} and #{count - max_data_type_to_show} #{link_more}"
+            links = "#{first_links} and #{count - max_data_type_to_show} more"
           else
             links = value.collect do |dt|
-              label = dt.send(config.object_label_method)
-              link_to(label, rails_admin.show_path(model_name: ::Setup::DataType.to_s.underscore.gsub('/', '~'), id: dt.id),target: '_blank')
+              "<b>#{dt.custom_title}</b>"
             end.to_sentence
           end
           case key
