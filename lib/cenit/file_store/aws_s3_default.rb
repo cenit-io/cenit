@@ -77,11 +77,16 @@ module Cenit
       end
 
       ###
+      # Returns the S3 resource.
+      def resource
+        @resource ||= Aws::S3::Resource.new(client: client)
+      end
+
+      ###
       # Returns bucket reference for a given file
       def bucket(file)
         unless (_bucket = file.instance_variable_get(:@_aws_s3_bucket))
-          @resource ||= Aws::S3::Resource.new(client: client)
-          _bucket = @resource.bucket(bucket_name(file))
+          _bucket = resource.bucket(bucket_name(file))
           _bucket.create unless _bucket.exists?
         end
         _bucket
