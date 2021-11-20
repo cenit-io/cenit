@@ -289,7 +289,6 @@ end
   OpenSSL::PKey::RSA => :new_rsa,
   OpenSSL::X509::Certificate => :new_certificate,
   OpenSSL::Cipher => :new_instance,
-  OpenSSL::Digest => :new_instance,
   Xmldsig::SignedDocument => :new_document,
   StringIO => :new_io,
   Spreadsheet::Workbook => :new_workbook,
