@@ -9,10 +9,14 @@ module Cenit
       end
     end
 
+    def get_data_for(_record, file)
+      StringIO.new(file[:data].data)
+    end
+
     def retrieve!(identifier)
       file = (uploader.model.files || []).detect { |f| f[:filename] == identifier }
       file && File.new(
-        tempfile: StringIO.new(file[:data].data),
+        tempfile: get_data_for(uploader.model, file),
         filename: identifier,
         content_type: file[:content_type],
         uploader: uploader,
@@ -52,10 +56,14 @@ module Cenit
           content_type: content_type ||
             ::MIME::Types.type_for(filename)[0].to_s.presence ||
             'application/octet-stream',
-          data: BSON::Binary.new(file.read),
           metadata: opts[:metadata]
         )
+        embeds_data_for(files[index], file, record)
         record.files = files
+      end
+
+      def embeds_data_for(embedded, file, _record)
+        embedded[:data] = BSON::Binary.new(file.read)
       end
     end
   end

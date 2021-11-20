@@ -15,11 +15,21 @@ module OAuth2AccountAuthorization
         if access_token&.alive?
           if (user = access_token.user)
             User.current = user
-            if access_token.set_current_tenant!
+            if (x_tenant_id = request.headers['X-Tenant-Id'])
+              if (x_tenant = Account.where(id: x_tenant_id).first)
+                Account.current = x_tenant
+              else
+                error_description = 'Invalid tenant'
+              end
+            else
+              x_tenant_id = nil
+            end
+            if !error_description && (x_tenant_id || access_token.set_current_tenant!)
               access_grant = Cenit::OauthAccessGrant.where(application_id: access_token.application_id).first
               if access_grant
                 @oauth_scope = access_grant.oauth_scope
               else
+                Account.current = nil
                 error_description = 'Access grant revoked or moved outside token tenant'
               end
             end
