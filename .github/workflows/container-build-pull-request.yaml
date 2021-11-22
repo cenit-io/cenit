@@ -1,0 +1,84 @@
+name: Container build - Pull request action
+on:
+  pull_request:
+      branches: [master, develop, staging]
+      types: [closed]
+
+jobs:
+  build-container:
+    name: Build Backend and Frontend Containers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      SKIP_RABBIT_MQ: true
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Wait on check
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Integration test for Cenit'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
+      - name: Installing Cenit dependencies
+        run: sudo apt update
+      - run: sudo apt upgrade -y
+      - run: sudo apt install -y zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev libffi-dev imagemagick libmagickwand-dev -y
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Branch Names
+        id: branch-name
+        uses: tj-actions/branch-names@v5
+
+      - name: Short SHA
+        id: short-sha
+        uses: benjlevesque/short-sha@v1.2
+
+      - name: MongoDB in GitHub Actions
+        uses: supercharge/mongodb-github-action@1.6.0
+        with:
+          mongodb-version: 4.4
+
+      - name: Redis Server in GitHub Actions
+        uses: supercharge/redis-github-action@1.1.0
+
+      - name: Setup Ruby, JRuby and TruffleRuby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.4
+          bundler-cache: true
+      - run: git clone https://gist.github.com/bdc8af93ded8c3b974c9a140d3b588af.git
+      - run: cp bdc8af93ded8c3b974c9a140d3b588af/application.yml config/application.yml
+      - run: bundle exec rake assets:precompile
+
+      - name: Build and push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        if: steps.branch-name.outputs.current_branch == 'master'
+        with:
+          image: cenit
+          registry: ghcr.io
+          tags: backend-latest
+          dockerfile: docker/ubuntu/Dockerfile
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
+      
+      - name: Build and push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: cenit
+          registry: ghcr.io
+          tags: backend-${{ steps.branch-name.outputs.current_branch }}-${{ steps.short-sha.outputs.sha }}
+          dockerfile: docker/ubuntu/Dockerfile
+          buildArgs: "BRANCH=${{ steps.branch-name.outputs.current_branch }}"
