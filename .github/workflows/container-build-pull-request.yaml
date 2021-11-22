@@ -1,7 +1,7 @@
 name: Container build - Pull request action
 on:
   pull_request:
-      branches: [master, develop, staging]
+      branches: [master, develop, miesh-v2]
       types: [closed]
 
 jobs:

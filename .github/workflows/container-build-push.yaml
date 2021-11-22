@@ -4,6 +4,7 @@ on:
       branches:
         - master
         - develop
+        - miesh-v2
 
 jobs:
   build-container:
