@@ -1,4 +1,6 @@
-FROM ruby:2.5.5
+FROM ruby:2.7.4
+
+ARG BRANCH=master
 
 # Install dependencies:
 #   - build-essential: To ensure certain gems can be compiled
@@ -24,8 +26,7 @@ RUN set -x; \
   sqlite3 \
   libxslt1-dev
 
-
-RUN git clone --single-branch --branch master https://github.com/cenit-io/cenit.git /var/www/cenit
+COPY . /var/www/cenit
 
 ENV RAILS_ROOT /var/www/cenit
 
@@ -42,6 +43,8 @@ ENV UNICORN_CENIT_SERVER=true
 
 RUN gem install bundler
 
-RUN bundle install --jobs 20 --retry 5 --without development test
+RUN bundle config set --local without 'development test'
+
+RUN bundle install --jobs 20 --retry 5
 
 EXPOSE 8080
