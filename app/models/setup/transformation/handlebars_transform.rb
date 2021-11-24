@@ -5,7 +5,7 @@ module Setup
       class << self
 
         def run(options = {})
-          handlebars = Handlebars::Context.new
+          handlebars = Handlebars::Handlebars.new
           handlebars.compile(options[:code]).call(options)
         end
 

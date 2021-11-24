@@ -6,18 +6,13 @@ module Setup
     build_in_data_type.referenced_by(:namespace, :name)
 
     def execute(options)
-      handlebars = Handlebars::Context.new
+      handlebars = Handlebars::Handlebars.new
       locals =
         if bulk_source
-          handlebars.register_helper(:each_source) do |_, block|
-            r = ''
-            #TODO Build brake condition using Capataz maximum_iterations
-            options[:sources].each do |item|
-              r += "#{block.fn(item.to_hash(include_id: true))}"
-            end
-            r
-          end
-          {}
+          {
+            sources: options[:sources],
+            items: options[:sources]
+          }
         else
           options[:source].to_hash(include_id: true)
         end
