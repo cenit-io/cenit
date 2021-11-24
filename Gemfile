@@ -91,8 +91,7 @@ gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 gem 'rkelly-remix'
 
 gem 'write_xlsx'
-# gem 'handlebars' TODO Replace therubyracer by mini_racer
-gem 'therubyracer', '~> 0.12.1'
+gem 'mini_racer'
 gem 'ruby-handlebars'
 
 gem 'aws-sdk', '~> 2.10.13'

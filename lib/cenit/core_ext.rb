@@ -387,22 +387,9 @@ module MIME
   end
 end
 
-require 'therubyracer'
-
 class Object
   def ruby_class
     self.class
-  end
-end
-
-class V8::Conversion
-  module Reference
-    def self.construct!(object)
-      context = V8::Context.current
-      constructor = context.to_v8(object.ruby_class)
-      reference = constructor.NewInstance([V8::C::External::New(object)])
-      return reference
-    end
   end
 end
 
