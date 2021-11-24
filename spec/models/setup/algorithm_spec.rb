@@ -91,4 +91,23 @@ describe Setup::Algorithm do
       end
     end
   end
+
+  context "javascript algorithms" do
+
+    it "execute javascript code" do
+      ns = "#{test_namespace} JS"
+      cmd = Setup::Algorithm.create!(
+        namespace: ns,
+        name: 'cmd',
+        parameters: [
+          { name: 'a', type: 'number' },
+          { name: 'b', type: 'number' }
+        ],
+        language: :javascript,
+        code: "var r = a % b; if (r === 0) return b; return cmd(b, r);"
+      )
+      expect(cmd.run([10, 5])).to eq(5)
+      expect(cmd.run([32, 24])).to eq(8)
+    end
+  end
 end

@@ -321,7 +321,7 @@ GEM
       mongoid
     kgio (2.11.4)
     language_sniffer (1.0.2)
-    libv8 (3.16.14.19)
+    libv8-node (15.14.0.1)
     liquid (5.0.1)
     lodash-rails (4.17.21)
       railties (>= 3.1)
@@ -342,6 +342,8 @@ GEM
     mini_magick (4.11.0)
     mini_mime (1.1.0)
     mini_portile2 (2.5.3)
+    mini_racer (0.4.0)
+      libv8-node (~> 15.14.0.0)
     minitest (5.14.4)
     mongo (2.14.0)
       bson (>= 4.8.2, < 5.0.0)
@@ -464,7 +466,6 @@ GEM
     recaptcha (5.8.1)
       json
     redis (4.3.1)
-    ref (2.0.0)
     regexp_parser (2.1.1)
     request_store (1.5.0)
       rack (>= 1.4)
@@ -544,9 +545,6 @@ GEM
       sprockets (>= 3.0.0)
     ssrf_filter (1.0.7)
     temple (0.8.2)
-    therubyracer (0.12.3)
-      libv8 (~> 3.16.14.15)
-      ref
     thin (1.8.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -627,6 +625,7 @@ DEPENDENCIES
   lodash-rails
   mime
   mini_magick
+  mini_racer
   mongoid
   mongoid-rspec
   mongoid-tracer!
@@ -659,7 +658,6 @@ DEPENDENCIES
   sass-rails
   sdoc
   spreadsheet
-  therubyracer (~> 0.12.1)
   thin
   uglifier
   unicorn (= 4.9.0)
