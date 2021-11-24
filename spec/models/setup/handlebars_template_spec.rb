@@ -18,7 +18,7 @@ describe Setup::HandlebarsTemplate do
       namespace: test_namespace,
       name: bulk_test_name,
       bulk_source: true,
-      code: "{{#each_source}}[{{first_name}} {{last_name}}]{{/each_source}}"
+      code: "{{#each sources as |source|}}[{{source.first_name}} {{source.last_name}}]{{/each}}"
     )
   end
 
