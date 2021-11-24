@@ -83,7 +83,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/mongoid-tracer.git
-  revision: 05639645e13a02c6d7135bae0b552b992adeb31a
+  revision: 45b2254295fc9cc1a5ab565954262a4a18aca3a5
   branch: upgrading
   specs:
     mongoid-tracer (0.0.1)
