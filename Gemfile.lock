@@ -83,7 +83,7 @@ GIT
 
 GIT
   remote: https://github.com/macarci/mongoid-tracer.git
-  revision: 05639645e13a02c6d7135bae0b552b992adeb31a
+  revision: 45b2254295fc9cc1a5ab565954262a4a18aca3a5
   branch: upgrading
   specs:
     mongoid-tracer (0.0.1)
@@ -283,10 +283,6 @@ GEM
       haml (>= 4.0.6, < 6.0)
       html2haml (>= 1.0.1)
       railties (>= 5.1)
-    handlebars (0.8.0)
-      handlebars-source (~> 4.0.5)
-      therubyracer (~> 0.12.1)
-    handlebars-source (4.0.14)
     html2haml (2.2.0)
       erubis (~> 2.7.0)
       haml (>= 4.0, < 6)
@@ -325,7 +321,7 @@ GEM
       mongoid
     kgio (2.11.4)
     language_sniffer (1.0.2)
-    libv8 (3.16.14.19)
+    libv8-node (15.14.0.1)
     liquid (5.0.1)
     lodash-rails (4.17.21)
       railties (>= 3.1)
@@ -346,6 +342,8 @@ GEM
     mini_magick (4.11.0)
     mini_mime (1.1.0)
     mini_portile2 (2.5.3)
+    mini_racer (0.4.0)
+      libv8-node (~> 15.14.0.0)
     minitest (5.14.4)
     mongo (2.14.0)
       bson (>= 4.8.2, < 5.0.0)
@@ -389,6 +387,7 @@ GEM
     parallel (1.20.1)
     parser (3.0.2.0)
       ast (~> 2.4.1)
+    parslet (1.8.2)
     pdf-core (0.9.0)
     peddler (2.4.5)
       excon (>= 0.50.0)
@@ -467,7 +466,6 @@ GEM
     recaptcha (5.8.1)
       json
     redis (4.3.1)
-    ref (2.0.0)
     regexp_parser (2.1.1)
     request_store (1.5.0)
       rack (>= 1.4)
@@ -506,6 +504,8 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.7.0)
       parser (>= 3.0.1.1)
+    ruby-handlebars (0.4.0)
+      parslet (~> 1.6, >= 1.6.2)
     ruby-ole (1.2.12.2)
     ruby-progressbar (1.11.0)
     ruby-rc4 (0.1.5)
@@ -545,9 +545,6 @@ GEM
       sprockets (>= 3.0.0)
     ssrf_filter (1.0.7)
     temple (0.8.2)
-    therubyracer (0.12.3)
-      libv8 (~> 3.16.14.15)
-      ref
     thin (1.8.1)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -616,7 +613,6 @@ DEPENDENCIES
   ffaker
   figaro
   haml-rails
-  handlebars
   httmultiparty
   httparty
   identicon
@@ -629,6 +625,7 @@ DEPENDENCIES
   lodash-rails
   mime
   mini_magick
+  mini_racer
   mongoid
   mongoid-rspec
   mongoid-tracer!
@@ -655,6 +652,7 @@ DEPENDENCIES
   rolify
   rspec-rails
   rubocop
+  ruby-handlebars
   rubyzip
   rufus-scheduler
   sass-rails
