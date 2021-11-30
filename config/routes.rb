@@ -35,14 +35,14 @@ Cenit::Application.routes.draw do
   get "#{oauth_path}/callback", to: 'oauth#callback'
   post "#{oauth_path}/token", to: 'oauth#token'
 
-  get '/authorization/:id', to: 'authorization#show', as: 'authorization_show'
-  get '/authorization/:id/authorize', to: 'authorization#authorize', as: 'authorization_authorize'
+  get '/authorization/:tenant_id/:id', to: 'authorization#show', as: 'authorization_show'
+  get '/authorization/:tenant_id/:id/authorize', to: 'authorization#authorize', as: 'authorization_authorize'
 
   get 'captcha', to: 'captcha#index'
   get 'captcha/:token', to: 'captcha#index'
-  get '/file/:model/:id/:field', to: 'file#index'
-  get '/file/:model/:id/:field/*file', to: 'file#index'
-  match '/file/:model/:id/:field/*file', to: 'file#cors_check', via: [:options]
+  get '/file/:tenant_id/:model/:id/:field', to: 'file#index'
+  get '/file/:tenant_id/:model/:id/:field/*file', to: 'file#index'
+  match '/file/:tenant_id/:model/:id/:field/*file', to: 'file#cors_check', via: [:options]
   get 'public/:tenant_id/:data_type_id/:file_id', to: 'file#public'
   match 'public/:tenant_id/:data_type_id/:file_id', to: 'file#cors_check', via: [:options]
 
