@@ -91,7 +91,7 @@ class OauthController < ApplicationController
   end
 
   def callback
-    redirect_uri = authorization_show_path(id: :invalid_state_data)
+    redirect_uri = authorization_show_path(id: :invalid_state_data, tenant_id: ::Tenant.current&.id)
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
        (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
@@ -120,7 +120,7 @@ class OauthController < ApplicationController
             token_data['redirect_uri']
           else
             # TODO redirect_token is not useful here
-            authorization_show_path(id: auth.id.to_s) + "?redirect_token=#{redirect_token}"
+            authorization_show_path(id: auth.id.to_s, tenant_id: ::Tenant.current&.id) + "?redirect_token=#{redirect_token}"
           end
         resolve_params = params.reject { |k, _| %w(controller action).include?(k) }
         if auth.accept_callback?(resolve_params)
