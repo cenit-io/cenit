@@ -6,7 +6,7 @@ module EmbeddedUploaderBehavior
   end
 
   def store_dir_for(record, field)
-    "/#{record.class.to_s.underscore.gsub('/', '~')}/#{record.id}/#{field}"
+    "#{::Tenant.current.id}/#{record.class.to_s.underscore.gsub('/', '~')}/#{record.id}/#{field}"
   end
 
   def to_hash(_options = {})
