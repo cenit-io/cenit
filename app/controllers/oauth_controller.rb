@@ -55,15 +55,15 @@ class OauthController < ApplicationController
     errors = ''
     token_class =
       case (grant_type = params[:grant_type])
-      when 'authorization_code'
-        errors += 'Code missing. ' unless (auth_value = params[:code])
-        Cenit::OauthCodeToken
-      when 'refresh_token'
-        errors += 'Refresh token missing. ' unless (auth_value = params[:refresh_token])
-        Cenit::OauthRefreshToken
-      else
-        errors += 'Invalid grant_type parameter.'
-        nil
+        when 'authorization_code'
+          errors += 'Code missing. ' unless (auth_value = params[:code])
+          Cenit::OauthCodeToken
+        when 'refresh_token'
+          errors += 'Refresh token missing. ' unless (auth_value = params[:refresh_token])
+          Cenit::OauthRefreshToken
+        else
+          errors += 'Invalid grant_type parameter.'
+          nil
       end
     if errors.blank? && (token = token_class.where(token: auth_value).first)
       token.set_current_tenant!
@@ -91,7 +91,7 @@ class OauthController < ApplicationController
   end
 
   def callback
-    redirect_uri = authorization_show_path(id: :invalid_state_data, tenant_id: ::Tenant.current&.id)
+    redirect_uri = nil
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
        (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
@@ -160,7 +160,12 @@ class OauthController < ApplicationController
       end
     end
 
-    redirect_to redirect_uri
+    if redirect_uri
+      redirect_to redirect_uri
+    else
+      @errors = [error]
+      render :bad_request, status: :bad_request
+    end
   end
 
   def check_params
