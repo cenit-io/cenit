@@ -43,14 +43,14 @@ module Cenit
             true
           else
             for_each_node_starting_at(record, stack: stack = []) do |obj|
-              obj.errors.each do |attr, message|
+              obj.errors.each do |err|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                            ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : " property ") +
-                           attr.to_s #TODO Trunc and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                           err.attribute.to_s #TODO Trunc and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   if !node[:record].is_a?(Mongoff::Record) && node[:referenced]
-                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{message})")
+                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{err.message})")
                   end
                   path = node[:record].orm_model.data_type.title + ' -> '
                 end
