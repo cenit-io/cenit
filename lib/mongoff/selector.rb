@@ -5,5 +5,9 @@ module Mongoff
       value = serializer.evolve_hash(value)
       super
     end
+
+    def multi_selection?(key)
+      %w($and $or $nor).include?(key.to_s)
+    end
   end
 end
