@@ -145,7 +145,11 @@ module Mongoid
         end
       end
 
-      def attribute_key(field, field_metadata = {})
+      def excluded_relation?(relation_name)
+        Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation_name.to_s)
+      end
+
+      def attribute_key(field, _field_metadata = {})
         if (association = reflect_on_association(field))
           association.foreign_key
         else

@@ -262,7 +262,7 @@ module Cenit
           end
         elsif (model = record.try(:orm_model))
           model.for_each_association do |relation|
-            next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
+            next if model.excluded_relation?(relation[:name])
             if (values = record.send(relation[:name]))
               values = [values] unless values.is_a?(Enumerable)
               values_to_save = []

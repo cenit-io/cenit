@@ -177,6 +177,10 @@ module Mongoff
       end
     end
 
+    def excluded_relation?(_relation_name)
+      false
+    end
+
     def hereditary?
       data_type.subtype?
     end
