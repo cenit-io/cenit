@@ -59,7 +59,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
-  revision: e3624a845e50f217fe060b316dd20ff197a936ee
+  revision: 82dfdd32d4b6a5a87e44c225ecb81172b47c5d74
   branch: upgrading
   specs:
     cenit-token (0.0.1)
