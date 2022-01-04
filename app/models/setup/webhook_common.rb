@@ -485,7 +485,7 @@ module Setup
         if (body = opts[:body])
           sftp.file.open(opts[:path], 'w') { |f| f.puts(body) }
         else
-          result = sftp.file.open(opts[:path], 'r') { |f| f.gets }
+          result = sftp.download!(opts[:path])
         end
       end
       result
