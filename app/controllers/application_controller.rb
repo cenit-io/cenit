@@ -14,6 +14,14 @@ class ApplicationController < ActionController::Base
 
   around_filter :scope_current_account
 
+  before_action :redirect_if_not_logged
+
+  def redirect_if_not_logged
+    if current_user.nil? && params[:controller] == "rails_admin/main" && params[:action] == "dashboard"
+      redirect_to "https://web.cenit.io"
+    end
+  end
+
   protected
 
   def do_optimize
