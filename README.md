@@ -117,7 +117,7 @@ We encourage the community to join the initiative and contribute to the dissemin
 
 ![cenit_type](https://user-images.githubusercontent.com/81880890/138016964-a537ce74-892a-4583-a7da-deb762876b86.png)
 
-![mobile_view](https://user-images.githubusercontent.com/81880890/138016966-5c0006b7-017c-44f0-b916-73f8d4ef2395.png)
+![mobile_view](https://user-images.githubusercontent.com/81880890/148653137-d3459280-425b-449f-b206-cb8da0d73e1f.png)
 
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
