@@ -25,7 +25,7 @@ module Setup
     private
 
     def post_process(record)
-      Cenit::Utility.bind_references(record, if: EDI_PARSED_RECORD)
+      Cenit::Utility.bind_references(record, if: EDI_PARSED_RECORD) if record
       record
     end
   end
