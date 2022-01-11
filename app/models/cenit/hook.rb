@@ -3,7 +3,6 @@ module Cenit
     include Setup::CenitScoped
     include Setup::NamespaceNamed
     include Setup::CustomTitle
-    include RailsAdmin::Models::Cenit::HookAdmin
 
     build_in_data_type
 

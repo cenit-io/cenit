@@ -1,5 +1,7 @@
 class HookController < ActionController::Base
 
+  skip_before_action :verify_authenticity_token
+
   MAX_SIZE = 100 * 1024
 
   def digest

@@ -2,9 +2,8 @@ module Cenit
   class HookChannel
     include Setup::CenitUnscoped
     include Setup::Slug
-    include RailsAdmin::Models::Cenit::HookChannelAdmin
 
-    build_in_data_type
+    build_in_data_type.and(label: '{{slug}}')
 
     embedded_in :hook, class_name: Cenit::Hook.name, inverse_of: :channels
 

@@ -1,6 +1,5 @@
 module Setup
   class HookDataProcessing < Setup::Task
-    include RailsAdmin::Models::Setup::HookDataProcessingAdmin
 
     agent_field :hook
 
