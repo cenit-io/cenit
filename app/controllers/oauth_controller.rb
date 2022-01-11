@@ -77,7 +77,7 @@ class OauthController < ApplicationController
         errors += 'Invalid client credentials. '
       end
       begin
-        response = Cenit::OauthAccessToken.for(app_id, token.scope, token.user_id, token.tenant)
+        response = Cenit::OauthAccessToken.for(app_id, token.scope, token.user_id, tenant: token.tenant)
         response_code = :ok
       rescue Exception => ex
         errors += ex.message
