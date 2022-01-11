@@ -17,7 +17,7 @@ module Setup
       fail 'Invalid authorization code' unless (token = Cenit::OauthCodeToken.where(token: callback_params[:code]).first)
       application_id = client.application_id
       access = token.tenant.switch do
-        Cenit::OauthAccessToken.for(application_id, token.scope, token.user_id, token.tenant)
+        Cenit::OauthAccessToken.for(application_id, token.scope, token.user_id, tenant: token.tenant)
       end
       token.destroy
       self.token_type = access[:token_type]
@@ -34,7 +34,7 @@ module Setup
         fail 'Invalid refresh token' unless (token = Cenit::OauthRefreshToken.where(token: refresh_token).first)
         fail 'Refresh token app mismatch' unless token.application_id == client.application_id
         token.set_current_tenant!
-        access = Cenit::OauthAccessToken.for(client.application_id, token.scope, token.user_id, token.tenant)
+        access = Cenit::OauthAccessToken.for(client.application_id, token.scope, token.user_id, tenant: token.tenant)
         token.destroy unless token.long_term?
         update!(
           authorized_at: Time.at(access[:created_at].to_i),
