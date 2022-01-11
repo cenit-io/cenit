@@ -7,7 +7,7 @@ module Mongoff
 
     def initialize(model)
       super(Aliases.new(model), Hash.new { |h, k| h[k] = Serializer.new(model, k) })
-      @selector = Selector.new(aliases, serializers)
+      @selector = Mongoff::Selector.new(aliases, serializers)
       @model = model
       yield(self) if block_given?
     end
@@ -187,7 +187,7 @@ module Mongoff
             when Enumerable
               value.collect { |v| model.mongo_value(v, field) }
             else
-              if model.property?(field)
+              if model.property?(field) && !model.property_model?(field)
                 model.mongo_value(value, field)
               else
                 begin

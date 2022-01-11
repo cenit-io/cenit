@@ -177,6 +177,10 @@ module Mongoff
       end
     end
 
+    def excluded_relation?(_relation_name)
+      false
+    end
+
     def hereditary?
       data_type.subtype?
     end
@@ -318,7 +322,7 @@ module Mongoff
       end,
 
       BSON::Binary => ->(value) { BSON::Binary.new(value.to_s) },
-      Boolean => ->(value) { value.to_s.to_b },
+      Mongoid::Boolean => ->(value) { value.to_s.to_b },
 
       String => ->(value) do
         case value

@@ -19,7 +19,13 @@ module Mongoid
       super
     rescue Exception => ex
       report = Setup::SystemReport.create_from(ex)
-      errors.add(:base, report.message)
+      if report
+        errors.add(:base, report.message)
+      else
+        puts "Exception report could not be created, here's the error: #{ex.message}"
+        puts ex.backtrace
+        errors.add(:base, ex.message)
+      end
       false
     end
 
@@ -139,7 +145,11 @@ module Mongoid
         end
       end
 
-      def attribute_key(field, field_metadata = {})
+      def excluded_relation?(relation_name)
+        Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation_name.to_s)
+      end
+
+      def attribute_key(field, _field_metadata = {})
         if (association = reflect_on_association(field))
           association.foreign_key
         else

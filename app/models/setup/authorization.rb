@@ -9,7 +9,7 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    field :authorized, type: Boolean
+    field :authorized, type: Mongoid::Boolean
 
     before_save :check!
 

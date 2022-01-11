@@ -8,6 +8,8 @@ module Setup
       .protecting(:identifier, :secret)
       .referenced_by(:_type, :provider, :namespace, :name)
 
+    allow :read
+
     def create_authorization!(auth_data = {})
       auth_class = self.class.preferred_authorization_class(provider)
       auth = auth_class.new(namespace: auth_data[:namespace], client_id: id, metadata: auth_data[:metadata])

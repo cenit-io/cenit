@@ -238,7 +238,7 @@ module Setup
     end
 
     EXCLUDED_FIELDS = %w(_id created_at updated_at version)
-    EXCLUDED_RELATIONS = %w(account creator updater)
+    EXCLUDED_RELATIONS = %w(account creator updater tenant)
 
     def respond_to?(*args)
       args[0].to_s.start_with?('get_') || super

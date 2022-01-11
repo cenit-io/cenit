@@ -1,7 +1,7 @@
 module GridFsFormatter
 
   def url
-    "/file/#{model.class.to_s.underscore.gsub('/', '~')}/#{model.id}/#{mounted_as}/#{identifier}"
+    "/file/#{::Tenant.current.id}/#{model.class.to_s.underscore.gsub('/', '~')}/#{model.id}/#{mounted_as}/#{identifier}"
   end
 
   def to_hash(options = {})

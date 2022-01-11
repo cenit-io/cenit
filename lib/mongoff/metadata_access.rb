@@ -86,7 +86,7 @@ module Mongoff
     MONGO_TYPE_MAP = {
       integer: Integer,
       number: Float,
-      boolean: Boolean,
+      boolean: Mongoid::Boolean,
       string: {
         default: String,
         format: {

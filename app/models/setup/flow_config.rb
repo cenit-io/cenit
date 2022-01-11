@@ -8,10 +8,10 @@ module Setup
 
     belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false
 
-    field :active, type: Boolean
-    field :notify_request, type: Boolean
-    field :notify_response, type: Boolean
-    field :discard_events, type: Boolean
+    field :active, type: Mongoid::Boolean
+    field :notify_request, type: Mongoid::Boolean
+    field :notify_response, type: Mongoid::Boolean
+    field :discard_events, type: Mongoid::Boolean
     field :auto_retry, type: StringifiedSymbol
 
     attr_readonly :flow

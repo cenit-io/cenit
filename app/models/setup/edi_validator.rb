@@ -8,7 +8,7 @@ module Setup
 
     field :content_type, type: String
 
-    # field :infers_field_separtor, type:  Boolean
+    # field :infers_field_separtor, type:  Mongoid::Boolean
     # field :field_separator, type: String
     # field :segment_separator, type: String
 
@@ -19,7 +19,7 @@ module Setup
     end
 
     def content_type_enum
-      MIME::Types.inject([]) { |types, t| types << t.to_s }
+      ::MIME::Types.inject([]) { |types, t| types << t.to_s }
     end
 
     def data_format

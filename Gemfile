@@ -91,7 +91,8 @@ gem 'capataz', git: 'https://github.com/macarci/capataz.git'
 gem 'rkelly-remix'
 
 gem 'write_xlsx'
-gem 'handlebars'
+gem 'mini_racer'
+gem 'ruby-handlebars'
 
 gem 'aws-sdk', '~> 2.10.13'
 

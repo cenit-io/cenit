@@ -25,14 +25,6 @@ module Cenit
       options
     end
 
-    def excluded_actions(*args)
-      if args.length.zero?
-        options[:excluded_actions]
-      else
-        self[:excluded_actions] = args.flatten.collect(&:to_s).join(' ').split(' ').collect(&:to_sym)
-      end
-    end
-
     def reserved_namespaces(*args)
       if args.length.zero?
         options[:reserved_namespaces]

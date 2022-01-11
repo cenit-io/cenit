@@ -9,8 +9,8 @@ module Setup
 
     field :name, type: String
     field :type, type: String
-    field :many, type: Boolean
-    field :required, type: Boolean, default: true
+    field :many, type: Mongoid::Boolean
+    field :required, type: Mongoid::Boolean, default: true
     field :default, type: String
 
     embedded_in :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: :parameters
@@ -98,24 +98,25 @@ module Setup
     end
 
     def default_ruby
-      if many
+      if default.present?
+        JSON.parse(default).inspect
+      elsif many
         '[]'
       else
-        default.presence ||
-          case type
-          when 'integer'
-            '0'
-          when 'number'
-            '0.0'
-          when 'boolean'
-            'false'
-          when 'string'
-            '""'
-          when 'object'
-            '{}'
-          else
-            'nil'
-          end
+        case type
+        when 'integer'
+          '0'
+        when 'number'
+          '0.0'
+        when 'boolean'
+          'false'
+        when 'string'
+          '""'
+        when 'object'
+          '{}'
+        else
+          'nil'
+        end
       end
     end
 

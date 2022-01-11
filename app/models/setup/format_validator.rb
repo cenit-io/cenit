@@ -9,7 +9,7 @@ module Setup
     end
 
     def file_extension
-      if (types = MIME::Types[content_type])
+      if (types = ::MIME::Types[content_type])
         types.each do |type|
           unless (extensions = type.extensions).empty?
             return extensions.first

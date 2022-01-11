@@ -1,0 +1,72 @@
+en:
+  admin:
+    session:
+      new: 'sign in'
+      register: "Don't have a user?"
+      new_title: 'Continue with'
+      submit: 'Log in'
+      forgotten: 'Forgot your password?'
+    registration:
+      new: "try it free"
+      now: "Register now!"
+      new_title: 'Continue with'
+      sign: 'Already have a user?'
+      submit: 'Sign up'
+      terms_preface: 'By signing up you agree with the'
+    forgotten:
+      new_title: 'Forgot your password?'
+      new_submit: 'Send me reset password instructions'
+      short_submit: 'Reset'
+      edit_title: 'Change your password'
+      edit_submit: 'Change my password'
+    confirmation:
+      resend: 'Resend confirmation instructions'
+    actions:
+      pull:
+        client_property_description: "Your Client '%{client_name}' might requires a non blank %{property} value to works correctly. You can configure the %{property} value later by editing the client record."
+    contact_us:
+      tittle: 'Contact us'
+      notices:
+        success: 'Your message have been send to us successfully'
+        error: 'There was an error sending your message'
+      from_name: 'From name'
+      from_email_address: 'From email address'
+      subject: 'Subject'
+      message: 'Message'
+      cancel: 'Cancel'
+      save: 'Send'
+      placeholder: 'Enter %{field} here'
+    origin:
+      default: 'This Tenant'
+      owner: 'My Tenants'
+      shared: 'Shared'
+      cenit: 'Build-In'
+      admin: 'Administration'
+      tmp: 'Temporal'
+      app: 'App'
+    oauth:
+      openid:
+        email: '<strong>View your email</strong>'
+        profile: '<strong>View your basic profile</strong>'
+        address: '<strong>View your address</strong>'
+        phone: '<strong>View your phone</strong>'
+      super_methods:
+        create: '<strong>Create</strong> records of any data type'
+        read: '<strong>Read</strong> records from any data type'
+        update: '<strong>Update</strong> records of any data type'
+        delete: '<strong>Delete</strong> records from any data type'
+        digest: '<strong>Digest</strong> with records from any data type'
+      access:
+        create: '<strong>Create</strong> records of the following data types'
+        read: '<strong>Read</strong> records from the following data types'
+        update: '<strong>Update</strong> records of the following data types'
+        delete: '<strong>Delete</strong> records of the following data types'
+        digest: '<strong>Digest</strong> with records of the following data types'
+      auth: '<strong>Authorize</strong> other applications'
+      auth_desc: 'The application will be able to authorize other applications with its same grants'
+      session_access: 'Get <strong>session</strong> access'
+      session_access_desc: 'The application access span will be automatically extended until it expires'
+      offline_access: 'Acts <strong>in your behalf</strong>'
+      offline_access_desc: 'The application will no longer requires your presence to enjoy its grants'
+      multi_tenant: '<strong>Switch</strong> across your tenants'
+      multi_tenant_desc: 'The application will be able to access all your tenants with its grants'

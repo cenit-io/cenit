@@ -7,7 +7,7 @@ Capataz.config do
 
   deny_invoke_of :require, :new, :create, :class, :eval, :class_eval, :instance_eval, :instance_variable_set, :instance_variable_get, :constants, :const_get, :const_set, :constantize
 
-  allow_invoke_of %i(nil? present? is_a? respond_to? try == !=)
+  allow_invoke_of :nil?, :present?, :is_a?, :respond_to?, :try, '==', '!='
 
   allowed_constants Psych, JSON, URI, File, Array, Hash, Nokogiri, Nokogiri::XML, Nokogiri::XML::Builder, Time, Base64, Digest, Digest::MD5, Digest::SHA256,
                     SecureRandom, Setup, Setup::Namespace, Setup::DataType, Setup::Schema, OpenSSL, OpenSSL::PKey, OpenSSL::PKey::RSA,
@@ -50,7 +50,7 @@ Capataz.config do
 
   allow_on MIME::Text, [:new_text]
 
-  allow_on JSON, [:parse, :pretty_generate]
+  allow_on JSON, [:parse, :generate, :pretty_generate]
 
   allow_on Psych, [:load, :add_domain_type]
 
@@ -66,7 +66,7 @@ Capataz.config do
 
   allow_on Time, [:strftime, :at, :year, :month, :day, :mday, :wday, :hour, :min, :sec, :now, :to_i, :utc, :getlocal, :gm, :gmtime, :local]
 
-  allow_on DateTime, [:parse, :strftime]
+  allow_on DateTime, [:parse, :strftime, :strptime, :now]
 
   allow_on Xmldsig::SignedDocument, [:new_document, :sign]
 
@@ -180,7 +180,7 @@ Capataz.config do
   end + [:name, :slug, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_params, :records_model, :namespace, :id, :ns_slug, :title, :where, :all, :build_indices] + Setup::DataType::RECORDS_MODEL_METHODS).flatten
 
   deny_for [Setup::DynamicRecord, Mongoff::Record], ->(instance, method) do
-    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :all, :where, :orm_model, :==, :errors, :destroy, :new_record?].include?(method)
+    return false if [:id, :to_json, :share_json, :to_edi, :to_hash, :to_xml, :to_xml_element, :to_params, :from_json, :from_xml, :from_edi, :[], :[]=, :save, :save!, :all, :where, :orm_model, :==, :errors, :destroy, :new_record?].include?(method)
     return false if instance.orm_model.data_type.records_methods.any? { |alg| alg.name == method.to_s }
     return false if [:data].include?(method) && instance.is_a?(Mongoff::GridFs::FileFormatter)
     if (method = method.to_s).end_with?('=')

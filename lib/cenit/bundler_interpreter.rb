@@ -15,8 +15,13 @@ module Cenit
       @__wrapper__ = Wrapper.new(self)
     end
 
-    def __v8_context__
-      @__v8_context ||= V8::Context.new(with: self)
+    def _js_context__
+      unless @__js_context
+        @__js_context = MiniRacer::Context.new
+        @__js_context.attach('__interpreter_args', proc { @__js_arguments__.last })
+        @__js_context.attach('__interpreter_run', proc { |*args| method_missing(args.shift, *args) })
+      end
+      @__js_context
     end
 
     def [](name)
@@ -174,9 +179,11 @@ module Cenit
       def bundled_javascript_code(algorithm)
         arguments_param = false
         i = -1
+        js_vars = ''
         params_initializer =
           "arguments = {}\n" +
             algorithm.parameters.collect do |p|
+              js_vars += "var #{p.name} = __interpreter_args()['#{p.name}'];\n"
               arguments_param ||= p.name == 'arguments'
               i += 1
               "arguments['#{p.name}'] = (args.length > #{i} ? args[#{i}] : #{p.default_javascript})"
@@ -189,44 +196,25 @@ module Cenit
             next unless node.is_a?(RKelly::Nodes::FunctionCallNode) && (node = node.value).is_a?(RKelly::Nodes::ResolveNode)
             call_name = node.value
             call_name_prefix = prefix(call_name, algorithm)
-            node.value = call_name_prefix + call_name
+            node.value = "__INTERPRETER_RUN__(#{call_name_prefix + call_name})"
           end
-          params_initializer + "\nresult = __v8_context__.eval <<-CODE
-            var #{f_var = "____f#{rand}".tr('.', '_')} = function(){
+          js_fn = "____f#{rand}".tr('.', '_')
+          js_code = <<-CODE
+            function #{js_fn}(){
+              #{js_vars}
+
               #{ast.to_ecma}
             }
-            #{f_var}();
           CODE
+          js_code.gsub!(/__INTERPRETER_RUN__\((.*)\)\(/) do
+            "__interpreter_run('#{::Regexp.last_match[1]}',"
+          end
+          interpreter._js_context__.eval(js_code, thread_safe: true)
+          params_initializer + "\nresult = _js_context__.eval '#{js_fn}()', thread_safe: true
           @__js_arguments__.pop
           result"
         else
           fail "Error bundling algorithm #{algorithm.custom_title}:JavaScript syntax error"
-        end
-      end
-    end
-  end
-end
-
-require 'v8/access/names'
-require 'v8/conversion/class'
-
-module V8
-  class Access
-    module Names
-      alias_method :rkelly_get, :get
-
-      def get(obj, name, &dontintercept)
-        if obj.is_a?(Cenit::BundlerInterpreter)
-          wrapper = obj.__wrapper__
-          if (algorithm = wrapper.algorithms[name.to_s])
-            wrapper.bundle(name, algorithm).unbind
-          elsif !special?(name)
-            obj.send(:[], name, &dontintercept)
-          else
-            yield
-          end
-        else
-          rkelly_get(obj, name, &dontintercept)
         end
       end
     end

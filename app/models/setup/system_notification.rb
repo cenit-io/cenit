@@ -16,7 +16,7 @@ module Setup
     validates_presence_of :type, :message
     validates_inclusion_of :type, in: ->(n) { n.type_enum }
 
-    before_save :check_notification_level, :assign_execution_thread
+    before_save :assign_execution_thread
 
     after_save :process_old_notifications if Cenit.process_old_notifications == :automatic
 
@@ -24,8 +24,14 @@ module Setup
       self.class.process_old_notifications(type)
     end
 
+    def save(*args, &block)
+      check_notification_level && super
+    end
+
     def check_notification_level
-      throw(:abort) unless @skip_notification_level || (a = Account.current).nil? || type_enum.index(type) <= type_enum.index(a.notification_level)
+      @skip_notification_level || (
+        (a = Account.current) && type_enum.index(type) <= type_enum.index(a.notification_level)
+      )
     end
 
     def assign_execution_thread
@@ -63,14 +69,14 @@ module Setup
 
       def type_color(type)
         case type
-        when :info
-          'green'
-        when :notice
-          'blue'
-        when :warning
-          'orange'
-        else
-          'red'
+          when :info
+            'green'
+          when :notice
+            'blue'
+          when :warning
+            'orange'
+          else
+            'red'
         end
       end
 

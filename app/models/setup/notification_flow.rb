@@ -12,7 +12,7 @@ module Setup
     has_and_belongs_to_many :observers, class_name: Setup::Observer.name, inverse_of: nil
     belongs_to :transformation, class_name: Setup::Translator.name, inverse_of: nil
 
-    field :active, type: Boolean
+    field :active, type: Mongoid::Boolean
 
     before_save :validates_configuration
 

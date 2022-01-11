@@ -21,7 +21,8 @@ module Cenit
     end
 
     class << self
-      def for(app_id, scope, user_or_id, tenant = Cenit::MultiTenancy.tenant_model.current)
+      def for(app_id, scope, user_or_id, options = {})
+        tenant = options[:tenant] || Cenit::MultiTenancy.tenant_model.current
         user_model = Cenit::MultiTenancy.user_model
         user =
           if user_model && user_or_id.is_a?(user_model)
@@ -34,12 +35,20 @@ module Cenit
           tenant.switch { Cenit::OauthAccessGrant.new(application_id: app_id) }
         access_grant.scope = Cenit::OauthScope.new(access_grant.scope).merge(scope).to_s
         access_grant.save
+        token_attrs = {
+          tenant: tenant, application_id: app_id, user_id: user.id, token_span: options[:token_span]
+        }
+        if options[:note]
+          token_attrs[:data] = {
+            note: options[:note]
+          }
+        end
         token =
           if scope.session_access?
             Cenit::OauthSessionAccessToken
           else
             self
-          end.create(tenant: tenant, application_id: app_id, user_id: user.id)
+          end.create(token_attrs)
         access =
           {
             access_token: token.token,

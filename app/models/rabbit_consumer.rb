@@ -9,7 +9,7 @@ class RabbitConsumer
   field :channel, type: String
   field :tag, type: String
   field :task_id
-  field :alive, type: Boolean, default: true
+  field :alive, type: Mongoid::Boolean, default: true
 
   belongs_to :executor, class_name: Account.to_s, inverse_of: nil
 

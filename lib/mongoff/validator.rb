@@ -59,8 +59,8 @@ module Mongoff
       if instance&.instance_variable_defined?(:@__soft_errors) &&
         (soft_errors = instance.remove_instance_variable(:@__soft_errors)) &&
         instance.errors.blank?
-        soft_errors.each do |error|
-          instance.errors.add(:base, "property #{error.attribute} #{error.message}")
+        soft_errors.each do |attr, message|
+          instance.errors.add(:base, "property #{attr} #{message}")
         end
       end
     end
@@ -155,7 +155,7 @@ module Mongoff
 
     TYPE_MAP = {
       null: NilClass,
-      boolean: Boolean,
+      boolean: Mongoid::Boolean,
       number: Numeric,
       string: String,
       integer: Integer,
@@ -203,8 +203,8 @@ module Mongoff
             when :array
               if instance.is_a?(Mongoff::RecordArray) && instance.orm_model.modelable?
                 Mongoff::RecordArray
-              elsif instance.is_a?(Mongoid::Association::Referenced::HasMany::Targets::Enumerable)
-                Mongoid::Association::Referenced::HasMany::Targets::Enumerable
+              elsif instance.is_a?(Mongoid::Association::Referenced::HasMany::Enumerable)
+                Mongoid::Association::Referenced::HasMany::Enumerable
               else
                 TYPE_MAP[type]
               end
@@ -276,7 +276,7 @@ module Mongoff
     end
 
     def check_schema_exclusiveMaximum(value)
-      _check_type(:exclusiveMaximum, value, Numeric, Boolean)
+      _check_type(:exclusiveMaximum, value, Numeric, Mongoid::Boolean)
     end
 
     def check_exclusiveMaximum(maximum, instance)
@@ -300,7 +300,7 @@ module Mongoff
     end
 
     def check_schema_exclusiveMinimum(value)
-      _check_type(:exclusiveMinimum, value, Numeric, Boolean)
+      _check_type(:exclusiveMinimum, value, Numeric, Mongoid::Boolean)
     end
 
     def check_exclusiveMinimum(minimum, instance)
@@ -629,7 +629,7 @@ module Mongoff
     end
 
     def check_schema_uniqueItems(unique)
-      _check_type(:uniqueItems, unique, Boolean)
+      _check_type(:uniqueItems, unique, Mongoid::Boolean)
     end
 
     def check_uniqueItems(unique, items)
@@ -694,7 +694,7 @@ module Mongoff
     # Keywords for Applying Subschemas to Objects
 
     def check_schema_required(value)
-      _check_type(:properties, value, Array, Boolean) # TODO Boolean is only for legacy support
+      _check_type(:properties, value, Array, Mongoid::Boolean) # TODO Mongoid::Boolean is only for legacy support
       if value.is_a?(Array)
         hash = {}
         value.each do |property_name|
@@ -1072,7 +1072,7 @@ module Mongoff
       end
     end
 
-    # Keywords for Applying Subschemas With Boolean Logic
+    # Keywords for Applying Subschemas With Mongoid::Boolean Logic
 
     def check_schema_allOf(schemas)
       _check_type(:allOf, schemas, Array)

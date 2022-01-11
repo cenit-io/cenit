@@ -446,7 +446,7 @@ module Api::V2
           ].each do |model|
             next if user
             record = model.where(key: key).first
-            if record && Devise.secure_compare(record[:authentication_token], token)
+            if record && Devise.secure_compare(record[:authentication_token] || record[:token], token)
               Account.current = record.api_account
               user = record.user
             end
@@ -638,7 +638,7 @@ module Api::V2
         end
         @criteria = @criteria.with_indifferent_access
         @criteria_options = @criteria_options.with_indifferent_access
-        @criteria.merge!(params.reject { |key, _| %w(controller action ns model format api).include?(key) })
+        @criteria.merge!(params.permit!.reject { |key, _| %w(controller action ns model format api).include?(key) })
         @criteria.each { |key, value| @criteria[key] = Cenit::Utility.json_value_of(value) }
         unless (@render_options = Cenit::Utility.json_value_of(request.headers['X-Render-Options'])).is_a?(Hash)
           @render_options = {}

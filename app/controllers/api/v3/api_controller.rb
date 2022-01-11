@@ -741,7 +741,8 @@ module Cenit
           {
             id: token.id.to_s,
             token: token.token,
-            expires_at: token.expires_at
+            expires_at: token.expires_at,
+            note: token.data && token.data[:note]
           }
         end
       }
@@ -752,9 +753,27 @@ module Cenit
       }
     end
 
-    def get_digest_token(_request, _options = {})
+    def post_digest_token(request, _options = {})
+      body = request.body.read
+      payload =
+        if body.blank?
+          {}
+        else
+          JSON.parse(body)
+        end.with_indifferent_access
+      token_span = payload[:token_span]
+      note = payload[:note]
+      fail 'Expected token_span to be a number' if token_span && !token_span.is_a?(Numeric)
+      fail 'Expected note to be a string' if note && !note.is_a?(String)
+      fail 'Note is too long' if note && note.length > 255
       {
-        json: Cenit::OauthAccessToken.for(application_id, scope, ::User.current)
+        json: Cenit::OauthAccessToken.for(
+          application_id,
+          scope,
+          ::User.current,
+          token_span: token_span,
+          note: note
+        )
       }
     rescue
       {

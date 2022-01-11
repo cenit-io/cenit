@@ -9,7 +9,7 @@ module Setup
 
     belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
 
-    field :trace_on_default, type: Boolean
+    field :trace_on_default, type: Mongoid::Boolean
 
     attr_readonly :data_type
 

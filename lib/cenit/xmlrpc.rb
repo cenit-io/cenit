@@ -77,7 +77,7 @@ module Cenit
               { int: value }
             when Float
               { double: value }
-            when Boolean, TrueClass, FalseClass
+            when Mongoid::Boolean, TrueClass, FalseClass
               { boolean: value ? 1 : 0 }
             when Date, Time, DateTime
               { 'dateTime.iso8601': value.to_s }

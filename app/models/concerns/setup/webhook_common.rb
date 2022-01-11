@@ -427,7 +427,30 @@ module Setup
         search_options[:attributes] = attributes.split(',')
       end
 
-      ldap.search(search_options).to_json
+      begin
+        ldap.search(search_options).to_json
+      rescue
+        Setup::SystemNotification.create_with(
+          message: "LDAP error: #{$!.message}",
+          attachment: {
+            filename: "ldap.json",
+            body: JSON.pretty_generate(
+              uri: uri,
+              auth: {
+                method: auth_method,
+                username: username,
+                password: password
+              },
+              search_options: {
+                base: base,
+                filter: filter,
+                attributes: attributes
+              }
+            )
+          }
+        )
+        raise $!
+      end
     end
 
     def process_ftp(opts)
@@ -469,7 +492,7 @@ module Setup
         if (body = opts[:body])
           sftp.file.open(opts[:path], 'w') { |f| f.puts(body) }
         else
-          result = sftp.file.open(opts[:path], 'r') { |f| f.gets }
+          result = sftp.download!(opts[:path])
         end
       end
       result
@@ -507,7 +530,7 @@ module Setup
     def build_attachment(hash)
       unless hash.key?(:filename)
         filename = hash[:base_name] || DateTime.now.strftime('%Y-%m-%d_%Hh%Mm%S')
-        if (content_type = hash[:contentType]) && (types = MIME::Types[content_type])
+        if (content_type = hash[:contentType]) && (types = ::MIME::Types[content_type])
           types.each do |type|
             if (ext = type.extensions.first)
               filename = "#{filename}.#{ext}"

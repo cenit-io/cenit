@@ -19,23 +19,23 @@
 
 # Cenit IO [(https://cenit.io)](https://cenit.io)
 
-Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particular valuable to embrace a pervasive integration approach.
+Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
 
 To install and learn more about the platform check the [documentation](https://cenit-io.github.io/docs)
 
 ## Why
 
-The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services and, increasingly, the IoT is fertile ground for the growth of integration platform adoption.
+The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services, and increasingly, the IoT is fertile ground for the growth of integration platform adoption.
 
 Many are familiar with services such as Zapier and IFTTT, which addresses common integration problems but have limited capabilities to adapt to particular needs and to reflect business flows that are not simple. iPaaS platforms are designed to handle this issue, being in recent years in the state of the art for applications and data integration technologies used by large organizations, and gaining increasing interest from the general public.
 
-The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing to rethink organizational models and technology platforms to an approach to pervasive integration.
+The proliferation and growing importance of decentralized integration tasks driven by business and IT trends are forcing us to rethink organizational models and technology platforms to an approach to pervasive integration.
 
-None of the vendor leaders in the market really offers a completely open and transparent solution, with the freedom to use, customize or modified without restriction. We believe that is one of the keys to a wide adoption, and it is relevant in making the decision to use on-premise.
+None of the vendor leaders in the market offers a completely open and transparent solution, with the freedom to use, customize, or modified without restriction. We believe that is one of the keys to wide adoption, and it is relevant in deciding to use on-premise.
 
 ## Value
 
-Cenit makes it possible that benefits of a modern iPaaS can be accessible to the small and midsize organizations, It is particularly valuable to embrace as a strategic component of a pervasive integration approach that allows a complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
+Cenit makes it possible that the benefits of a modern iPaaS can be accessible to the small and midsize organizations, It is particularly valuable to embrace as a strategic component of a pervasive integration approach that allows complete automation of all operational processes. As well as adding value quickly and continuously, essential to be competitive in the actual economy.
 
 ## How
 
@@ -54,15 +54,15 @@ Cenit makes it possible that benefits of a modern iPaaS can be accessible to the
 
 * **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
 
-* **Third party service integrations**: Directory for OpenAPI Spec (Swagger) and Shared Collections - social feature to share integration settings - to connect services as ERP / Fulfilment / Marketing / Communication.
+* **Third-party service integrations**: Directory of Shared Collections to connect services as ERP / Fulfilment / Marketing / Communication.
 
 
 ## Data Pipelines between APIs
 
-It allows the creation of custom data pipelines to process, storage and move data between APIs. The flows could be trigger by data events or be scheduled.
+It allows the creation of custom data pipelines to process, store and move data between APIs. The flows could be trigger by data events or be scheduled.
 
 There are now over 200 pre-built integration collections shared out of the box to connect with online internet services,
-fulfillment solutions, accounting, communications, ERP, multi-channels, etc.
+fulfillment solutions, accounting, communications, ERP, multi-channel, etc.
 
 [see this video for more details](https://youtu.be/IOEbTtEv8MQ)
 
@@ -83,13 +83,13 @@ An example of integration data flow (Fancy <=> Shipstation):
 ## Stack
 
 * Ruby
-* Mongodb
+* MongoDB
 * RabbitMQ
 * Redis
 
 ## Contributing
 
-Cenit IO is an open source project and we encourage contributions.
+Cenit IO is an open-source project and we encourage contributions.
 
 In the spirit of [free software](http://www.fsf.org/licensing/essays/free-sw.html), **everyone** is encouraged to help
 improve this project.
@@ -105,19 +105,19 @@ Here are some ways **you** can contribute:
 
 ## To the Community
 
-Since the challenge is great, we have to build the solution in community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
+Since the challenge is great, we have to build the solution in the community. We believe that a successful open source project provides confidence, facilitates creating a broad community, where everyone can share answers to questions, suggestions, and improvements to the platform.
 
-We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
+We encourage the community to join the initiative and contribute to the dissemination of the project, sharing integration experiences, collaborating in the detection and resolution of errors, or contributing to the development of the project. We hope that those who join us enjoy the collaborative work and the challenge of achieving something innovative and useful that can potentially serve many others.
 
 ## Screenshots
 
-![dashboard](https://user-images.githubusercontent.com/4213488/40578423-8b132dc6-60c8-11e8-8754-e3d4f3fa95df.png)
+![menu](https://user-images.githubusercontent.com/81880890/138016967-c57c2dfb-7f1a-49e2-a266-24cb3312acd1.png)
 
-![flows](https://user-images.githubusercontent.com/4213488/40578271-dad7e700-60c5-11e8-9eb3-0d1b75c69461.png)
+![tenants](https://user-images.githubusercontent.com/81880890/138016971-58acec6d-7397-4f16-85bc-6aa995fb2021.png)
 
-![swagger](https://user-images.githubusercontent.com/4213488/40578290-4ca8697c-60c6-11e8-979f-b953d5dfb30c.png)
+![cenit_type](https://user-images.githubusercontent.com/81880890/138016964-a537ce74-892a-4583-a7da-deb762876b86.png)
 
-![open_api_directory](https://user-images.githubusercontent.com/4213488/40578339-41b5f844-60c7-11e8-8676-26a4ee494582.png)
+![mobile_view](https://user-images.githubusercontent.com/81880890/148653137-d3459280-425b-449f-b206-cb8da0d73e1f.png)
 
 [numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
 [numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
@@ -126,4 +126,4 @@ We encourage the community to join the initiative and contribute to the dissemin
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
 [join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/zt-gnjxvugz-bbje74OB_2vyXvSwi2M9mw
+https://join.slack.com/t/cenitio/shared_invite/zt-10zluubzr-42nktMgCndc5I1JFtG0uZA

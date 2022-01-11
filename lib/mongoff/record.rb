@@ -398,6 +398,7 @@ module Mongoff
                 else
                   "updating record with ID '#{id}'"
                 end
+              errors.add(:base, "Before save callback (#{callback.custom_title}) error: #{ex.message}")
               Setup::SystemNotification.create(message: "Error #{obj_msg} with type ' #{orm_model.data_type.custom_title}', running before save callback '#{callback.custom_title}': #{ex.message}")
               false
             end

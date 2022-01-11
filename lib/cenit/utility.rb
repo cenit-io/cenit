@@ -43,14 +43,14 @@ module Cenit
             true
           else
             for_each_node_starting_at(record, stack: stack = []) do |obj|
-              obj.errors.each do |error|
+              obj.errors.each do |err|
                 attr_ref = "#{obj.orm_model.data_type.title}" +
                            ((name = obj.try(:name)) || (name = obj.try(:title)) ? " #{name} on attribute " : " property ") +
-                           error.attribute.to_s #TODO Trunc and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
+                           err.attribute.to_s #TODO Trunc and do html safe for long values, i.e, XML Schemas ---> + ((v = obj.try(attribute)) ? "'#{v}'" : '')
                 path = ''
                 stack.reverse_each do |node|
                   if !node[:record].is_a?(Mongoff::Record) && node[:referenced]
-                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{error.message})")
+                    node[:record].errors.add(node[:attribute], "with error on #{path}#{attr_ref} (#{err.message})")
                   end
                   path = node[:record].orm_model.data_type.title + ' -> '
                 end
@@ -262,7 +262,7 @@ module Cenit
           end
         elsif (model = record.try(:orm_model))
           model.for_each_association do |relation|
-            next if Setup::BuildInDataType::EXCLUDED_RELATIONS.include?(relation[:name].to_s)
+            next if model.excluded_relation?(relation[:name])
             if (values = record.send(relation[:name]))
               values = [values] unless values.is_a?(Enumerable)
               values_to_save = []
@@ -409,7 +409,7 @@ module Cenit
             obj.each { |v| return false unless json_object?(v) } if options[:recursive]
             true
           else
-            [Integer, BigDecimal, Float, String, TrueClass, FalseClass, Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
+            [Integer, BigDecimal, Float, String, TrueClass, FalseClass, Mongoid::Boolean, NilClass, BSON::ObjectId, BSON::Binary].any? { |klass| obj.is_a?(klass) }
         end
       end
 

@@ -26,7 +26,12 @@ module Setup
         if attachment && attachment[:body].to_s.length > 0
           notification.attach(attachment)
         end
-        notification.save ? notification : nil
+        if notification.save
+          notification
+        else
+          puts "Error creating notification: #{notification.errors.full_messages.to_sentence}"
+          nil
+        end
       ensure
         temporary_file.close if temporary_file
       end

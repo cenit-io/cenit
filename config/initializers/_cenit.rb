@@ -46,8 +46,6 @@ Cenit.config do
   #HTTP Proxy Password
   http_proxy_password ENV['HTTP-PROXY-PASSWORD']
 
-  excluded_actions ENV['EXCLUDED_ACTIONS']
-
   maximum_unicorn_consumers((ENV['MAXIMUM_UNICORN_CONSUMERS'] || 3).to_i)
 
   min_scheduler_interval 60
@@ -98,8 +96,6 @@ Cenit.config do
   default_notice_notifications_span 3.days
 
   default_info_notifications_span 1.hour
-
-  slack_link ENV['SLACK_INVITATION']
 
   tenant_creation_disabled((ENV['TENANT_CREATION_DISABLED'] || 'false').to_b)
 

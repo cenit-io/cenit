@@ -44,7 +44,7 @@ module Setup
 
     belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
     belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
-    field :nil_data_type, type: Boolean
+    field :nil_data_type, type: Mongoid::Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
     belongs_to :scope_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
@@ -484,7 +484,7 @@ module Setup
             contentType: translator.mime_type,
             notify_request: notify_request,
             request_attachment: ->(attachment) do
-              attachment[:filename] = ((data_type && data_type.title) || translator.name).collectionize +
+              attachment[:filename] = (data_type&.title || translator.name).collectionize +
                 attachment[:filename] +
                 ((ext = translator.file_extension).present? ? ".#{ext}" : '')
               attachment
@@ -537,7 +537,7 @@ module Setup
     end
 
     def attachment_from(http_response)
-      file_extension = ((types = MIME::Types[http_response.content_type]).present? &&
+      file_extension = ((types = ::MIME::Types[http_response.content_type]).present? &&
         (ext = types.first.extensions.first).present? && '.' + ext) || ''
       {
         filename: http_response.object_id.to_s + file_extension,

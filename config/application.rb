@@ -16,6 +16,8 @@ module Cenit
   class Application < Rails::Application
 
     config.autoload_paths += %W(#{config.root}/lib) #/**/*.rb
+    config.enable_dependency_loading = true
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -80,27 +82,28 @@ module Cenit
 
         Capataz::Cache.clean
 
-        Setup::CenitDataType.init!
+      end
 
-        Setup::BuildInFileType.init!
+      Setup::CenitDataType.init!
 
-        Mongoff::Model.config do
-          before_save ->(record) do
-            record.updated_at = DateTime.now
-            if record.new_record?
-              record.created_at = record.updated_at
-            elsif record.orm_model.observable?
-              record.instance_variable_set(:@_obj_before, record.orm_model.where(id: record.id).first)
-            end
-            true
+      Setup::BuildInFileType.init!
+
+      Mongoff::Model.config do
+        before_save ->(record) do
+          record.updated_at = DateTime.now
+          if record.new_record?
+            record.created_at = record.updated_at
+          elsif record.orm_model.observable?
+            record.instance_variable_set(:@_obj_before, record.orm_model.where(id: record.id).first)
           end
+          true
+        end
 
-          after_save ->(record) do
-            if record.orm_model.observable? && !record.instance_variable_get(:@discard_event_lookup)
-              Setup::Observer.lookup(record, record.instance_variable_get(:@_obj_before))
-            end
-            record.remove_instance_variable(:@discard_event_lookup) if record.instance_variable_defined?(:@discard_event_lookup)
+        after_save ->(record) do
+          if record.orm_model.observable? && !record.instance_variable_get(:@discard_event_lookup)
+            Setup::Observer.lookup(record, record.instance_variable_get(:@_obj_before))
           end
+          record.remove_instance_variable(:@discard_event_lookup) if record.instance_variable_defined?(:@discard_event_lookup)
         end
       end
 
@@ -121,10 +124,11 @@ module Cenit
         end
       end
 
-      unless ENV['SKIP_DB_INITIALIZATION'].to_b
-        apps = install_build_in_apps
+      apps = install_build_in_apps
 
-        setup_build_in(apps)
+      setup_build_in(apps)
+
+      unless ENV['SKIP_DB_INITIALIZATION'].to_b
 
         Setup::Oauth2Provider.build_in_provider_id
 
@@ -208,6 +212,9 @@ module Cenit
           app_id.trusted = true
           app_id.save!
           app_module.instance_variable_set(:@app_id, app.id)
+          app_module.initializers.each do |initializer_block|
+            app_module.instance_eval(&initializer_block)
+          end
           tenant = app.tenant
           meta_key = "app_#{app.id}"
           if (tenant.meta[meta_key] || {})['installed']

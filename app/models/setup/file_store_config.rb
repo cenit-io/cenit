@@ -24,7 +24,7 @@ module Setup
     belongs_to :data_type, class_name: Setup::FileDataType.to_s, inverse_of: nil
 
     field :file_store, type: Module, default: -> { self.class.default_file_store_for(data_type) }
-    field :public_read, type: Boolean, default: -> { self.class.default_public_option_for(data_type) }
+    field :public_read, type: Mongoid::Boolean, default: -> { self.class.default_public_option_for(data_type) }
 
     attr_readonly :data_type
 

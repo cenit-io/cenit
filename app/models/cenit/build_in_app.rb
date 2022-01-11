@@ -18,7 +18,7 @@ module Cenit
       }
     )
 
-    deny :delete
+    deny :all
 
     belongs_to :tenant, class_name: Tenant.name, inverse_of: nil
 

@@ -41,7 +41,7 @@ module Setup
       }
     }.deep_stringify_keys
 
-    field :discard_additional_properties, type: Boolean, default: true
+    field :discard_additional_properties, type: Mongoid::Boolean, default: true
 
     after_initialize do
       self.schema = DEFAULT_SCHEMA if new_record? && @schema.nil?
