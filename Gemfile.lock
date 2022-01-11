@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/cenit-io/capataz.git
+  revision: 75dc0c0c8e7fc238f9f153d11cfba6d956197ea7
+  specs:
+    capataz (0.0.1)
+      parser
+
+GIT
   remote: https://github.com/cenit-io/cenit-admin.git
   revision: 744f2261d3440d70a4d814a6b0293524de669a71
   specs:
@@ -25,7 +32,6 @@ GIT
 GIT
   remote: https://github.com/cenit-io/cenit-multi_tenancy.git
   revision: 160b2f3cbfaf8ec308cc7176bfe60f98002566c5
-  branch: upgrading
   specs:
     cenit-multi_tenancy (0.0.1)
       cenit-config
@@ -47,7 +53,6 @@ GIT
 GIT
   remote: https://github.com/cenit-io/cenit-service.git
   revision: 6aa513a6967567baa28811e27393d4ed0dce2349
-  branch: upgrading
   specs:
     cenit-service (0.0.1)
       cenit-config
@@ -60,31 +65,21 @@ GIT
 GIT
   remote: https://github.com/cenit-io/cenit-token.git
   revision: 82dfdd32d4b6a5a87e44c225ecb81172b47c5d74
-  branch: upgrading
   specs:
     cenit-token (0.0.1)
       mongoid (>= 5.0.1)
       rails (>= 4.2.5)
 
 GIT
-  remote: https://github.com/macarci/capataz.git
-  revision: 75dc0c0c8e7fc238f9f153d11cfba6d956197ea7
-  specs:
-    capataz (0.0.1)
-      parser
-
-GIT
-  remote: https://github.com/macarci/cross_origin.git
+  remote: https://github.com/cenit-io/cross_origin.git
   revision: 15584fe58a955b724ad357ab8aa2686d9dc353fb
-  branch: upgrading
   specs:
     cross_origin (0.0.3)
       mongoid (>= 5.0.1)
 
 GIT
-  remote: https://github.com/macarci/mongoid-tracer.git
+  remote: https://github.com/cenit-io/mongoid-tracer.git
   revision: 45b2254295fc9cc1a5ab565954262a4a18aca3a5
-  branch: upgrading
   specs:
     mongoid-tracer (0.0.1)
       mongoid (>= 5.0.1)
