@@ -26,7 +26,7 @@ class HookController < ActionController::Base
             status = :unauthorized
           end
         rescue Exception => ex
-          report = Setup::SystemNotification.create_from(ex)
+          report = Setup::SystemReport.create_from(ex)
           json[:error] = "Ask for support by supplying this code: #{report.id}"
           status = :internal_server_error
         end
