@@ -88,6 +88,10 @@ module Setup
       end
     end
 
+    def bulkable_deletable?
+      build_in.bulkable_deletable?
+    end
+
     class << self
 
       def init!

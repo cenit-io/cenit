@@ -203,6 +203,14 @@ module Setup
       store_fields(:@excluding, *fields, @excluding)
     end
 
+    def bulkable_deletable(deletable)
+      @bulkable_deletable = deletable
+    end
+
+    def bulkable_deletable?
+      @bulkable_deletable != :denied
+    end
+
     class << self
 
       def [](ref)
