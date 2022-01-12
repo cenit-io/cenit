@@ -36,6 +36,7 @@ class Account
       }
     }
   )
+  build_in_data_type.bulkable_deletable :denied
 
   deny :all
 

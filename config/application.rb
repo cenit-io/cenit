@@ -139,6 +139,8 @@ module Cenit
             Setup::Execution.where(status: :running).update_all(status: :broken, completed_at: Time.now)
 
             Setup::Application.all.update_all(provider_id: Setup::Oauth2Provider.build_in_provider_id)
+
+            Cenit::Hook.setup_tenant(tenant)
           end
         end
       end

@@ -46,6 +46,9 @@ Cenit::Application.routes.draw do
   get 'public/:tenant_id/:data_type_id/:file_id', to: 'file#public'
   match 'public/:tenant_id/:data_type_id/:file_id', to: 'file#cors_check', via: [:options]
 
+  post 'hook/:slug', to: 'hook#digest'
+  post 'hook/:slug/:access_token', to: 'hook#digest'
+
   namespace :api do
     namespace :v1 do
       post '/auth/ping', to: 'api#auth'

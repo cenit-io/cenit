@@ -173,6 +173,10 @@ module Setup
       end
     end
 
+    def bulkable_deletable?
+      true
+    end
+
     class << self
       def inherited(subclass)
         super
