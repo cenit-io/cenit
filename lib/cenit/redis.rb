@@ -5,7 +5,7 @@ module Cenit
     class << self
 
       def new
-        client? && ::Redis.new
+        client? && new_instance
       end
 
       def client?
@@ -14,21 +14,7 @@ module Cenit
 
       def client
         unless instance_variable_defined?(:@redis_client)
-          client =
-            if (redis_url = ENV['REDIS_URL']).to_b
-              # specify a connection option as a redis:// URL
-              # e.g "redis://:p4ssw0rd@10.0.1.1:6380/15"
-              ::Redis.new(url: redis_url)
-            else
-              # Defauls values similar to the redis gem
-              # https://github.com/redis/redis-rb/blob/master/lib/redis/client.rb#L10-L26
-              redis_host = ENV.fetch('REDIS_HOST', '127.0.0.1')
-              redis_port = ENV.fetch('REDIS_PORT', 6379).to_i
-              redis_db = ENV.fetch('REDIS_DB', 0).to_i
-              redis_password = ENV['REDIS_PASSWORD']
-
-              ::Redis.new(host: redis_host, port: redis_port, db: redis_db, password: redis_password)
-            end
+          client = new_instance
           client =
             begin
               client.ping
@@ -54,6 +40,25 @@ module Cenit
           super
         end
       end
+
+      def new_instance
+        if (redis_url = ENV['REDIS_URL']).to_b
+          # specify a connection option as a redis:// URL
+          # e.g "redis://:p4ssw0rd@10.0.1.1:6380/15"
+          ::Redis.new(url: redis_url)
+        else
+          # Defauls values similar to the redis gem
+          # https://github.com/redis/redis-rb/blob/master/lib/redis/client.rb#L10-L26
+          redis_host = ENV.fetch('REDIS_HOST', '127.0.0.1')
+          redis_port = ENV.fetch('REDIS_PORT', 6379).to_i
+          redis_db = ENV.fetch('REDIS_DB', 0).to_i
+          redis_password = ENV['REDIS_PASSWORD']
+
+          ::Redis.new(host: redis_host, port: redis_port, db: redis_db, password: redis_password)
+        end
+      end
+
+      private :new_instance
     end
   end
 end
