@@ -74,6 +74,8 @@ module Cenit
       unless ENV['SKIP_DB_INITIALIZATION'].to_b
         Setup::DelayedMessage.do_load unless ENV['SKIP_LOAD_DELAYED_MESSAGES'].to_b
 
+        Cenit::Hook.init
+
         puts 'Clearing LOCKS'
         Cenit::Locker.clear
 

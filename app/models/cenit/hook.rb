@@ -43,6 +43,7 @@ module Cenit
 
       delegate :digest,
                :start,
+               :init,
 
                to: :adapter
 
@@ -63,6 +64,10 @@ module Cenit
       belongs_to :tenant, class_name: Tenant.name, inverse_of: nil
 
       class << self
+
+        def init
+          delete_all
+        end
 
         def setup_hook(hook, tenant = Tenant.current)
           if (record = where(hook_id: hook.id, tenant_id: tenant.id).first)
@@ -129,8 +134,20 @@ module Cenit
         }.to_json)
       end
 
+      def all_keys
+        Cenit::Redis.keys("#{HOOK_PREFIX}*")
+      end
+
+      def clean_all
+        keys = all_keys
+        Cenit::Redis.del *keys if keys.count > 0
+      end
+
+      def init
+        clean_all
+      end
+
       def start
-        Cenit::Redis.del("#{HOOK_PREFIX}*")
         Thread.new do
           Cenit::Redis.new.subscribe(:hook) do |on|
             on.subscribe do |channel, subscriptions|
@@ -167,7 +184,7 @@ module Cenit
       end
 
       def digest(token, slug, data, content_type)
-        if Cenit::Redis.exists(hook_key(token))
+        if Cenit::Redis.exists?(hook_key(token))
           message = {
             token: token,
             slug: slug,
