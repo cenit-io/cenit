@@ -55,6 +55,8 @@ after_fork do |server, worker|
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
+  Cenit::Rabbit.init
+
   if worker.nr.zero?
     unless ENV['SKIP_DB_INITIALIZATION'].to_b
       Tenant.all.each do |tenant|

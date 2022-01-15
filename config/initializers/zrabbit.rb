@@ -1,6 +1,7 @@
 require 'rabbit_consumer'
 
 unless ENV['UNICORN_CENIT_SERVER'].to_b
+  Cenit::Rabbit.init
   Cenit::Application.config.after_initialize do
     unless ENV['SKIP_DB_INITIALIZATION'].to_b
       Tenant.all.each do |tenant|
