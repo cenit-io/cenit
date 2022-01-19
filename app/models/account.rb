@@ -16,6 +16,8 @@ class Account
     :name, :notification_level, :time_zone, :number, :authentication_token, :users
   ).including(
     :owner
+  ).discarding(
+     :owner, :users
   )
   build_in_data_type.protecting(:number, :authentication_token)
   build_in_data_type.and(
