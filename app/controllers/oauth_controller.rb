@@ -1,5 +1,7 @@
 class OauthController < ApplicationController
+  include CorsCheck
 
+  before_action :allow_origin_header
   before_action { warden.authenticate! scope: :user if check_params }
 
   def index
@@ -26,9 +28,9 @@ class OauthController < ApplicationController
     end
     if request.post? || skip_consent
       if (token = Cenit::Token.where(token: @token).first) &&
-         token.data.is_a?(Hash) &&
-         (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
-         (scope = token.data['scope'])
+        token.data.is_a?(Hash) &&
+        (redirect_uri = URI.parse(token.data['redirect_uri'])) &&
+        (scope = token.data['scope'])
         token.destroy
         params = {}
         if (state = token.data['state'])
@@ -55,21 +57,21 @@ class OauthController < ApplicationController
     errors = ''
     token_class =
       case (grant_type = params[:grant_type])
-        when 'authorization_code'
-          errors += 'Code missing. ' unless (auth_value = params[:code])
-          Cenit::OauthCodeToken
-        when 'refresh_token'
-          errors += 'Refresh token missing. ' unless (auth_value = params[:refresh_token])
-          Cenit::OauthRefreshToken
-        else
-          errors += 'Invalid grant_type parameter.'
-          nil
+      when 'authorization_code'
+        errors += 'Code missing. ' unless (auth_value = params[:code])
+        Cenit::OauthCodeToken
+      when 'refresh_token'
+        errors += 'Refresh token missing. ' unless (auth_value = params[:refresh_token])
+        Cenit::OauthRefreshToken
+      else
+        errors += 'Invalid grant_type parameter.'
+        nil
       end
     if errors.blank? && (token = token_class.where(token: auth_value).first)
       token.set_current_tenant!
       token.destroy unless token.long_term?
       if (app_id = Cenit::ApplicationId.where(identifier: params[:client_id]).first) &&
-         app_id.app.secret_token == params[:client_secret]
+        app_id.app.secret_token == params[:client_secret]
         if grant_type == 'authorization_code'
           errors += 'Invalid redirect_uri. ' unless app_id.nil? || app_id.redirect_uris.include?(params[:redirect_uri])
         end
@@ -94,7 +96,7 @@ class OauthController < ApplicationController
     redirect_uri = nil
     error = params[:error]
     if (cenit_token = CallbackAuthorizationToken.where(token: params[:state] || session[:oauth_state]).first) &&
-       (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
+      (User.current = cenit_token.set_current_tenant!.owner) && (auth = cenit_token.authorization)
       if User.current.has_role?(:super_admin)
         User.current.super_admin_enabled = true
       end
@@ -103,10 +105,10 @@ class OauthController < ApplicationController
         redirect_uri =
           if (app = cenit_token.app_id) && (app = app.app)
             callback_authorization_id = auth.metadata[:callback_authorization_id] ||
-                                        auth.metadata['callback_authorization_id'] ||
-                                        auth.id
+              auth.metadata['callback_authorization_id'] ||
+              auth.id
             callback_params = auth.metadata[:callback_authorization_params] ||
-                              auth.metadata['callback_authorization_params']
+              auth.metadata['callback_authorization_params']
             unless callback_params.is_a?(Hash)
               callback_params = {}
             end
@@ -170,8 +172,11 @@ class OauthController < ApplicationController
 
   def check_params
     @errors = []
-    send("check_#{@_action_name}")
+    check_action_method = "check_#{@_action_name}"
+    respond_to?(check_action_method, true) ? send(check_action_method) : false
   end
+
+  protected
 
   def check_index
     if request.get?
@@ -200,14 +205,4 @@ class OauthController < ApplicationController
     end
     true
   end
-
-  def check_callback
-    false
-  end
-
-  def check_token
-    false
-  end
-
-  protected :check_params, :check_index, :check_callback, :check_token
 end
