@@ -56,9 +56,9 @@ module Cenit
             created_at: token.created_at.to_i,
             expires_in: token.token_span
           }
-        if scope.offline_access? &&
-          Cenit::OauthRefreshToken.where(tenant: tenant, application_id: app_id, user_id: user.id).blank?
-          refresh_token = Cenit::OauthRefreshToken.create(tenant: tenant, application_id: app_id, user_id: user.id)
+        if scope.offline_access?
+          refresh_token = Cenit::OauthRefreshToken.where(tenant: tenant, application_id: app_id, user_id: user.id).first
+          refresh_token ||= Cenit::OauthRefreshToken.create(tenant: tenant, application_id: app_id, user_id: user.id)
           access[:refresh_token] = refresh_token.token
         end
         if scope.openid?

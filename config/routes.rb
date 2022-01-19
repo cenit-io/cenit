@@ -34,6 +34,7 @@ Cenit::Application.routes.draw do
   match "#{oauth_path}/authorize", to: 'oauth#index', via: [:get, :post]
   get "#{oauth_path}/callback", to: 'oauth#callback'
   post "#{oauth_path}/token", to: 'oauth#token'
+  match "#{oauth_path}/*path", to: 'oauth#cors_check', via: [:options]
 
   get '/authorization/:tenant_id/:id', to: 'authorization#show', as: 'authorization_show'
   get '/authorization/:tenant_id/:id/authorize', to: 'authorization#authorize', as: 'authorization_authorize'
