@@ -12,7 +12,11 @@ class Account
 
   inspect_fields :name, :notification_level, :time_zone, :index_max_entries
 
-  build_in_data_type.with(:name, :notification_level, :time_zone, :number, :authentication_token)
+  build_in_data_type.with(
+    :name, :notification_level, :time_zone, :number, :authentication_token, :users
+  ).including(
+    :owner
+  )
   build_in_data_type.protecting(:number, :authentication_token)
   build_in_data_type.and(
     properties: {

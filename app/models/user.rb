@@ -20,11 +20,14 @@ class User
   build_in_data_type
     .on_origin(:admin)
     .with(:email, :name, :account, :roles, :super_admin_enabled)
-    .and(properties: {
-      password: {
-        type: 'string'
+    .and(
+      label: '{{name}} ({{email}})',
+      properties: {
+        password: {
+          type: 'string'
+        }
       }
-    })
+    )
     .protecting(:password)
   build_in_data_type.bulkable_deletable :denied
 
