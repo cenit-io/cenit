@@ -1,4 +1,4 @@
-![cenit_io](https://user-images.githubusercontent.com/4213488/40578188-bcbf8a58-60c4-11e8-96d7-19842c348c5e.png)
+![cenit_io](https://user-images.githubusercontent.com/4213488/150586701-53545c9b-b4f9-497f-9782-ef6a19715ecd.svg)
 
 [![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
