@@ -754,6 +754,7 @@ module Cenit
     end
 
     def post_digest_token(request, _options = {})
+      error_field = '$'
       body = request.body.read
       payload =
         if body.blank?
@@ -763,9 +764,12 @@ module Cenit
         end.with_indifferent_access
       token_span = payload[:token_span]
       note = payload[:note]
-      fail 'Expected token_span to be a number' if token_span && !token_span.is_a?(Numeric)
-      fail 'Expected note to be a string' if note && !note.is_a?(String)
-      fail 'Note is too long' if note && note.length > 255
+      error_field = 'token_span'
+      fail 'Expected to be a number' unless token_span && token_span.is_a?(Numeric)
+      fail 'Expected to be in the future' unless token_span >= 0
+      error_field = 'note'
+      fail 'Expected to be a string' unless note && note.is_a?(String)
+      fail 'Is too long' if note.length > 255
       {
         json: Cenit::OauthAccessToken.for(
           application_id,
@@ -777,7 +781,7 @@ module Cenit
       }
     rescue
       {
-        json: { '$': [$!.message] },
+        json: { error_field => [$!.message] },
         status: :unprocessable_entity
       }
     end
