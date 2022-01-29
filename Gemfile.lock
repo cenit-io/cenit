@@ -40,7 +40,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-oauth_app.git
-  revision: 35567c6066ad04acafc6091d33fa8475c84b10a4
+  revision: 75fbc840227d6ed1474de7b714c3896ba29e6174
   specs:
     cenit-oauth_app (0.0.1)
 
