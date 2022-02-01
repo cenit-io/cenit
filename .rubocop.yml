@@ -1,28 +1,28 @@
-Metrics/LineLength:
+Layout/LineLength:
   Max: 150
 
-Style/EmptyLinesAroundClassBody:
-  EnforcedStyle: false
+Layout/EmptyLinesAroundClassBody:
+  Enabled: false
 
 Style/NumericPredicate:
   AutoCorrect: true
 
-Style/AlignHash:
+Layout/HashAlignment:
   Enabled: true
 
 Style/HashSyntax:
   Enabled: true
 
-Style/TrailingWhitespace:
+Layout/TrailingWhitespace:
   Enabled: true
 
-Style/EmptyLinesAroundBlockBody:
+Layout/EmptyLinesAroundBlockBody:
   Enabled: true
 
-Style/EmptyLinesAroundMethodBody:
+Layout/EmptyLinesAroundMethodBody:
   Enabled: true
 
-Style/EmptyLinesAroundModuleBody:
+Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
 Layout/MultilineOperationIndentation:
