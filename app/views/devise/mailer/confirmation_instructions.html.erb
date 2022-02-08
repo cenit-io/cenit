@@ -1,53 +1,88 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title></title>
-  <style></style>
-</head>
-<body>
-<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable">
-  <tr>
-    <td align="center" valign="top">
-      <table border="0" cellpadding="20" cellspacing="0" width="600" id="emailContainer">
-        <tr>
-          <td align="center" valign="top">
-            <strong>Greetings <%= @email %>!</strong>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <p>
-              You, or someone pretending to be you, have just signed up for an account on
-              <%= link_to 'cenit.io', 'https://cenit.io', :class => 'navbar-brand' %>.
-            <br/>
-              If you are not expecting this email simply ignore it and you won't be troubled
-              about it again.
-            <br/>
-              However, if you indeed signed up for an account on our platform, please click the
-              following link to complete the sign-up process:
-              <%= link_to 'Confirm account', confirmation_url(@resource, confirmation_token: @token, host: Cenit.homepage) %>
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <p>
-              Thank you for choosing us! We are looking forward to here from you.
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <p>
-              Best regards from the Cenit Support Team.
-            </p>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-</body>
-</html>
+<html>
+ <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   <title></title>
+   <style type="text/css">
+     /* reset */
+     body{
+       margin:0;
+       padding:0;
+       width: 100%;
+     }
 
+     img{
+       border:0 none;
+       height:auto;
+       line-height:100%;
+       outline:none;
+       text-decoration:none;
+       float: none;
+     }
+
+     a img{
+       border:0 none;
+     }
+
+     .imageFix{
+       display:block;
+     }
+
+     table, td{
+       border-collapse:collapse;
+     }
+
+     #body_table{
+       height:100% !important;
+       margin:0;
+       padding:0;
+       width:100% !important;
+     }
+
+   </style>
+ </head>
+ <body style="background-color:#efefef; padding-top: 15px; padding-bottom: 15px;">
+   <table border="0" cellpadding="0" cellspacing="0" height="80%" width="46%" id="bodyTable" align="center" style="background-color:white;">
+
+       <tr>
+           <td align="center" valign="top">
+               <table border="0" cellpadding="10" cellspacing="0" width="600" id="emailContainer">
+                   <tr>
+                       <td align="center" valign="top">
+
+                           <div style="background: #212121;color: white; padding: 10px; text-align:center">
+                             <div style="font-size: 24px;font-weight: bolder">
+                               <span style="color: rgb(234, 116, 0);">Cenit IO</span> open source integration platform
+                             </div>
+                             <div style="font-size: 20px;">
+                               ready to use on-premises or in the cloud
+                             </div>
+                           </div>
+
+                           <div style="text-align: left">
+                             <p>
+                               Howdy <%= @email %>,
+                             </p>
+                             <p>
+                               You, or someone pretending to be you, have just signed up for an account on <a href="https://web.cenit.io/">Cenit IO </a>.
+If you are not expecting this email simply ignore it and you won't be troubled about it again.
+However, if you indeed signed up for an account on our platform, please click the following link to complete the sign-up process: <%= link_to 'Confirm account', confirmation_url(@resource, confirmation_token: @token, host: Cenit.homepage) %>
+                             </p>
+                             
+                             <p>
+                              Thank you for choosing us!
+                             </p>
+                             <p>
+                               Miguel Sancho.
+                               <br/>CEO and Founder
+                               <br/><a href="https://web.cenit.io">cenit.io</a>
+                               <br/><a href="https://www.linkedin.com/company/cenit-io">linkedin.com/cenit-io</a>
+                             </p>
+                           </div>
+                       </td>
+                   </tr>
+               </table>
+           </td>
+       </tr>
+ 	</table>
+ </body>
+</html>
