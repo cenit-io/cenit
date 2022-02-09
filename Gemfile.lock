@@ -12,6 +12,12 @@ GIT
     cenit-admin (0.0.1)
 
 GIT
+  remote: https://github.com/cenit-io/cenit-api-builder.git
+  revision: 163637153e0a3a7f5f61bb65fa1e8c8fb94a2e0e
+  specs:
+    cenit-api_builder (0.1.0)
+
+GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
   revision: 31369fdcaf871938f4178d311a2230f760afc5cc
   specs:
@@ -588,6 +594,7 @@ DEPENDENCIES
   capybara
   carrierwave-mongoid
   cenit-admin!
+  cenit-api_builder!
   cenit-build_in_apps!
   cenit-config!
   cenit-mime!
