@@ -34,7 +34,7 @@ module Setup
                 begin
                   obj = options[source_key] || options[:object] ||
                         ((id = (options[:object_id] || (options[:object_ids] && options[:object_ids][offset]))) && model.where(id: id).first) ||
-                        (options.key?(:selector) && model.where(options[:selector]).first) ||
+                        (options.key?(:selector) && model.where(options[:selector]).skip(offset).first) ||
                         model.all.skip(offset).first
                   options[:object_ids] = [obj.id.is_a?(BSON::ObjectId) ? obj.id.to_s : obj.id] unless options[:object_ids] || obj.nil?
                   obj
