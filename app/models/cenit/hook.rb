@@ -115,19 +115,8 @@ module Cenit
         "#{HOOK_PREFIX}#{token}"
       end
 
-      def hook_token_key(tenant)
-        "#{HOOK_PREFIX}token_#{tenant[:id]}"
-      end
-
       def setup_hook(hook, tenant = Tenant.current)
-        hook_token_key = self.hook_token_key(tenant)
-        registered_token = Cenit::Redis.get(hook_token_key)
-        hook_key = self.hook_key(registered_token)
-        unless registered_token == hook.token
-          Cenit::Redis.del(hook_key)
-          Cenit::Redis.set(hook_token_key, hook.token)
-          hook_key = self.hook_key(hook.token)
-        end
+        hook_key = self.hook_key(hook.token)
         Cenit::Redis.set(hook_key, {
           tenant_id: tenant.id.to_s,
           hook_id: hook.id.to_s
