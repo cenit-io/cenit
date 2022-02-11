@@ -90,7 +90,7 @@ module Cenit
                   hook_id: hook.id,
                   token: token,
                   slug: slug,
-                  data: data,
+                  data: ::Base64.encode64(data),
                   content_type: content_type
                 }
                 Setup::HookDataProcessing.process(message)
@@ -115,19 +115,8 @@ module Cenit
         "#{HOOK_PREFIX}#{token}"
       end
 
-      def hook_token_key(tenant)
-        "#{HOOK_PREFIX}token_#{tenant[:id]}"
-      end
-
       def setup_hook(hook, tenant = Tenant.current)
-        hook_token_key = self.hook_token_key(tenant)
-        registered_token = Cenit::Redis.get(hook_token_key)
-        hook_key = self.hook_key(registered_token)
-        unless registered_token == hook.token
-          Cenit::Redis.del(hook_key)
-          Cenit::Redis.set(hook_token_key, hook.token)
-          hook_key = self.hook_key(hook.token)
-        end
+        hook_key = self.hook_key(hook.token)
         Cenit::Redis.set(hook_key, {
           tenant_id: tenant.id.to_s,
           hook_id: hook.id.to_s
@@ -167,9 +156,9 @@ module Cenit
                   JSON.parse(Cenit::Redis.get(hook_key(token)))
                 rescue
                   {}
-                end
-              if (tenant = Tenant.where(id: metadata['tenant_id']).first)
-                message[:hook_id] = metadata['hook_id']
+                end.with_indifferent_access
+              if (tenant = Tenant.where(id: metadata[:tenant_id]).first)
+                message[:hook_id] = metadata[:hook_id]
                 tenant.owner_switch do
                   Setup::HookDataProcessing.process(message)
                 end
@@ -188,7 +177,7 @@ module Cenit
           message = {
             token: token,
             slug: slug,
-            data: data,
+            data: ::Base64.encode64(data),
             content_type: content_type
           }.to_json
           Cenit::Redis.publish(:hook, message)

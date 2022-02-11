@@ -15,6 +15,8 @@ module Setup
     end
 
     def data
+      ::Base64.decode64(message[:data])
+    rescue
       message[:data]
     end
 
@@ -23,7 +25,12 @@ module Setup
         slug = message[:slug]
         if (hook_channel = hook.channels.where(slug: slug).first)
           if (data_type = hook_channel.data_type)
-            data = message[:data]
+            data =
+              begin
+                ::Base64.decode64(message[:data])
+              rescue
+                message[:data]
+              end
             attachment = {
               filename: 'data',
               body: data,
