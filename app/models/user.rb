@@ -142,7 +142,7 @@ class User
   end
 
   def custom_picture_url(size)
-    picture && picture.url
+    picture.present? && picture.url
   end
 
   def code_theme_enum
