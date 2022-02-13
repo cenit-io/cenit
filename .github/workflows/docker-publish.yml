@@ -7,7 +7,7 @@ name: "Docker: GitHub Packages"
 
 on:
   push:
-    branches: [ '**' ]
+    branches: [ master ]
     tags: [ 'v*.*.*' ]
 
 env:
