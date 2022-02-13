@@ -53,4 +53,3 @@ COPY lib lib/
 COPY app app/
 
 RUN yarn install --check-files
-RUN rake assets:precompile
