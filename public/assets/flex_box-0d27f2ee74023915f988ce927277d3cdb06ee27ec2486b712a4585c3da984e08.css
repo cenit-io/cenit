@@ -1,0 +1,159 @@
+/* line 2, app/assets/stylesheets/flex_box.css.scss */
+.flex {
+  display: flex;
+}
+
+/* line 6, app/assets/stylesheets/flex_box.css.scss */
+.full-width {
+  width: 100%;
+}
+
+/* line 10, app/assets/stylesheets/flex_box.css.scss */
+.full-height {
+  height: 100%;
+}
+
+/* line 14, app/assets/stylesheets/flex_box.css.scss */
+.full-v-width {
+  width: 100vw;
+}
+
+/* line 18, app/assets/stylesheets/flex_box.css.scss */
+.full-v-height {
+  height: 100vh;
+}
+
+/* line 22, app/assets/stylesheets/flex_box.css.scss */
+.column {
+  flex-direction: column;
+}
+
+/* line 26, app/assets/stylesheets/flex_box.css.scss */
+.row {
+  flex-direction: row;
+}
+
+/* line 30, app/assets/stylesheets/flex_box.css.scss */
+.wrap {
+  flex-wrap: wrap;
+}
+
+/* line 34, app/assets/stylesheets/flex_box.css.scss */
+.relative {
+  position: relative;
+}
+
+/* line 38, app/assets/stylesheets/flex_box.css.scss */
+.absolute {
+  position: absolute;
+}
+
+/* line 42, app/assets/stylesheets/flex_box.css.scss */
+.top-0 {
+  top: 0;
+}
+
+/* line 46, app/assets/stylesheets/flex_box.css.scss */
+.left-0 {
+  left: 0;
+}
+
+/* line 50, app/assets/stylesheets/flex_box.css.scss */
+.grow-1 {
+  flex-grow: 1;
+}
+
+/* line 54, app/assets/stylesheets/flex_box.css.scss */
+.grow-2 {
+  flex-grow: 2;
+}
+
+/* line 58, app/assets/stylesheets/flex_box.css.scss */
+.grow-3 {
+  flex-grow: 3;
+}
+
+/* line 62, app/assets/stylesheets/flex_box.css.scss */
+.grow-4 {
+  flex-grow: 4;
+}
+
+/* line 66, app/assets/stylesheets/flex_box.css.scss */
+.grow-5 {
+  flex-grow: 5;
+}
+
+/* line 70, app/assets/stylesheets/flex_box.css.scss */
+.flex-1-0-auto {
+  flex: 1 0 auto;
+}
+
+/* line 74, app/assets/stylesheets/flex_box.css.scss */
+.flex-0-1-auto {
+  flex: 0 1 auto;
+}
+
+/* line 78, app/assets/stylesheets/flex_box.css.scss */
+.justify-content-center {
+  justify-content: center;
+}
+
+/* line 82, app/assets/stylesheets/flex_box.css.scss */
+.justify-content-space-around {
+  justify-content: space-around;
+}
+
+/* line 86, app/assets/stylesheets/flex_box.css.scss */
+.align-items-center {
+  align-items: center;
+}
+
+/* line 90, app/assets/stylesheets/flex_box.css.scss */
+.flex-start {
+  align-items: flex-start;
+}
+
+/* line 94, app/assets/stylesheets/flex_box.css.scss */
+.flex-end {
+  align-items: flex-end;
+}
+
+/* line 98, app/assets/stylesheets/flex_box.css.scss */
+.baseline {
+  align-items: baseline;
+}
+
+/* line 102, app/assets/stylesheets/flex_box.css.scss */
+.space-around {
+  justify-content: space-around;
+}
+
+/* line 106, app/assets/stylesheets/flex_box.css.scss */
+.justify-flex-end {
+  justify-content: flex-end;
+}
+
+/* line 110, app/assets/stylesheets/flex_box.css.scss */
+.auto-scroll-x {
+  overflow-x: auto;
+}
+
+/* line 114, app/assets/stylesheets/flex_box.css.scss */
+.auto-scroll-y {
+  overflow-y: auto;
+}
+
+/* line 118, app/assets/stylesheets/flex_box.css.scss */
+.row-reverse {
+  flex-direction: row-reverse;
+}
+
+/* line 122, app/assets/stylesheets/flex_box.css.scss */
+.margin-0 {
+  margin: 0;
+}
+
+/* line 126, app/assets/stylesheets/flex_box.css.scss */
+.display-none {
+  display: none;
+}
