@@ -53,3 +53,7 @@ COPY lib lib/
 COPY app app/
 
 RUN yarn install --check-files
+
+COPY ./env.sh .
+RUN chmod +x env.sh
+
