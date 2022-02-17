@@ -19,7 +19,6 @@ config/deploy
 *.swp
 *.swo
 config/mongoid.yml
-public/assets/
 ## Environment normalisation:
 .bundle/
 config/deploy.rb

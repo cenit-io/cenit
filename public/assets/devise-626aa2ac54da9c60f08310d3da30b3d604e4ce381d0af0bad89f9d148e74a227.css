@@ -1,0 +1,323 @@
+/* line 1, app/assets/stylesheets/devise.scss */
+.responsive-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+/* line 6, app/assets/stylesheets/devise.scss */
+.responsive-box.centered {
+  align-items: center;
+}
+
+/* line 13, app/assets/stylesheets/devise.scss */
+.devise.box {
+  padding: 40px;
+  width: 100%;
+}
+
+/* line 17, app/assets/stylesheets/devise.scss */
+.devise.box .logo {
+  background-image: url("/images/logo_cenitsaas_web.png");
+  height: 40px;
+  width: 80px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* line 25, app/assets/stylesheets/devise.scss */
+.devise.box .control + .control {
+  margin-top: 16px;
+}
+
+/* line 29, app/assets/stylesheets/devise.scss */
+.devise.box .form-control {
+  width: 100%;
+  border-radius: 6px;
+  padding: 14px;
+  border: solid 1px lightgrey;
+}
+
+/* line 36, app/assets/stylesheets/devise.scss */
+.devise.box .btn {
+  cursor: pointer;
+}
+
+/* line 40, app/assets/stylesheets/devise.scss */
+.devise.box .btn, .devise.box .btn:hover, .devise.box .btn:visited, .devise.box .btn:link, .devise.box .btn:active {
+  text-decoration: none;
+}
+
+/* line 44, app/assets/stylesheets/devise.scss */
+.devise.box .btn.btn-primary {
+  padding: 14px;
+  border-radius: 6px;
+  border: 0;
+  background: #437697;
+  color: white;
+  font-weight: 600;
+  font-size: small;
+}
+
+/* line 54, app/assets/stylesheets/devise.scss */
+.devise.box .btn.btn-danger {
+  padding: 14px;
+  border-radius: 6px;
+  border: 0;
+  background: darkred;
+  color: white;
+  font-weight: 600;
+}
+
+/* line 63, app/assets/stylesheets/devise.scss */
+.devise.box .btn.btn-success {
+  padding: 14px;
+  border-radius: 6px;
+  border: 0;
+  background: forestgreen;
+  color: white;
+  font-weight: 600;
+}
+
+/* line 72, app/assets/stylesheets/devise.scss */
+.devise.box .btn.link {
+  padding: 14px 40px;
+  border-radius: 6px;
+  border: 0;
+  background: forestgreen;
+  color: white;
+  font-weight: 600;
+}
+
+/* line 82, app/assets/stylesheets/devise.scss */
+.devise.box .link {
+  text-decoration: none;
+}
+
+/* line 86, app/assets/stylesheets/devise.scss */
+.devise.box .link:hover {
+  text-decoration: underline;
+}
+
+/* line 90, app/assets/stylesheets/devise.scss */
+.devise.box .link.link-primary {
+  color: #437697;
+  font-weight: 600;
+}
+
+/* line 94, app/assets/stylesheets/devise.scss */
+.devise.box .link.link-primary.small {
+  font-size: small;
+}
+
+/* line 100, app/assets/stylesheets/devise.scss */
+.devise.box .recaptcha {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* line 105, app/assets/stylesheets/devise.scss */
+.devise.box .terms {
+  margin-top: 8px;
+  text-align: right;
+  font-size: small;
+  font-weight: 100;
+  color: darkslategray;
+}
+
+/* line 112, app/assets/stylesheets/devise.scss */
+.devise.box .terms a {
+  font-weight: 600;
+  color: darkslategray;
+}
+
+/* line 118, app/assets/stylesheets/devise.scss */
+.devise.box .separator {
+  height: 0;
+  width: 100%;
+  border-bottom: solid 1px lightgrey;
+  margin: 24px;
+}
+
+/* line 125, app/assets/stylesheets/devise.scss */
+.devise.box .text-separator {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  margin-top: 24px;
+}
+
+/* line 132, app/assets/stylesheets/devise.scss */
+.devise.box .text-separator::before {
+  border-top: 1px solid #adadad;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+
+/* line 142, app/assets/stylesheets/devise.scss */
+.devise.box .text-separator .label {
+  background: #ffffff;
+  padding: 0 8px;
+  z-index: 0;
+}
+
+/* line 149, app/assets/stylesheets/devise.scss */
+.devise.box .question {
+  margin-top: 24px;
+}
+
+/* line 152, app/assets/stylesheets/devise.scss */
+.devise.box .question .label {
+  margin-right: 8px;
+}
+
+/* line 157, app/assets/stylesheets/devise.scss */
+.devise.box .avatar {
+  width: 100px;
+  height: 100px;
+  padding: 16px;
+  border: solid 1px lightgrey;
+  background: transparent;
+  border-radius: 50%;
+}
+
+/* line 165, app/assets/stylesheets/devise.scss */
+.devise.box .avatar + .avatar {
+  margin-left: -16px;
+}
+
+/* line 169, app/assets/stylesheets/devise.scss */
+.devise.box .avatar.small {
+  width: 50px;
+  height: 50px;
+  padding: 8px;
+}
+
+/* line 176, app/assets/stylesheets/devise.scss */
+.devise.box .app-name {
+  font-size: 24px;
+  font-weight: 600;
+  padding: 16px;
+}
+
+/* line 182, app/assets/stylesheets/devise.scss */
+.devise.box .access-granted {
+  border: solid 1px orangered;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+/* line 187, app/assets/stylesheets/devise.scss */
+.devise.box .access-granted .label {
+  padding: 8px;
+  color: darkred;
+  background: #fcf1dc;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* line 197, app/assets/stylesheets/devise.scss */
+.devise.box .access-requested {
+  border: solid 1px darkred;
+  width: 100%;
+}
+
+/* line 201, app/assets/stylesheets/devise.scss */
+.devise.box .access-requested .label {
+  padding: 8px;
+  color: darkred;
+  background: #ffddee;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* line 211, app/assets/stylesheets/devise.scss */
+.devise.box .access-success {
+  border: solid 1px forestgreen;
+  width: 100%;
+}
+
+/* line 215, app/assets/stylesheets/devise.scss */
+.devise.box .access-success .label {
+  padding: 8px;
+  color: forestgreen;
+  background: #ccddee;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* line 225, app/assets/stylesheets/devise.scss */
+.devise.box .actions {
+  margin-top: 40px;
+}
+
+/* line 229, app/assets/stylesheets/devise.scss */
+.devise.box .item {
+  padding: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+/* line 235, app/assets/stylesheets/devise.scss */
+.devise.box .item + .item {
+  margin-left: 8px;
+}
+
+/* line 239, app/assets/stylesheets/devise.scss */
+.devise.box .item:hover {
+  background: aliceblue;
+}
+
+/* line 243, app/assets/stylesheets/devise.scss */
+.devise.box .item .title {
+  text-align: center;
+  padding-top: 8px;
+}
+
+/* line 249, app/assets/stylesheets/devise.scss */
+.devise.box .list-item {
+  padding: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+/* line 255, app/assets/stylesheets/devise.scss */
+.devise.box .list-item:hover {
+  background: aliceblue;
+}
+
+/* line 260, app/assets/stylesheets/devise.scss */
+.devise.box .errors {
+  color: red;
+  padding: 8px;
+}
+
+/* line 264, app/assets/stylesheets/devise.scss */
+.devise.box .errors ul {
+  list-style: none;
+  padding: 0;
+}
+
+@media only screen and (min-width: 600px) {
+  /* line 274, app/assets/stylesheets/devise.scss */
+  .responsive-box {
+    width: 100vw;
+    height: 100vh;
+  }
+  /* line 281, app/assets/stylesheets/devise.scss */
+  .devise.box {
+    border: solid 1px lightgrey;
+    border-radius: 8px;
+    width: 380px;
+  }
+}

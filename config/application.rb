@@ -146,7 +146,7 @@ module Cenit
           end
         end
       end
-    end
+    end unless ARGV.include? "assets:precompile"
 
     if Rails.env.production? &&
       (notifier_email = ENV['NOTIFIER_EMAIL']) &&
