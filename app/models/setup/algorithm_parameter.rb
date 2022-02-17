@@ -17,6 +17,8 @@ module Setup
 
     validates_presence_of :name
 
+    validates_format_of :name, with: /\A[a-zA-Z_][a-zA-Z_0-9]*\Z/
+
     validate do
       if type
         unless type.blank?

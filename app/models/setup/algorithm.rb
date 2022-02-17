@@ -45,16 +45,20 @@ module Setup
 
     validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
 
+    def required_parameters_size
+      parameters.inject(0) { |s, p| s + (p.required ? 1 : 0) }
+    end
+
     def code_extension
       case language
-      when :python
-        '.py'
-      when :javascript
-        '.js'
-      when :php
-        '.php'
-      else
-        '.rb'
+        when :python
+          '.py'
+        when :javascript
+          '.js'
+        when :php
+          '.php'
+        else
+          '.rb'
       end
     end
 
@@ -127,21 +131,21 @@ module Setup
       if output_datatype.is_a? Setup::FileDataType
         begin
           case output
-          when Hash, Array
-            r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
-          when String
-            ct = 'text/plain'
-            begin
-              JSON.parse(output)
-              ct = 'application/json'
-            rescue JSON::ParserError
-              unless Nokogiri.XML(output).errors.present?
-                ct = 'application/xml'
+            when Hash, Array
+              r = output_datatype.create_from!(output.to_json, contentType: 'application/json')
+            when String
+              ct = 'text/plain'
+              begin
+                JSON.parse(output)
+                ct = 'application/json'
+              rescue JSON::ParserError
+                unless Nokogiri.XML(output).errors.present?
+                  ct = 'application/xml'
+                end
               end
-            end
-            r = output_datatype.create_from!(output, contentType: ct)
-          else
-            r = output_datatype.create_from!(output.to_s)
+              r = output_datatype.create_from!(output, contentType: ct)
+            else
+              r = output_datatype.create_from!(output.to_s)
           end
         rescue Exception
           r = output_datatype.create_from!(output.to_s)
@@ -149,18 +153,18 @@ module Setup
       else
         begin
           case output
-          when Hash, String
-            begin
-              r = output_datatype.create_from_json!(output)
-            rescue Exception => e
-              puts e.backtrace
-            end
-          when Array
-            output.each do |item|
-              rc += do_store_output(item)
-            end
-          else
-            fail
+            when Hash, String
+              begin
+                r = output_datatype.create_from_json!(output)
+              rescue Exception => e
+                puts e.backtrace
+              end
+            when Array
+              output.each do |item|
+                rc += do_store_output(item)
+              end
+            else
+              fail
           end
         rescue Exception
           fail 'Output failed to validate against Output DataType.'
@@ -185,12 +189,12 @@ module Setup
         end
       input =
         case args.length
-        when 0
-          options[:input] || []
-        when 1
-          args[0]
-        else
-          args
+          when 0
+            options[:input] || []
+          when 1
+            args[0]
+          else
+            args
         end
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
@@ -201,6 +205,8 @@ module Setup
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       input = input.dup
+      required_size = required_parameters_size
+      fail "expected #{required_size} args but got #{input.length}" if input.length < required_size
       if (index = task_parameter_index) && index <= input.length && input[index].nil?
         if index < input.length
           input[index] = task || Setup::Task.current
