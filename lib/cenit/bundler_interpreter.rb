@@ -159,14 +159,16 @@ module Cenit
           params_initializer = "#{args}=args;" + params_initializer.gsub('=args[', "=#{args}[")
         end
         links = {}
-        code = params_initializer + Capataz.rewrite(algorithm.code,
-                                                    code_key: algorithm.code_key,
-                                                    locals: locals,
-                                                    self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
-                                                    self_send_prefixer: self,
-                                                    links: links,
-                                                    iteration_counter_prefix: "alg#{algorithm.id}_it",
-                                                    invoke_counter_prefix: "alg#{algorithm.id}_invk")
+        required_size = algorithm.required_parameters_size
+        code = "fail \"expected #{required_size} args when invoking #{algorithm.name} but got \#{args.length}\" if args.length < #{required_size};" +
+          params_initializer + Capataz.rewrite(algorithm.code,
+                                               code_key: algorithm.code_key,
+                                               locals: locals,
+                                               self_linker: options[:self_linker] || algorithm.self_linker || algorithm,
+                                               self_send_prefixer: self,
+                                               links: links,
+                                               iteration_counter_prefix: "alg#{algorithm.id}_it",
+                                               invoke_counter_prefix: "alg#{algorithm.id}_invk")
         links.each do |key, alg|
           next if @bundling_stack.include?(key)
           bundle(key, alg)
@@ -210,6 +212,8 @@ module Cenit
             "__interpreter_run('#{::Regexp.last_match[1]}',"
           end
           interpreter._js_context__.eval(js_code, thread_safe: true)
+          required_size = algorithm.required_parameters_size
+          "fail \"expected #{required_size} args when invoking #{algorithm.name} but got \#{args.length}\" if args.length < #{required_size}\n" +
           params_initializer + "\nresult = _js_context__.eval '#{js_fn}()', thread_safe: true
           @__js_arguments__.pop
           result"
