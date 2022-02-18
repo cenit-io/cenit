@@ -111,7 +111,7 @@ gem 'cenit-oauth_app', git: 'https://github.com/cenit-io/cenit-oauth_app.git'
 gem 'cenit-open_id', git: 'https://github.com/cenit-io/cenit-open_id.git'
 gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'
 gem 'cenit-mime', git: 'https://github.com/cenit-io/cenit-mime.git'
-gem 'cenit-api_builder', git: 'https://github.com/cenit-io/cenit-api-builder.git'
+gem 'cenit-api_builder', git: 'https://github.com/cenit-io/cenit-api-builder.git', branch: 'master'
 
 custom_gemfile_name = 'custom_Gemfile'
 
