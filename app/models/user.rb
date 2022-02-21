@@ -77,7 +77,7 @@ class User
   #UI options
   field :code_theme, type: String
 
-  field :super_admin_enabled, type: Mongoid::Boolean, default: -> { has_role?(:super_admin) }
+  field :super_admin_enabled, type: Mongoid::Boolean
 
   def inspecting_fields
     super + (has_role?(:super_admin) ? [:super_admin_enabled] : [])

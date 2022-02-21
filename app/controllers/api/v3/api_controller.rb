@@ -1668,14 +1668,21 @@ end
 
 ::User.class_eval do
   def get_digest_switch_sudo(_request, options = {})
-    if update(super_admin_enabled: !super_admin_enabled)
-      {
-        json: to_hash(options)
-      }
+    if has_role?(:super_admin)
+      if update(super_admin_enabled: !super_admin_enabled)
+        {
+          json: to_hash(options)
+        }
+      else
+        {
+          json: self.class.pretty_errors(self),
+          status: :unprocessable_entity
+        }
+      end
     else
       {
-        json: self.class.pretty_errors(self),
-        status: :unprocessable_entity
+        json: { '$': 'Not super user' },
+        status: :unauthorized
       }
     end
   rescue

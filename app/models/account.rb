@@ -98,12 +98,13 @@ class Account
   end
 
   def read_raw_attribute(name)
-    (!(value = super).nil? &&
-
-      (new_record? || !self.class.build_in_data_type.protecting?(name) ||
-        ((current_user = User.try(:current)) && current_user.owns?(self))) &&
-
-      value) || nil
+    if !(value = super).nil? && (
+      new_record? || !self.class.build_in_data_type.protecting?(name) ||
+        ((current_user = User.try(:current)) && current_user.owns?(self)))
+      value
+    else
+      nil
+    end
   end
 
   def inspect_updated_fields
