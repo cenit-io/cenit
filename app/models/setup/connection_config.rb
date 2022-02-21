@@ -13,12 +13,12 @@ module Setup
     validates_uniqueness_of :connection
 
     def read_raw_attribute(name)
-      (!(value = super).nil? &&
-
-        (new_record? || !Setup::Connection.data_type.protecting?(name) ||
-          ((current_user = User.current) && current_user.owns?(Account.current_tenant))) &&
-
-        value) || nil
+      if !(value = super).nil? && (new_record? || !Setup::Connection.data_type.protecting?(name) ||
+          ((current_user = User.current) && current_user.owns?(Account.current_tenant)))
+        value
+      else
+        nil
+      end
     end
 
     def generate_number(options = {})
