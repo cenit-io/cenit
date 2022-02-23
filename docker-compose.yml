@@ -22,7 +22,7 @@ services:
       - UNICORN_WORKERS=4
       - MAXIMUM_UNICORN_CONSUMERS=4
     build: .
-    command: bash -c "rm -fR /var/www/shared/pids/* ; bundle install ; bundle exec unicorn_rails -c config/unicorn.rb"
+    command: bash -c "rm -fR /var/www/shared/pids/* ; bundle exec unicorn_rails -c config/unicorn.rb"
     volumes:
       - .:/var/www/cenit
       - /var/www/shared
