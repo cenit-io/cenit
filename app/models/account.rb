@@ -211,10 +211,10 @@ class Account
   class << self
 
     def find_where(expression)
-      scope = all(expression)
+      scope = where(expression)
       unless User.super_access?
         user_id = (user = User.current) && user.id
-        member_account_ids = user && user.member_account_ids
+        member_account_ids = user&.member_account_ids
         scope = scope.and({ '$or' => [
           { 'owner_id' => user_id },
           { '_id' => { '$in' => member_account_ids || [] } }
@@ -228,7 +228,7 @@ class Account
     end
 
     def notify(attrs)
-      current && current.notify(attrs)
+      current&.notify(attrs)
     end
 
     def current_id

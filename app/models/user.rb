@@ -237,9 +237,9 @@ class User
   class << self
 
     def find_where(expression)
-      scope = all(expression)
+      scope = where(expression)
       unless current_super_admin?
-        scope = scope.and(id: current && current.id)
+        scope = scope.and(id: current&.id)
       end
       scope
     end
