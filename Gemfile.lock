@@ -13,10 +13,11 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-api-builder.git
-  revision: 681633e07ac93ef77fa3c4a770d91a5099a37e5b
+  revision: 550e52886d6c65a6163746706ad488f85ac3966b
   branch: master
   specs:
     cenit-api_builder (0.1.0)
+      openapi3_parser (~> 0.9)
 
 GIT
   remote: https://github.com/cenit-io/cenit-build_in_apps.git
@@ -211,6 +212,7 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.4)
       ruby-rc4 (>= 0.1.5)
+    commonmarker (0.23.2)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
     daemons (1.4.0)
@@ -385,6 +387,9 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
+    openapi3_parser (0.9.1)
+      commonmarker (~> 0.17)
+      psych (~> 3.1)
     orm_adapter (0.5.0)
     parallel (1.20.1)
     parser (3.0.2.0)
@@ -420,6 +425,7 @@ GEM
       yard (~> 0.9.11)
     pry-rails (0.3.9)
       pry (>= 0.10.4)
+    psych (3.3.2)
     public_suffix (4.0.6)
     raabro (1.4.0)
     rabl (0.14.5)
