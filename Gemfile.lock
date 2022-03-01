@@ -13,7 +13,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-api-builder.git
-  revision: 918e514fa56b7636a4d18147249cfa398360707b
+  revision: 912d58290387c8595cb5010512a8e4f5cbbca580
   branch: master
   specs:
     cenit-api_builder (0.1.0)
