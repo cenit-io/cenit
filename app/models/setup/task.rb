@@ -221,7 +221,7 @@ module Setup
     end
 
     def before_run
-      true
+      Cenit::MultiTenancy.current_tenant.check_enabled!
     end
 
     protected :before_run

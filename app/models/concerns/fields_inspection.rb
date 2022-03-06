@@ -30,7 +30,9 @@ module FieldsInspection
   module ClassMethods
     def inspect_fields(*args)
       if args.length.positive?
-        @inspecting_fields = args.collect(&:to_s).collect(&:to_sym)
+        @inspecting_fields = (@inspecting_fields || []).concat(
+          args.collect(&:to_s).collect(&:to_sym)
+        )
       end
       @inspecting_fields || []
     end

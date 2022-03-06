@@ -10,10 +10,10 @@ class Account
 
   DEFAULT_INDEX_MAX_ENTRIES = 100
 
-  inspect_fields :name, :notification_level, :time_zone, :index_max_entries
+  inspect_fields :name, :notification_level, :time_zone, :index_max_entries, :locked
 
   build_in_data_type.with(
-    :name, :notification_level, :time_zone, :number, :authentication_token, :users
+    :name, :notification_level, :time_zone, :number, :authentication_token, :users, :locked
   ).including(
     :owner
   ).discarding(
@@ -22,6 +22,9 @@ class Account
   build_in_data_type.protecting(:number, :authentication_token)
   build_in_data_type.and(
     properties: {
+      unlocked: {
+        type: 'boolean'
+      },
       notification_level: {
         enum: Setup::SystemNotification.type_enum
       },
@@ -57,6 +60,8 @@ class Account
 
   field :index_max_entries, type: Integer, default: DEFAULT_INDEX_MAX_ENTRIES
 
+  field :locked, type: Mongoid::Boolean, default: false
+
   validates_uniqueness_of :name, scope: :owner
   validates_inclusion_of :notification_level, in: ->(a) { a.notification_level_enum }
 
@@ -78,9 +83,54 @@ class Account
 
   before_create :check_creation_enabled
 
-  before_save :init_heroku_db, :validates_configuration
+  before_save :init_heroku_db, :validates_configuration, :abort_unless_check_lock!
 
   after_destroy { clean_up }
+
+  def abort_unless_check_lock!
+    throw(:abort) unless check_lock
+  end
+
+  def check_lock
+    if (changes = self.changes['locked']) &&
+       !changes[1] && ::Cenit::MultiTenancy.user_model.current&.id != owner_id
+      errors.add(:locked, 'can only be unlocked by the owner.')
+      errors.add(:unlocked, 'can only be unlocked by the owner.')
+    end
+    errors.blank?
+  end
+
+  def check_lock!
+    check_lock || fail(errors.full_messages.to_sentence)
+  end
+
+  def locked?
+    locked
+  end
+
+  def unlocked?
+    unlocked
+  end
+
+  def unlocked
+    !locked?
+  end
+
+  def unlocked=(unlocked)
+    self.locked = !unlocked
+  end
+
+  def enabled?
+    unlocked?
+  end
+
+  def check_enabled
+    enabled?
+  end
+
+  def check_enabled!
+    check_enabled || fail("Tenant #{label} (ID #{id}) is not enabled")
+  end
 
   def check_creation_enabled
     unless @for_create
