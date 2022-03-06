@@ -126,4 +126,4 @@ We encourage the community to join the initiative and contribute to the dissemin
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
 [join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/zt-10zluubzr-42nktMgCndc5I1JFtG0uZA
+https://join.slack.com/t/cenitio/shared_invite/zt-12y3w7xvr-4ufxyEye69pohx1R6hjqXg
