@@ -92,7 +92,7 @@ class Account
   end
 
   def check_lock
-    if (changes = self.changes['locked']) &&
+    if !new_record? && (changes = self.changes['locked']) &&
        !changes[1] && ::Cenit::MultiTenancy.user_model.current&.id != owner_id
       errors.add(:locked, 'can only be unlocked by the owner.')
       errors.add(:unlocked, 'can only be unlocked by the owner.')
