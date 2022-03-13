@@ -25,7 +25,11 @@ module Setup
     end
 
     def save(*args, &block)
-      check_notification_level && super
+      (@level_checked = check_notification_level) && super
+    end
+
+    def save_skipped?
+      !@level_checked
     end
 
     def check_notification_level

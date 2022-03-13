@@ -29,7 +29,9 @@ module Setup
         if notification.save
           notification
         else
-          puts "Error creating notification: #{notification.errors.full_messages.to_sentence}"
+          unless notification.save_skipped?
+            puts "Error creating notification: #{notification.errors.full_messages.to_sentence}"
+          end
           nil
         end
       ensure
