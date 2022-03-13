@@ -37,8 +37,12 @@ module Cenit
       yield(self) if block_given?
     end
 
+    def app_module_name
+      "#{namespace}::#{name}"
+    end
+
     def app_module
-      "#{namespace}::#{name}".constantize
+      app_module_name.constantize
     rescue
       nil
     end

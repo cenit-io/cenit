@@ -672,6 +672,34 @@ module Cenit
     end
   end
 
+  BuildInApp.module_eval do
+
+    def get_digest_reinstall(_request, _options = {})
+      if User.current_super_admin?
+        execution = ::Setup::BuildInAppReinstall.process(
+          build_in_app_id: id,
+          task_description: "Re-installing build-in app #{app_module_name}"
+        )
+        if execution.is_a?(Setup::SystemNotification)
+          fail execution.message
+        end
+        {
+          json: execution.to_hash(include_id: true, include_blanks: false)
+        }
+      else
+        {
+          json: { '$': 'Not authorized' },
+          status: :unauthorized
+        }
+      end
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
+    end
+  end
+
   ApplicationId.class_eval do
 
     def get_digest_switch_trust(_request, options = {})
