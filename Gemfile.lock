@@ -13,7 +13,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-api-builder.git
-  revision: 912d58290387c8595cb5010512a8e4f5cbbca580
+  revision: a4384cf120cf54a5ef2cbe162ef95584ea5d0931
   branch: master
   specs:
     cenit-api_builder (0.1.0)
@@ -212,7 +212,7 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.4)
       ruby-rc4 (>= 0.1.5)
-    commonmarker (0.23.2)
+    commonmarker (0.23.4)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
     daemons (1.4.0)
