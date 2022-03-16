@@ -106,7 +106,9 @@ Cenit::Application.routes.draw do
     match "/app/#{key}/*path", to: "#{controller.app_module.controller_prefix}/main#cors_check", via: [:options]
     controller.routes.each do |route|
       method, path, options = route
-      match "/app/#{key}/#{path}".squeeze('/'), to: "#{controller.app_module.controller_prefix}/main##{options[:to]}", via: method
+      options[:to] = "#{controller.app_module.controller_prefix}/main##{options[:to]}"
+      options[:via] = method
+      match "/app/#{key}/#{path}".squeeze('/'), options
     end
     get "/app/#{key}".squeeze('/'), to: 'application#index'
   end
