@@ -15,11 +15,7 @@ module Setup
 
     def execute(options)
       code = preprocess_erb(options[:code], options)
-
-      if options[:control]
-        options[:control].view ||= ActionView::Base.new(nil, {}, options[:control].try(:controller))
-      end
-      av = options[:control].try(:view) || ViewRenderer.new
+      av = options[:control] ? (options[:control].view ||= ViewRenderer.new(options[:control].controller)) : ViewRenderer.new
 
       av.render inline: code, handlers: 'erb', locals: options
     end
@@ -65,8 +61,8 @@ module Setup
 
     class ViewRenderer < ActionView::Base
 
-      def initialize
-        super(ActionView::LookupContext.new([]), {}, nil)
+      def initialize(controller = nil)
+        super(ActionView::LookupContext.new([]), {}, controller)
       end
 
       def compiled_method_container
