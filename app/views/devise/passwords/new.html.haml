@@ -9,8 +9,7 @@
         %button.btn.btn-primary.full-width
           = t('admin.forgotten.new_submit')
 
-    .flex.full-width.justify-flex-end
-      = link_to "Try to sign in again", new_session_path(resource_name), class: 'link link-primary small'
+    = render partial: 'devise/shared/try_sign_in'
 
     .separator
 
