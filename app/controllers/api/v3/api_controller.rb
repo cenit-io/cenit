@@ -1102,11 +1102,18 @@ module Setup
         end
       readable.rewind
       file = create_from(readable, options)
-      {
-        json: Api::V3::ApiController::Template.with(file) do |template|
-          template.to_hash(only: %w(id filename contentType length md5))
-        end
-      }
+      if file.errors.present?
+        {
+          json: records_model.pretty_errors(file),
+          status: :unprocessable_entity
+        }
+      else
+        {
+          json: Api::V3::ApiController::Template.with(file) do |template|
+            template.to_hash(only: %w(id filename contentType length md5))
+          end
+        }
+      end
     rescue Exception => ex
       {
         json: { error: ex.message },
