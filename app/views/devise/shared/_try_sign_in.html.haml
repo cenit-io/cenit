@@ -1,0 +1,3 @@
+- unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+  .flex.full-width.justify-flex-end
+    = link_to "Try to sign in again", new_session_path(resource_name), class: 'link link-primary small'
