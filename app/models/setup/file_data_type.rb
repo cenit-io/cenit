@@ -43,11 +43,22 @@ module Setup
 
     validates_inclusion_of :id_type, in: ->(file_data_type) { file_data_type.class.id_type_enum.values + [nil] }
 
-    before_save :validate_configuration
+    before_save :validate_configuration!, :check_id_type!
 
     after_save { file_store_config.save }
 
     after_destroy { file_store_config.destroy }
+
+    def check_id_type!
+      if !new_record? && self.changes['id_type'] && records_model.all.count > 0
+        errors.add(:id_type, 'can not be changed when file records exist.')
+        throw :abort
+      end
+    end
+
+    def validate_configuration!
+      throw :abort unless validate_configuration
+    end
 
     def validate_configuration
       self.title = self.name if title.blank?

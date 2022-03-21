@@ -41,7 +41,11 @@ module Setup
             if (status = message[:public_read].to_s.to_b) || file_store.nil?
               file_store ||= data_type.file_store
               data_type.all.each do |file|
-                file_store.set_public_read(file, status)
+                begin
+                  file_store.set_public_read(file, status)
+                rescue Exception => ex
+                  notify(ex)
+                end
                 processed += 1
                 update(progress: 90 + 10 * processed / total)
               end
