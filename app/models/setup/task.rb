@@ -177,7 +177,11 @@ module Setup
             false
           end
         if do_run
-          run(message)
+          begin
+            run(message)
+          ensure
+            Task.execution_done(self)
+          end
           time = Time.now
           if resuming_later?
             finish(:paused, "#{task_desc} paused at #{time}", :notice, time)
@@ -399,6 +403,22 @@ module Setup
           reflect_on_association(field).klass
         else
           self
+        end
+      end
+
+      def on_executed(&block)
+        (@on_executed ||= []) << block if block
+      end
+
+      def execution_done(task)
+        if @on_executed
+          @on_executed.each do |callback|
+            begin
+              callback.call(task)
+            rescue Exception => ex
+              SystemReport.create_from(ex, 'Task execution callback')
+            end
+          end
         end
       end
     end
