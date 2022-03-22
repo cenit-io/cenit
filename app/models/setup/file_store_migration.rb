@@ -9,7 +9,7 @@ module Setup
 
     def auto_description
       if (file_type = agent_from_msg)
-        "Executing #{file_type.custom_title}"
+        "Migrating file store of #{file_type.custom_title}"
       else
         super
       end
@@ -43,8 +43,8 @@ module Setup
               data_type.all.each do |file|
                 begin
                   file_store.set_public_read(file, status)
-                rescue Exception => ex
-                  notify(ex)
+                rescue ::Exception => ex
+                  notify(message: "Error setting public read to #{status} on #{data_type.custom_title} ##{file.id} (#{file.filename}): #{ex.message}")
                 end
                 processed += 1
                 update(progress: 90 + 10 * processed / total)
