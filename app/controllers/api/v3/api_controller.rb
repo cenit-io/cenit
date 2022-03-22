@@ -1110,7 +1110,7 @@ module Setup
       else
         {
           json: Api::V3::ApiController::Template.with(file) do |template|
-            template.to_hash(only: %w(id filename contentType length md5))
+            template.to_hash(only: %w(id filename contentType length md5 public_url))
           end
         }
       end
