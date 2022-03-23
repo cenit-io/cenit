@@ -17,7 +17,11 @@ module Mongoff
           end
         if (associations[name.to_s] || associations[name.to_sym]).many?
           record.send(name).each_with_index do |associated, index|
-            next if stack.include?(associated)
+            begin
+              next if stack.include?(associated)
+            rescue
+              next
+            end
             next unless (associated_errors = model.pretty_errors(associated, stack)).present?
             errors[name][index] = associated_errors
           end

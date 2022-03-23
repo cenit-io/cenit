@@ -12,7 +12,7 @@ module Setup
     field :token_span, type: BigDecimal
 
     def expires_at
-      authorized_at && token_span && authorized_at + token_span
+      authorized_at && token_span && authorized_at + token_span.seconds
     end
 
     def expires_in

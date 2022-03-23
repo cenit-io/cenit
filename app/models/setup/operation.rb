@@ -5,8 +5,6 @@ module Setup
       .including(:resource)
       .referenced_by(:resource, :method)
 
-    deny :create
-
     belongs_to :resource, class_name: Setup::Resource.to_s, inverse_of: :operations
 
     trace_ignore :resource_id
