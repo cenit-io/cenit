@@ -17,11 +17,17 @@
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * support@cenit.io
 
-# Cenit IO [(https://cenit.io)](https://cenit.io)
+# Cenit [(https://cenit.io)](https://cenit.io)
 
-Is a 100% open integration Platform (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
+Is a 100% open integration-platform-as-a-service (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
 
 To install and learn more about the platform check the [documentation](https://cenit-io.github.io/docs)
+
+# Integration Platforms build on top of Cenit
+
+* https://miesh.io - Platform to Automate Your Software Integrations
+* https://secuto.io - IAM Program Management Platform
+* https://velosimo.com - Government Software Integrations
 
 ## Why
 
