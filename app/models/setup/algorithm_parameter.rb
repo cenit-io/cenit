@@ -11,7 +11,7 @@ module Setup
     field :type, type: String
     field :many, type: Mongoid::Boolean
     field :required, type: Mongoid::Boolean, default: true
-    field :default, type: String
+    field :default
 
     embedded_in :algorithm, class_name: Setup::Algorithm.to_s, inverse_of: :parameters
 
@@ -26,18 +26,12 @@ module Setup
         end
       end
       if required
-        unless default.blank?
-          errors.add(:default, 'is not allowed')
-        end
+        errors.add(:default, 'is not allowed on required parameters') unless default.nil?
       else
-        unless default.blank?
-          if type == 'string'
-            self.default = "\"#{default}" unless default.start_with?('"')
-            self.default = "#{default}\"" unless default.end_with?('"')
-          end
+        unless default.nil?
           begin
             Mongoff::Validator.validate_instance(
-              JSON.parse(default),
+              default,
               schema: schema,
               data_type: self.class.data_type
             )
@@ -68,80 +62,25 @@ module Setup
             '$ref': Setup::Collection.reflect_on_association(type.to_s.downcase.tr(' ', '_').pluralize).klass.to_s
           }
         end.stringify_keys
-      sch[:default] = default_json unless required
+      sch[:default] = default unless required
       sch = (many ? { type: 'array', items: sch } : sch)
       sch[:referenced] = true unless type.blank? || %w(integer number boolean string object).include?(type)
       sch.stringify_keys
     end
 
-    def default_json
-      if many
-        []
-      else
-        case type
-        when 'integer'
-          default.to_i
-        when 'number'
-          default.to_f
-        when 'boolean'
-          default.to_b
-        when 'string'
-          default
-        when 'object'
-          begin
-            JSON.parse(default)
-          rescue
-            {}
-          end
-        else
-          nil
-        end
-      end
-    end
-
     def default_ruby
-      if default.present?
-        JSON.parse(default).inspect
-      elsif many
-        '[]'
-      else
-        case type
-        when 'integer'
-          '0'
-        when 'number'
-          '0.0'
-        when 'boolean'
-          'false'
-        when 'string'
-          '""'
-        when 'object'
-          '{}'
-        else
+      case default
+        when nil
           'nil'
-        end
+        when String
+          default
+        else
+          default.to_json
       end
     end
 
     def default_javascript
-      if many
-        '[]'
-      else
-        default.presence ||
-          case type
-          when 'integer'
-            '0'
-          when 'number'
-            '0.0'
-          when 'boolean'
-            'false'
-          when 'string'
-            '""'
-          when 'object'
-            '{}'
-          else
-            'false' #TODO V8 does not recognize null or undefined
-          end
-      end
+      default.to_json
     end
   end
 end
