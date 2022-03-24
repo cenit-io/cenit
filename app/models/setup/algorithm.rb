@@ -287,7 +287,9 @@ module Setup
         {
           type: 'object',
           properties: properties = {},
-          required: parameters.select(&:required).collect(&:name)
+          required: parameters
+                      .select { |p| p.required && p.name != 'task' }
+                      .collect(&:name)
         }
       parameters.each { |p| properties[p.name] = p.schema }
       schema.stringify_keys
