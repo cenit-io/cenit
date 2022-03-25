@@ -7,7 +7,7 @@ GIT
 
 GIT
   remote: https://github.com/cenit-io/cenit-admin.git
-  revision: 2c85d7658081cc0052d0225d84cc2059442a2f6c
+  revision: c90addcdb12ec7a0a55a7a333cc16bcd0a470ca3
   specs:
     cenit-admin (0.0.1)
 
