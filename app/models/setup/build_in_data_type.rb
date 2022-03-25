@@ -104,6 +104,10 @@ module Setup
       end
     end
 
+    def rebuild_schema
+      @schema = build_schema
+    end
+
     def schema
       @schema ||= build_schema
     end
