@@ -451,7 +451,7 @@ module Api::V3
       page = get_page
       skip = page < 1 ? 0 : (page - 1) * limit
 
-      items = accessible_records.limit(limit).skip(skip).where(query_selector)
+      items = accessible_records.limit(limit).skip(skip).and(query_selector)
 
       if (sort = query_options[:sort])
         sort.each do |field, sort_option|

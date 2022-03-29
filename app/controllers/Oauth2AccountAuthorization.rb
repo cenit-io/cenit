@@ -16,7 +16,7 @@ module OAuth2AccountAuthorization
           if (user = access_token.user)
             User.current = user
             if (x_tenant_id = request.headers['X-Tenant-Id'])
-              if (x_tenant = Account.where(id: x_tenant_id).first)
+              if (x_tenant = Account.find_where(id: x_tenant_id).first)
                 Account.current = x_tenant
               else
                 error_description = 'Invalid tenant'
