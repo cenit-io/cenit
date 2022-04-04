@@ -491,6 +491,8 @@ module Api::V3
               :read
             when 'new'
               :create
+            when 'destroy'
+              :delete
             else
               action.to_sym
           end
