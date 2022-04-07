@@ -41,7 +41,7 @@ module Cenit
       else
         errors.add(:scope, 'is not valid')
       end
-      abort_if_has_errors
+      throw :abort if errors.present?
     end
 
     def app_name
