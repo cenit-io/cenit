@@ -7,7 +7,7 @@ module Cenit
 
     def authorize
       errors.add(:base, 'You are not authorized to create/update Auth Tokens') unless ::User.super_access?
-      abort_if_has_errors
+      throw :abort if errors.present?
     end
   end
 end
