@@ -22,7 +22,10 @@ module Mongoff
 
     def insert_or_update(options = {})
       if new_record?
-        orm_model.collection.insert_one(attributes)
+        r = orm_model.collection.insert_one(attributes)
+        unless id == r.inserted_ids[0]
+          self.id = r.inserted_ids[0]
+        end
         set_not_new_record
       else
         query = orm_model.collection.find(_id: id)

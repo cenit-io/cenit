@@ -89,6 +89,22 @@ describe Mongoff::Record do
       expect(a.errors.blank?).to be true
     end
 
+    it 'successfully save default auto generated IDs when supplied' do
+      id = BSON::ObjectId.new
+      a = data_type_a.new_from(id: id.to_s, name: 'A')
+      a.save
+      expect(a.errors.blank?).to be true
+      expect(a.id).to eq id
+    end
+
+    it 'successfully save default auto generated IDs when supplied in bad format' do
+      id = 'not a BSON Object ID'
+      a = data_type_a.new_from(id: id.to_s, name: 'A')
+      a.save
+      expect(a.errors.blank?).to be true
+      expect(a.id.class).to eq BSON::ObjectId
+    end
+
     it 'successfully save string auto generated IDs' do
       b = data_type_b.new_from(name: 'B')
       b.save
