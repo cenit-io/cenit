@@ -46,7 +46,7 @@ module Setup
     validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
 
     def required_parameters_size
-      parameters.inject(0) { |s, p| s + (p.required ? 1 : 0) }
+      parameters.to_a.count(&:required)
     end
 
     def code_extension
