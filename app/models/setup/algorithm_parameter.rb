@@ -69,14 +69,7 @@ module Setup
     end
 
     def default_ruby
-      case default
-        when nil
-          'nil'
-        when String
-          default
-        else
-          default.to_json
-      end
+      default.inspect
     end
 
     def default_javascript

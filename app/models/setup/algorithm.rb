@@ -46,7 +46,7 @@ module Setup
     validates_inclusion_of :language, in: ->(alg) { alg.class.language_enum.values }
 
     def required_parameters_size
-      parameters.inject(0) { |s, p| s + (p.required ? 1 : 0) }
+      parameters.to_a.count(&:required)
     end
 
     def code_extension
@@ -205,15 +205,20 @@ module Setup
       input = Cenit::Utility.json_value_of(input)
       input = [input] unless input.is_a?(Array)
       input = input.dup
-      required_size = required_parameters_size
-      fail "expected #{required_size} args but got #{input.length}" if input.length < required_size
-      if (index = task_parameter_index) && index <= input.length && input[index].nil?
-        if index < input.length
-          input[index] = task || Setup::Task.current
-        else
-          input << task || Setup::Task.current
-        end
+      input_size = input.length
+
+      # Initialize the parameters not entered, with its default values
+      parameters[input_size..].to_a.each { |p| input << p.default }
+
+      # Initialize task parameter
+      if index = task_parameter_index
+        input_size += 1 if parameters[index].required && index >= input_size
+        input[index] = task || Setup::Task.current if input[index].nil?
       end
+
+      # Check required parameters
+      required_size = required_parameters_size
+      fail "expected #{required_size} args but got #{input_size}" if input_size < required_size
 
       begin
         rc = Cenit::BundlerInterpreter.run(self, *input)
@@ -248,10 +253,7 @@ module Setup
 
     def task_parameter_index
       # TODO Force task parameter type when parameters types include cenit data types
-      parameters.each_with_index do |p, i|
-        return i if p.name == 'task'
-      end
-      nil
+      parameters.to_a.index { |p| p.name == 'task' }
     end
 
     def link?(call_symbol)
