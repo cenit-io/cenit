@@ -248,10 +248,7 @@ module Setup
 
     def task_parameter_index
       # TODO Force task parameter type when parameters types include cenit data types
-      parameters.each_with_index do |p, i|
-        return i if p.name == 'task'
-      end
-      nil
+      parameters.to_a.index { |p| p.name == 'task' }
     end
 
     def link?(call_symbol)
