@@ -140,13 +140,7 @@ module Api::V2
                 options[:inspect_fields] = Account.current.nil? || !::User.current_super_admin?
               end
               data = @payload.process_item(item, data_type, options)
-              puts 'create_method -> ', @payload.create_method
-              puts 'options -> ', options
-              puts 'data -> ', options
-              if (record = data_type.send(@payload.create_method, data, options)).errors.blank?
-                puts 'persisted? -> ', record.persisted?
-                saved_again = record.save
-                puts 'saved_again ->', saved_again
+              if (record = data_type.send(@payload.create_method, data, options)).errors.blank? && record.save # Patch for unknown error at eCapi
                 response[:success][root] << record.inspect_json(include_id: true, inspect_scope: options[:create_collector])
                 if (warnings = record.try(:warnings))
                   warnings =
