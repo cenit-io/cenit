@@ -56,8 +56,6 @@ Cenit.config do
 
   delay_tasks ENV['DELAY_TASKS'].to_b
 
-  default_code_theme 'monokai'
-
   request_timeout ENV['REQUEST_TIMEOUT'] || 300
 
   using_accounts_dbs ENV['USING_ACCOUNTS_DBS']

@@ -13,13 +13,13 @@ class User
 
 
   inspect_fields :name, :given_name, :family_name, :picture, :encrypted_password,
-                 :account_id, :api_account_id, :code_theme, :time_zone
+                 :account_id, :api_account_id, :time_zone
 
   rolify
 
   build_in_data_type
     .on_origin(:admin)
-    .with(:email, :name, :account, :roles, :super_admin_enabled)
+    .with(:email, :name, :account, :roles, :super_admin_enabled, :need_password_reset)
     .and(
       label: '{{name}} ({{email}})',
       properties: {
@@ -74,10 +74,9 @@ class User
   field :family_name, type: String
   field :picture_url, type: String
 
-  #UI options
-  field :code_theme, type: String
-
   field :super_admin_enabled, type: Mongoid::Boolean
+
+  field :need_password_reset, type: Mongoid::Boolean
 
   def inspecting_fields
     super + (has_role?(:super_admin) ? [:super_admin_enabled] : [])
@@ -88,15 +87,16 @@ class User
     if attributes['name'] && attributes['given_name'].present? && attributes['family_name'].present?
       remove_attribute(:name)
     end
+    if !new_record? && changed_attributes.key?('encrypted_password')
+      remove_attribute(:need_password_reset)
+    end
   end
-
-  validates_inclusion_of :code_theme, in: ->(user) { user.code_theme_enum }
 
   before_create do
     self.role_ids = ((role_ids || []) + ::Role.default_ids(self.class.empty?)).uniq
     self.account ||= accounts.first || member_accounts.first || Account.current || Account.new_for_create(owner_id: id)
     unless owns?(account)
-      errors.add(:account, 'is sealed and can not be inspected') if account && account.sealed?
+      errors.add(:account, 'is sealed and can not be inspected') if account&.sealed?
     end
     unless owns?(api_account)
       self.api_account = owns?(account) ? account : accounts.first
@@ -141,13 +141,8 @@ class User
     custom_picture_url(size) || read_attribute(:picture_url) || gravatar_or_identicon_url(size)
   end
 
-  def custom_picture_url(size)
+  def custom_picture_url(_size)
     picture.present? && picture.url
-  end
-
-  def code_theme_enum
-    [nil, ''] +
-      %w(3024-day 3024-night abcdef ambiance-mobile ambiance base16-dark base16-light bespin blackboard cobalt colorforth dracula eclipse elegant erlang-dark hopscotch icecoder isotope lesser-dark liquibyte material mbo mdn-like midnight monokai neat neo night panda-syntax paraiso-dark paraiso-light pastel-on-dark railscasts rubyblue seti solarized the-matrix tomorrow-night-bright tomorrow-night-eighties ttcn twilight vibrant-ink xq-dark xq-light yeti zenburn)
   end
 
   def user
@@ -227,7 +222,7 @@ class User
   end
 
   def gravatar_or_identicon_url(size = 50)
-    if gravatar()
+    if gravatar
       "//gravatar.com/avatar/#{Digest::MD5.hexdigest avatar_id.to_s}?s=#{size}"
     else
       identicon size
