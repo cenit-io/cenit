@@ -77,6 +77,17 @@ class User
   field :super_admin_enabled, type: Mongoid::Boolean
 
   field :need_password_reset, type: Mongoid::Boolean
+  field :session_token, type: String
+
+  def authenticatable_salt
+    return super unless session_token
+
+    "#{super}#{session_token}"
+  end
+
+  def invalidate_all_sessions!
+    update(session_token: SecureRandom.hex)
+  end
 
   def inspecting_fields
     super + (has_role?(:super_admin) ? [:super_admin_enabled] : [])
