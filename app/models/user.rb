@@ -19,7 +19,7 @@ class User
 
   build_in_data_type
     .on_origin(:admin)
-    .with(:email, :name, :account, :roles, :super_admin_enabled)
+    .with(:email, :name, :account, :roles, :super_admin_enabled, :need_password_reset)
     .and(
       label: '{{name}} ({{email}})',
       properties: {
@@ -76,6 +76,8 @@ class User
 
   field :super_admin_enabled, type: Mongoid::Boolean
 
+  field :need_password_reset, type: Mongoid::Boolean
+
   def inspecting_fields
     super + (has_role?(:super_admin) ? [:super_admin_enabled] : [])
   end
@@ -84,6 +86,9 @@ class User
     remove_attribute(:super_admin_enabled) unless has_role?(:super_admin)
     if attributes['name'] && attributes['given_name'].present? && attributes['family_name'].present?
       remove_attribute(:name)
+    end
+    if !new_record? && changed_attributes.key?('encrypted_password')
+      remove_attribute(:need_password_reset)
     end
   end
 
