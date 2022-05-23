@@ -1,4 +1,4 @@
-FROM ruby:2.7.4
+FROM ruby:2.7.4 as build
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -21,8 +21,9 @@ RUN set -x; \
   libmagickwand-dev \
   libsqlite3-dev \
   sqlite3 \
-  libxslt1-dev
-
+  libxslt1-dev\
+  net-tools\
+  vim
 
 # Intall software-properties-common for add-apt-repository
 RUN apt-get install -qq -y software-properties-common
@@ -38,22 +39,16 @@ ENV UNICORN_CENIT_SERVER=true
 ENV RAILS_ROOT /var/www/cenit
 RUN mkdir -p $RAILS_ROOT
 WORKDIR /var/www/cenit
-
+COPY . .
+COPY ./config/application.example.yml ./config/application.yml 
 RUN gem install bundler:2.3
-COPY Gemfile .
-COPY Gemfile.lock .
 RUN gem install rails bundler
 RUN bundle install --without development test
 
-COPY Rakefile .
-COPY bin bin/
-COPY config config/
-COPY public public/
-COPY lib lib/
-COPY app app/
-
 RUN yarn install --check-files
 
-COPY ./env.sh .
-RUN chmod +x env.sh
 
+RUN chmod +x env.sh
+EXPOSE 8080
+
+CMD [ "bash -c 'rm -fR /var/www/shared/pids/* ; bundle exec unicorn_rails -c config/unicorn.rb'" ]
