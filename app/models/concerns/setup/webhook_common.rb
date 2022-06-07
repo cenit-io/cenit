@@ -71,14 +71,9 @@ module Setup
     end
 
     def submit!(*args, &block)
-      if (options = args[0]).is_a?(Hash)
-        body_argument = options[:body]
-      else
-        body_argument = options
-        options = args[1] || {}
-      end
+      options = args[0].is_a?(Hash) ? args[0] : (args[1] || {}).merge(body: args[0])
       options[:halt_on_error] = true
-      submit(body_argument, options, &block)
+      submit(options, &block)
     end
 
     def notification_model
