@@ -13,7 +13,7 @@
 
 * [Join our Slack][join-slack-link]
 [(cenitio.slack.com)][join-slack-link]
-* [docs](https://cenit-io.github.io/docs)
+* [docs](https://docs.cenit.io/)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * support@cenit.io
 
