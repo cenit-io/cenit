@@ -21,7 +21,7 @@
 
 Is a 100% open integration-platform-as-a-service (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
 
-To install and learn more about the platform check the [documentation](https://cenit-io.github.io/docs)
+To install and learn more about the platform check the [documentation](https://docs.cenit.io/)
 
 # Integration Platforms build on top of Cenit
 
@@ -104,7 +104,7 @@ Here are some ways **you** can contribute:
 
 * by using prerelease master branch
 * by reporting [bugs](https://github.com/cenit-io/cenit/issues/new)
-* by writing or editing [documentation](https://github.com/cenit-io/docs)
+* by writing or editing [documentation](https://github.com/cenit-io/cenit-docs)
 * by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
