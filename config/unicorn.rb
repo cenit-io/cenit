@@ -57,7 +57,11 @@ after_fork do |server, worker|
 
   Cenit::Rabbit.init
 
+  puts "Initializing Unicorn #{worker.nr}"
+
   if worker.nr.zero?
+    puts "Initializing Unicorn Worker ZERO..."
+
     unless ENV['SKIP_DB_INITIALIZATION'].to_b
       Tenant.all.each do |tenant|
         tenant.switch do
@@ -65,12 +69,16 @@ after_fork do |server, worker|
         end
       end
     end
+
+    puts "Initializing scheduler..."
+
     scheduler = Cenit::Rabbit.start_scheduler
     data_sink = Cenit::Hook.start
     unless scheduler || data_sink
       Cenit::Rabbit.start_consumer
     end
   elsif worker.nr <= Cenit.maximum_unicorn_consumers
+    puts "Starting consumer on Unicorn Worker..."
     Cenit::Rabbit.start_consumer
   end
 end
