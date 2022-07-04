@@ -591,7 +591,6 @@ DEPENDENCIES
   capybara
   carrierwave-mongoid
   cenit-admin!
-  cenit-api_builder!
   cenit-build_in_apps!
   cenit-config!
   cenit-mime!
