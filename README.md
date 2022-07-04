@@ -13,15 +13,15 @@
 
 * [Join our Slack][join-slack-link]
 [(cenitio.slack.com)][join-slack-link]
-* [docs](https://cenit-io.github.io/docs)
+* [docs](https://docs.cenit.io/)
 * [Shared Collections](https://cenit.io/setup~shared_collection)
 * support@cenit.io
 
-# Cenit [(https://cenit.io)](https://cenit.io)
+# [Cenit](https://web.cenit.io)
 
-Is a 100% open integration-platform-as-a-service (iPaaS) that's modern, powerful, yet hackable to the core, ready to use in the cloud https://cenit.io or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
+Is a 100% open integration-platform-as-a-service (iPaaS) that's modern, powerful, yet hackable to the core, ready to [use in the cloud](https://web.cenit.io) or on-premises. It is designed to solve unique integrations needs, orchestrate data flows that may involve types of protocols and data formats, and provide API management capabilities. All of which can support a wide range of integration use cases. It is particularly valuable to embrace a pervasive integration approach.
 
-To install and learn more about the platform check the [documentation](https://cenit-io.github.io/docs)
+To install and learn more about the platform check the [documentation](https://docs.cenit.io/)
 
 # Integration Platforms build on top of Cenit
 
@@ -46,7 +46,7 @@ Cenit makes it possible that the benefits of a modern iPaaS can be accessible to
 ## How
 
 * Developing a 100% open source integration Platform (iPaaS).
-* Providing options to use in the cloud https://cenit.io or on-premise server.
+* Providing options to [use in the cloud](https://web.cenit.io) or [on-premise server](https://docs.cenit.io/docs/installation/alternative).
 * Including open catalogs for formal API specs.
 * Giving options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
 * Ensuring that anyone can create, use and share integrations.
@@ -104,7 +104,7 @@ Here are some ways **you** can contribute:
 
 * by using prerelease master branch
 * by reporting [bugs](https://github.com/cenit-io/cenit/issues/new)
-* by writing or editing [documentation](https://github.com/cenit-io/docs)
+* by writing or editing [documentation](https://github.com/cenit-io/cenit-docs)
 * by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
 * by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
@@ -132,4 +132,4 @@ We encourage the community to join the initiative and contribute to the dissemin
 [twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
 [twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
 [join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/zt-157zurf1e-x42jLJvdJZuFmI2w~5lt1g
+https://join.slack.com/t/cenitio/shared_invite/zt-1ac9cntav-nbygqIURukJNbWq1CAfPIg
