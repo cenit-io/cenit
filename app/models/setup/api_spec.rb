@@ -87,12 +87,12 @@ module Setup
       spec = self.spec_doc
       find_security_scheme = ->(type) { spec.components.security_schemes.detect { |_, v| v.type == type.to_s }.last }
 
-      if security_scheme = find_security_scheme.call(:oauth2)
+      if (security_scheme = find_security_scheme.call(:oauth2))
         parse_oaut2_providers(namespace, collection, security_scheme)
         parse_oaut2_clients(namespace, collection, security_scheme)
         parse_oaut2_scopes(namespace, collection, security_scheme)
         parse_oaut2_authorization(namespace, collection, security_scheme)
-      elsif security_scheme = find_security_scheme.call(:http)
+      elsif (security_scheme = find_security_scheme.call(:http))
         parse_basic_authorization(namespace, collection, security_scheme)
       end
     end
