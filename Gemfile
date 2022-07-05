@@ -63,6 +63,7 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
+gem 'openapi3_parser', '~> 0.9'
 
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
