@@ -25,7 +25,7 @@ module Setup
     end
 
     def validate_specification
-      specification.strip!
+      specification = specification.to_s.strip
 
       if url.present? && specification.blank?
         begin
