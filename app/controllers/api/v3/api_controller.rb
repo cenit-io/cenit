@@ -82,22 +82,16 @@ module Api::V3
         json_path = json_path.split('.')
         json_path.shift
         json_path.each do |access|
-          index =
-            if (match = access.match(/(.*)\[([0-9]+)\]\Z/))
-              access = match[1]
-              match[2].to_i
-            end
-          item =
-            if item.is_a?(Array) || item.is_a?(Hash)
-              item[access]
-            else
-              item.send(access)
-            end
+          index = if (match = access.match(/(.*)\[([0-9]+)\]\Z/))
+            access = match[1]
+            match[2].to_i
+          end
+          item = item.is_a?(Array) || item.is_a?(Hash) ? item[access] : item.send(access)
           item = item[index] if index
         end
       end
       setup_viewport
-      render json: to_hash(item)
+      render json: to_hash(item).to_json
     end
 
     def new
