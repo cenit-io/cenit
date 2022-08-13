@@ -1,0 +1,48 @@
+/* line 4, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.avatar {
+  width: 104px;
+}
+
+/* line 8, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* line 13, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider {
+  margin-top: 16px;
+}
+
+/* line 16, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider .btn {
+  background: none;
+  display: flex;
+  align-items: center;
+  border: solid 1px lightgray;
+  border-radius: 4px;
+  padding: 8px 14px;
+}
+
+/* line 24, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider .btn:hover {
+  border: solid 1px darkgrey;
+  cursor: pointer;
+}
+
+/* line 28, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider .btn:hover:disabled {
+  border: solid 1px lightgrey;
+  cursor: inherit;
+}
+
+/* line 34, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider .btn img {
+  margin-right: 16px;
+}
+
+/* line 39, ../../../../../programs/ruby-2.7.4/lib/ruby/gems/2.7.0/bundler/gems/cenit-open_id-9d1ed82e5c7d/app/assets/stylesheets/open_id/social.css.scss */
+.openid.social .provider + .provider {
+  margin-left: 16px;
+}

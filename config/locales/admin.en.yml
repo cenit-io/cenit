@@ -45,12 +45,15 @@ en:
       tmp: 'Temporal'
       app: 'App'
     oauth:
+      head: 'To continue, <strong>CenitIO</strong> will allow <strong>%{app_name}</strong> to perform the following operations:'
       openid:
+        msg: 'View your %{scopes}'
         email: '<strong>View your email</strong>'
         profile: '<strong>View your basic profile</strong>'
         address: '<strong>View your address</strong>'
         phone: '<strong>View your phone</strong>'
       super_methods:
+        msg: '%{scopes} records of any data type'
         create: '<strong>Create</strong> records of any data type'
         read: '<strong>Read</strong> records from any data type'
         update: '<strong>Update</strong> records of any data type'
@@ -62,7 +65,7 @@ en:
         update: '<strong>Update</strong> records of the following data types'
         delete: '<strong>Delete</strong> records of the following data types'
         digest: '<strong>Digest</strong> with records of the following data types'
-      auth: '<strong>Authorize</strong> other applications'
+      auth: '<strong>Authorize</strong> other applications.'
       auth_desc: 'The application will be able to authorize other applications with its same grants'
       session_access: 'Get <strong>session</strong> access'
       session_access_desc: 'The application access span will be automatically extended until it expires'
