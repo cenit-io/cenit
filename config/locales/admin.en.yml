@@ -45,7 +45,7 @@ en:
       tmp: 'Temporal'
       app: 'App'
     oauth:
-      head: 'To continue, <strong>CenitIO</strong> will allow <strong>%{app_name}</strong> to perform the following operations:'
+      head: 'To continue, <strong>Cenit IO</strong> server will allow <strong>%{app_name}</strong> to perform the following operations:'
       openid:
         msg: 'View your %{scopes}'
         email: '<strong>View your email</strong>'
