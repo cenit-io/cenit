@@ -1,1 +1,0 @@
-window.App=function(){function n(n){e.push(n)}const e=[];return{resize:document.body.onresize=function(){e.forEach(n=>{try{n()}catch(e){console.error(e)}})},addResizeListener:n}}();

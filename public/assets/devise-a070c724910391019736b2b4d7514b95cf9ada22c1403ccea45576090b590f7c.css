@@ -238,13 +238,18 @@
   text-transform: uppercase;
 }
 
-/* line 211, app/assets/stylesheets/devise.scss */
+/* line 210, app/assets/stylesheets/devise.scss */
+.devise.box .access-requested .action-description {
+  padding: 8px;
+}
+
+/* line 215, app/assets/stylesheets/devise.scss */
 .devise.box .access-success {
   border: solid 1px forestgreen;
   width: 100%;
 }
 
-/* line 215, app/assets/stylesheets/devise.scss */
+/* line 219, app/assets/stylesheets/devise.scss */
 .devise.box .access-success .label {
   padding: 8px;
   color: forestgreen;
@@ -254,12 +259,12 @@
   text-transform: uppercase;
 }
 
-/* line 225, app/assets/stylesheets/devise.scss */
+/* line 229, app/assets/stylesheets/devise.scss */
 .devise.box .actions {
   margin-top: 40px;
 }
 
-/* line 229, app/assets/stylesheets/devise.scss */
+/* line 233, app/assets/stylesheets/devise.scss */
 .devise.box .item {
   padding: 16px;
   cursor: pointer;
@@ -267,23 +272,23 @@
   border-radius: 8px;
 }
 
-/* line 235, app/assets/stylesheets/devise.scss */
+/* line 239, app/assets/stylesheets/devise.scss */
 .devise.box .item + .item {
   margin-left: 8px;
 }
 
-/* line 239, app/assets/stylesheets/devise.scss */
+/* line 243, app/assets/stylesheets/devise.scss */
 .devise.box .item:hover {
   background: aliceblue;
 }
 
-/* line 243, app/assets/stylesheets/devise.scss */
+/* line 247, app/assets/stylesheets/devise.scss */
 .devise.box .item .title {
   text-align: center;
   padding-top: 8px;
 }
 
-/* line 249, app/assets/stylesheets/devise.scss */
+/* line 253, app/assets/stylesheets/devise.scss */
 .devise.box .list-item {
   padding: 16px;
   cursor: pointer;
@@ -291,207 +296,33 @@
   border-radius: 8px;
 }
 
-/* line 255, app/assets/stylesheets/devise.scss */
+/* line 259, app/assets/stylesheets/devise.scss */
 .devise.box .list-item:hover {
   background: aliceblue;
 }
 
-/* line 260, app/assets/stylesheets/devise.scss */
+/* line 264, app/assets/stylesheets/devise.scss */
 .devise.box .errors {
   color: red;
   padding: 8px;
 }
 
-/* line 264, app/assets/stylesheets/devise.scss */
+/* line 268, app/assets/stylesheets/devise.scss */
 .devise.box .errors ul {
   list-style: none;
   padding: 0;
 }
 
 @media only screen and (min-width: 600px) {
-  /* line 274, app/assets/stylesheets/devise.scss */
+  /* line 278, app/assets/stylesheets/devise.scss */
   .responsive-box {
     width: 100vw;
     height: 100vh;
   }
-  /* line 281, app/assets/stylesheets/devise.scss */
+  /* line 285, app/assets/stylesheets/devise.scss */
   .devise.box {
     border: solid 1px lightgrey;
     border-radius: 8px;
     width: 380px;
   }
 }
-/* line 2, app/assets/stylesheets/flex_box.css.scss */
-.flex {
-  display: flex;
-}
-
-/* line 6, app/assets/stylesheets/flex_box.css.scss */
-.full-width {
-  width: 100%;
-}
-
-/* line 10, app/assets/stylesheets/flex_box.css.scss */
-.full-height {
-  height: 100%;
-}
-
-/* line 14, app/assets/stylesheets/flex_box.css.scss */
-.full-v-width {
-  width: 100vw;
-}
-
-/* line 18, app/assets/stylesheets/flex_box.css.scss */
-.full-v-height {
-  height: 100vh;
-}
-
-/* line 22, app/assets/stylesheets/flex_box.css.scss */
-.column {
-  flex-direction: column;
-}
-
-/* line 26, app/assets/stylesheets/flex_box.css.scss */
-.row {
-  flex-direction: row;
-}
-
-/* line 30, app/assets/stylesheets/flex_box.css.scss */
-.wrap {
-  flex-wrap: wrap;
-}
-
-/* line 34, app/assets/stylesheets/flex_box.css.scss */
-.relative {
-  position: relative;
-}
-
-/* line 38, app/assets/stylesheets/flex_box.css.scss */
-.absolute {
-  position: absolute;
-}
-
-/* line 42, app/assets/stylesheets/flex_box.css.scss */
-.top-0 {
-  top: 0;
-}
-
-/* line 46, app/assets/stylesheets/flex_box.css.scss */
-.left-0 {
-  left: 0;
-}
-
-/* line 50, app/assets/stylesheets/flex_box.css.scss */
-.grow-1 {
-  flex-grow: 1;
-}
-
-/* line 54, app/assets/stylesheets/flex_box.css.scss */
-.grow-2 {
-  flex-grow: 2;
-}
-
-/* line 58, app/assets/stylesheets/flex_box.css.scss */
-.grow-3 {
-  flex-grow: 3;
-}
-
-/* line 62, app/assets/stylesheets/flex_box.css.scss */
-.grow-4 {
-  flex-grow: 4;
-}
-
-/* line 66, app/assets/stylesheets/flex_box.css.scss */
-.grow-5 {
-  flex-grow: 5;
-}
-
-/* line 70, app/assets/stylesheets/flex_box.css.scss */
-.flex-1-0-auto {
-  flex: 1 0 auto;
-}
-
-/* line 74, app/assets/stylesheets/flex_box.css.scss */
-.flex-0-1-auto {
-  flex: 0 1 auto;
-}
-
-/* line 78, app/assets/stylesheets/flex_box.css.scss */
-.justify-content-center {
-  justify-content: center;
-}
-
-/* line 82, app/assets/stylesheets/flex_box.css.scss */
-.justify-content-space-around {
-  justify-content: space-around;
-}
-
-/* line 86, app/assets/stylesheets/flex_box.css.scss */
-.align-items-center {
-  align-items: center;
-}
-
-/* line 90, app/assets/stylesheets/flex_box.css.scss */
-.flex-start {
-  align-items: flex-start;
-}
-
-/* line 94, app/assets/stylesheets/flex_box.css.scss */
-.flex-end {
-  align-items: flex-end;
-}
-
-/* line 98, app/assets/stylesheets/flex_box.css.scss */
-.baseline {
-  align-items: baseline;
-}
-
-/* line 102, app/assets/stylesheets/flex_box.css.scss */
-.space-around {
-  justify-content: space-around;
-}
-
-/* line 106, app/assets/stylesheets/flex_box.css.scss */
-.justify-flex-end {
-  justify-content: flex-end;
-}
-
-/* line 110, app/assets/stylesheets/flex_box.css.scss */
-.auto-scroll-x {
-  overflow-x: auto;
-}
-
-/* line 114, app/assets/stylesheets/flex_box.css.scss */
-.auto-scroll-y {
-  overflow-y: auto;
-}
-
-/* line 118, app/assets/stylesheets/flex_box.css.scss */
-.row-reverse {
-  flex-direction: row-reverse;
-}
-
-/* line 122, app/assets/stylesheets/flex_box.css.scss */
-.margin-0 {
-  margin: 0;
-}
-
-/* line 126, app/assets/stylesheets/flex_box.css.scss */
-.display-none {
-  display: none;
-}
-/*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
- *
- * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
- * or vendor/assets/stylesheets of plugins, if any, can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any styles
- * defined in the other CSS/SCSS files in this directory. It is generally better to create a new
- * file per style scope.
- *
-
-
- */
