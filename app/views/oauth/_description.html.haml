@@ -8,36 +8,10 @@
     basic = Hash.new
     unless cenit_oauth_scope.openid_set.empty?
       basic[:openid]= cenit_oauth_scope.openid_set.to_a
-      basic[:openid].map! do |d|
-        case d
-        when Cenit::OauthScope::OPENID_EMAIL_TOKEN
-          I18n.t('admin.oauth.openid.email')
-        when Cenit::OauthScope::OPENID_PROFILE_TOKEN
-          I18n.t('admin.oauth.openid.profile')
-        else
-          d
-        end
-      end
       basic[:openid].delete_if { |a| a == Cenit::OauthScope::OPENID_TOKEN }
     end
     unless cenit_oauth_scope.super_methods_set.empty?
       basic['super_methods_set']= cenit_oauth_scope.super_methods_set.to_a
-      basic['super_methods_set'].map! do |d|
-        case d
-        when Cenit::OauthScope::CREATE_TOKEN
-          I18n.t('admin.oauth.super_methods.create')
-        when Cenit::OauthScope::READ_TOKEN
-          I18n.t('admin.oauth.super_methods.read')
-        when Cenit::OauthScope::UPDATE_TOKEN
-          I18n.t('admin.oauth.super_methods.update')
-        when Cenit::OauthScope::DELETE_TOKEN
-          I18n.t('admin.oauth.super_methods.delete')
-        when Cenit::OauthScope::DIGEST_TOKEN
-          I18n.t('admin.oauth.super_methods.digest')
-        else
-          d
-        end
-      end
     end
     if cenit_oauth_scope.auth?
       basic[Cenit::OauthScope::AUTH_TOKEN]= true
@@ -52,15 +26,16 @@
       basic[Cenit::OauthScope::MULTI_TENANT_TOKEN]= true
     end
     basic = basic.merge(methods)
-    html = '<ul class="scope-description">'
+    html = "<p>#{I18n.t('admin.oauth.head', app_name: @app_id.name)}</p>"
+    html << '<ul class="scope-description">'
     basic.each do |key, value|
       case key
       when Cenit::OauthScope::OPENID_TOKEN
-        value = value.join(',')
-        html+= "<li>#{value}</li>"
+        value = ["<b>#{value[0...-1].join(', ')}</b>", "<b>#{value[-1]}</b>"].select {|v| v.present?}.join(' and ')
+        html+= "<li>#{I18n.t('admin.oauth.openid.msg', {scopes: value})}.</li>"
       when 'super_methods_set'
-        value = value.join(',')
-        html+= "<li>#{value}</li>"
+        value = ["<b>#{value[0...-1].join(', ').capitalize}</b>", "<b>#{value[-1]}</b>"].select {|v| v.present?}.join(' and ')
+        html+= "<li>#{I18n.t('admin.oauth.super_methods.msg', {scopes: value})}.</li>"
       else
         if value == true
           case key
@@ -80,7 +55,7 @@
           else
             key
           end
-          html+= "<li>#{key}</li>"
+          html+= "<li>#{key}.</li>"
         else
           next unless (count = value.count) > 0
           max_data_type_to_show = 100
