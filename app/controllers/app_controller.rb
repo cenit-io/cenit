@@ -82,7 +82,7 @@ class AppController < ApplicationController
       ].each do |model|
         next if user
         record = model.where(key: key).first
-        if record && Devise.secure_compare(record[:authentication_token], token)
+        if record && Devise.secure_compare(record[:token], token)
           Account.current = record.api_account
           user = record.user
           @authentication_method = :user_credentials
