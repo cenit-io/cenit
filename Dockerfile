@@ -44,16 +44,9 @@ COPY Gemfile .
 COPY Gemfile.lock .
 RUN gem install rails bundler
 RUN bundle install --without development test
-
-COPY Rakefile .
-COPY bin bin/
-COPY config config/
-COPY public public/
-COPY lib lib/
-COPY app app/
+COPY . .
+RUN chmod +x env.sh
 
 RUN yarn install --check-files
 
-COPY ./env.sh .
-RUN chmod +x env.sh
-
+CMD ["/bin/bash", "-c", "/var/www/cenit/env.sh; bundle exec unicorn_rails -c config/unicorn.rb"]
