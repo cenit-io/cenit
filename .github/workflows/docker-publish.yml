@@ -7,7 +7,7 @@ name: "Docker: GitHub Packages"
 
 on:
   push:
-    branches: [ master, developer ]
+    branches: [ master, develop ]
     tags: [ 'v*.*.*' ]
 
 env:
@@ -43,7 +43,7 @@ jobs:
           tags: |
             type=sha,enable={{is_default_branch}}
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-,enable=${{ github.ref == format('refs/heads/{0}', 'developer') }}
+            type=sha,prefix={{branch}}-,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3.2.0
