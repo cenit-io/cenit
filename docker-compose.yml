@@ -13,6 +13,9 @@ services:
       - REACT_APP_LOCALHOST=http://localhost:3002
       - REACT_APP_CENIT_HOST=http://localhost:3000
   server:
+    build: .
+    ports:
+      - "3000:8080"
     environment:
       - MONGODB_URI=mongodb://mongo_server/cenit
       - REDIS_HOST=redis
@@ -22,24 +25,9 @@ services:
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_WORKERS=4
       - MAXIMUM_UNICORN_CONSUMERS=4
-    build: .
-    volumes:
-      - .:/var/www/cenit
-      - /var/www/shared
     depends_on:
       - mongo_server
       - redis
-    links:
-      - mongo_server
-  nginx:
-    restart: always
-    build: ./nginx/
-    ports:
-      - "3000:80"
-    volumes_from:
-      - server
-    links:
-      - server:server 
   rabbitmq:
     image: rabbitmq:management
     ports:
