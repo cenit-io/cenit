@@ -41,7 +41,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,enable={{is_default_branch}}
+            type=sha,prefix=,enable={{is_default_branch}}
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix={{branch}}-,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
 
