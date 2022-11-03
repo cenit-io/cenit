@@ -1,2 +1,5 @@
 #!/bin/sh
-awk -F '=' '{ print $1 ": \"" (ENVIRON[$1] ? ENVIRON[$1] : $2) "\"" }' ./application.docker.yml >> ./config/application.yml
+cat << EOF > config/application.yml
+HOMEPAGE: ${HOMEPAGE}
+'Cenit::Admin:default_uri': ${CENIT_UI}
+EOF

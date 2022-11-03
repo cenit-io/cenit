@@ -28,7 +28,10 @@ module Setup
         :oauth_providers,
         :oauth_clients,
         :generic_clients,
-        :oauth2_scopes
+        :oauth2_scopes,
+        :notification_flows,
+        :email_channels,
+        :smtp_providers,
       ]
 
     included do
@@ -40,11 +43,14 @@ module Setup
       has_and_belongs_to_many :namespaces, class_name: Setup::Namespace.to_s, inverse_of: nil
 
       has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
+      has_and_belongs_to_many :notification_flows, class_name: Setup::NotificationFlow.to_s, inverse_of: nil
       has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
       has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
       has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
       has_and_belongs_to_many :applications, class_name: Setup::Application.to_s, inverse_of: nil
       has_and_belongs_to_many :snippets, class_name: Setup::Snippet.to_s, inverse_of: nil
+      has_and_belongs_to_many :email_channels, class_name: Setup::EmailChannel.to_s, inverse_of: nil
+      has_and_belongs_to_many :smtp_providers, class_name: Setup::SmtpProvider.to_s, inverse_of: nil
 
       has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
       has_and_belongs_to_many :resources, class_name: Setup::Resource.to_s, inverse_of: nil

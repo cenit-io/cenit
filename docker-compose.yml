@@ -13,33 +13,21 @@ services:
       - REACT_APP_LOCALHOST=http://localhost:3002
       - REACT_APP_CENIT_HOST=http://localhost:3000
   server:
+    build: .
+    ports:
+      - "3000:8080"
     environment:
       - MONGODB_URI=mongodb://mongo_server/cenit
       - REDIS_HOST=redis
       - HOMEPAGE=http://localhost:3000
+      - ADMIN_UI=http://localhost:3002
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_WORKERS=4
       - MAXIMUM_UNICORN_CONSUMERS=4
-    build: .
-    command: bash -c "rm -fR /var/www/shared/pids/* ; bundle exec unicorn_rails -c config/unicorn.rb"
-    volumes:
-      - .:/var/www/cenit
-      - /var/www/shared
     depends_on:
       - mongo_server
       - redis
-    links:
-      - mongo_server
-  nginx:
-    restart: always
-    build: ./nginx/
-    ports:
-      - "3000:80"
-    volumes_from:
-      - server
-    links:
-      - server:server 
   rabbitmq:
     image: rabbitmq:management
     ports:
