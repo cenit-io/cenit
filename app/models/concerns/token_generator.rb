@@ -14,7 +14,8 @@ module TokenGenerator
   end
 
   def ensure_token
-    self[:authentication_token] = generate_token unless self[:authentication_token].present?
+    allow_generate = self.respond_to?(:owner) ? self.owner == User.current : true
+    self[:authentication_token] = generate_token if allow_generate && self[:authentication_token].blank?
   end
 
   def generate_token
