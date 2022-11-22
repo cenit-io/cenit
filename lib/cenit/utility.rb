@@ -240,6 +240,7 @@ module Cenit
       end
 
       def save_references(record, options, saved, visited = Set.new)
+        # TODO: Propagate error to parent relation...
         return true if visited.include?(record)
         visited << record
         if record.is_a?(Setup::Collection)
@@ -267,7 +268,7 @@ module Cenit
               values = [values] unless values.is_a?(Enumerable)
               values_to_save = []
               values.each do |value|
-                unless visited.include?(value)
+                if value.changed? && !visited.include?(value)
                   return false unless save_references(value, options, saved, visited)
                   values_to_save << value
                 end
