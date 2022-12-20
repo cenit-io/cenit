@@ -19,7 +19,7 @@ module NumberGenerator
 
   def ensure_number
     allow_generate = self.respond_to?(:owner) ? self.owner == User.current : true
-    self[:number] = generate_number if allow_generate && self[:number].blank?
+    self[:number] = generate_number if new_record? || allow_generate && self[:number].blank?
   end
 
   def generate_number(options = {})
