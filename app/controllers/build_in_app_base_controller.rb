@@ -12,8 +12,7 @@ class BuildInAppBaseController < ApplicationController
 
   def process_headers
     headers.delete('X-Frame-Options')
-    # headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
-    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Origin'] = request.headers['Origin'] || ::Cenit.homepage
     headers['Access-Control-Allow-Credentials'] = 'true'
     headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers'] || '*'
     headers['Access-Control-Allow-Methods'] = request.headers['Access-Control-Request-Method'] || Setup::Webhook::METHODS.join(',')
