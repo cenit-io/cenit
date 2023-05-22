@@ -1,4 +1,4 @@
-- unless (ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'] || false).to_b
+- unless ENV['UNABLE_REGISTERABLE'].to_b || ENV['UNABLE_SIGN_IN_AND_SIGN_UP_DEVISE'].to_b
   .question.flex.full-width.justify-content-center
     .label
       = "No account?"
