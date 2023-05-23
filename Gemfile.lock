@@ -204,7 +204,7 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.4)
       ruby-rc4 (>= 0.1.5)
-    commonmarker (0.23.5)
+    commonmarker (0.23.7)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
     daemons (1.4.0)
