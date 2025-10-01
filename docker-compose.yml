@@ -1,17 +1,21 @@
-version: '3.9'
-
 volumes:
   mongodb-data: {}
   redis-data: {}
 
 services:
   ui:
-    image: ghcr.io/cenit-io/ui:latest
+    build:
+      context: ./../ui
+      dockerfile: Dockerfile
     ports:
       - "3002:80"
     environment:
+      - REACT_APP_USE_ENVIRONMENT_CONFIG=true
+      - REACT_APP_TIMEOUT_SPAN=300000
+      - REACT_APP_APP_ID=admin
       - REACT_APP_LOCALHOST=http://localhost:3002
       - REACT_APP_CENIT_HOST=http://localhost:3000
+
   server:
     build: .
     ports:
@@ -28,6 +32,7 @@ services:
     depends_on:
       - mongo_server
       - redis
+
   rabbitmq:
     image: rabbitmq:management
     ports:
@@ -37,12 +42,14 @@ services:
       - RABBITMQ_DEFAULT_USER=cenit_rabbit
       - RABBITMQ_DEFAULT_VHOST=cenit_rabbit_vhost
     labels:
-        NAME: "rabbitmq-server"
+      NAME: "rabbitmq-server"
+
   mongo_server:
     image: mongo:4.4
     restart: always
     volumes:
       - mongodb-data:/data/db
+
   redis:
     image: redis:5
     volumes:

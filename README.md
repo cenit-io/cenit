@@ -1,21 +1,7 @@
 ![cenit_io](https://user-images.githubusercontent.com/4213488/150586701-53545c9b-b4f9-497f-9782-ef6a19715ecd.svg)
 
-[![Code Climate](https://codeclimate.com/github/openjaf/cenit/badges/gpa.svg)](https://codeclimate.com/github/openjaf/cenit)
 [![codebeat](https://codebeat.co/badges/1b596784-b6c1-4ce7-b739-c91b873e4b5d)](https://codebeat.co/projects/github-com-cenit-io-cenit)
 [![license](https://img.shields.io/packagist/l/doctrine/orm.svg)]()
-
-[![OpenAPIs in collection][numApis-image]][apisDir-link]
-[![OpenAPI specs][numSpecs-image]][apisDir-link]
-[![Endpoints][endpoints-image]][apisDir-link]
-
-[![Follow on Twitter][twitterFollow-image]][twitterFollow-link]
-
-
-* [Join our Slack][join-slack-link]
-[(cenitio.slack.com)][join-slack-link]
-* [docs](https://docs.cenit.io/)
-* [Shared Collections](https://cenit.io/setup~shared_collection)
-* support@cenit.io
 
 # [Cenit](https://web.cenit.io)
 
@@ -23,11 +9,10 @@ Is a 100% open integration-platform-as-a-service (iPaaS) that's modern, powerful
 
 To install and learn more about the platform check the [documentation](https://docs.cenit.io/)
 
-# Integration Platforms build on top of Cenit
+## Installation
 
-* https://miesh.io - Platform to Automate Your Software Integrations
-* https://secuto.io - IAM Program Management Platform
-* https://velosimo.com - Government Software Integrations
+For a complete, Docker‐based installation of both the backend (`cenit-server`) and this UI, see the [Docker Installation Guide](Docker-instalation.md).  
+(The guide includes links to the relevant `docker-compose.yml` and Dockerfiles.)
 
 ## Why
 
@@ -45,23 +30,22 @@ Cenit makes it possible that the benefits of a modern iPaaS can be accessible to
 
 ## How
 
-* Developing a 100% open source integration Platform (iPaaS).
-* Providing options to [use in the cloud](https://web.cenit.io) or [on-premise server](https://docs.cenit.io/docs/installation/alternative).
-* Including open catalogs for formal API specs.
-* Giving options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
-* Ensuring that anyone can create, use and share integrations.
-* Being ready for enterprise environments.
+- Developing a 100% open source integration Platform (iPaaS).
+- Providing options to [use in the cloud](https://web.cenit.io) or [on-premise server](https://docs.cenit.io/docs/installation/alternative).
+- Including open catalogs for formal API specs.
+- Giving options to share integrations at different openness levels: inside a tenant, to specific tenants, or for everyone.
+- Ensuring that anyone can create, use and share integrations.
+- Being ready for enterprise environments.
 
 ## Capabilities
 
-* **Backendless**: After creating a new Data Type using a JSON Schema, a complete REST API and a CRUD UI to manage the data are generated on the fly. Useful for mobile backend and API services.
+- **Backendless**: After creating a new Data Type using a JSON Schema, a complete REST API and a CRUD UI to manage the data are generated on the fly. Useful for mobile backend and API services.
 
-* **Routing and orchestration**: Integration flow development, monitoring, and lifecycle management tools. Enables multi-step integration flows by composing atomic functionality (such as connection, transformation, data event, schedule, webhook).
+- **Routing and orchestration**: Integration flow development, monitoring, and lifecycle management tools. Enables multi-step integration flows by composing atomic functionality (such as connection, transformation, data event, schedule, webhook).
 
-* **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
+- **Data integration**: Data validation, transformation, mapping, and data quality. Exchange support for multiple formats (JSON, XML, ASN), standards (EDIFACT, X12, UBL) and protocol connectors (HTTP(S), FTP, SFTP, SCP).
 
-* **Third-party service integrations**: Directory of Shared Collections to connect services as ERP / Fulfilment / Marketing / Communication.
-
+- **Third-party service integrations**: Directory of Shared Collections to connect services as ERP / Fulfilment / Marketing / Communication.
 
 ## Data Pipelines between APIs
 
@@ -74,24 +58,24 @@ fulfillment solutions, accounting, communications, ERP, multi-channel, etc.
 
 An example of integration data flow (Fancy <=> Shipstation):
 
-* Every 20 minutes Cenit triggers a flow to get orders from Fancy Marketplace.
+- Every 20 minutes Cenit triggers a flow to get orders from Fancy Marketplace.
 
-* New or updated orders are received and persisted in Cenit.
+- New or updated orders are received and persisted in Cenit.
 
-* After the new or updated orders are saved, a Flow is triggered to send a shipment to Shipstation.
+- After the new or updated orders are saved, a Flow is triggered to send a shipment to Shipstation.
 
-* The flow requires transforming the Fancy Order into a valid shipment on Shipstation.
+- The flow requires transforming the Fancy Order into a valid shipment on Shipstation.
 
-* Every 20 minutes Cenit triggers a flow to fetch Shipped shipments from Shipstation.
+- Every 20 minutes Cenit triggers a flow to fetch Shipped shipments from Shipstation.
 
-* After the shipments are updated in Cenit, a Flow is triggered to send the tracking update to Fancy.
+- After the shipments are updated in Cenit, a Flow is triggered to send the tracking update to Fancy.
 
 ## Stack
 
-* Ruby
-* MongoDB
-* RabbitMQ
-* Redis
+- Ruby
+- MongoDB
+- RabbitMQ
+- Redis
 
 ## Contributing
 
@@ -102,12 +86,12 @@ improve this project.
 
 Here are some ways **you** can contribute:
 
-* by using prerelease master branch
-* by reporting [bugs](https://github.com/cenit-io/cenit/issues/new)
-* by writing or editing [documentation](https://github.com/cenit-io/cenit-docs)
-* by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
-* by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
-* by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
+- by using prerelease master branch
+- by reporting [bugs](https://github.com/cenit-io/cenit/issues/new)
+- by writing or editing [documentation](https://github.com/cenit-io/cenit-docs)
+- by writing [needed code](https://github.com/cenit-io/cenit/labels/feature_request) or [finishing code](https://github.com/cenit-io/cenit/labels/address_feedback)
+- by [refactoring code](https://github.com/cenit-io/cenit/labels/address_feedback)
+- by reviewing [pull requests](https://github.com/cenit-io/cenit/pulls)
 
 ## To the Community
 
@@ -124,12 +108,3 @@ We encourage the community to join the initiative and contribute to the dissemin
 ![cenit_type](https://user-images.githubusercontent.com/81880890/138016964-a537ce74-892a-4583-a7da-deb762876b86.png)
 
 ![mobile_view](https://user-images.githubusercontent.com/81880890/148653137-d3459280-425b-449f-b206-cb8da0d73e1f.png)
-
-[numApis-image]: https://api.apis.guru/badges/apis_in_collection.svg
-[numSpecs-image]: https://api.apis.guru/badges/openapi_specs.svg
-[endpoints-image]: https://api.apis.guru/badges/endpoints.svg
-[apisDir-link]: https://github.com/APIs-guru/openapi-directory/tree/master/APIs
-[twitterFollow-image]: https://img.shields.io/twitter/follow/cenit_io.svg?style=social
-[twitterFollow-link]: https://twitter.com/intent/follow?screen_name=cenit_io
-[join-slack-link]:
-https://join.slack.com/t/cenitio/shared_invite/zt-1nk3b7979-IbHN7Ov2rkVt6QHLdq9dQQ
