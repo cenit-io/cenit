@@ -39,10 +39,10 @@ ENV RAILS_ROOT /var/www/cenit
 RUN mkdir -p $RAILS_ROOT
 WORKDIR /var/www/cenit
 
-RUN gem install bundler:2.3
+RUN gem install bundler -v 2.4.22
 COPY Gemfile .
 COPY Gemfile.lock .
-RUN gem install rails bundler
+
 RUN bundle install --without development test
 COPY . .
 RUN chmod +x env.sh

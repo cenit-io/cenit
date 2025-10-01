@@ -10,6 +10,8 @@ capybara-*.html
 /coverage/
 /spec/tmp
 **.orig
+tree.sh
+relevant_files_content.txt
 rerun.txt
 pickle-email-*.html
 public/apis.guru.list.json
