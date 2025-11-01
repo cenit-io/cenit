@@ -24,7 +24,7 @@ services:
       - MONGODB_URI=mongodb://mongo_server/cenit
       - REDIS_HOST=redis
       - HOMEPAGE=http://localhost:3000
-      - ADMIN_UI=http://localhost:3002
+      - CENIT_UI=http://localhost:3002
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_WORKERS=4
