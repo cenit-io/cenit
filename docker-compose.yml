@@ -45,7 +45,7 @@ services:
       NAME: "rabbitmq-server"
 
   mongo_server:
-    image: mongo:4.4
+    image: mongo:5.0
     restart: always
     volumes:
       - mongodb-data:/data/db
