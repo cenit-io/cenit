@@ -45,6 +45,7 @@ group :production do
 end
 
 gem 'mongoid'
+gem 'mongo', '~> 2.18'
 gem 'bson_ext'
 
 gem 'httparty'

@@ -161,7 +161,7 @@ GEM
     aws-sigv4 (1.2.4)
       aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.16)
-    bson (4.12.1)
+    bson (4.14.1)
     bson_ext (1.5.1)
     builder (3.2.4)
     bunny (2.19.0)
@@ -341,8 +341,8 @@ GEM
     mini_racer (0.4.0)
       libv8-node (~> 15.14.0.0)
     minitest (5.14.4)
-    mongo (2.14.0)
-      bson (>= 4.8.2, < 5.0.0)
+    mongo (2.18.2)
+      bson (>= 4.14.1, < 5.0.0)
     mongoid (7.3.0)
       activemodel (>= 5.1, < 6.2)
       mongo (>= 2.10.5, < 3.0.0)
@@ -618,6 +618,7 @@ DEPENDENCIES
   jquery-rails
   json-schema
   kaminari-mongoid
+  mongo (~> 2.18)
   language_sniffer
   liquid
   lodash-rails
