@@ -7,7 +7,7 @@ module Setup
     include DataTypeParser
     include CustomTitle
     include Mongoff::DataTypeMethods
-    include ClassHierarchyAware
+    include ::Setup::ClassHierarchyAware
     include ModelConfigurable
     include BuildIn
 
@@ -36,10 +36,10 @@ module Setup
 
     field :title, type: String
 
-    has_and_belongs_to_many :before_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
-    has_and_belongs_to_many :after_save_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
-    has_and_belongs_to_many :records_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
-    has_and_belongs_to_many :data_type_methods, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    has_and_belongs_to_many :before_save_callbacks, class_name: 'Setup::Algorithm', inverse_of: nil
+    has_and_belongs_to_many :after_save_callbacks, class_name: 'Setup::Algorithm', inverse_of: nil
+    has_and_belongs_to_many :records_methods, class_name: 'Setup::Algorithm', inverse_of: nil
+    has_and_belongs_to_many :data_type_methods, class_name: 'Setup::Algorithm', inverse_of: nil
 
     before_save :validates_configuration
 

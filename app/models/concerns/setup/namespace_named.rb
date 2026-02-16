@@ -2,7 +2,7 @@ module Setup
   module NamespaceNamed
     extend ActiveSupport::Concern
 
-    include DynamicValidators
+    include ::DynamicValidators
     include CustomTitle
 
     included do

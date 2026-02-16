@@ -40,25 +40,27 @@ module Setup
 
     field :description, type: String
 
-    binding_belongs_to :event, class_name: Setup::Event.to_s, inverse_of: nil
+    binding_belongs_to :event, class_name: 'Setup::Event', inverse_of: nil
 
-    belongs_to :translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :custom_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+
+    belongs_to :translator, class_name: 'Setup::Translator', inverse_of: nil
+    belongs_to :custom_data_type, class_name: 'Setup::DataType', inverse_of: nil
     field :nil_data_type, type: Mongoid::Boolean
     field :data_type_scope, type: String
     field :scope_filter, type: String
-    belongs_to :scope_evaluator, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    belongs_to :scope_evaluator, class_name: 'Setup::Algorithm', inverse_of: nil
     field :lot_size, type: Integer
 
-    belongs_to :webhook, class_name: Setup::Webhook.to_s, inverse_of: nil
-    binding_belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
-    binding_belongs_to :connection_role, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
-    belongs_to :before_submit, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    belongs_to :webhook, class_name: 'Setup::Webhook', inverse_of: nil
+    binding_belongs_to :authorization, class_name: 'Setup::Authorization', inverse_of: nil
+    binding_belongs_to :connection_role, class_name: 'Setup::ConnectionRole', inverse_of: nil
+    belongs_to :before_submit, class_name: 'Setup::Algorithm', inverse_of: nil
 
-    belongs_to :response_translator, class_name: Setup::Translator.to_s, inverse_of: nil
-    belongs_to :response_data_type, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :response_translator, class_name: 'Setup::Translator', inverse_of: nil
+    belongs_to :response_data_type, class_name: 'Setup::DataType', inverse_of: nil
 
-    has_and_belongs_to_many :after_process_callbacks, class_name: Setup::Algorithm.to_s, inverse_of: nil
+    has_and_belongs_to_many :after_process_callbacks, class_name: 'Setup::Algorithm', inverse_of: nil
+
 
     field :data_type_id, type: BSON::ObjectId
 

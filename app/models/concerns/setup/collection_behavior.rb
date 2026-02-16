@@ -40,33 +40,33 @@ module Setup
       field :title, type: String, default: ''
       field :readme, type: String
 
-      has_and_belongs_to_many :namespaces, class_name: Setup::Namespace.to_s, inverse_of: nil
+      has_and_belongs_to_many :namespaces, class_name: 'Setup::Namespace', inverse_of: nil
 
-      has_and_belongs_to_many :flows, class_name: Setup::Flow.to_s, inverse_of: nil
-      has_and_belongs_to_many :notification_flows, class_name: Setup::NotificationFlow.to_s, inverse_of: nil
-      has_and_belongs_to_many :translators, class_name: Setup::Translator.to_s, inverse_of: nil
-      has_and_belongs_to_many :events, class_name: Setup::Event.to_s, inverse_of: nil
-      has_and_belongs_to_many :algorithms, class_name: Setup::Algorithm.to_s, inverse_of: nil
-      has_and_belongs_to_many :applications, class_name: Setup::Application.to_s, inverse_of: nil
-      has_and_belongs_to_many :snippets, class_name: Setup::Snippet.to_s, inverse_of: nil
-      has_and_belongs_to_many :email_channels, class_name: Setup::EmailChannel.to_s, inverse_of: nil
-      has_and_belongs_to_many :smtp_providers, class_name: Setup::SmtpProvider.to_s, inverse_of: nil
+      has_and_belongs_to_many :flows, class_name: 'Setup::Flow', inverse_of: nil
+      has_and_belongs_to_many :notification_flows, class_name: 'Setup::NotificationFlow', inverse_of: nil
+      has_and_belongs_to_many :translators, class_name: 'Setup::Translator', inverse_of: nil
+      has_and_belongs_to_many :events, class_name: 'Setup::Event', inverse_of: nil
+      has_and_belongs_to_many :algorithms, class_name: 'Setup::Algorithm', inverse_of: nil
+      has_and_belongs_to_many :applications, class_name: 'Setup::Application', inverse_of: nil
+      has_and_belongs_to_many :snippets, class_name: 'Setup::Snippet', inverse_of: nil
+      has_and_belongs_to_many :email_channels, class_name: 'Setup::EmailChannel', inverse_of: nil
+      has_and_belongs_to_many :smtp_providers, class_name: 'Setup::SmtpProvider', inverse_of: nil
 
-      has_and_belongs_to_many :connection_roles, class_name: Setup::ConnectionRole.to_s, inverse_of: nil
-      has_and_belongs_to_many :resources, class_name: Setup::Resource.to_s, inverse_of: nil
-      has_and_belongs_to_many :operations, class_name: Setup::Operation.to_s, inverse_of: nil
-      has_and_belongs_to_many :webhooks, class_name: Setup::PlainWebhook.to_s, inverse_of: nil
-      has_and_belongs_to_many :connections, class_name: Setup::Connection.to_s, inverse_of: nil
+      has_and_belongs_to_many :connection_roles, class_name: 'Setup::ConnectionRole', inverse_of: nil
+      has_and_belongs_to_many :resources, class_name: 'Setup::Resource', inverse_of: nil
+      has_and_belongs_to_many :operations, class_name: 'Setup::Operation', inverse_of: nil
+      has_and_belongs_to_many :webhooks, class_name: 'Setup::PlainWebhook', inverse_of: nil
+      has_and_belongs_to_many :connections, class_name: 'Setup::Connection', inverse_of: nil
 
-      has_and_belongs_to_many :data_types, class_name: Setup::DataType.to_s, inverse_of: nil
-      has_and_belongs_to_many :schemas, class_name: Setup::Schema.to_s, inverse_of: nil
-      has_and_belongs_to_many :custom_validators, class_name: Setup::CustomValidator.to_s, inverse_of: nil
+      has_and_belongs_to_many :data_types, class_name: 'Setup::DataType', inverse_of: nil
+      has_and_belongs_to_many :schemas, class_name: 'Setup::Schema', inverse_of: nil
+      has_and_belongs_to_many :custom_validators, class_name: 'Setup::CustomValidator', inverse_of: nil
 
-      has_and_belongs_to_many :authorizations, class_name: Setup::Authorization.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth_providers, class_name: Setup::AuthorizationProvider.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth_clients, class_name: Setup::RemoteOauthClient.to_s, inverse_of: nil
-      has_and_belongs_to_many :generic_clients, class_name: Setup::GenericAuthorizationClient.to_s, inverse_of: nil
-      has_and_belongs_to_many :oauth2_scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
+      has_and_belongs_to_many :authorizations, class_name: 'Setup::Authorization', inverse_of: nil
+      has_and_belongs_to_many :oauth_providers, class_name: 'Setup::AuthorizationProvider', inverse_of: nil
+      has_and_belongs_to_many :oauth_clients, class_name: 'Setup::RemoteOauthClient', inverse_of: nil
+      has_and_belongs_to_many :generic_clients, class_name: 'Setup::GenericAuthorizationClient', inverse_of: nil
+      has_and_belongs_to_many :oauth2_scopes, class_name: 'Setup::Oauth2Scope', inverse_of: nil
 
       before_save :make_title, :add_dependencies
 

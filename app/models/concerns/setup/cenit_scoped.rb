@@ -2,7 +2,7 @@ module Setup
   module CenitScoped
     extend ActiveSupport::Concern
 
-    include CenitUnscoped
+    include Setup::CenitUnscoped
     include AccountScoped
 
     module ClassMethods

@@ -301,35 +301,45 @@ module Enumerable
   end
 end
 
+resolve_extension_entity = lambda do |entity_path|
+  entity_path.to_s.split('::').reject(&:empty?).inject(Object) { |scope, name| scope.const_get(name) }
+rescue NameError
+  nil
+end
+
 {
-  OpenSSL::Digest => :new_sign,
-  OpenSSL::Digest::SHA1 => :new_sha1,
-  OpenSSL::PKey::RSA => :new_rsa,
-  OpenSSL::X509::Certificate => :new_certificate,
-  Xmldsig::SignedDocument => :new_document,
-  StringIO => :new_io,
-  Spreadsheet::Workbook => :new_workbook,
-  Nokogiri::XML::Builder => :new_builder,
-  MIME::Mail => :new_message,
-  MIME::Message => :new_message,
-  MIME::Text => :new_text,
-  MIME::Multipart::Mixed => :new_message,
-  WriteXLSX => :new_xlsx,
-  MIME::Application => :new_app,
-  MIME::Image => :new_img,
-  MIME::DiscreteMedia => :new_media,
-  CombinePDF => :new_pdf,
-  MWS::Feeds::Client => :new_feed,
-}.each do |entity, method|
+  'OpenSSL::Digest' => :new_sign,
+  'OpenSSL::Digest::SHA1' => :new_sha1,
+  'OpenSSL::PKey::RSA' => :new_rsa,
+  'OpenSSL::X509::Certificate' => :new_certificate,
+  'Xmldsig::SignedDocument' => :new_document,
+  'StringIO' => :new_io,
+  'Spreadsheet::Workbook' => :new_workbook,
+  'Nokogiri::XML::Builder' => :new_builder,
+  'MIME::Mail' => :new_message,
+  'MIME::Message' => :new_message,
+  'MIME::Text' => :new_text,
+  'MIME::Multipart::Mixed' => :new_message,
+  'WriteXLSX' => :new_xlsx,
+  'MIME::Application' => :new_app,
+  'MIME::Image' => :new_img,
+  'MIME::DiscreteMedia' => :new_media,
+  'CombinePDF' => :new_pdf,
+  'MWS::Feeds::Client' => :new_feed,
+}.each do |entity_path, method|
+  next unless (entity = resolve_extension_entity.call(entity_path))
+
   entity.class_eval("def self.#{method}(*args)
     new(*args)
   end")
 end
 
 {
-  MIME::DiscreteMedia => :create_media,
-  MIME::DiscreteMediaFactory => :create_factory
-}.each do |entity, method|
+  'MIME::DiscreteMedia' => :create_media,
+  'MIME::DiscreteMediaFactory' => :create_factory
+}.each do |entity_path, method|
+  next unless (entity = resolve_extension_entity.call(entity_path))
+
   entity.class_eval("def self.#{method}(*args)
     create(*args)
   end")

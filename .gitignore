@@ -9,6 +9,8 @@ capybara-*.html
 /public/system
 /coverage/
 /spec/tmp
+/output/
+/tmp_server_logs/
 **.orig
 tree.sh
 relevant_files_content.txt

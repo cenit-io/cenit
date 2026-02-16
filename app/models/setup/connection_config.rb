@@ -1,11 +1,13 @@
 module Setup
   class ConnectionConfig
     include CenitScoped
-    include CredentialsGenerator
+    include ::CredentialsGenerator
+
 
     build_in_data_type
 
-    belongs_to :connection, class_name: Setup::Connection.to_s, inverse_of: nil, autosave: false
+    belongs_to :connection, class_name: 'Setup::Connection', inverse_of: nil, autosave: false
+
 
     attr_readonly :connection
 

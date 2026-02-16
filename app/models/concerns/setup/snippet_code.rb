@@ -42,7 +42,8 @@ module Setup
         }
       )
 
-      binding_belongs_to :snippet, class_name: Setup::Snippet.to_s, inverse_of: nil
+      binding_belongs_to :snippet, class_name: 'Setup::Snippet', inverse_of: nil
+
 
       trace_ignore :snippet_id
 

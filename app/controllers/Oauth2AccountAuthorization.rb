@@ -1,4 +1,4 @@
-module OAuth2AccountAuthorization
+module Oauth2AccountAuthorization
 
   def soft_authorize_account
     authorize_account(true)
@@ -65,3 +65,5 @@ module OAuth2AccountAuthorization
     end
   end
 end
+
+OAuth2AccountAuthorization = Oauth2AccountAuthorization unless defined?(OAuth2AccountAuthorization)
