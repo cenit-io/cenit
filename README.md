@@ -130,6 +130,68 @@ Disable cleanup (debug mode):
 CENIT_E2E_CLEANUP=0 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
+### Repeatable UI User Journey E2E Check
+
+To run a richer UI journey (login, create `Contact` data type, create two records, verify list, delete one record, cleanup data type):
+
+```bash
+scripts/e2e/cenit_ui_user_journey.sh
+```
+
+Defaults are idempotent:
+
+- Namespace: `E2E_USER_JOURNEY`
+- Data type: `Contact`
+- Records: `John Journey E2E` and `Jane Journey E2E`
+- Cleanup enabled by default (`CENIT_E2E_CLEANUP=1`)
+
+Useful overrides:
+
+```bash
+CENIT_E2E_AUTOSTART=0 \
+CENIT_E2E_HEADED=1 \
+CENIT_E2E_JOURNEY_NAMESPACE="E2E_USER_JOURNEY" \
+CENIT_E2E_JOURNEY_DATATYPE_NAME="Contact" \
+CENIT_E2E_JOURNEY_RECORD_ONE="John Journey E2E" \
+CENIT_E2E_JOURNEY_RECORD_TWO="Jane Journey E2E" \
+scripts/e2e/cenit_ui_user_journey.sh
+```
+
+### Repeatable Flow Execution + RabbitMQ E2E Check
+
+To run a backend flow execution smoke (create data type + record, create flow, execute it, verify record mutation, verify RabbitMQ publish/ack counters):
+
+```bash
+scripts/e2e/cenit_flow_execution_smoke.sh
+```
+
+Default behavior is idempotent:
+
+- Uses fixed test resources by default:
+  - Namespace: `E2E_FLOW_EXECUTION`
+  - Data type: `Contact`
+  - Translator: `ContactNameUpdater`
+  - Flow: `ContactNameFlow`
+  - Record: `John Flow E2E`
+- Cleans up created resources at the end (`CENIT_E2E_CLEANUP=1` by default)
+- Can be run repeatedly without manual reset
+
+Optional overrides:
+
+```bash
+CENIT_E2E_EMAIL="support@cenit.io" \
+CENIT_SERVER_URL="http://localhost:3000" \
+CENIT_E2E_FLOW_NAMESPACE="E2E_FLOW_EXECUTION" \
+CENIT_E2E_FLOW_DATATYPE_NAME="Contact" \
+CENIT_E2E_FLOW_TRANSLATOR_NAME="ContactNameUpdater" \
+CENIT_E2E_FLOW_NAME="ContactNameFlow" \
+CENIT_E2E_FLOW_RECORD_NAME="John Flow E2E" \
+CENIT_E2E_FLOW_SUFFIX="FLOW-CUSTOM" \
+CENIT_E2E_CLEANUP=1 \
+CENIT_E2E_AUTOSTART=1 \
+scripts/e2e/cenit_flow_execution_smoke.sh
+```
+
 ### Local Git Hooks (Husky)
 
 Install local Git hooks:
