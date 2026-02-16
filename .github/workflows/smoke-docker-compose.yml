@@ -1,4 +1,4 @@
-name: "Smoke: Docker Compose + UI Login"
+name: "Smoke: Docker Compose + UI Login + Records"
 
 on:
   workflow_dispatch:
@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: cenit-io/ui
+          ref: develop
           path: ui
 
       - name: Setup Node.js
@@ -62,6 +63,9 @@ jobs:
 
       - name: Run login E2E smoke
         run: scripts/e2e/cenit_ui_login.sh
+
+      - name: Run contact data type + records E2E smoke
+        run: CENIT_E2E_AUTOSTART=0 scripts/e2e/cenit_ui_contact_flow.sh
 
       - name: Capture docker logs on failure
         if: failure()

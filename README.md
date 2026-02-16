@@ -91,6 +91,29 @@ CENIT_E2E_AUTOSTART=1 \
 scripts/e2e/cenit_ui_login.sh
 ```
 
+### Repeatable UI Data Type + Records E2E Check
+
+To run a full UI flow (login, create `Contact` data type, create one `Contact` record):
+
+```bash
+scripts/e2e/cenit_ui_contact_flow.sh
+```
+
+Optional overrides:
+
+```bash
+CENIT_E2E_EMAIL="support@cenit.io" \
+CENIT_E2E_PASSWORD="password" \
+CENIT_SERVER_URL="http://localhost:3000" \
+CENIT_UI_URL="http://localhost:3002" \
+CENIT_E2E_DATATYPE_NAMESPACE="E2E_TEST" \
+CENIT_E2E_DATATYPE_NAME="Contact" \
+CENIT_E2E_RECORD_NAME="John Contact E2E" \
+CENIT_E2E_RECORD_COLLECTION="Contacts" \
+CENIT_E2E_AUTOSTART=1 \
+scripts/e2e/cenit_ui_contact_flow.sh
+```
+
 ## Why
 
 The insatiable need for integration driven by social networks, open APIs, mobile apps, cloud services, and increasingly, the IoT is fertile ground for the growth of integration platform adoption.
