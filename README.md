@@ -121,6 +121,16 @@ CENIT_E2E_RECORD_NAME="John Contact E2E" \
 CENIT_E2E_RECORD_COLLECTION="Contacts" \
 CENIT_E2E_CLEANUP=1 \
 CENIT_E2E_AUTOSTART=1 \
+CENIT_E2E_RESET_STACK=0 \
+CENIT_E2E_BUILD_STACK=0 \
+scripts/e2e/cenit_ui_contact_flow.sh
+```
+
+Readiness waits can be tuned when your machine is slower:
+
+```bash
+CENIT_E2E_SERVER_READY_RETRIES=240 \
+CENIT_E2E_UI_READY_RETRIES=180 \
 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
@@ -203,13 +213,22 @@ npm run prepare
 
 Configured hook:
 
-- `pre-push`: runs headless `scripts/e2e/cenit_ui_contact_flow.sh`
+- `pre-push`: runs headless `scripts/e2e/cenit_ui_contact_flow.sh` with `CENIT_E2E_RESET_STACK=1`, `CENIT_E2E_BUILD_STACK=1`, and `CENIT_E2E_CLEANUP=0` by default (fresh volumes + rebuilt local images; cleanup disabled for hook stability)
 
 Useful overrides:
 
 ```bash
 # Reuse running local stack instead of autostart
 CENIT_E2E_AUTOSTART=0 git push
+
+# Keep current volumes/state (skip reset)
+CENIT_E2E_RESET_STACK=0 git push
+
+# Keep reset but skip rebuild
+CENIT_E2E_BUILD_STACK=0 git push
+
+# Force cleanup phase inside hook run
+CENIT_E2E_CLEANUP=1 git push
 
 # Skip hooks for one push
 HUSKY=0 git push

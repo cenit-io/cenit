@@ -15,6 +15,8 @@ CENIT_E2E_KEEP_BROWSER="${CENIT_E2E_KEEP_BROWSER:-0}"
 CENIT_E2E_DRIVER="${CENIT_E2E_DRIVER:-auto}"
 CENIT_E2E_HEADED="${CENIT_E2E_HEADED:-0}"
 CENIT_E2E_CLEANUP="${CENIT_E2E_CLEANUP:-1}"
+CENIT_E2E_RESET_STACK="${CENIT_E2E_RESET_STACK:-0}"
+CENIT_E2E_BUILD_STACK="${CENIT_E2E_BUILD_STACK:-$CENIT_E2E_RESET_STACK}"
 CENIT_E2E_RUN_ID="${CENIT_E2E_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
 CENIT_E2E_DATATYPE_NAMESPACE="${CENIT_E2E_DATATYPE_NAMESPACE:-E2E_CONTACT_FLOW}"
 CENIT_E2E_DATATYPE_NAME="${CENIT_E2E_DATATYPE_NAME:-Contact}"
@@ -42,7 +44,7 @@ wait_http() {
   local sleep_secs="${4:-1}"
   local i
   for ((i = 1; i <= retries; i += 1)); do
-    if curl -fsS -o /dev/null "$url"; then
+    if curl -fsS -o /dev/null "$url" >/dev/null 2>&1; then
       echo "$label is ready: $url"
       return 0
     fi
@@ -251,14 +253,39 @@ run_node_driver() {
 ensure_cmd curl
 mkdir -p "$CENIT_E2E_OUTPUT_DIR"
 
-if [[ "$CENIT_E2E_AUTOSTART" == "1" ]]; then
-  ensure_cmd docker
-  echo "Starting cenit stack (server, ui, mongo, redis, rabbitmq)..."
-  docker compose -f "$COMPOSE_FILE" up -d mongo_server redis rabbitmq server ui >/dev/null
+if [[ -z "${CENIT_E2E_SERVER_READY_RETRIES:-}" ]]; then
+  if [[ "$CENIT_E2E_RESET_STACK" == "1" || "$CENIT_E2E_BUILD_STACK" == "1" ]]; then
+    CENIT_E2E_SERVER_READY_RETRIES=180
+  else
+    CENIT_E2E_SERVER_READY_RETRIES=60
+  fi
 fi
 
-wait_http "$CENIT_SERVER_URL" "Cenit server"
-wait_http "$CENIT_UI_URL" "Cenit UI"
+if [[ -z "${CENIT_E2E_UI_READY_RETRIES:-}" ]]; then
+  if [[ "$CENIT_E2E_RESET_STACK" == "1" || "$CENIT_E2E_BUILD_STACK" == "1" ]]; then
+    CENIT_E2E_UI_READY_RETRIES=120
+  else
+    CENIT_E2E_UI_READY_RETRIES=60
+  fi
+fi
+
+if [[ "$CENIT_E2E_AUTOSTART" == "1" ]]; then
+  ensure_cmd docker
+  if [[ "$CENIT_E2E_RESET_STACK" == "1" ]]; then
+    echo "Resetting cenit docker stack and volumes before E2E..."
+    docker compose -f "$COMPOSE_FILE" down -v --remove-orphans >/dev/null || true
+  fi
+  if [[ "$CENIT_E2E_BUILD_STACK" == "1" ]]; then
+    echo "Starting cenit stack with image rebuild (server, ui, mongo, redis, rabbitmq)..."
+    docker compose -f "$COMPOSE_FILE" up -d --build mongo_server redis rabbitmq server ui >/dev/null
+  else
+    echo "Starting cenit stack (server, ui, mongo, redis, rabbitmq)..."
+    docker compose -f "$COMPOSE_FILE" up -d mongo_server redis rabbitmq server ui >/dev/null
+  fi
+fi
+
+wait_http "$CENIT_SERVER_URL" "Cenit server" "$CENIT_E2E_SERVER_READY_RETRIES"
+wait_http "$CENIT_UI_URL" "Cenit UI" "$CENIT_E2E_UI_READY_RETRIES"
 
 driver="$CENIT_E2E_DRIVER"
 if [[ "$driver" == "auto" ]]; then

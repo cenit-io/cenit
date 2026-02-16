@@ -79,6 +79,66 @@ async function clickNamedButtonInPanel(page, nameMatcher, prefer = 'first') {
   throw new Error(`No clickable panel button found: ${String(nameMatcher)}`);
 }
 
+async function clickNamedButtonAnywhere(page, nameMatcher, prefer = 'first') {
+  const locator = page.getByRole('button', { name: nameMatcher });
+  const count = await locator.count();
+  if (!count) return false;
+
+  const indexes = [...Array(count).keys()];
+  if (prefer === 'last') indexes.reverse();
+
+  for (const i of indexes) {
+    const button = locator.nth(i);
+    const visible = await button.isVisible().catch(() => false);
+    const enabled = await button.isEnabled().catch(() => false);
+    if (!visible || !enabled) continue;
+    const box = await button.boundingBox().catch(() => null);
+    // Prefer toolbar actions in the upper area of the workspace.
+    if (box && box.y > 260) continue;
+    await button.click().catch(() => null);
+    return true;
+  }
+  return false;
+}
+
+async function clickToolbarActionByLabel(page, labelRegex) {
+  const candidates = page.locator('button[aria-label],button[title]');
+  const count = await candidates.count();
+  const matched = [];
+  for (let i = 0; i < count; i += 1) {
+    const button = candidates.nth(i);
+    const visible = await button.isVisible().catch(() => false);
+    if (!visible) continue;
+
+    const label = (await button.getAttribute('aria-label').catch(() => null))
+      || (await button.getAttribute('title').catch(() => null))
+      || '';
+    if (!labelRegex.test(label)) continue;
+
+    const box = await button.boundingBox().catch(() => null);
+    if (!box) continue;
+    // Keep to workspace toolbar actions, avoid side drawer collisions.
+    if (box.x <= 320 || box.y >= 260) continue;
+    matched.push({ index: i, x: box.x, y: box.y });
+  }
+
+  if (!matched.length) return false;
+  matched.sort((a, b) => a.x - b.x || a.y - b.y);
+  const target = candidates.nth(matched[0].index);
+  await target.click({ force: true });
+  return true;
+}
+
+async function hasPanelButton(page, nameMatcher) {
+  const panel = await resolveWorkPanel(page);
+  const locator = panel.getByRole('button', { name: nameMatcher });
+  const count = await locator.count();
+  for (let i = 0; i < count; i += 1) {
+    if (await locator.nth(i).isVisible().catch(() => false)) return true;
+  }
+  return false;
+}
+
 async function fillEditableTextboxInPanel(page, roleName, value, exact = false) {
   const panel = await resolveWorkPanel(page);
   const locator = panel.getByRole('textbox', { name: roleName, exact });
@@ -131,7 +191,19 @@ async function clickWorkspaceTab(page, nameMatcher, prefer = 'last') {
 }
 
 async function openDeleteAndConfirmInPanel(page, resourceLabel) {
-  await clickNamedButtonInPanel(page, /^Delete$/i, 'first');
+  let deleteClicked = false;
+  try {
+    await clickNamedButtonInPanel(page, /^Delete$/i, 'first');
+    deleteClicked = true;
+  } catch (_) {
+    deleteClicked = await clickNamedButtonAnywhere(page, /^Delete$/i, 'first');
+  }
+  if (!deleteClicked) {
+    deleteClicked = await clickToolbarActionByLabel(page, /delete/i);
+  }
+  if (!deleteClicked) {
+    throw new Error(`Cleanup failed for ${resourceLabel}: delete action is not available.`);
+  }
 
   let panel = await resolveWorkPanel(page);
   const deleteInput = panel.getByPlaceholder(/permanently delete/i).first();
@@ -170,7 +242,7 @@ async function openDeleteAndConfirmInPanel(page, resourceLabel) {
   throw new Error(`Cleanup failed for ${resourceLabel}: delete confirmation screen is still visible.`);
 }
 
-async function closeTopTabs(page, max = 16) {
+async function closeTopTabs(page, max = 120) {
   for (let step = 0; step < max; step += 1) {
     const closeButtons = page.getByRole('button', { name: /^close$/i });
     const count = await closeButtons.count();
@@ -195,18 +267,48 @@ async function closeTopTabs(page, max = 16) {
 }
 
 async function openDocumentTypes(page) {
-  const button = page.getByRole('button', { name: /^Document Types$/i }).first();
-  const isVisible = await button.isVisible().catch(() => false);
-  if (!isVisible) {
+  const heading = page.getByRole('heading', { name: /^Document Types/ }).last();
+  const isInDocumentTypes = async () =>
+    (await heading.isVisible().catch(() => false))
+    || (await hasPanelButton(page, /^List$/i))
+    || (await hasPanelButton(page, /^Records$/i));
+
+  for (let attempt = 1; attempt <= 8; attempt += 1) {
+    if (await isInDocumentTypes()) return;
+
     const dataMenu = page.getByRole('button', { name: /^Data$/i }).first();
-    const dataMenuVisible = await dataMenu.isVisible().catch(() => false);
-    if (dataMenuVisible) {
+    if (await dataMenu.isVisible().catch(() => false)) {
       await dataMenu.click().catch(() => null);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(250);
     }
+
+    const buttons = page.getByRole('button', { name: /^Document Types$/i });
+    const count = await buttons.count();
+    let clicked = false;
+    for (let i = 0; i < count; i += 1) {
+      const button = buttons.nth(i);
+      const visible = await button.isVisible().catch(() => false);
+      if (!visible) continue;
+      const box = await button.boundingBox().catch(() => null);
+      // Prefer left navigation item when both sidebar and top tab are visible.
+      if (box && box.x > 320) continue;
+      await button.click().catch(() => null);
+      clicked = true;
+      break;
+    }
+    if (!clicked) {
+      await buttons.first().click().catch(() => null);
+    }
+
+    await page.waitForTimeout(600);
+    if (await isInDocumentTypes()) return;
+
+    await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
+    await page.waitForTimeout(500);
+    if (await isInDocumentTypes()) return;
   }
-  await page.getByRole('button', { name: /^Document Types$/i }).first().click();
-  await page.getByRole('heading', { name: /^Document Types/ }).last().waitFor({ timeout: 30000 });
+
+  throw new Error('Could not open Document Types view after retries.');
 }
 
 async function openDataTypeNewForm(page) {
@@ -240,6 +342,38 @@ async function deleteExistingDataTypeIfPresent(page) {
   await page.waitForTimeout(500);
   await openDeleteAndConfirmInPanel(page, `existing data type '${namespaceName} | ${dataTypeName}'`);
   return true;
+}
+
+async function openDataTypeShowByList(page) {
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    await openDocumentTypes(page);
+    await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
+    await page.waitForTimeout(500);
+
+    const panel = await resolveWorkPanel(page);
+    let row = panel.locator('tr').filter({ hasText: namespaceName }).filter({ hasText: dataTypeName }).first();
+    let rowVisible = await row.isVisible().catch(() => false);
+    if (!rowVisible) {
+      // Fallback for layouts where namespace column is truncated/hidden.
+      row = panel.locator('tr').filter({ hasText: dataTypeName }).first();
+      rowVisible = await row.isVisible().catch(() => false);
+    }
+    if (!rowVisible) {
+      await clickNamedButtonInPanel(page, /^Refresh$/i, 'first').catch(() => null);
+      await page.waitForTimeout(600);
+      continue;
+    }
+
+    const rowCheckbox = row.getByRole('checkbox').first();
+    if (await rowCheckbox.isVisible().catch(() => false)) {
+      await rowCheckbox.click();
+    }
+    await clickNamedButtonInPanel(page, /^Show$/i, 'first');
+    await page.waitForTimeout(700);
+    return;
+  }
+
+  throw new Error(`Data type not found in list: ${namespaceName} | ${dataTypeName}`);
 }
 
 async function ensureAuthenticated(page) {
@@ -315,7 +449,32 @@ try {
   await clickWorkspaceTab(page, new RegExp(`${escapeRegex(namespaceName)}\\s*\\|\\s*${escapeRegex(dataTypeName)}`, 'i'));
 
   const recordsHeading = new RegExp(`^${escapeRegex(recordCollection)}`);
-  await clickNamedButtonInPanel(page, /^Records$/i, 'first');
+  try {
+    await clickNamedButtonInPanel(page, /^Records$/i, 'first');
+  } catch (error) {
+    // Recover from stale panel focus by retrying from the data type tab context.
+    let clicked = await clickNamedButtonAnywhere(page, /^Records$/i, 'first');
+    for (let attempt = 1; !clicked && attempt <= 6; attempt += 1) {
+      await clickWorkspaceTab(
+        page,
+        new RegExp(`${escapeRegex(namespaceName)}\\s*\\|\\s*${escapeRegex(dataTypeName)}`, 'i'),
+        'last'
+      ).catch(() => false);
+      await page.waitForTimeout(400);
+      clicked = await clickNamedButtonAnywhere(page, /^Records$/i, 'first');
+      if (!clicked) {
+        try {
+          await clickNamedButtonInPanel(page, /^Records$/i, 'first');
+          clicked = true;
+        } catch (_) {
+          // continue retrying
+        }
+      }
+    }
+    if (!clicked) {
+      throw error;
+    }
+  }
   await page.getByRole('heading', { name: recordsHeading }).last().waitFor({ timeout: 30000 });
 
   for (let attempt = 1; attempt <= 4; attempt += 1) {

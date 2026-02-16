@@ -7,5 +7,8 @@ cd "$ROOT_DIR"
 echo "husky(pre-push): running headless cenit_ui_contact_flow.sh"
 CENIT_E2E_AUTOSTART="${CENIT_E2E_AUTOSTART:-1}" \
 CENIT_E2E_DRIVER="${CENIT_E2E_DRIVER:-node}" \
+CENIT_E2E_RESET_STACK="${CENIT_E2E_RESET_STACK:-1}" \
+CENIT_E2E_BUILD_STACK="${CENIT_E2E_BUILD_STACK:-1}" \
+CENIT_E2E_CLEANUP="${CENIT_E2E_CLEANUP:-0}" \
 CENIT_E2E_HEADED=0 \
 scripts/e2e/cenit_ui_contact_flow.sh
