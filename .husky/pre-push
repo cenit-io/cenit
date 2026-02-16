@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$ROOT_DIR"
+
+echo "husky(pre-push): running headless cenit_ui_contact_flow.sh"
+CENIT_E2E_AUTOSTART="${CENIT_E2E_AUTOSTART:-1}" \
+CENIT_E2E_DRIVER="${CENIT_E2E_DRIVER:-node}" \
+CENIT_E2E_HEADED=0 \
+scripts/e2e/cenit_ui_contact_flow.sh

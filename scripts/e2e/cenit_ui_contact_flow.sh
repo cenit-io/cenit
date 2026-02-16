@@ -13,10 +13,12 @@ CENIT_PLAYWRIGHT_SESSION="${CENIT_PLAYWRIGHT_SESSION:-cuicf}"
 CENIT_E2E_OUTPUT_DIR="${CENIT_E2E_OUTPUT_DIR:-$ROOT_DIR/output/playwright}"
 CENIT_E2E_KEEP_BROWSER="${CENIT_E2E_KEEP_BROWSER:-0}"
 CENIT_E2E_DRIVER="${CENIT_E2E_DRIVER:-auto}"
+CENIT_E2E_HEADED="${CENIT_E2E_HEADED:-0}"
+CENIT_E2E_CLEANUP="${CENIT_E2E_CLEANUP:-1}"
 CENIT_E2E_RUN_ID="${CENIT_E2E_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
-CENIT_E2E_DATATYPE_NAMESPACE="${CENIT_E2E_DATATYPE_NAMESPACE:-E2E_${CENIT_E2E_RUN_ID//[-:]/}}"
+CENIT_E2E_DATATYPE_NAMESPACE="${CENIT_E2E_DATATYPE_NAMESPACE:-E2E_CONTACT_FLOW}"
 CENIT_E2E_DATATYPE_NAME="${CENIT_E2E_DATATYPE_NAME:-Contact}"
-CENIT_E2E_RECORD_NAME="${CENIT_E2E_RECORD_NAME:-John Contact ${CENIT_E2E_RUN_ID}}"
+CENIT_E2E_RECORD_NAME="${CENIT_E2E_RECORD_NAME:-John Contact E2E}"
 CENIT_E2E_RECORD_COLLECTION="${CENIT_E2E_RECORD_COLLECTION:-${CENIT_E2E_DATATYPE_NAME}s}"
 
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
@@ -51,7 +53,7 @@ wait_http() {
 }
 
 run_pwcli_driver() {
-  local stamp snapshot_file screenshot_file state_file report_file
+  local stamp snapshot_file screenshot_file state_file report_file run_log_file run_output
 
   ensure_cmd npx
   if [[ ! -x "$PWCLI" ]]; then
@@ -69,9 +71,14 @@ run_pwcli_driver() {
   export CENIT_E2E_RECORD_COLLECTION
 
   "$PWCLI" close >/dev/null 2>&1 || true
-  "$PWCLI" open "$CENIT_UI_URL" >/dev/null
+  if [[ "$CENIT_E2E_HEADED" == "1" ]]; then
+    "$PWCLI" open "$CENIT_UI_URL" --headed >/dev/null
+  else
+    "$PWCLI" open "$CENIT_UI_URL" >/dev/null
+  fi
 
   read -r -d '' CONTACT_FLOW <<'JS' || true
+(async () => {
 const uiUrl = process.env.CENIT_UI_URL;
 const email = process.env.CENIT_E2E_EMAIL;
 const password = process.env.CENIT_E2E_PASSWORD;
@@ -84,17 +91,28 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const sectionByHeading = (regex) => page.locator('div').filter({
   has: page.getByRole('heading', { name: regex })
 }).last();
+const isSignIn = () => /\/users\/sign_in/.test(page.url());
+const isOAuth = () => /\/oauth\/authorize/.test(page.url());
 
 await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
 
-if (await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false)) {
+if (await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false) || isSignIn()) {
   await page.getByRole('textbox', { name: 'Email' }).fill(email);
   await page.getByRole('textbox', { name: 'Password' }).fill(password);
   await page.getByRole('button', { name: /log in/i }).click();
+  await page.waitForTimeout(1000);
 }
 
-if (await page.getByRole('button', { name: /allow/i }).isVisible().catch(() => false)) {
-  await page.getByRole('button', { name: /allow/i }).click();
+if (isSignIn()) {
+  const msg = await page.locator('body').innerText().catch(() => '');
+  if (/invalid email or password/i.test(msg)) {
+    throw new Error('Login failed: invalid email or password');
+  }
+  throw new Error(`Login did not complete. Current URL: ${page.url()}`);
+}
+
+if (isOAuth() || await page.getByRole('button', { name: /(allow|authorize)/i }).isVisible().catch(() => false)) {
+  await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
 }
 
 await page.waitForURL((url) => url.href.startsWith(uiUrl), { timeout: 30_000 }).catch(() => null);
@@ -130,18 +148,59 @@ await recordNewSection.getByRole('button', { name: /^save$/i }).click();
 await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
 await page.getByRole('button', { name: 'View' }).last().click();
 await page.getByRole('heading', { name: recordName }).last().waitFor({ timeout: 30_000 });
+})();
 JS
 
   echo "Executing Contact data type + record E2E flow (pwcli driver)..."
-  "$PWCLI" run-code "$CONTACT_FLOW" >/dev/null
-
+  run_output="$("$PWCLI" run-code "$CONTACT_FLOW" 2>&1 || true)"
   stamp="$(date +%Y%m%d-%H%M%S)"
+  run_log_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-run-$stamp.log"
+  printf '%s\n' "$run_output" > "$run_log_file"
+
+  if printf '%s\n' "$run_output" | grep -q "### Error"; then
+    stamp="$(date +%Y%m%d-%H%M%S)"
+    snapshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.md"
+    screenshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.png"
+    report_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.txt"
+    "$PWCLI" snapshot --filename "$snapshot_file" >/dev/null || true
+    "$PWCLI" screenshot --filename "$screenshot_file" --full-page >/dev/null || true
+    cat > "$report_file" <<EOF
+E2E Contact flow failed.
+Namespace: ${CENIT_E2E_DATATYPE_NAMESPACE}
+Data type: ${CENIT_E2E_DATATYPE_NAME}
+Record: ${CENIT_E2E_RECORD_NAME}
+Collection: ${CENIT_E2E_RECORD_COLLECTION}
+Failure snapshot: ${snapshot_file}
+Failure screenshot: ${screenshot_file}
+Run log: ${run_log_file}
+EOF
+    cat "$report_file"
+    exit 1
+  fi
+
   snapshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-$stamp.md"
   screenshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-$stamp.png"
   state_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-auth-state-$stamp.json"
   report_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-$stamp.txt"
 
   "$PWCLI" snapshot --filename "$snapshot_file" >/dev/null
+  if ! grep -Fq "$CENIT_E2E_RECORD_NAME" "$snapshot_file"; then
+    screenshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.png"
+    "$PWCLI" screenshot --filename "$screenshot_file" --full-page >/dev/null || true
+    cat > "$report_file" <<EOF
+E2E Contact flow failed verification.
+Expected record heading not found in snapshot.
+Namespace: ${CENIT_E2E_DATATYPE_NAMESPACE}
+Data type: ${CENIT_E2E_DATATYPE_NAME}
+Record: ${CENIT_E2E_RECORD_NAME}
+Collection: ${CENIT_E2E_RECORD_COLLECTION}
+Snapshot checked: ${snapshot_file}
+Failure screenshot: ${screenshot_file}
+Run log: ${run_log_file}
+EOF
+    cat "$report_file"
+    exit 1
+  fi
   "$PWCLI" screenshot --filename "$screenshot_file" --full-page >/dev/null
   "$PWCLI" state-save "$state_file" >/dev/null
 
@@ -154,6 +213,7 @@ Collection: ${CENIT_E2E_RECORD_COLLECTION}
 Snapshot: ${snapshot_file}
 Screenshot: ${screenshot_file}
 Auth state: ${state_file}
+Run log: ${run_log_file}
 EOF
 
   if [[ "$CENIT_E2E_KEEP_BROWSER" != "1" ]]; then
@@ -181,6 +241,8 @@ run_node_driver() {
   export CENIT_E2E_DATATYPE_NAME
   export CENIT_E2E_RECORD_NAME
   export CENIT_E2E_RECORD_COLLECTION
+  export CENIT_E2E_HEADED
+  export CENIT_E2E_CLEANUP
 
   echo "Executing Contact data type + record E2E flow (node-playwright driver)..."
   node "$ROOT_DIR/scripts/e2e/cenit_ui_contact_flow_playwright.mjs"
@@ -200,10 +262,10 @@ wait_http "$CENIT_UI_URL" "Cenit UI"
 
 driver="$CENIT_E2E_DRIVER"
 if [[ "$driver" == "auto" ]]; then
-  if [[ -x "$PWCLI" ]]; then
-    driver="pwcli"
-  elif has_node_playwright; then
+  if has_node_playwright; then
     driver="node"
+  elif [[ -x "$PWCLI" ]]; then
+    driver="pwcli"
   else
     echo "Unable to select an E2E driver." >&2
     echo "Expected either PWCLI at $PWCLI or a local Node 'playwright' package." >&2

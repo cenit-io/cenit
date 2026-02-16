@@ -99,6 +99,15 @@ To run a full UI flow (login, create `Contact` data type, create one `Contact` r
 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
+Default behavior is idempotent:
+
+- Uses fixed test resources by default:
+  - Namespace: `E2E_CONTACT_FLOW`
+  - Data type: `Contact`
+  - Record: `John Contact E2E`
+- Cleans up the created record and data type at the end (`CENIT_E2E_CLEANUP=1` by default)
+- Can be run multiple times in a row with the same command
+
 Optional overrides:
 
 ```bash
@@ -110,8 +119,38 @@ CENIT_E2E_DATATYPE_NAMESPACE="E2E_TEST" \
 CENIT_E2E_DATATYPE_NAME="Contact" \
 CENIT_E2E_RECORD_NAME="John Contact E2E" \
 CENIT_E2E_RECORD_COLLECTION="Contacts" \
+CENIT_E2E_CLEANUP=1 \
 CENIT_E2E_AUTOSTART=1 \
 scripts/e2e/cenit_ui_contact_flow.sh
+```
+
+Disable cleanup (debug mode):
+
+```bash
+CENIT_E2E_CLEANUP=0 scripts/e2e/cenit_ui_contact_flow.sh
+```
+
+### Local Git Hooks (Husky)
+
+Install local Git hooks:
+
+```bash
+npm install
+npm run prepare
+```
+
+Configured hook:
+
+- `pre-push`: runs headless `scripts/e2e/cenit_ui_contact_flow.sh`
+
+Useful overrides:
+
+```bash
+# Reuse running local stack instead of autostart
+CENIT_E2E_AUTOSTART=0 git push
+
+# Skip hooks for one push
+HUSKY=0 git push
 ```
 
 ## Why
