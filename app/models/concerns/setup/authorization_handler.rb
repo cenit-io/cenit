@@ -3,7 +3,8 @@ module Setup
     extend ActiveSupport::Concern
 
     included do
-      binding_belongs_to :authorization, class_name: Setup::Authorization.to_s, inverse_of: nil
+      binding_belongs_to :authorization, class_name: 'Setup::Authorization', inverse_of: nil
+
       field :authorization_handler, type: Mongoid::Boolean
 
       before_save :check_authorization

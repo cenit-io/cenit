@@ -1,4 +1,8 @@
 require 'cenit/cenit'
+require 'cenit/file_store/base'
+require 'cenit/file_store/local_db'
+require 'cenit/file_store/aws_s3_default'
+require 'cenit/file_store/aws_s3'
 
 Cenit.config do
   share_on_github false
@@ -97,12 +101,17 @@ Cenit.config do
 
   tenant_creation_disabled((ENV['TENANT_CREATION_DISABLED'] || 'false').to_b)
 
+  min_chunk_size =
+    defined?(Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE) ? Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE : (2**18)
+  max_chunk_size =
+    defined?(Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE) ? Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE : (15 * (2**20))
+
   storage_chunk_size [
                        [
-                         Mongoff::GridFs::FileModel::MINIMUM_CHUNK_SIZE,
-                         (ENV['STORAGE_CHUNK_SIZE'] || Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE).to_i
+                         min_chunk_size,
+                         (ENV['STORAGE_CHUNK_SIZE'] || max_chunk_size).to_i
                        ].max,
-                       Mongoff::GridFs::FileModel::MAXIMUM_CHUNK_SIZE
+                       max_chunk_size
                      ].min
 
   process_old_notifications((ENV['PROCESS_OLD_NOTIFICATIONS'] || :automatic).to_sym)

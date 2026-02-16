@@ -1,9 +1,17 @@
+require_relative '../edi/filler'
+require_relative '../edi/formater'
+require_relative 'metadata_access'
+require_relative 'savable'
+require_relative 'destroyable'
+require_relative 'records_methods'
+require_relative '../cenit/liquidfier'
+
 module Mongoff
   class Record
-    include Savable
-    include Destroyable
-    include Edi::Filler
-    include Edi::Formatter
+    include ::Mongoff::Savable
+    include ::Mongoff::Destroyable
+    include ::Edi::Filler
+    include ::Edi::Formatter
     include RecordsMethods
     include ActiveModel::ForbiddenAttributesProtection
     include Cenit::Liquidfier

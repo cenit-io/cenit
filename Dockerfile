@@ -1,4 +1,4 @@
-FROM ruby:2.7.4
+FROM ruby:3.2.2
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -43,8 +43,8 @@ RUN gem install bundler -v 2.4.22
 COPY Gemfile .
 COPY Gemfile.lock .
 
-RUN bundle install --without development test
 COPY . .
+RUN bundle update
 RUN chmod +x env.sh
 
 RUN yarn install --check-files

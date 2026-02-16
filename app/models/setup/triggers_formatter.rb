@@ -97,7 +97,8 @@ module Setup
       {
         NilClass => :to_s,
         Integer => :to_f,
-        Fixnum => :to_f,
+        Integer => :to_f,
+
         Float => :to_f,
         String => :to_s,
         Date => :to_date,

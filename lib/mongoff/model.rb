@@ -1,9 +1,24 @@
+require Rails.root.join('app', 'models', 'concerns', 'thread_aware.rb')
+
+require_relative 'metadata_access'
+warn "DEBUG: Mongoff defined? #{defined?(Mongoff)}"
+warn "DEBUG: Mongoff::MetadataAccess defined? #{defined?(Mongoff::MetadataAccess)}"
+warn "DEBUG: ThreadAware defined? #{defined?(ThreadAware)}"
+
+require_relative 'savable'
+require_relative 'destroyable'
+require_relative 'pretty_errors'
+require_relative 'validator'
+require_relative 'records_methods'
+require_relative 'data_type_methods'
+require_relative 'criteria'
+require_relative 'record'
 
 module Mongoff
   class Model
     include Setup::InstanceModelParser
-    include MetadataAccess
-    include PrettyErrors
+    include ::Mongoff::MetadataAccess
+    include ::Mongoff::PrettyErrors
     include ThreadAware
 
     EMPTY_SCHEMA = {}.freeze

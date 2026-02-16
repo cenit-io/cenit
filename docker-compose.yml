@@ -1,30 +1,30 @@
 volumes:
-  mongodb-data: {}
+  mongodb-data-7: {}
   redis-data: {}
 
 services:
   ui:
     build:
-      context: ./../ui
+      context: ${CENIT_UI_CONTEXT:-./../ui}
       dockerfile: Dockerfile
     ports:
-      - "3002:80"
+      - "${UI_PORT:-3002}:80"
     environment:
       - REACT_APP_USE_ENVIRONMENT_CONFIG=true
       - REACT_APP_TIMEOUT_SPAN=300000
       - REACT_APP_APP_ID=admin
-      - REACT_APP_LOCALHOST=http://localhost:3002
-      - REACT_APP_CENIT_HOST=http://localhost:3000
+      - REACT_APP_LOCALHOST=http://localhost:${UI_PORT:-3002}
+      - REACT_APP_CENIT_HOST=http://localhost:${SERVER_PORT:-3000}
 
   server:
     build: .
     ports:
-      - "3000:8080"
+      - "${SERVER_PORT:-3000}:8080"
     environment:
       - MONGODB_URI=mongodb://mongo_server/cenit
       - REDIS_HOST=redis
-      - HOMEPAGE=http://localhost:3000
-      - CENIT_UI=http://localhost:3002
+      - HOMEPAGE=http://localhost:${SERVER_PORT:-3000}
+      - CENIT_UI=http://localhost:${UI_PORT:-3002}
       - RABBITMQ_BIGWIG_TX_URL=amqp://cenit_rabbit:cenit_rabbit@rabbitmq/cenit_rabbit_vhost
       - SCHEDULER_LOOKUP_INTERVAL=8
       - UNICORN_WORKERS=4
@@ -45,10 +45,10 @@ services:
       NAME: "rabbitmq-server"
 
   mongo_server:
-    image: mongo:4.4
+    image: mongo:7.0
     restart: always
     volumes:
-      - mongodb-data:/data/db
+      - mongodb-data-7:/data/db
 
   redis:
     image: redis:5

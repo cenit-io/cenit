@@ -8,7 +8,8 @@ module Setup
     included do
       field :authorized_at, type: DateTime
 
-      belongs_to :client, class_name: Setup::AuthorizationClient.to_s, inverse_of: nil
+      # Keep this as a plain string to avoid load-order NameError during boot-time requires.
+      belongs_to :client, class_name: 'Setup::AuthorizationClient', inverse_of: nil
 
       parameters :parameters, :template_parameters
 

@@ -11,8 +11,85 @@ To install and learn more about the platform check the [documentation](https://d
 
 ## Installation
 
-For a complete, Docker‐based installation of both the backend (`cenit-server`) and this UI, see the [Docker Installation Guide](Docker-instalation.md).  
-(The guide includes links to the relevant `docker-compose.yml` and Dockerfiles.)
+General product documentation is available at [docs.cenit.io](https://docs.cenit.io/).
+
+### Run Locally with Docker Compose
+
+Prerequisites:
+
+- Docker Desktop (or Docker Engine + Compose v2 plugin)
+- `git`
+- The UI repository checked out as a sibling folder at `../ui` (or update `services.ui.build.context` in `docker-compose.yml`)
+
+Optional override if your UI checkout is in a different folder:
+
+```bash
+export CENIT_UI_CONTEXT=/absolute/path/to/ui
+```
+
+Start the full local stack:
+
+```bash
+cd /path/to/cenit
+docker compose up -d --build
+docker compose ps
+```
+
+Verify services:
+
+```bash
+curl -I http://localhost:3000
+```
+
+- Backend: `http://localhost:3000`
+- UI: `http://localhost:3002`
+- RabbitMQ admin: `http://localhost:15672` (`cenit_rabbit` / `cenit_rabbit`)
+
+On first bootstrap (fresh DB), the default super admin user is:
+
+- Email: `support@cenit.io`
+- Password: `password`
+
+Useful operations:
+
+```bash
+# Follow backend logs
+docker compose logs -f server
+
+# Restart only backend
+docker compose restart server
+
+# Stop everything
+docker compose down
+
+# Stop and remove volumes (full reset)
+docker compose down -v
+```
+
+### Migration Runtime Notes
+
+- Current migration baseline in this repository uses Ruby `3.2.2` and MongoDB `7.0` in `docker-compose.yml`.
+- The backend container boots with Rails in production mode and exposes Unicorn on `localhost:3000`.
+- Non-fatal startup warnings may still appear during migration (autoload/deprecation noise), but the stack can boot and serve requests.
+
+### Repeatable UI Login E2E Check
+
+To run the login + OAuth consent flow on demand:
+
+```bash
+scripts/e2e/cenit_ui_login.sh
+```
+
+Optional overrides:
+
+```bash
+CENIT_E2E_EMAIL="support@cenit.io" \
+CENIT_E2E_PASSWORD="password" \
+CENIT_SERVER_URL="http://localhost:3000" \
+CENIT_UI_URL="http://localhost:3002" \
+CENIT_E2E_AUTOSTART=1 \
+scripts/e2e/cenit_ui_login.sh
+```
 
 ## Why
 
