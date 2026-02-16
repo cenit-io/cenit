@@ -1,0 +1,84 @@
+name: "Smoke: Docker Compose + UI Login"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+      - develop
+  push:
+    branches:
+      - upgrade-mongodb-rails
+
+jobs:
+  docker_compose_smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CENIT_UI_CONTEXT: ./ui
+      CENIT_SERVER_URL: http://localhost:3000
+      CENIT_UI_URL: http://localhost:3002
+      CENIT_E2E_EMAIL: support@cenit.io
+      CENIT_E2E_PASSWORD: password
+      CENIT_E2E_AUTOSTART: "0"
+      CENIT_E2E_DRIVER: node
+
+    steps:
+      - name: Checkout cenit
+        uses: actions/checkout@v4
+
+      - name: Checkout ui repository
+        uses: actions/checkout@v4
+        with:
+          repository: cenit-io/ui
+          path: ui
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright runtime
+        run: |
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start docker compose stack
+        run: |
+          docker compose up -d --build
+          docker compose ps
+
+      - name: Wait for backend health endpoint
+        run: |
+          for i in {1..90}; do
+            if curl -fsS -o /dev/null "$CENIT_SERVER_URL"; then
+              echo "Backend is ready at $CENIT_SERVER_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Timed out waiting for backend at $CENIT_SERVER_URL" >&2
+          exit 1
+
+      - name: Run login E2E smoke
+        run: scripts/e2e/cenit_ui_login.sh
+
+      - name: Capture docker logs on failure
+        if: failure()
+        run: |
+          mkdir -p output/smoke
+          docker compose logs --no-color > output/smoke/docker-compose.log || true
+
+      - name: Upload smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-artifacts
+          path: |
+            output/playwright
+            output/smoke
+          if-no-files-found: ignore
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v --remove-orphans

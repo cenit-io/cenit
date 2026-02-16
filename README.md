@@ -21,6 +21,12 @@ Prerequisites:
 - `git`
 - The UI repository checked out as a sibling folder at `../ui` (or update `services.ui.build.context` in `docker-compose.yml`)
 
+Optional override if your UI checkout is in a different folder:
+
+```bash
+export CENIT_UI_CONTEXT=/absolute/path/to/ui
+```
+
 Start the full local stack:
 
 ```bash

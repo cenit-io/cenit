@@ -5,7 +5,7 @@ volumes:
 services:
   ui:
     build:
-      context: ./../ui
+      context: ${CENIT_UI_CONTEXT:-./../ui}
       dockerfile: Dockerfile
     ports:
       - "${UI_PORT:-3002}:80"

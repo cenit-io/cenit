@@ -25,6 +25,7 @@ config/deploy
 config/mongoid.yml
 ## Environment normalisation:
 .bundle/
+.playwright-cli/
 config/deploy.rb
 /vendor/bundle
 /vendor/cache
