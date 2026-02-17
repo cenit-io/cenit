@@ -1,3 +1,5 @@
+require Rails.root.join('app', 'models', 'concerns', 'cancelable.rb').to_s
+
 class RabbitConsumer
   include Setup::CenitUnscoped
   include Cancelable
@@ -11,7 +13,7 @@ class RabbitConsumer
   field :task_id
   field :alive, type: Mongoid::Boolean, default: true
 
-  belongs_to :executor, class_name: Account.to_s, inverse_of: nil
+  belongs_to :executor, class_name: 'Account', inverse_of: nil
 
   validates_presence_of :tag
   validates_uniqueness_of :tag

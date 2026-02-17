@@ -37,15 +37,16 @@ module Setup
     field :auto_retry, type: StringifiedSymbol, default: -> { auto_retry_enum.first }
     field :resumes, type: Integer, default: 0
 
-    belongs_to :current_execution, class_name: Setup::Execution.to_s, inverse_of: nil
-    has_many :executions, class_name: Setup::Execution.to_s, inverse_of: :task, dependent: :destroy
+    belongs_to :current_execution, class_name: 'Setup::Execution', inverse_of: nil
+    has_many :executions, class_name: 'Setup::Execution', inverse_of: :task, dependent: :destroy
 
-    has_many :notifications, class_name: Setup::SystemNotification.to_s, inverse_of: :task, dependent: :destroy
+    has_many :notifications, class_name: 'Setup::SystemNotification', inverse_of: :task, dependent: :destroy
 
-    belongs_to :thread_token, class_name: ThreadToken.to_s, inverse_of: nil
-    belongs_to :scheduler, class_name: Setup::Scheduler.to_s, inverse_of: nil
+    belongs_to :thread_token, class_name: 'ThreadToken', inverse_of: nil
+    belongs_to :scheduler, class_name: 'Setup::Scheduler', inverse_of: nil
 
-    has_and_belongs_to_many :joining_tasks, class_name: Setup::Task.to_s, inverse_of: nil
+    has_and_belongs_to_many :joining_tasks, class_name: 'Setup::Task', inverse_of: nil
+
 
     inspect_fields :progress, :description, :state
 

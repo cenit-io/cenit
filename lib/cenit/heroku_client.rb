@@ -1,5 +1,6 @@
-module HerokuClient
-  class Client
+module Cenit
+  module HerokuClient
+    class Client
 
     class << self
 
@@ -67,7 +68,7 @@ module HerokuClient
 
   end
 
-  class App
+    class App
 
     attr_reader :name
 
@@ -124,5 +125,9 @@ module HerokuClient
       rc[var_name]
     end
 
+    end
   end
 end
+
+# Backward compatibility for legacy references like HerokuClient::App.
+HerokuClient = Cenit::HerokuClient unless defined?(::HerokuClient)

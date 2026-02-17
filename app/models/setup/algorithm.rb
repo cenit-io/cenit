@@ -24,8 +24,9 @@ module Setup
     )
 
     field :description, type: String
-    embeds_many :parameters, class_name: Setup::AlgorithmParameter.to_s, inverse_of: :algorithm
-    embeds_many :call_links, class_name: Setup::CallLink.to_s, inverse_of: :algorithm
+    embeds_many :parameters, class_name: 'Setup::AlgorithmParameter', inverse_of: :algorithm
+    embeds_many :call_links, class_name: 'Setup::CallLink', inverse_of: :algorithm
+
 
     validates_format_of :name, with: /\A[a-z]([a-z]|_|\d)*\Z/
 
@@ -33,8 +34,9 @@ module Setup
     accepts_nested_attributes_for :call_links, allow_destroy: true
 
     field :store_output, type: Mongoid::Boolean
-    belongs_to :output_datatype, class_name: Setup::DataType.to_s, inverse_of: nil
+    belongs_to :output_datatype, class_name: 'Setup::DataType', inverse_of: nil
     field :validate_output, type: Mongoid::Boolean
+
     field :parameters_size, type: Integer
 
     before_save :validate_parameters, :validate_code, :validate_output_processing

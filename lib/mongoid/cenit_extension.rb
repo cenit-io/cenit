@@ -1,5 +1,9 @@
 require 'cenit/liquidfier'
 
+require Rails.root.join('app', 'models', 'setup', 'instance_model_parser.rb').to_s
+require Rails.root.join('app', 'models', 'concerns', 'setup', 'class_model_parser.rb').to_s
+puts "DEBUG: Loading CenitExtension. Setup defined? #{defined?(Setup)} ClassModelParser defined? #{defined?(Setup::ClassModelParser)}"
+
 module Mongoid
   module Config
     def unregist_model(klass)
@@ -33,6 +37,7 @@ module Mongoid
       throw(:abort) unless errors.blank?
     end
   end
+
 
   module CenitExtension
     extend ActiveSupport::Concern

@@ -1,8 +1,9 @@
 module CredentialsGenerator
   extend ActiveSupport::Concern
 
-  include NumberGenerator
-  include TokenGenerator
+  include ::NumberGenerator
+  include ::TokenGenerator
+
 
   def regenerate_credentials!
     regenerate_credentials

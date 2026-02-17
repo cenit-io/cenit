@@ -1,18 +1,18 @@
 source 'https://rubygems.org'
 
-ruby '2.7.4'
-gem 'rails'
+ruby '3.2.2'
+gem 'rails', '~> 7.1.3'
 gem 'sass-rails'
 gem 'uglifier'
 gem 'coffee-rails'
 gem 'jquery-rails'
 gem 'jbuilder'
-gem 'devise'
+gem 'devise', '~> 4.9'
 gem 'rabl'
 gem 'builder'
 gem 'haml-rails'
 gem 'figaro'
-gem 'unicorn', '4.9.0'
+gem 'unicorn', '~> 6.0'
 gem 'xmldsig'
 gem 'spreadsheet'
 gem 'peddler'
@@ -44,7 +44,7 @@ group :production do
   gem 'rails_12factor'
 end
 
-gem 'mongoid'
+gem 'mongoid', '~> 8.0'
 gem 'bson_ext'
 
 gem 'httparty'
@@ -65,12 +65,13 @@ gem 'parser'
 gem 'oauth'
 gem 'openapi3_parser', '~> 0.9'
 
+gem 'rmagick'
 gem 'captcha'
 gem "recaptcha", require: "recaptcha/rails"
 gem 'httmultiparty'
 
 gem 'oauth2'
-gem 'exception_notification'
+gem 'exception_notification', '>= 4.5.0'
 
 gem 'mime'
 gem 'deface'
@@ -95,7 +96,7 @@ gem 'write_xlsx'
 gem 'mini_racer'
 gem 'ruby-handlebars'
 
-gem 'aws-sdk', '~> 2.10.13'
+gem 'aws-sdk', '~> 2.11'
 
 gem 'net-scp'
 gem 'net-sftp'
@@ -112,6 +113,7 @@ gem 'cenit-oauth_app', git: 'https://github.com/cenit-io/cenit-oauth_app.git'
 gem 'cenit-open_id', git: 'https://github.com/cenit-io/cenit-open_id.git'
 gem 'cenit-admin', git: 'https://github.com/cenit-io/cenit-admin.git'
 gem 'cenit-mime', git: 'https://github.com/cenit-io/cenit-mime.git'
+gem 'net-ftp'
 
 custom_gemfile_name = 'custom_Gemfile'
 

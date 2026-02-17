@@ -84,9 +84,24 @@ module Cenit
     end
 
     def attachment_uploader_for(model)
-      ENV["#{model}:attachment:uploader"].to_s.constantize
-    rescue
-      AccountUploader
+      uploader_name = ENV["#{model}:attachment:uploader"].to_s.strip
+      return default_attachment_uploader if uploader_name.empty?
+
+      uploader_name.constantize
+    rescue NameError, LoadError
+      default_attachment_uploader
+    end
+
+    private
+
+    def default_attachment_uploader
+      unless defined?(::AccountUploader)
+        unless defined?(::BasicUploader)
+          require Rails.root.join('app', 'uploaders', 'basic_uploader').to_s
+        end
+        require Rails.root.join('app', 'uploaders', 'account_uploader').to_s
+      end
+      ::AccountUploader
     end
   end
 end

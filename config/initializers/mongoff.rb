@@ -1,3 +1,5 @@
+require Rails.root.join('app', 'models', 'setup', 'common_parser.rb').to_s
+require Rails.root.join('app', 'models', 'setup', 'instance_model_parser.rb').to_s
 require 'mongoff/model'
 
 Mongoff::Model.config do

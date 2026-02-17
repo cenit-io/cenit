@@ -7,7 +7,7 @@ module Setup
       label: '{{data_type.namespace}} | {{data_type.name}} [config]'
     )
 
-    belongs_to :data_type, class_name: Setup::DataType.to_s, inverse_of: nil, autosave: false
+    belongs_to :data_type, class_name: 'Setup::DataType', inverse_of: nil, autosave: false
 
     field :trace_on_default, type: Mongoid::Boolean
 

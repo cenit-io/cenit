@@ -6,7 +6,7 @@ module Setup
       label: '{{flow.namespace}} | {{flow.name}} [config]'
     )
 
-    belongs_to :flow, class_name: Setup::Flow.to_s, inverse_of: nil, autosave: false
+    belongs_to :flow, class_name: 'Setup::Flow', inverse_of: nil, autosave: false
 
     field :active, type: Mongoid::Boolean
     field :notify_request, type: Mongoid::Boolean

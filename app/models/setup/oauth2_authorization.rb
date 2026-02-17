@@ -4,7 +4,7 @@ module Setup
 
     build_in_data_type.referenced_by(:namespace, :name)
 
-    has_and_belongs_to_many :scopes, class_name: Setup::Oauth2Scope.to_s, inverse_of: nil
+    has_and_belongs_to_many :scopes, class_name: 'Setup::Oauth2Scope', inverse_of: nil
 
     field :token_type, type: String
     field :refresh_token, type: String

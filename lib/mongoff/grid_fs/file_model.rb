@@ -1,3 +1,5 @@
+require_relative '../../cenit/utility'
+
 module Mongoff
   module GridFs
     class FileModel < Mongoff::Model
