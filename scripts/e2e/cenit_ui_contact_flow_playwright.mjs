@@ -28,10 +28,20 @@ const failedDomFile = path.join(outputDir, `cenit-ui-contact-flow-failed-${stamp
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const isSignIn = (page) => /\/users\/sign_in/.test(page.url());
 const isOAuth = (page) => /\/oauth\/authorize/.test(page.url());
+const hasOauthCallbackCode = (page) => {
+  try {
+    const url = new URL(page.url());
+    return url.origin === new URL(uiUrl).origin && url.searchParams.has('code');
+  } catch (_) {
+    return false;
+  }
+};
 const isAppShellVisible = async (page) => {
+  const hasMenuHeading = await page.getByRole('heading', { name: /^Menu$/i }).first().isVisible().catch(() => false);
   const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
+  const hasDocumentTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
   const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
-  return hasDocumentTypes || hasRecent;
+  return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasRecent;
 };
 
 async function resolveWorkPanel(page) {
@@ -337,52 +347,76 @@ async function closeTopTabs(page, max = 120) {
 async function openDocumentTypes(page) {
   const heading = page.getByRole('heading', { name: /Document Types/i }).last();
   const isInDocumentTypes = async () => await heading.isVisible().catch(() => false);
+  const expandDataMenu = async () => {
+    const candidates = [
+      page.getByRole('button', { name: /^Data$/i }),
+      page.getByRole('listitem').filter({ hasText: /^Data$/i }),
+      page.locator('li').filter({ hasText: /^Data$/i }),
+      page.getByText(/^Data$/i),
+    ];
+    for (const locator of candidates) {
+      const count = await locator.count().catch(() => 0);
+      for (let i = 0; i < count; i += 1) {
+        const item = locator.nth(i);
+        const visible = await item.isVisible().catch(() => false);
+        if (!visible) continue;
+        await item.click({ force: true }).catch(() => null);
+        await page.waitForTimeout(250);
+        if (await isInDocumentTypes()) return true;
+      }
+    }
+    return false;
+  };
+
+  const clickSidebarDocumentTypes = async () => {
+    const candidates = [
+      page.getByRole('button', { name: /^Document Types$/i }),
+      page.getByRole('listitem').filter({ hasText: /^Document Types$/i }),
+      page.locator('li').filter({ hasText: /^Document Types$/i }),
+      page.getByText(/^Document Types$/i),
+    ];
+
+    for (const locator of candidates) {
+      const count = await locator.count().catch(() => 0);
+      for (let i = 0; i < count; i += 1) {
+        const item = locator.nth(i);
+        const visible = await item.isVisible().catch(() => false);
+        if (!visible) continue;
+        await item.click({ force: true }).catch(() => null);
+        await page.waitForTimeout(350);
+        if (await isInDocumentTypes()) return true;
+      }
+    }
+
+    return false;
+  };
 
   for (let attempt = 1; attempt <= 8; attempt += 1) {
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
 
     await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
     await page.waitForTimeout(350);
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
 
-    const dataMenu = page.getByRole('button', { name: /^Data$/i }).first();
-    if (await dataMenu.isVisible().catch(() => false)) {
-      await dataMenu.click().catch(() => null);
-      await page.waitForTimeout(250);
-    }
+    await expandDataMenu();
 
-    const buttons = page.getByRole('button', { name: /^Document Types$/i });
-    const count = await buttons.count();
-    let clicked = false;
-    for (let i = 0; i < count; i += 1) {
-      const button = buttons.nth(i);
-      const visible = await button.isVisible().catch(() => false);
-      if (!visible) continue;
-      const box = await button.boundingBox().catch(() => null);
-      // Prefer left navigation item when both sidebar and top tab are visible.
-      if (box && box.x > 320) continue;
-      await button.click().catch(() => null);
-      clicked = true;
-      break;
-    }
-    if (!clicked) {
-      await buttons.first().click().catch(() => null);
-    }
+    await clickSidebarDocumentTypes();
 
     await page.waitForTimeout(600);
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
 
     await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
     await page.waitForTimeout(500);
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
   }
 
-  throw new Error('Could not open Document Types view after retries.');
+  return false;
 }
 
 async function openDataTypeNewForm(page) {
   for (let attempt = 1; attempt <= 4; attempt += 1) {
-    await openDocumentTypes(page);
+    const opened = await openDocumentTypes(page);
+    if (!opened) continue;
     await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
     await page.waitForTimeout(500);
     await clickNamedButtonInPanel(page, /^New$/i, 'first');
@@ -436,7 +470,8 @@ async function findDataTypeRowInList(page) {
 }
 
 async function deleteExistingDataTypeIfPresent(page) {
-  await openDocumentTypes(page);
+  const opened = await openDocumentTypes(page);
+  if (!opened) return false;
   await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
   await page.waitForTimeout(500);
 
@@ -504,7 +539,8 @@ async function createDataTypeWithDuplicateRecovery(page) {
 
 async function openDataTypeShowByList(page) {
   for (let attempt = 1; attempt <= 6; attempt += 1) {
-    await openDocumentTypes(page);
+    const opened = await openDocumentTypes(page);
+    if (!opened) continue;
     await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
     await page.waitForTimeout(500);
 
@@ -544,10 +580,45 @@ async function ensureAuthenticated(page) {
     { timeout: 15000 }
   ).catch(() => null);
 
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
+  for (let attempt = 1; attempt <= 60; attempt += 1) {
     await page.waitForTimeout(1200);
 
-    if (await isAppShellVisible(page)) return;
+    const rootChildren = await page.locator('#root > *').count().catch(() => 0);
+    const onAuthPage = isSignIn(page) || isOAuth(page);
+    const loadingVisible = await page.getByRole('progressbar').first().isVisible().catch(() => false);
+    if (loadingVisible && !onAuthPage) {
+      if (attempt % 15 === 0) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      continue;
+    }
+    if (!rootChildren && !onAuthPage) {
+      if (attempt % 8 === 0) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      continue;
+    }
+
+    if (await isAppShellVisible(page)) {
+      if (hasOauthCallbackCode(page)) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+        await page.waitForTimeout(1000);
+        if (!(await isAppShellVisible(page))) continue;
+      }
+      return;
+    }
+
+    if (hasOauthCallbackCode(page)) {
+      // OAuth callback can briefly land on "/?code=..." while the app exchanges tokens.
+      for (let callbackAttempt = 1; callbackAttempt <= 3; callbackAttempt += 1) {
+        await page.waitForTimeout(1500);
+        if (await isAppShellVisible(page)) return;
+      }
+      // Recovery path for stuck callback page after backend cold start.
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+      if (await isAppShellVisible(page)) return;
+    }
 
     const emailVisible = await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false);
     if (emailVisible || isSignIn(page)) {
@@ -574,6 +645,9 @@ async function ensureAuthenticated(page) {
           /\/users\/sign_in/.test(url.href),
         { timeout: 15000 }
       ).catch(() => null);
+      if (hasOauthCallbackCode(page)) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
     }
   }
 

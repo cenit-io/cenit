@@ -242,7 +242,7 @@ EOF
 }
 
 run_node_driver() {
-  local stamp
+  local stamp preflight_attempt
   if ! has_node_playwright; then
     echo "Node Playwright driver requested but 'playwright' package is not installed." >&2
     echo "Install it with: npm install --no-save playwright@1.52.0" >&2
@@ -261,6 +261,18 @@ run_node_driver() {
   export CENIT_E2E_RECORD_COLLECTION
   export CENIT_E2E_HEADED
   export CENIT_E2E_CLEANUP
+
+  echo "Running auth preflight (node-playwright login driver)..."
+  for preflight_attempt in 1 2 3; do
+    if CENIT_E2E_TIMESTAMP="${stamp}-login-$preflight_attempt" node "$ROOT_DIR/scripts/e2e/cenit_ui_login_playwright.mjs" >/dev/null; then
+      break
+    fi
+    if [[ "$preflight_attempt" -eq 3 ]]; then
+      echo "Auth preflight failed after 3 attempts." >&2
+      exit 1
+    fi
+    sleep 2
+  done
 
   echo "Executing Contact data type + record E2E flow (node-playwright driver)..."
   node "$ROOT_DIR/scripts/e2e/cenit_ui_contact_flow_playwright.mjs"

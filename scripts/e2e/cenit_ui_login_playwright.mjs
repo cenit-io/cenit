@@ -19,11 +19,21 @@ const page = await context.newPage();
 
 const isSignIn = () => /\/users\/sign_in/.test(page.url());
 const isOAuth = () => /\/oauth\/authorize/.test(page.url());
+const hasOauthCallbackCode = () => {
+  try {
+    const url = new URL(page.url());
+    return url.origin === new URL(uiUrl).origin && url.searchParams.has('code');
+  } catch (_) {
+    return false;
+  }
+};
 const isAppShellVisible = async () => {
   const hasMenuHeading = await page.getByRole('heading', { name: 'Menu' }).isVisible().catch(() => false);
   const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
+  const hasDocumentTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
+  const hasQuickAccess = await page.getByRole('button', { name: /Quick Access/i }).first().isVisible().catch(() => false);
   const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
-  return hasMenuHeading || hasDocumentTypes || hasRecent;
+  return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasQuickAccess || hasRecent;
 };
 
 try {
@@ -37,8 +47,25 @@ try {
     { timeout: 30000 }
   ).catch(() => null);
 
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
+  for (let attempt = 1; attempt <= 30; attempt += 1) {
     if (await isAppShellVisible()) break;
+
+    const loadingVisible = await page.getByRole('progressbar').first().isVisible().catch(() => false);
+    if (loadingVisible && !isSignIn() && !isOAuth()) {
+      await page.waitForTimeout(1000);
+      if (attempt % 10 === 0) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      continue;
+    }
+
+    if (hasOauthCallbackCode()) {
+      await page.waitForTimeout(1200);
+      if (!(await isAppShellVisible())) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      if (await isAppShellVisible()) break;
+    }
 
     const emailVisible = await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false);
     if (emailVisible || isSignIn()) {
@@ -63,6 +90,9 @@ try {
           url.href.startsWith(uiUrl),
         { timeout: 15000 }
       ).catch(() => null);
+      if (hasOauthCallbackCode()) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
     }
 
     if (await isAppShellVisible()) break;

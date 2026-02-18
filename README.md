@@ -155,6 +155,11 @@ scripts/e2e/cenit_ui_login.sh
 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
+Driver note:
+
+- `CENIT_E2E_DRIVER=pwcli` may hit parser/runtime limits on large `run-code` payloads.
+- The contact-flow runner automatically falls back to the node-playwright driver when this is detected.
+
 Useful overrides:
 
 ```bash
