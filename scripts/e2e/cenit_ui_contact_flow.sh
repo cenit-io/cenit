@@ -55,7 +55,7 @@ wait_http() {
 }
 
 run_pwcli_driver() {
-  local stamp snapshot_file screenshot_file state_file report_file run_log_file run_output
+  local stamp snapshot_file screenshot_file state_file report_file run_log_file run_output run_status
 
   ensure_cmd npx
   if [[ ! -x "$PWCLI" ]]; then
@@ -80,7 +80,6 @@ run_pwcli_driver() {
   fi
 
   read -r -d '' CONTACT_FLOW <<'JS' || true
-(async () => {
 const uiUrl = process.env.CENIT_UI_URL;
 const email = process.env.CENIT_E2E_EMAIL;
 const password = process.env.CENIT_E2E_PASSWORD;
@@ -89,7 +88,14 @@ const dataTypeName = process.env.CENIT_E2E_DATATYPE_NAME;
 const recordName = process.env.CENIT_E2E_RECORD_NAME;
 const recordCollection = process.env.CENIT_E2E_RECORD_COLLECTION;
 
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRegex = (value) => {
+  let escaped = String(value ?? '');
+  const specials = ['\\', '.', '*', '+', '?', '^', '$', '{', '}', '(', ')', '|', '[', ']'];
+  specials.forEach((char) => {
+    escaped = escaped.split(char).join('\\' + char);
+  });
+  return escaped;
+};
 const sectionByHeading = (regex) => page.locator('div').filter({
   has: page.getByRole('heading', { name: regex })
 }).last();
@@ -110,7 +116,7 @@ if (isSignIn()) {
   if (/invalid email or password/i.test(msg)) {
     throw new Error('Login failed: invalid email or password');
   }
-  throw new Error(`Login did not complete. Current URL: ${page.url()}`);
+  throw new Error('Login did not complete. Current URL: ' + page.url());
 }
 
 if (isOAuth() || await page.getByRole('button', { name: /(allow|authorize)/i }).isVisible().catch(() => false)) {
@@ -134,13 +140,13 @@ await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor
 await page.getByRole('button', { name: 'View' }).last().click();
 
 await page.getByRole('button', { name: 'Records' }).first().click();
-const recordsHeading = new RegExp(`^${escapeRegex(recordCollection)}`);
+const recordsHeading = new RegExp('^' + escapeRegex(recordCollection));
 await page.getByRole('heading', { name: recordsHeading }).last().waitFor({ timeout: 30_000 });
 
 const recordsSection = sectionByHeading(recordsHeading);
 await recordsSection.getByRole('button', { name: 'New' }).click();
 
-const recordNewHeading = new RegExp(`^${escapeRegex(recordCollection)} \\| New$`);
+const recordNewHeading = new RegExp('^' + escapeRegex(recordCollection) + ' \\| New$');
 const recordNewSection = sectionByHeading(recordNewHeading);
 await page.getByRole('heading', { name: recordNewHeading }).last().waitFor({ timeout: 30_000 });
 
@@ -150,16 +156,26 @@ await recordNewSection.getByRole('button', { name: /^save$/i }).click();
 await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
 await page.getByRole('button', { name: 'View' }).last().click();
 await page.getByRole('heading', { name: recordName }).last().waitFor({ timeout: 30_000 });
-})();
 JS
 
   echo "Executing Contact data type + record E2E flow (pwcli driver)..."
-  run_output="$("$PWCLI" run-code "$CONTACT_FLOW" 2>&1 || true)"
+  set +e
+  run_output="$("$PWCLI" run-code "$CONTACT_FLOW" 2>&1)"
+  run_status=$?
+  set -e
   stamp="$(date +%Y%m%d-%H%M%S)"
   run_log_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-run-$stamp.log"
   printf '%s\n' "$run_output" > "$run_log_file"
 
-  if printf '%s\n' "$run_output" | grep -q "### Error"; then
+  if printf '%s\n' "$run_output" | grep -Eq "SyntaxError: Unexpected token|ReferenceError: process is not defined"; then
+    if has_node_playwright; then
+      echo "pwcli run-code compatibility issue detected (see $run_log_file). Falling back to node-playwright driver..."
+      run_node_driver
+      return 0
+    fi
+  fi
+
+  if [[ "$run_status" -ne 0 ]] || printf '%s\n' "$run_output" | grep -q "### Error"; then
     stamp="$(date +%Y%m%d-%H%M%S)"
     snapshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.md"
     screenshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.png"
