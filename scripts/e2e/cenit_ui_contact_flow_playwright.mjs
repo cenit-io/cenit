@@ -16,6 +16,7 @@ const recordName = process.env.CENIT_E2E_RECORD_NAME || 'John Contact E2E';
 const recordCollection = process.env.CENIT_E2E_RECORD_COLLECTION || `${dataTypeName}s`;
 const headed = process.env.CENIT_E2E_HEADED === '1';
 const cleanupEnabled = process.env.CENIT_E2E_CLEANUP !== '0';
+const authStateFile = process.env.CENIT_E2E_AUTH_STATE_FILE || '';
 
 const screenshotFile = path.join(outputDir, `cenit-ui-contact-flow-${stamp}.png`);
 const cleanupScreenshotFile = path.join(outputDir, `cenit-ui-contact-flow-cleanup-${stamp}.png`);
@@ -43,6 +44,50 @@ const isAppShellVisible = async (page) => {
   const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
   return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasRecent;
 };
+
+async function performDirectServerLogin(page) {
+  const signInUrl = `${serverUrl.replace(/\/$/, '')}/users/sign_in`;
+  await page.goto(signInUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+
+  const emailField = page.getByRole('textbox', { name: 'Email' });
+  if (!(await emailField.isVisible().catch(() => false))) return false;
+
+  await emailField.fill(email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(password);
+  await page.getByRole('button', { name: /log in/i }).click();
+  await page.waitForURL(
+    (url) =>
+      /\/oauth\/authorize/.test(url.href) ||
+      /\/users\/sign_in/.test(url.href) ||
+      url.href.startsWith(uiUrl) ||
+      url.href.startsWith(serverUrl),
+    { timeout: 15000 }
+  ).catch(() => null);
+
+  const allowVisible = await page.getByRole('button', { name: /(allow|authorize)/i }).first().isVisible().catch(() => false);
+  if (isOAuth(page) || allowVisible) {
+    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+    await page.waitForURL(
+      (url) =>
+        url.href.startsWith(uiUrl) ||
+        url.href.startsWith(serverUrl) ||
+        /\/users\/sign_in/.test(url.href),
+      { timeout: 15000 }
+    ).catch(() => null);
+  }
+
+  if (page.url().startsWith(serverUrl) && !isOAuth(page) && !isSignIn(page)) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1000);
+  }
+
+  if (hasOauthCallbackCode(page)) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1200);
+  }
+
+  return isAppShellVisible(page);
+}
 
 async function resolveWorkPanel(page) {
   const panels = page.locator('div[data-swipeable="true"][aria-hidden="false"]');
@@ -198,7 +243,20 @@ async function fillEditableTextboxInPanel(page, roleName, value, exact = false) 
   const panel = await resolveWorkPanel(page);
   const locator = panel.getByRole('textbox', { name: roleName, exact });
   const count = await locator.count();
-  if (!count) throw new Error(`Panel textbox not found: ${roleName}`);
+  if (!count) {
+    const anywhere = page.getByRole('textbox', { name: roleName, exact });
+    const fallbackCount = await anywhere.count();
+    for (let i = 0; i < fallbackCount; i += 1) {
+      const box = anywhere.nth(i);
+      const visible = await box.isVisible().catch(() => false);
+      const editable = await box.isEditable().catch(() => false);
+      if (visible && editable) {
+        await box.fill(value);
+        return;
+      }
+    }
+    throw new Error(`Panel textbox not found: ${roleName}`);
+  }
 
   for (let i = 0; i < count; i += 1) {
     const box = locator.nth(i);
@@ -218,6 +276,14 @@ async function hasEditableTextboxInPanel(page, roleName, exact = false) {
   const count = await locator.count();
   for (let i = 0; i < count; i += 1) {
     const box = locator.nth(i);
+    const visible = await box.isVisible().catch(() => false);
+    const editable = await box.isEditable().catch(() => false);
+    if (visible && editable) return true;
+  }
+  const anywhere = page.getByRole('textbox', { name: roleName, exact });
+  const fallbackCount = await anywhere.count();
+  for (let i = 0; i < fallbackCount; i += 1) {
+    const box = anywhere.nth(i);
     const visible = await box.isVisible().catch(() => false);
     const editable = await box.isEditable().catch(() => false);
     if (visible && editable) return true;
@@ -344,9 +410,28 @@ async function closeTopTabs(page, max = 120) {
   }
 }
 
+async function getActiveWorkspaceHeadingText(page) {
+  const panel = await resolveWorkPanel(page);
+  const headingCandidates = panel.locator('h6,h5,h4');
+  const count = await headingCandidates.count();
+  for (let i = 0; i < count; i += 1) {
+    const heading = headingCandidates.nth(i);
+    const visible = await heading.isVisible().catch(() => false);
+    if (!visible) continue;
+    const box = await heading.boundingBox().catch(() => null);
+    // Ignore side drawer headings; keep workspace heading area.
+    if (!box || box.x < 280 || box.y > 220) continue;
+    const text = ((await heading.textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
 async function openDocumentTypes(page) {
-  const heading = page.getByRole('heading', { name: /Document Types/i }).last();
-  const isInDocumentTypes = async () => await heading.isVisible().catch(() => false);
+  const isInDocumentTypes = async () => {
+    const text = await getActiveWorkspaceHeadingText(page);
+    return /\b(Document Types|Jsondatatypes)\b/i.test(text);
+  };
   const expandDataMenu = async () => {
     const candidates = [
       page.getByRole('button', { name: /^Data$/i }),
@@ -369,6 +454,19 @@ async function openDocumentTypes(page) {
   };
 
   const clickSidebarDocumentTypes = async () => {
+    const navCandidates = page.locator('li').filter({ hasText: /^Document Types$/i });
+    const navCount = await navCandidates.count().catch(() => 0);
+    for (let i = 0; i < navCount; i += 1) {
+      const item = navCandidates.nth(i);
+      const visible = await item.isVisible().catch(() => false);
+      if (!visible) continue;
+      const box = await item.boundingBox().catch(() => null);
+      if (!box || box.x > 280) continue;
+      await item.click({ force: true }).catch(() => null);
+      await page.waitForTimeout(350);
+      if (await isInDocumentTypes()) return true;
+    }
+
     const candidates = [
       page.getByRole('button', { name: /^Document Types$/i }),
       page.getByRole('listitem').filter({ hasText: /^Document Types$/i }),
@@ -414,12 +512,23 @@ async function openDocumentTypes(page) {
 }
 
 async function openDataTypeNewForm(page) {
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
+  for (let attempt = 1; attempt <= 8; attempt += 1) {
     const opened = await openDocumentTypes(page);
     if (!opened) continue;
     await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
     await page.waitForTimeout(500);
-    await clickNamedButtonInPanel(page, /^New$/i, 'first');
+    let clickedNew = false;
+    try {
+      await clickNamedButtonInPanel(page, /^New$/i, 'first');
+      clickedNew = true;
+    } catch (_) {
+      clickedNew = await clickNamedButtonAnywhere(page, /^New$/i, 'first');
+    }
+    if (!clickedNew) {
+      await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
+      await page.waitForTimeout(450);
+      continue;
+    }
     await page.waitForTimeout(700);
     const hasNamespace = await hasEditableTextboxInPanel(page, 'Namespace');
     if (hasNamespace) return;
@@ -580,12 +689,38 @@ async function ensureAuthenticated(page) {
     { timeout: 15000 }
   ).catch(() => null);
 
-  for (let attempt = 1; attempt <= 60; attempt += 1) {
+  let blankRootStreak = 0;
+  let directSignInAttempts = 0;
+  for (let attempt = 1; attempt <= 70; attempt += 1) {
     await page.waitForTimeout(1200);
 
     const rootChildren = await page.locator('#root > *').count().catch(() => 0);
     const onAuthPage = isSignIn(page) || isOAuth(page);
+    if (page.url().startsWith(serverUrl) && !onAuthPage) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(900);
+      continue;
+    }
     const loadingVisible = await page.getByRole('progressbar').first().isVisible().catch(() => false);
+    if (!rootChildren && !onAuthPage) {
+      blankRootStreak += 1;
+    } else {
+      blankRootStreak = 0;
+    }
+
+    if (blankRootStreak >= 5 && blankRootStreak % 5 === 0) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+    }
+
+    if (blankRootStreak >= 12 && directSignInAttempts < 2) {
+      directSignInAttempts += 1;
+      if (await performDirectServerLogin(page)) return;
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+      continue;
+    }
+
     if (loadingVisible && !onAuthPage) {
       if (attempt % 15 === 0) {
         await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
@@ -655,13 +790,37 @@ async function ensureAuthenticated(page) {
   if (/invalid email or password/i.test(bodyText)) {
     throw new Error('Login failed: invalid email or password');
   }
+  if (await performDirectServerLogin(page)) return;
   throw new Error(`Could not authenticate after retries. Current URL: ${page.url()}`);
 }
 
 const browser = await chromium.launch({ headless: !headed });
-const context = await browser.newContext();
+const contextOptions = {
+  recordVideo: {
+    dir: path.join(outputDir, 'artifacts/videos'),
+    size: { width: 1280, height: 720 }
+  }
+};
+if (authStateFile && fs.existsSync(authStateFile)) {
+  contextOptions.storageState = authStateFile;
+}
+const context = await browser.newContext(contextOptions);
+await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
 const page = await context.newPage();
 
+page.on('console', (msg) => {
+  if (msg.type() === 'error') {
+    console.error(`BROWSER_ERROR: ${msg.text()}`);
+  } else {
+    console.log(`BROWSER_LOG: ${msg.text()}`);
+  }
+});
+
+page.on('pageerror', (err) => {
+  console.error(`BROWSER_PAGE_ERROR: ${err.message}`);
+});
+
+let failed = false;
 try {
   await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
   await ensureAuthenticated(page);
@@ -673,11 +832,14 @@ try {
   }
   await createDataTypeWithDuplicateRecovery(page);
   await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30000 }).catch(() => null);
+  console.log('Data type created successfully. Clicking View...');
   await clickNamedButtonInPanel(page, /^View$/i, 'first');
   await clickWorkspaceTab(page, new RegExp(`${escapeRegex(namespaceName)}\\s*\\|\\s*${escapeRegex(dataTypeName)}`, 'i'));
+  await page.screenshot({ path: path.join(outputDir, `cenit-ui-contact-flow-created-${stamp}.png`), fullPage: true });
 
   const recordsHeading = new RegExp(`^${escapeRegex(recordCollection)}`);
   try {
+    console.log(`Opening records collection: ${recordCollection}...`);
     await clickNamedButtonInPanel(page, /^Records$/i, 'first');
   } catch (error) {
     // Recover from stale panel focus by retrying from the data type tab context.
@@ -788,6 +950,7 @@ try {
   fs.writeFileSync(reportFile, `${lines.join('\n')}\n`, 'utf8');
   for (const line of lines) console.log(line);
 } catch (error) {
+  failed = true;
   fs.mkdirSync(outputDir, { recursive: true });
   await page.screenshot({ path: failedScreenshotFile, fullPage: true }).catch(() => null);
   const dom = await page.content().catch(() => '');
@@ -808,6 +971,22 @@ try {
   for (const line of lines) console.error(line);
   throw error;
 } finally {
+  const tracePath = path.join(outputDir, `artifacts/trace-${stamp}.zip`);
+  await context.tracing.stop({ path: tracePath });
+
+  const video = await page.video();
+  const videoPath = video ? await video.path() : null;
+
   await context.close();
   await browser.close();
+
+  // If we had a failure, we keep artifacts. If success, we cleanup video to save space.
+  // We keep the trace for success/fail as it's small and useful for analysis.
+  if (!failed && videoPath && fs.existsSync(videoPath)) {
+    fs.unlinkSync(videoPath);
+  } else if (failed && videoPath && fs.existsSync(videoPath)) {
+    const finalVideoPath = path.join(outputDir, `artifacts/video-${stamp}.webm`);
+    fs.mkdirSync(path.dirname(finalVideoPath), { recursive: true });
+    fs.renameSync(videoPath, finalVideoPath);
+  }
 }

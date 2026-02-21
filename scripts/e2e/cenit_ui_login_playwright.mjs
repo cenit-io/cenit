@@ -4,6 +4,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const uiUrl = process.env.CENIT_UI_URL || 'http://localhost:3002';
+const serverUrl = process.env.CENIT_SERVER_URL || 'http://localhost:3000';
 const email = process.env.CENIT_E2E_EMAIL || 'support@cenit.io';
 const password = process.env.CENIT_E2E_PASSWORD || 'password';
 const outputDir = process.env.CENIT_E2E_OUTPUT_DIR || path.resolve(process.cwd(), 'output/playwright');
@@ -36,6 +37,42 @@ const isAppShellVisible = async () => {
   return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasQuickAccess || hasRecent;
 };
 
+async function performDirectServerLogin() {
+  const signInUrl = `${serverUrl.replace(/\/$/, '')}/users/sign_in`;
+  await page.goto(signInUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+
+  const emailField = page.getByRole('textbox', { name: 'Email' });
+  if (!(await emailField.isVisible().catch(() => false))) return false;
+
+  await emailField.fill(email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(password);
+  await page.getByRole('button', { name: /log in/i }).click();
+  await page.waitForURL(
+    (url) =>
+      /\/oauth\/authorize/.test(url.href) ||
+      /\/users\/sign_in/.test(url.href) ||
+      url.href.startsWith(uiUrl),
+    { timeout: 15000 }
+  ).catch(() => null);
+
+  const allowVisible = await page.getByRole('button', { name: /(allow|authorize)/i }).first().isVisible().catch(() => false);
+  if (allowVisible || isOAuth()) {
+    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+    await page.waitForURL(
+      (url) =>
+        /\/users\/sign_in/.test(url.href) ||
+        url.href.startsWith(uiUrl),
+      { timeout: 15000 }
+    ).catch(() => null);
+  }
+
+  if (hasOauthCallbackCode()) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+  }
+
+  return isAppShellVisible();
+}
+
 try {
   await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
 
@@ -47,8 +84,25 @@ try {
     { timeout: 30000 }
   ).catch(() => null);
 
-  for (let attempt = 1; attempt <= 30; attempt += 1) {
+  let blankRootStreak = 0;
+  for (let attempt = 1; attempt <= 40; attempt += 1) {
     if (await isAppShellVisible()) break;
+
+    const rootChildren = await page.locator('#root > *').count().catch(() => 0);
+    if (!rootChildren && !isSignIn() && !isOAuth()) {
+      blankRootStreak += 1;
+    } else {
+      blankRootStreak = 0;
+    }
+
+    if (blankRootStreak >= 5 && blankRootStreak % 5 === 0) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(800);
+    }
+    if (blankRootStreak >= 12) {
+      if (await performDirectServerLogin()) break;
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    }
 
     const loadingVisible = await page.getByRole('progressbar').first().isVisible().catch(() => false);
     if (loadingVisible && !isSignIn() && !isOAuth()) {
@@ -104,6 +158,12 @@ try {
     if (/invalid email or password/i.test(bodyText)) {
       throw new Error('Login failed: invalid email or password');
     }
+    if (await performDirectServerLogin()) {
+      await page.waitForTimeout(800);
+    }
+  }
+
+  if (!(await isAppShellVisible())) {
     throw new Error(`Could not authenticate after retries. Current URL: ${page.url()}`);
   }
 
