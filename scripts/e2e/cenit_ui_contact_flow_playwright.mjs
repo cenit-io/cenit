@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { verifyRecordDeletion, verifyDataType } from './db_verification.mjs';
 
 const uiUrl = process.env.CENIT_UI_URL || 'http://localhost:3002';
 const serverUrl = process.env.CENIT_SERVER_URL || 'http://localhost:3000';
@@ -16,6 +17,7 @@ const recordName = process.env.CENIT_E2E_RECORD_NAME || 'John Contact E2E';
 const recordCollection = process.env.CENIT_E2E_RECORD_COLLECTION || `${dataTypeName}s`;
 const headed = process.env.CENIT_E2E_HEADED === '1';
 const cleanupEnabled = process.env.CENIT_E2E_CLEANUP !== '0';
+const authStateFile = process.env.CENIT_E2E_AUTH_STATE_FILE || '';
 
 const screenshotFile = path.join(outputDir, `cenit-ui-contact-flow-${stamp}.png`);
 const cleanupScreenshotFile = path.join(outputDir, `cenit-ui-contact-flow-cleanup-${stamp}.png`);
@@ -28,11 +30,65 @@ const failedDomFile = path.join(outputDir, `cenit-ui-contact-flow-failed-${stamp
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const isSignIn = (page) => /\/users\/sign_in/.test(page.url());
 const isOAuth = (page) => /\/oauth\/authorize/.test(page.url());
-const isAppShellVisible = async (page) => {
-  const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
-  const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
-  return hasDocumentTypes || hasRecent;
+const hasOauthCallbackCode = (page) => {
+  try {
+    const url = new URL(page.url());
+    return url.origin === new URL(uiUrl).origin && url.searchParams.has('code');
+  } catch (_) {
+    return false;
+  }
 };
+const isAppShellVisible = async (page) => {
+  const hasMenuHeading = await page.getByRole('heading', { name: /^Menu$/i }).first().isVisible().catch(() => false);
+  const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
+  const hasDocumentTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
+  const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
+  return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasRecent;
+};
+
+async function performDirectServerLogin(page) {
+  const signInUrl = `${serverUrl.replace(/\/$/, '')}/users/sign_in`;
+  await page.goto(signInUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+
+  const emailField = page.getByRole('textbox', { name: 'Email' });
+  if (!(await emailField.isVisible().catch(() => false))) return false;
+
+  await emailField.fill(email);
+  await page.getByRole('textbox', { name: 'Password' }).fill(password);
+  await page.getByRole('button', { name: /log in/i }).click();
+  await page.waitForURL(
+    (url) =>
+      /\/oauth\/authorize/.test(url.href) ||
+      /\/users\/sign_in/.test(url.href) ||
+      url.href.startsWith(uiUrl) ||
+      url.href.startsWith(serverUrl),
+    { timeout: 15000 }
+  ).catch(() => null);
+
+  const allowVisible = await page.getByRole('button', { name: /(allow|authorize)/i }).first().isVisible().catch(() => false);
+  if (isOAuth(page) || allowVisible) {
+    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+    await page.waitForURL(
+      (url) =>
+        url.href.startsWith(uiUrl) ||
+        url.href.startsWith(serverUrl) ||
+        /\/users\/sign_in/.test(url.href),
+      { timeout: 15000 }
+    ).catch(() => null);
+  }
+
+  if (page.url().startsWith(serverUrl) && !isOAuth(page) && !isSignIn(page)) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1000);
+  }
+
+  if (hasOauthCallbackCode(page)) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1200);
+  }
+
+  return isAppShellVisible(page);
+}
 
 async function resolveWorkPanel(page) {
   const panels = page.locator('div[data-swipeable="true"][aria-hidden="false"]');
@@ -124,9 +180,54 @@ async function clickToolbarActionByLabel(page, labelRegex) {
 
   if (!matched.length) return false;
   matched.sort((a, b) => a.x - b.x || a.y - b.y);
-  const target = candidates.nth(matched[0].index);
-  await target.click({ force: true });
-  return true;
+  for (const match of matched) {
+    const target = candidates.nth(match.index);
+    try {
+      await target.click({ force: true });
+      return true;
+    } catch (_) {
+      // Keep trying other toolbar delete candidates.
+    }
+  }
+  return false;
+}
+
+async function clickOverflowMenuDelete(page) {
+  const moreButtons = page.getByRole('button', { name: /more/i });
+  const count = await moreButtons.count();
+  for (let i = count - 1; i >= 0; i -= 1) {
+    const button = moreButtons.nth(i);
+    const visible = await button.isVisible().catch(() => false);
+    const enabled = await button.isEnabled().catch(() => false);
+    if (!visible || !enabled) continue;
+
+    const box = await button.boundingBox().catch(() => null);
+    if (!box || box.x <= 320 || box.y >= 260) continue;
+
+    await button.click({ force: true }).catch(() => null);
+    const menuDelete = page.getByRole('menuitem', { name: /delete/i }).first();
+    if (await menuDelete.isVisible().catch(() => false)) {
+      await menuDelete.click({ force: true }).catch(() => null);
+      await page.keyboard.press('Escape').catch(() => null);
+      await page.waitForTimeout(200);
+      return true;
+    }
+    await page.keyboard.press('Escape').catch(() => null);
+  }
+  return false;
+}
+
+async function tryOpenDeleteAction(page) {
+  try {
+    await clickNamedButtonInPanel(page, /^Delete$/i, 'first');
+    return true;
+  } catch (_) {
+    // Continue with broader strategies.
+  }
+  if (await clickNamedButtonAnywhere(page, /^Delete$/i, 'first')) return true;
+  if (await clickToolbarActionByLabel(page, /delete/i)) return true;
+  if (await clickOverflowMenuDelete(page)) return true;
+  return false;
 }
 
 async function hasPanelButton(page, nameMatcher) {
@@ -143,7 +244,20 @@ async function fillEditableTextboxInPanel(page, roleName, value, exact = false) 
   const panel = await resolveWorkPanel(page);
   const locator = panel.getByRole('textbox', { name: roleName, exact });
   const count = await locator.count();
-  if (!count) throw new Error(`Panel textbox not found: ${roleName}`);
+  if (!count) {
+    const anywhere = page.getByRole('textbox', { name: roleName, exact });
+    const fallbackCount = await anywhere.count();
+    for (let i = 0; i < fallbackCount; i += 1) {
+      const box = anywhere.nth(i);
+      const visible = await box.isVisible().catch(() => false);
+      const editable = await box.isEditable().catch(() => false);
+      if (visible && editable) {
+        await box.fill(value);
+        return;
+      }
+    }
+    throw new Error(`Panel textbox not found: ${roleName}`);
+  }
 
   for (let i = 0; i < count; i += 1) {
     const box = locator.nth(i);
@@ -163,6 +277,14 @@ async function hasEditableTextboxInPanel(page, roleName, exact = false) {
   const count = await locator.count();
   for (let i = 0; i < count; i += 1) {
     const box = locator.nth(i);
+    const visible = await box.isVisible().catch(() => false);
+    const editable = await box.isEditable().catch(() => false);
+    if (visible && editable) return true;
+  }
+  const anywhere = page.getByRole('textbox', { name: roleName, exact });
+  const fallbackCount = await anywhere.count();
+  for (let i = 0; i < fallbackCount; i += 1) {
+    const box = anywhere.nth(i);
     const visible = await box.isVisible().catch(() => false);
     const editable = await box.isEditable().catch(() => false);
     if (visible && editable) return true;
@@ -190,17 +312,20 @@ async function clickWorkspaceTab(page, nameMatcher, prefer = 'last') {
   return false;
 }
 
-async function openDeleteAndConfirmInPanel(page, resourceLabel) {
+async function openDeleteAndConfirmInPanel(page, resourceLabel, { recoverDeleteAction } = {}) {
   let deleteClicked = false;
-  try {
-    await clickNamedButtonInPanel(page, /^Delete$/i, 'first');
-    deleteClicked = true;
-  } catch (_) {
-    deleteClicked = await clickNamedButtonAnywhere(page, /^Delete$/i, 'first');
+  for (let attempt = 1; attempt <= 8; attempt += 1) {
+    deleteClicked = await tryOpenDeleteAction(page);
+    if (deleteClicked) break;
+
+    await page.waitForTimeout(450);
+    if (typeof recoverDeleteAction === 'function') {
+      await recoverDeleteAction(attempt).catch(() => null);
+    } else {
+      await clickWorkspaceTab(page, /\|\s*Show$/i, 'last').catch(() => false);
+    }
   }
-  if (!deleteClicked) {
-    deleteClicked = await clickToolbarActionByLabel(page, /delete/i);
-  }
+
   if (!deleteClicked) {
     throw new Error(`Cleanup failed for ${resourceLabel}: delete action is not available.`);
   }
@@ -223,9 +348,29 @@ async function openDeleteAndConfirmInPanel(page, resourceLabel) {
     await deleteInput.fill('permanently delete');
     const confirmDelete = panel.locator('button', { hasText: /^Delete$/i }).first();
     await confirmDelete.waitFor({ timeout: 10000 });
-    await confirmDelete.click();
+    await page.keyboard.press('Escape').catch(() => null);
+    await page.waitForTimeout(100);
+    try {
+      await confirmDelete.click({ timeout: 5000 });
+    } catch (_) {
+      try {
+        await confirmDelete.click({ force: true, timeout: 5000 });
+      } catch (_) {
+        await confirmDelete.evaluate((el) => el.click());
+      }
+    }
   } else if (hasSureButton) {
-    await sureButton.click();
+    await page.keyboard.press('Escape').catch(() => null);
+    await page.waitForTimeout(100);
+    try {
+      await sureButton.click({ timeout: 5000 });
+    } catch (_) {
+      try {
+        await sureButton.click({ force: true, timeout: 5000 });
+      } catch (_) {
+        await sureButton.evaluate((el) => el.click());
+      }
+    }
   } else {
     throw new Error(`Cleanup failed for ${resourceLabel}: no supported delete confirmation control appeared.`);
   }
@@ -266,72 +411,182 @@ async function closeTopTabs(page, max = 120) {
   }
 }
 
+async function getActiveWorkspaceHeadingText(page) {
+  const panel = await resolveWorkPanel(page);
+  const headingCandidates = panel.locator('h6,h5,h4');
+  const count = await headingCandidates.count();
+  for (let i = 0; i < count; i += 1) {
+    const heading = headingCandidates.nth(i);
+    const visible = await heading.isVisible().catch(() => false);
+    if (!visible) continue;
+    const box = await heading.boundingBox().catch(() => null);
+    // Ignore side drawer headings; keep workspace heading area.
+    if (!box || box.x < 280 || box.y > 220) continue;
+    const text = ((await heading.textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
 async function openDocumentTypes(page) {
-  const heading = page.getByRole('heading', { name: /^Document Types/ }).last();
-  const isInDocumentTypes = async () =>
-    (await heading.isVisible().catch(() => false))
-    || (await hasPanelButton(page, /^List$/i))
-    || (await hasPanelButton(page, /^Records$/i));
+  const isInDocumentTypes = async () => {
+    const text = await getActiveWorkspaceHeadingText(page);
+    return /\b(Document Types|Jsondatatypes)\b/i.test(text);
+  };
+  const expandDataMenu = async () => {
+    const candidates = [
+      page.getByRole('button', { name: /^Data$/i }),
+      page.getByRole('listitem').filter({ hasText: /^Data$/i }),
+      page.locator('li').filter({ hasText: /^Data$/i }),
+      page.getByText(/^Data$/i),
+    ];
+    for (const locator of candidates) {
+      const count = await locator.count().catch(() => 0);
+      for (let i = 0; i < count; i += 1) {
+        const item = locator.nth(i);
+        const visible = await item.isVisible().catch(() => false);
+        if (!visible) continue;
+        await item.click({ force: true }).catch(() => null);
+        await page.waitForTimeout(250);
+        if (await isInDocumentTypes()) return true;
+      }
+    }
+    return false;
+  };
+
+  const clickSidebarDocumentTypes = async () => {
+    const navCandidates = page.locator('li').filter({ hasText: /^Document Types$/i });
+    const navCount = await navCandidates.count().catch(() => 0);
+    for (let i = 0; i < navCount; i += 1) {
+      const item = navCandidates.nth(i);
+      const visible = await item.isVisible().catch(() => false);
+      if (!visible) continue;
+      const box = await item.boundingBox().catch(() => null);
+      if (!box || box.x > 280) continue;
+      await item.click({ force: true }).catch(() => null);
+      await page.waitForTimeout(350);
+      if (await isInDocumentTypes()) return true;
+    }
+
+    const candidates = [
+      page.getByRole('button', { name: /^Document Types$/i }),
+      page.getByRole('listitem').filter({ hasText: /^Document Types$/i }),
+      page.locator('li').filter({ hasText: /^Document Types$/i }),
+      page.getByText(/^Document Types$/i),
+    ];
+
+    for (const locator of candidates) {
+      const count = await locator.count().catch(() => 0);
+      for (let i = 0; i < count; i += 1) {
+        const item = locator.nth(i);
+        const visible = await item.isVisible().catch(() => false);
+        if (!visible) continue;
+        await item.click({ force: true }).catch(() => null);
+        await page.waitForTimeout(350);
+        if (await isInDocumentTypes()) return true;
+      }
+    }
+
+    return false;
+  };
 
   for (let attempt = 1; attempt <= 8; attempt += 1) {
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
 
-    const dataMenu = page.getByRole('button', { name: /^Data$/i }).first();
-    if (await dataMenu.isVisible().catch(() => false)) {
-      await dataMenu.click().catch(() => null);
-      await page.waitForTimeout(250);
-    }
+    await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
+    await page.waitForTimeout(350);
+    if (await isInDocumentTypes()) return true;
 
-    const buttons = page.getByRole('button', { name: /^Document Types$/i });
-    const count = await buttons.count();
-    let clicked = false;
-    for (let i = 0; i < count; i += 1) {
-      const button = buttons.nth(i);
-      const visible = await button.isVisible().catch(() => false);
-      if (!visible) continue;
-      const box = await button.boundingBox().catch(() => null);
-      // Prefer left navigation item when both sidebar and top tab are visible.
-      if (box && box.x > 320) continue;
-      await button.click().catch(() => null);
-      clicked = true;
-      break;
-    }
-    if (!clicked) {
-      await buttons.first().click().catch(() => null);
-    }
+    await expandDataMenu();
+
+    await clickSidebarDocumentTypes();
 
     await page.waitForTimeout(600);
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
 
     await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
     await page.waitForTimeout(500);
-    if (await isInDocumentTypes()) return;
+    if (await isInDocumentTypes()) return true;
   }
 
-  throw new Error('Could not open Document Types view after retries.');
+  return false;
 }
 
 async function openDataTypeNewForm(page) {
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
-    await openDocumentTypes(page);
+  for (let attempt = 1; attempt <= 8; attempt += 1) {
+    const opened = await openDocumentTypes(page);
+    if (!opened) continue;
     await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
     await page.waitForTimeout(500);
-    await clickNamedButtonInPanel(page, /^New$/i, 'first');
+    let clickedNew = false;
+    try {
+      await clickNamedButtonInPanel(page, /^New$/i, 'first');
+      clickedNew = true;
+    } catch (_) {
+      clickedNew = await clickNamedButtonAnywhere(page, /^New$/i, 'first');
+    }
+    if (!clickedNew) {
+      await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
+      await page.waitForTimeout(450);
+      continue;
+    }
     await page.waitForTimeout(700);
-    if (await hasEditableTextboxInPanel(page, 'Namespace')) return;
+    const hasNamespace = await hasEditableTextboxInPanel(page, 'Namespace');
+    if (hasNamespace) return;
+
+    // Recover from stale panel focus where "New" opened a records form instead.
+    await clickWorkspaceTab(page, /^Document Types$/i, 'last').catch(() => false);
+    await page.waitForTimeout(500);
   }
   throw new Error('Could not open editable Document Type new form after retries.');
 }
 
+async function goToNextListPage(page) {
+  const panel = await resolveWorkPanel(page);
+  const nextButtons = [
+    panel.getByRole('button', { name: /next page/i }),
+    panel.locator('button[aria-label*="next" i],button[title*="next" i]'),
+  ];
+
+  for (const locator of nextButtons) {
+    const count = await locator.count();
+    for (let i = 0; i < count; i += 1) {
+      const button = locator.nth(i);
+      const visible = await button.isVisible().catch(() => false);
+      const enabled = await button.isEnabled().catch(() => false);
+      if (!visible || !enabled) continue;
+      await button.click().catch(() => null);
+      await page.waitForTimeout(600);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function findDataTypeRowInList(page) {
+  // Try current page first and walk forward through pagination when present.
+  for (let pageAttempt = 1; pageAttempt <= 25; pageAttempt += 1) {
+    const panel = await resolveWorkPanel(page);
+    const strictMatch = panel.locator('tr').filter({ hasText: namespaceName }).filter({ hasText: dataTypeName }).first();
+    if (await strictMatch.isVisible().catch(() => false)) {
+      return strictMatch;
+    }
+
+    const moved = await goToNextListPage(page);
+    if (!moved) break;
+  }
+  return null;
+}
+
 async function deleteExistingDataTypeIfPresent(page) {
-  await openDocumentTypes(page);
+  const opened = await openDocumentTypes(page);
+  if (!opened) return false;
   await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
   await page.waitForTimeout(500);
 
-  const panel = await resolveWorkPanel(page);
-  const existingRow = panel.locator('tr').filter({ hasText: namespaceName }).filter({ hasText: dataTypeName }).first();
-  const rowVisible = await existingRow.isVisible().catch(() => false);
-  if (!rowVisible) return false;
+  const existingRow = await findDataTypeRowInList(page);
+  if (!existingRow) return false;
 
   const rowCheckbox = existingRow.getByRole('checkbox').first();
   if (await rowCheckbox.isVisible().catch(() => false)) {
@@ -340,13 +595,62 @@ async function deleteExistingDataTypeIfPresent(page) {
 
   await clickNamedButtonInPanel(page, /^Show$/i, 'first');
   await page.waitForTimeout(500);
-  await openDeleteAndConfirmInPanel(page, `existing data type '${namespaceName} | ${dataTypeName}'`);
+  await openDeleteAndConfirmInPanel(page, `existing data type '${namespaceName} | ${dataTypeName}'`, {
+    recoverDeleteAction: async () => {
+      await openDataTypeShowByList(page);
+      await page.waitForTimeout(500);
+    },
+  });
   return true;
+}
+
+async function waitForCreateResult(page, timeoutMs = 30000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const success = await page.getByRole('heading', { name: 'Successfully created' }).last().isVisible().catch(() => false);
+    if (success) return 'success';
+
+    const panel = await resolveWorkPanel(page);
+    const duplicateError = await panel.getByText(/has already been taken/i).first().isVisible().catch(() => false);
+    if (duplicateError) return 'duplicate';
+
+    await page.waitForTimeout(250);
+  }
+  return 'timeout';
+}
+
+async function createDataTypeWithDuplicateRecovery(page) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    await openDataTypeNewForm(page);
+    await fillEditableTextboxInPanel(page, 'Namespace', namespaceName);
+    await fillEditableTextboxInPanel(page, 'Name', dataTypeName, true);
+    await clickNamedButtonInPanel(page, /^save$/i, 'first');
+
+    const result = await waitForCreateResult(page);
+    if (result === 'success') return;
+    if (result === 'timeout') {
+      throw new Error('Timed out waiting for data type creation result.');
+    }
+    if (result === 'duplicate') {
+      if (!cleanupEnabled || attempt === 2) {
+        throw new Error(
+          `Data type creation failed: '${namespaceName} | ${dataTypeName}' already exists and cleanup recovery could not continue.`
+        );
+      }
+      const removed = await deleteExistingDataTypeIfPresent(page);
+      if (!removed) {
+        throw new Error(
+          `Data type creation failed: duplicate '${namespaceName} | ${dataTypeName}' exists but cleanup could not locate it in list pages.`
+        );
+      }
+    }
+  }
 }
 
 async function openDataTypeShowByList(page) {
   for (let attempt = 1; attempt <= 6; attempt += 1) {
-    await openDocumentTypes(page);
+    const opened = await openDocumentTypes(page);
+    if (!opened) continue;
     await clickNamedButtonInPanel(page, /^List$/i, 'first').catch(() => null);
     await page.waitForTimeout(500);
 
@@ -386,10 +690,71 @@ async function ensureAuthenticated(page) {
     { timeout: 15000 }
   ).catch(() => null);
 
-  for (let attempt = 1; attempt <= 4; attempt += 1) {
+  let blankRootStreak = 0;
+  let directSignInAttempts = 0;
+  for (let attempt = 1; attempt <= 70; attempt += 1) {
     await page.waitForTimeout(1200);
 
-    if (await isAppShellVisible(page)) return;
+    const rootChildren = await page.locator('#root > *').count().catch(() => 0);
+    const onAuthPage = isSignIn(page) || isOAuth(page);
+    if (page.url().startsWith(serverUrl) && !onAuthPage) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(900);
+      continue;
+    }
+    const loadingVisible = await page.getByRole('progressbar').first().isVisible().catch(() => false);
+    if (!rootChildren && !onAuthPage) {
+      blankRootStreak += 1;
+    } else {
+      blankRootStreak = 0;
+    }
+
+    if (blankRootStreak >= 5 && blankRootStreak % 5 === 0) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+    }
+
+    if (blankRootStreak >= 12 && directSignInAttempts < 2) {
+      directSignInAttempts += 1;
+      if (await performDirectServerLogin(page)) return;
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+      continue;
+    }
+
+    if (loadingVisible && !onAuthPage) {
+      if (attempt % 15 === 0) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      continue;
+    }
+    if (!rootChildren && !onAuthPage) {
+      if (attempt % 8 === 0) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
+      continue;
+    }
+
+    if (await isAppShellVisible(page)) {
+      if (hasOauthCallbackCode(page)) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+        await page.waitForTimeout(1000);
+        if (!(await isAppShellVisible(page))) continue;
+      }
+      return;
+    }
+
+    if (hasOauthCallbackCode(page)) {
+      // OAuth callback can briefly land on "/?code=..." while the app exchanges tokens.
+      for (let callbackAttempt = 1; callbackAttempt <= 3; callbackAttempt += 1) {
+        await page.waitForTimeout(1500);
+        if (await isAppShellVisible(page)) return;
+      }
+      // Recovery path for stuck callback page after backend cold start.
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(1000);
+      if (await isAppShellVisible(page)) return;
+    }
 
     const emailVisible = await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false);
     if (emailVisible || isSignIn(page)) {
@@ -416,6 +781,9 @@ async function ensureAuthenticated(page) {
           /\/users\/sign_in/.test(url.href),
         { timeout: 15000 }
       ).catch(() => null);
+      if (hasOauthCallbackCode(page)) {
+        await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      }
     }
   }
 
@@ -423,13 +791,37 @@ async function ensureAuthenticated(page) {
   if (/invalid email or password/i.test(bodyText)) {
     throw new Error('Login failed: invalid email or password');
   }
+  if (await performDirectServerLogin(page)) return;
   throw new Error(`Could not authenticate after retries. Current URL: ${page.url()}`);
 }
 
 const browser = await chromium.launch({ headless: !headed });
-const context = await browser.newContext();
+const contextOptions = {
+  recordVideo: {
+    dir: path.join(outputDir, 'artifacts/videos'),
+    size: { width: 1280, height: 720 }
+  }
+};
+if (authStateFile && fs.existsSync(authStateFile)) {
+  contextOptions.storageState = authStateFile;
+}
+const context = await browser.newContext(contextOptions);
+await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
 const page = await context.newPage();
 
+page.on('console', (msg) => {
+  if (msg.type() === 'error') {
+    console.error(`BROWSER_ERROR: ${msg.text()}`);
+  } else {
+    console.log(`BROWSER_LOG: ${msg.text()}`);
+  }
+});
+
+page.on('pageerror', (err) => {
+  console.error(`BROWSER_PAGE_ERROR: ${err.message}`);
+});
+
+let failed = false;
 try {
   await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
   await ensureAuthenticated(page);
@@ -439,17 +831,16 @@ try {
   if (cleanupEnabled) {
     await deleteExistingDataTypeIfPresent(page);
   }
-  await openDataTypeNewForm(page);
-  await fillEditableTextboxInPanel(page, 'Namespace', namespaceName);
-  await fillEditableTextboxInPanel(page, 'Name', dataTypeName, true);
-  await clickNamedButtonInPanel(page, /^save$/i, 'first');
-
-  await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30000 });
+  await createDataTypeWithDuplicateRecovery(page);
+  await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30000 }).catch(() => null);
+  console.log('Data type created successfully. Clicking View...');
   await clickNamedButtonInPanel(page, /^View$/i, 'first');
   await clickWorkspaceTab(page, new RegExp(`${escapeRegex(namespaceName)}\\s*\\|\\s*${escapeRegex(dataTypeName)}`, 'i'));
+  await page.screenshot({ path: path.join(outputDir, `cenit-ui-contact-flow-created-${stamp}.png`), fullPage: true });
 
   const recordsHeading = new RegExp(`^${escapeRegex(recordCollection)}`);
   try {
+    console.log(`Opening records collection: ${recordCollection}...`);
     await clickNamedButtonInPanel(page, /^Records$/i, 'first');
   } catch (error) {
     // Recover from stale panel focus by retrying from the data type tab context.
@@ -516,7 +907,12 @@ try {
     if (!recordTabFound) {
       throw new Error(`Cleanup failed: could not find record tab for '${recordName}'.`);
     }
-    await openDeleteAndConfirmInPanel(page, `record '${recordName}'`);
+    await openDeleteAndConfirmInPanel(page, `record '${recordName}'`, {
+      recoverDeleteAction: async () => {
+        await clickWorkspaceTab(page, new RegExp(escapeRegex(recordName), 'i')).catch(() => false);
+        await page.waitForTimeout(400);
+      },
+    });
 
     const dataTypeTabFound = await clickWorkspaceTab(
       page,
@@ -525,7 +921,16 @@ try {
     if (!dataTypeTabFound) {
       throw new Error(`Cleanup failed: could not find data type tab for '${namespaceName} | ${dataTypeName}'.`);
     }
-    await openDeleteAndConfirmInPanel(page, `data type '${namespaceName} | ${dataTypeName}'`);
+    await openDeleteAndConfirmInPanel(page, `data type '${namespaceName} | ${dataTypeName}'`, {
+      recoverDeleteAction: async () => {
+        await clickWorkspaceTab(
+          page,
+          new RegExp(`${escapeRegex(namespaceName)}\\s*\\|\\s*${escapeRegex(dataTypeName)}`, 'i'),
+          'last'
+        ).catch(() => false);
+        await page.waitForTimeout(400);
+      },
+    });
     await page.screenshot({ path: cleanupScreenshotFile, fullPage: true }).catch(() => null);
   }
 
@@ -545,7 +950,31 @@ try {
   ];
   fs.writeFileSync(reportFile, `${lines.join('\n')}\n`, 'utf8');
   for (const line of lines) console.log(line);
+
+  // MongoDB Verifications
+  console.log('\n--- MongoDB Verification ---');
+  const dtInfo = verifyDataType(namespaceName, dataTypeName);
+  if (cleanupEnabled) {
+    if (dtInfo.found) console.error(`DB_FAILURE: Data Type ${namespaceName}|${dataTypeName} still exists after cleanup!`);
+    else console.log('DB_SUCCESS: Data Type cleaned up.');
+
+    const recInfo = verifyRecordDeletion(recordName);
+    if (recInfo.found) console.error(`DB_FAILURE: Record ${recordName} still exists in collection ${recInfo.collection} after cleanup!`);
+    else console.log('DB_SUCCESS: Record cleaned up.');
+  } else {
+    if (!dtInfo.found) console.error(`DB_FAILURE: Data Type ${namespaceName}|${dataTypeName} not found but cleanup is DISABLED!`);
+    else {
+      console.log(`DB_SUCCESS: Data Type exists in ${dtInfo.collection}.`);
+      if (dtInfo.valid) console.log('DB_SUCCESS: Data Type schema is valid.');
+      else console.error('DB_FAILURE: Data Type has NO schema!');
+    }
+
+    const recInfo = verifyRecordDeletion(recordName);
+    if (!recInfo.found) console.error(`DB_FAILURE: Record ${recordName} not found but cleanup is DISABLED!`);
+    else console.log(`DB_SUCCESS: Record found in ${recInfo.collection}.`);
+  }
 } catch (error) {
+  failed = true;
   fs.mkdirSync(outputDir, { recursive: true });
   await page.screenshot({ path: failedScreenshotFile, fullPage: true }).catch(() => null);
   const dom = await page.content().catch(() => '');
@@ -566,6 +995,22 @@ try {
   for (const line of lines) console.error(line);
   throw error;
 } finally {
+  const tracePath = path.join(outputDir, `artifacts/trace-${stamp}.zip`);
+  await context.tracing.stop({ path: tracePath });
+
+  const video = await page.video();
+  const videoPath = video ? await video.path() : null;
+
   await context.close();
   await browser.close();
+
+  // If we had a failure, we keep artifacts. If success, we cleanup video to save space.
+  // We keep the trace for success/fail as it's small and useful for analysis.
+  if (!failed && videoPath && fs.existsSync(videoPath)) {
+    fs.unlinkSync(videoPath);
+  } else if (failed && videoPath && fs.existsSync(videoPath)) {
+    const finalVideoPath = path.join(outputDir, `artifacts/video-${stamp}.webm`);
+    fs.mkdirSync(path.dirname(finalVideoPath), { recursive: true });
+    fs.renameSync(videoPath, finalVideoPath);
+  }
 }

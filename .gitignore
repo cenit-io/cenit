@@ -41,3 +41,9 @@ config/deploy.rb
 custom_Gemfile
 .background_env
 .frontend_env
+
+# Local E2E/debug artifacts
+/scripts/e2e/output/
+/scripts/e2e/debug_*.html
+/scripts/e2e/debug_*.png
+/scripts/e2e/test_run*.log
