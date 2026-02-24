@@ -91,9 +91,24 @@ export CENIT_UI_CONTEXT=/absolute/path/to/ui
 
 ```bash
 cd /path/to/cenit
-docker compose up -d --build
+docker compose up -d
 docker compose ps
 ```
+
+### 2.1) Fast UI development mode (live reload from sibling `../ui`)
+
+Use this when iterating on UI code to avoid rebuilding the nginx UI image:
+
+```bash
+cd /path/to/cenit
+docker compose --profile dev up -d mongo_server redis rabbitmq server ui_dev
+docker compose --profile dev ps
+```
+
+Notes:
+
+- `ui_dev` serves Vite on `http://localhost:3002` with source mounted from `${CENIT_UI_CONTEXT:-../ui}`.
+- Keep `ui` (nginx image service) for production-like checks and CI parity.
 
 ### 3) Verify services
 
@@ -138,7 +153,7 @@ Important environment knobs used by local scripts:
 - `CENIT_UI_CONTEXT` (path to UI repository for Docker build)
 - `CENIT_E2E_AUTOSTART` (`1` to auto-start stack in E2E scripts)
 - `CENIT_E2E_RESET_STACK` (`1` to reset containers/volumes before E2E)
-- `CENIT_E2E_BUILD_STACK` (`1` to rebuild images before E2E)
+- `CENIT_E2E_BUILD_STACK` (`1` to rebuild images before E2E, default `0`)
 - `CENIT_E2E_HEADED` (`1` for headed browser runs)
 
 ## Testing and quality checks
@@ -155,11 +170,19 @@ scripts/e2e/cenit_ui_login.sh
 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
+Driver note:
+
+- `CENIT_E2E_DRIVER=pwcli` may hit parser/runtime limits on large `run-code` payloads.
+- The contact-flow runner automatically falls back to the node-playwright driver when this is detected.
+
 Useful overrides:
 
 ```bash
-# Reuse already-running stack
+# Reuse already-running stack (skip deterministic reset)
 CENIT_E2E_AUTOSTART=0 scripts/e2e/cenit_ui_contact_flow.sh
+
+# Deterministic default (clean DB each run, no image rebuild)
+CENIT_E2E_RESET_STACK=1 CENIT_E2E_BUILD_STACK=0 scripts/e2e/cenit_ui_contact_flow.sh
 
 # Run headed
 CENIT_E2E_HEADED=1 scripts/e2e/cenit_ui_contact_flow.sh
@@ -198,7 +221,7 @@ Current `pre-push` behavior:
 - Runs `scripts/e2e/cenit_ui_contact_flow.sh`
 - Uses fresh stack defaults:
   - `CENIT_E2E_RESET_STACK=1`
-  - `CENIT_E2E_BUILD_STACK=1`
+  - `CENIT_E2E_BUILD_STACK=0`
   - `CENIT_E2E_CLEANUP=0` (cleanup disabled for hook stability)
 
 Overrides:
@@ -242,7 +265,7 @@ Use a clean boot:
 
 ```bash
 CENIT_E2E_RESET_STACK=1 \
-CENIT_E2E_BUILD_STACK=1 \
+CENIT_E2E_BUILD_STACK=0 \
 scripts/e2e/cenit_ui_contact_flow.sh
 ```
 

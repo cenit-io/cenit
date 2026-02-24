@@ -15,8 +15,8 @@ CENIT_E2E_KEEP_BROWSER="${CENIT_E2E_KEEP_BROWSER:-0}"
 CENIT_E2E_DRIVER="${CENIT_E2E_DRIVER:-auto}"
 CENIT_E2E_HEADED="${CENIT_E2E_HEADED:-0}"
 CENIT_E2E_CLEANUP="${CENIT_E2E_CLEANUP:-1}"
-CENIT_E2E_RESET_STACK="${CENIT_E2E_RESET_STACK:-0}"
-CENIT_E2E_BUILD_STACK="${CENIT_E2E_BUILD_STACK:-$CENIT_E2E_RESET_STACK}"
+CENIT_E2E_RESET_STACK="${CENIT_E2E_RESET_STACK:-1}"
+CENIT_E2E_BUILD_STACK="${CENIT_E2E_BUILD_STACK:-0}"
 CENIT_E2E_RUN_ID="${CENIT_E2E_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
 CENIT_E2E_DATATYPE_NAMESPACE="${CENIT_E2E_DATATYPE_NAMESPACE:-E2E_CONTACT_FLOW}"
 CENIT_E2E_DATATYPE_NAME="${CENIT_E2E_DATATYPE_NAME:-Contact}"
@@ -55,7 +55,7 @@ wait_http() {
 }
 
 run_pwcli_driver() {
-  local stamp snapshot_file screenshot_file state_file report_file run_log_file run_output
+  local stamp snapshot_file screenshot_file state_file report_file run_log_file run_output run_status
 
   ensure_cmd npx
   if [[ ! -x "$PWCLI" ]]; then
@@ -80,86 +80,118 @@ run_pwcli_driver() {
   fi
 
   read -r -d '' CONTACT_FLOW <<'JS' || true
-(async () => {
-const uiUrl = process.env.CENIT_UI_URL;
-const email = process.env.CENIT_E2E_EMAIL;
-const password = process.env.CENIT_E2E_PASSWORD;
-const namespaceName = process.env.CENIT_E2E_DATATYPE_NAMESPACE;
-const dataTypeName = process.env.CENIT_E2E_DATATYPE_NAME;
-const recordName = process.env.CENIT_E2E_RECORD_NAME;
-const recordCollection = process.env.CENIT_E2E_RECORD_COLLECTION;
+await (async () => {
+  const env = (typeof process !== 'undefined' && process && process.env) ? process.env : {};
+  const uiUrl = env.CENIT_UI_URL || 'http://localhost:3002';
+  const email = env.CENIT_E2E_EMAIL || 'support@cenit.io';
+  const password = env.CENIT_E2E_PASSWORD || 'password';
+  const namespaceName = env.CENIT_E2E_DATATYPE_NAMESPACE || 'E2E_CONTACT_FLOW';
+  const dataTypeName = env.CENIT_E2E_DATATYPE_NAME || 'Contact';
+  const recordName = env.CENIT_E2E_RECORD_NAME || 'John Contact E2E';
+  const recordCollection = env.CENIT_E2E_RECORD_COLLECTION || `${dataTypeName}s`;
 
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const sectionByHeading = (regex) => page.locator('div').filter({
-  has: page.getByRole('heading', { name: regex })
-}).last();
-const isSignIn = () => /\/users\/sign_in/.test(page.url());
-const isOAuth = () => /\/oauth\/authorize/.test(page.url());
+  const escapeRegex = (value) => {
+    let escaped = String(value || '');
+    const specials = ['\\', '.', '*', '+', '?', '^', '$', '{', '}', '(', ')', '|', '[', ']'];
+    specials.forEach((char) => {
+      escaped = escaped.split(char).join('\\' + char);
+    });
+    return escaped;
+  };
+  const sectionByHeading = (regex) => page.locator('div').filter({
+    has: page.getByRole('heading', { name: regex })
+  }).last();
+  const isSignIn = () => /\/users\/sign_in/.test(page.url());
+  const isOAuth = () => /\/oauth\/authorize/.test(page.url());
 
-await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
+  await page.goto(uiUrl, { waitUntil: 'domcontentloaded' });
 
-if (await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false) || isSignIn()) {
-  await page.getByRole('textbox', { name: 'Email' }).fill(email);
-  await page.getByRole('textbox', { name: 'Password' }).fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForTimeout(1000);
-}
-
-if (isSignIn()) {
-  const msg = await page.locator('body').innerText().catch(() => '');
-  if (/invalid email or password/i.test(msg)) {
-    throw new Error('Login failed: invalid email or password');
+  if (await page.getByRole('textbox', { name: 'Email' }).isVisible().catch(() => false) || isSignIn()) {
+    await page.getByRole('textbox', { name: 'Email' }).fill(email);
+    await page.getByRole('textbox', { name: 'Password' }).fill(password);
+    await page.getByRole('button', { name: /log in/i }).click();
+    await page.waitForTimeout(1000);
   }
-  throw new Error(`Login did not complete. Current URL: ${page.url()}`);
-}
 
-if (isOAuth() || await page.getByRole('button', { name: /(allow|authorize)/i }).isVisible().catch(() => false)) {
-  await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
-}
+  if (isSignIn()) {
+    const msg = await page.locator('body').innerText().catch(() => '');
+    if (/invalid email or password/i.test(msg)) {
+      throw new Error('Login failed: invalid email or password');
+    }
+    throw new Error('Login did not complete. Current URL: ' + page.url());
+  }
 
-await page.waitForURL((url) => url.href.startsWith(uiUrl), { timeout: 30_000 }).catch(() => null);
-await page.getByRole('heading', { name: 'Menu' }).waitFor({ timeout: 30_000 });
+  if (isOAuth() || await page.getByRole('button', { name: /(allow|authorize)/i }).isVisible().catch(() => false)) {
+    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+  }
 
-await page.getByRole('button', { name: 'Document Types' }).first().click();
-await page.getByRole('heading', { name: /^Document Types/ }).last().waitFor({ timeout: 30_000 });
+  await page.waitForURL((url) => url.href.startsWith(uiUrl), { timeout: 30_000 }).catch(() => null);
+  let shellReady = false;
+  for (let attempt = 1; attempt <= 60; attempt += 1) {
+    const hasMenu = await page.getByRole('heading', { name: /^Menu$/i }).first().isVisible().catch(() => false);
+    const hasDocTypesButton = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
+    const hasDocTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
+    if (hasMenu || hasDocTypesButton || hasDocTypesText) {
+      shellReady = true;
+      break;
+    }
+    await page.waitForTimeout(500);
+  }
+  if (!shellReady) {
+    throw new Error('Login did not reach app shell.');
+  }
 
-const docTypesSection = sectionByHeading(/^Document Types/);
-await docTypesSection.getByRole('button', { name: 'New' }).click();
+  await page.getByRole('button', { name: 'Document Types' }).first().click();
+  await page.getByRole('heading', { name: /^Document Types/ }).last().waitFor({ timeout: 30_000 });
 
-await page.getByRole('textbox', { name: 'Namespace' }).fill(namespaceName);
-await page.getByRole('textbox', { name: 'Name', exact: true }).fill(dataTypeName);
-await page.getByRole('button', { name: /^save$/i }).first().click();
+  const docTypesSection = sectionByHeading(/^Document Types/);
+  await docTypesSection.getByRole('button', { name: 'New' }).click();
 
-await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
-await page.getByRole('button', { name: 'View' }).last().click();
+  await page.getByRole('textbox', { name: 'Namespace' }).fill(namespaceName);
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill(dataTypeName);
+  await page.getByRole('button', { name: /^save$/i }).first().click();
 
-await page.getByRole('button', { name: 'Records' }).first().click();
-const recordsHeading = new RegExp(`^${escapeRegex(recordCollection)}`);
-await page.getByRole('heading', { name: recordsHeading }).last().waitFor({ timeout: 30_000 });
+  await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'View' }).last().click();
 
-const recordsSection = sectionByHeading(recordsHeading);
-await recordsSection.getByRole('button', { name: 'New' }).click();
+  await page.getByRole('button', { name: 'Records' }).first().click();
+  const recordsHeading = new RegExp('^' + escapeRegex(recordCollection));
+  await page.getByRole('heading', { name: recordsHeading }).last().waitFor({ timeout: 30_000 });
 
-const recordNewHeading = new RegExp(`^${escapeRegex(recordCollection)} \\| New$`);
-const recordNewSection = sectionByHeading(recordNewHeading);
-await page.getByRole('heading', { name: recordNewHeading }).last().waitFor({ timeout: 30_000 });
+  const recordsSection = sectionByHeading(recordsHeading);
+  await recordsSection.getByRole('button', { name: 'New' }).click();
 
-await recordNewSection.getByRole('textbox', { name: 'Name' }).fill(recordName);
-await recordNewSection.getByRole('button', { name: /^save$/i }).click();
+  const recordNewHeading = new RegExp('^' + escapeRegex(recordCollection) + ' \\| New$');
+  const recordNewSection = sectionByHeading(recordNewHeading);
+  await page.getByRole('heading', { name: recordNewHeading }).last().waitFor({ timeout: 30_000 });
 
-await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
-await page.getByRole('button', { name: 'View' }).last().click();
-await page.getByRole('heading', { name: recordName }).last().waitFor({ timeout: 30_000 });
-})();
+  await recordNewSection.getByRole('textbox', { name: 'Name' }).fill(recordName);
+  await recordNewSection.getByRole('button', { name: /^save$/i }).click();
+
+  await page.getByRole('heading', { name: 'Successfully created' }).last().waitFor({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'View' }).last().click();
+  await page.getByRole('heading', { name: recordName }).last().waitFor({ timeout: 30_000 });
+})()
 JS
 
   echo "Executing Contact data type + record E2E flow (pwcli driver)..."
-  run_output="$("$PWCLI" run-code "$CONTACT_FLOW" 2>&1 || true)"
+  set +e
+  run_output="$("$PWCLI" run-code "$CONTACT_FLOW" 2>&1)"
+  run_status=$?
+  set -e
   stamp="$(date +%Y%m%d-%H%M%S)"
   run_log_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-run-$stamp.log"
   printf '%s\n' "$run_output" > "$run_log_file"
 
-  if printf '%s\n' "$run_output" | grep -q "### Error"; then
+  if printf '%s\n' "$run_output" | grep -Eq "SyntaxError: Unexpected token|ReferenceError: process is not defined"; then
+    if has_node_playwright; then
+      echo "pwcli run-code compatibility issue detected (see $run_log_file). Falling back to node-playwright driver..."
+      run_node_driver
+      return 0
+    fi
+  fi
+
+  if [[ "$run_status" -ne 0 ]] || printf '%s\n' "$run_output" | grep -q "### Error"; then
     stamp="$(date +%Y%m%d-%H%M%S)"
     snapshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.md"
     screenshot_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-contact-flow-failed-$stamp.png"
@@ -226,7 +258,7 @@ EOF
 }
 
 run_node_driver() {
-  local stamp
+  local stamp preflight_attempt preflight_stamp preflight_state_file
   if ! has_node_playwright; then
     echo "Node Playwright driver requested but 'playwright' package is not installed." >&2
     echo "Install it with: npm install --no-save playwright@1.52.0" >&2
@@ -245,6 +277,24 @@ run_node_driver() {
   export CENIT_E2E_RECORD_COLLECTION
   export CENIT_E2E_HEADED
   export CENIT_E2E_CLEANUP
+
+  echo "Running auth preflight (node-playwright login driver)..."
+  unset CENIT_E2E_AUTH_STATE_FILE
+  for preflight_attempt in 1 2 3; do
+    preflight_stamp="${stamp}-login-$preflight_attempt"
+    preflight_state_file="$CENIT_E2E_OUTPUT_DIR/cenit-ui-auth-state-${preflight_stamp}.json"
+    if CENIT_E2E_TIMESTAMP="$preflight_stamp" node "$ROOT_DIR/scripts/e2e/cenit_ui_login_playwright.mjs" >/dev/null; then
+      if [[ -f "$preflight_state_file" ]]; then
+        export CENIT_E2E_AUTH_STATE_FILE="$preflight_state_file"
+      fi
+      break
+    fi
+    if [[ "$preflight_attempt" -eq 3 ]]; then
+      echo "Auth preflight failed after 3 attempts." >&2
+      exit 1
+    fi
+    sleep 2
+  done
 
   echo "Executing Contact data type + record E2E flow (node-playwright driver)..."
   node "$ROOT_DIR/scripts/e2e/cenit_ui_contact_flow_playwright.mjs"
@@ -312,3 +362,5 @@ case "$driver" in
     exit 1
     ;;
 esac
+
+"$ROOT_DIR/scripts/e2e/verify_db_state.sh"
