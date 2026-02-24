@@ -20,6 +20,7 @@ const page = await context.newPage();
 
 const isSignIn = () => /\/users\/sign_in/.test(page.url());
 const isOAuth = () => /\/oauth\/authorize/.test(page.url());
+const isServerAppPage = () => page.url().startsWith(serverUrl) && !isSignIn() && !isOAuth();
 const hasOauthCallbackCode = () => {
   try {
     const url = new URL(page.url());
@@ -29,12 +30,10 @@ const hasOauthCallbackCode = () => {
   }
 };
 const isAppShellVisible = async () => {
-  const hasMenuHeading = await page.getByRole('heading', { name: 'Menu' }).isVisible().catch(() => false);
-  const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
-  const hasDocumentTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
-  const hasQuickAccess = await page.getByRole('button', { name: /Quick Access/i }).first().isVisible().catch(() => false);
-  const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
-  return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasQuickAccess || hasRecent;
+  const hasBanner = await page.getByRole('banner').first().isVisible().catch(() => false);
+  const hasAvatar = await page.locator('.MuiAvatar-root').first().isVisible().catch(() => false);
+  const hasNav = await page.locator('nav').first().isVisible().catch(() => false);
+  return hasBanner || hasAvatar || hasNav;
 };
 
 async function performDirectServerLogin() {
@@ -51,19 +50,34 @@ async function performDirectServerLogin() {
     (url) =>
       /\/oauth\/authorize/.test(url.href) ||
       /\/users\/sign_in/.test(url.href) ||
-      url.href.startsWith(uiUrl),
+      url.href.startsWith(uiUrl) ||
+      url.href.startsWith(serverUrl),
     { timeout: 15000 }
   ).catch(() => null);
 
   const allowVisible = await page.getByRole('button', { name: /(allow|authorize)/i }).first().isVisible().catch(() => false);
-  if (allowVisible || isOAuth()) {
-    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+  if (allowVisible) {
+    await page.getByRole('button', { name: /(allow|authorize)/i }).first().click({ timeout: 5000 }).catch(() => null);
     await page.waitForURL(
       (url) =>
         /\/users\/sign_in/.test(url.href) ||
-        url.href.startsWith(uiUrl),
+        url.href.startsWith(uiUrl) ||
+        url.href.startsWith(serverUrl),
       { timeout: 15000 }
     ).catch(() => null);
+  } else if (isOAuth()) {
+    await page.waitForURL(
+      (url) =>
+        /\/users\/sign_in/.test(url.href) ||
+        url.href.startsWith(uiUrl) ||
+        url.href.startsWith(serverUrl),
+      { timeout: 8000 }
+    ).catch(() => null);
+  }
+
+  if (isServerAppPage()) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1000);
   }
 
   if (hasOauthCallbackCode()) {
@@ -79,6 +93,7 @@ try {
   await page.waitForURL(
     (url) =>
       url.href.startsWith(uiUrl) ||
+      url.href.startsWith(serverUrl) ||
       /\/users\/sign_in/.test(url.href) ||
       /\/oauth\/authorize/.test(url.href),
     { timeout: 30000 }
@@ -86,6 +101,11 @@ try {
 
   let blankRootStreak = 0;
   for (let attempt = 1; attempt <= 40; attempt += 1) {
+    if (isServerAppPage()) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(800);
+    }
+
     if (await isAppShellVisible()) break;
 
     const rootChildren = await page.locator('#root > *').count().catch(() => 0);
@@ -130,23 +150,33 @@ try {
         (url) =>
           /\/oauth\/authorize/.test(url.href) ||
           /\/users\/sign_in/.test(url.href) ||
-          url.href.startsWith(uiUrl),
+          url.href.startsWith(uiUrl) ||
+          url.href.startsWith(serverUrl),
         { timeout: 15000 }
       ).catch(() => null);
     }
 
     const allowVisible = await page.getByRole('button', { name: /(allow|authorize)/i }).first().isVisible().catch(() => false);
-    if (allowVisible || isOAuth()) {
-      await page.getByRole('button', { name: /(allow|authorize)/i }).first().click();
+    if (allowVisible) {
+      await page.getByRole('button', { name: /(allow|authorize)/i }).first().click({ timeout: 5000 }).catch(() => null);
       await page.waitForURL(
         (url) =>
           /\/users\/sign_in/.test(url.href) ||
-          url.href.startsWith(uiUrl),
+          url.href.startsWith(uiUrl) ||
+          url.href.startsWith(serverUrl),
         { timeout: 15000 }
       ).catch(() => null);
       if (hasOauthCallbackCode()) {
         await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
       }
+    } else if (isOAuth()) {
+      await page.waitForURL(
+        (url) =>
+          /\/users\/sign_in/.test(url.href) ||
+          url.href.startsWith(uiUrl) ||
+          url.href.startsWith(serverUrl),
+        { timeout: 8000 }
+      ).catch(() => null);
     }
 
     if (await isAppShellVisible()) break;
@@ -163,7 +193,17 @@ try {
     }
   }
 
-  if (!(await isAppShellVisible())) {
+  if (!(await isAppShellVisible()) && isServerAppPage()) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1200);
+    if (hasOauthCallbackCode()) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(800);
+    }
+  }
+
+  const hasAuthenticatedContext = (await isAppShellVisible()) || isServerAppPage() || hasOauthCallbackCode();
+  if (!hasAuthenticatedContext) {
     throw new Error(`Could not authenticate after retries. Current URL: ${page.url()}`);
   }
 

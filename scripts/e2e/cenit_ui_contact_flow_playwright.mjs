@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { verifyRecordDeletion, verifyDataType } from './db_verification.mjs';
 
 const uiUrl = process.env.CENIT_UI_URL || 'http://localhost:3002';
 const serverUrl = process.env.CENIT_SERVER_URL || 'http://localhost:3000';
@@ -949,6 +950,29 @@ try {
   ];
   fs.writeFileSync(reportFile, `${lines.join('\n')}\n`, 'utf8');
   for (const line of lines) console.log(line);
+
+  // MongoDB Verifications
+  console.log('\n--- MongoDB Verification ---');
+  const dtInfo = verifyDataType(namespaceName, dataTypeName);
+  if (cleanupEnabled) {
+    if (dtInfo.found) console.error(`DB_FAILURE: Data Type ${namespaceName}|${dataTypeName} still exists after cleanup!`);
+    else console.log('DB_SUCCESS: Data Type cleaned up.');
+
+    const recInfo = verifyRecordDeletion(recordName);
+    if (recInfo.found) console.error(`DB_FAILURE: Record ${recordName} still exists in collection ${recInfo.collection} after cleanup!`);
+    else console.log('DB_SUCCESS: Record cleaned up.');
+  } else {
+    if (!dtInfo.found) console.error(`DB_FAILURE: Data Type ${namespaceName}|${dataTypeName} not found but cleanup is DISABLED!`);
+    else {
+      console.log(`DB_SUCCESS: Data Type exists in ${dtInfo.collection}.`);
+      if (dtInfo.valid) console.log('DB_SUCCESS: Data Type schema is valid.');
+      else console.error('DB_FAILURE: Data Type has NO schema!');
+    }
+
+    const recInfo = verifyRecordDeletion(recordName);
+    if (!recInfo.found) console.error(`DB_FAILURE: Record ${recordName} not found but cleanup is DISABLED!`);
+    else console.log(`DB_SUCCESS: Record found in ${recInfo.collection}.`);
+  }
 } catch (error) {
   failed = true;
   fs.mkdirSync(outputDir, { recursive: true });
