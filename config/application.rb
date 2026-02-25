@@ -1,4 +1,10 @@
 require File.expand_path('../boot', __FILE__)
+require 'logger'
+require 'RMagick'
+
+module Captcha
+  Magick = ::Magick if defined?(::Magick) && !const_defined?(:Magick)
+end
 
 # require 'rails/all'
 require "action_controller/railtie"
