@@ -1,8 +1,11 @@
+require_dependency Rails.root.join('app', 'controllers', 'Oauth2AccountAuthorization.rb').to_s
+require_dependency Rails.root.join('app', 'controllers', 'CorsCheck.rb').to_s
+
 module Api::V3
   class ApiController < ApplicationController
 
-    include OAuth2AccountAuthorization
-    include CorsCheck
+    include ::Oauth2AccountAuthorization
+    include ::CorsCheck
 
     before_action :allow_origin_header
     before_action :authorize_account, except: [:new_user, :cors_check]
@@ -110,7 +113,7 @@ module Api::V3
       else
         parser = Parser.new(klass.data_type)
         parser_options[:create_callback] = -> model {
-          fail Abort unless authorize_action(action: :create, klass: model)
+          fail Abort unless authorize_action(action: :create, klass: model.class)
         }
         parser_options[:update_callback] = -> record {
           fail Abort unless authorize_action(action: :update, item: record)
@@ -1148,7 +1151,16 @@ module Setup
         end
         execution.reload
         {
-          json: execution.to_hash(include_id: true, include_blanks: false)
+          json: {
+            id: execution.id.to_s,
+            _id: execution.id.to_s,
+            status: execution.status.to_s,
+            task_id: execution.task_id&.to_s,
+            started_at: execution.started_at,
+            completed_at: execution.completed_at,
+            created_at: execution.created_at,
+            updated_at: execution.updated_at
+          }.compact
         }
       rescue
         {

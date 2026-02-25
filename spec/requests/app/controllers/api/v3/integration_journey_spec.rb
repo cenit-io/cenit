@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'ostruct'
 
 RSpec.describe Api::V3::ApiController,
                type: :request,
@@ -7,7 +8,7 @@ RSpec.describe Api::V3::ApiController,
   let(:scope) { 'create read update delete digest' }
   let(:headers) { v3_auth_headers(scope: scope) }
   let(:suffix) { "#{Time.now.to_i}_#{SecureRandom.hex(3)}" }
-  let(:strict_mode) { ENV['API_JOURNEY_STRICT'].to_s == '1' }
+  let(:strict_mode) { ENV.fetch('API_JOURNEY_STRICT', '1').to_s == '1' }
 
   let(:namespace_name) { "e2e_api_journey_#{suffix}" }
   let(:namespace_slug) { namespace_name.downcase }
@@ -60,10 +61,37 @@ RSpec.describe Api::V3::ApiController,
     body
   end
 
-  def wait_for_flow_execution(flow_id, timeout: 30)
+  def wait_for_flow_execution(flow_id, headers:, execution_id: nil, timeout: 30)
+    flow_oid =
+      begin
+        BSON::ObjectId.from_string(flow_id.to_s)
+      rescue StandardError
+        nil
+      end
     started = Time.now
     loop do
-      execution = ::Setup::Execution.where(agent_id: flow_id).desc(:_id).first
+      execution = nil
+      if execution_id.present?
+        get_json("/api/v3/setup/execution/#{execution_id}", headers: headers)
+        if response.status == 200
+          execution = OpenStruct.new(id: execution_id, status: json_response['status'])
+        end
+      end
+      execution ||=
+        if flow_oid
+          ::Setup::Execution.where(agent_id: flow_oid).desc(:_id).first
+        else
+          ::Setup::Execution.where(agent_id: flow_id).desc(:_id).first
+        end
+      unless execution
+        task =
+          if flow_oid
+            ::Setup::FlowExecution.where(flow_id: flow_oid).desc(:_id).first
+          else
+            ::Setup::FlowExecution.where(flow_id: flow_id).desc(:_id).first
+          end
+        execution = task&.current_execution || task&.executions&.desc(:_id)&.first
+      end
       return execution if execution.present?
       break if Time.now - started > timeout
 
@@ -137,11 +165,18 @@ RSpec.describe Api::V3::ApiController,
     )
     created_ids[:flow] = flow.id.to_s
 
+    create_record_headers = v3_digest_headers(
+      template_options: { viewport: {}, include_id: true },
+      headers: headers
+    )
+
     post_json(
       "/api/v3/#{namespace_slug}/#{created_ids[:model_slug]}",
       params: { name: record_name, email: "lead-#{suffix}@cenit.io" },
-      headers: headers
+      headers: create_record_headers
     )
+    create_record_status = response.status
+    create_record_body = response.body.to_s
     expect_status_in(:ok, :created, :accepted)
     created_ids[:record] = resolve_id_from_hash(json_response)
     created_ids[:record] ||= wait_for_record_id(
@@ -151,7 +186,7 @@ RSpec.describe Api::V3::ApiController,
     )
     unless created_ids[:record]
       if strict_mode
-        raise "API_JOURNEY_STRICT=1: record id was not materialized by API POST/list for #{namespace_slug}/#{created_ids[:model_slug]}"
+        raise "API_JOURNEY_STRICT=1: record id was not materialized by API POST/list for #{namespace_slug}/#{created_ids[:model_slug]}; create_status=#{create_record_status}; create_body=#{create_record_body}"
       end
       # Known backend test limitation: dynamic model POST can return accepted without
       # exposing a stable id shape immediately for custom data type records.
@@ -182,30 +217,23 @@ RSpec.describe Api::V3::ApiController,
       "/api/v3/setup/flow/#{created_ids[:flow]}/digest",
       params: {
         data_type_id: created_ids[:data_type],
-        selector: { _id: { '$in' => [created_ids[:record]] } }
+        source_id: created_ids[:record]
       },
       headers: headers
     )
+    flow_digest_status = response.status
+    flow_digest_body = response.body.to_s
+    flow_digest_execution_id = resolve_id_from_hash(json_response)
     expect_status_in(:ok, :accepted, :created)
 
-    execution = wait_for_flow_execution(created_ids[:flow], timeout: 30)
-    unless execution
-      if strict_mode
-        raise "API_JOURNEY_STRICT=1: flow digest did not produce execution evidence for flow #{created_ids[:flow]}"
+    execution =
+      if flow_digest_execution_id.present? && json_response['status'].present?
+        OpenStruct.new(id: flow_digest_execution_id, status: json_response['status'])
+      else
+        wait_for_flow_execution(created_ids[:flow], headers: headers, execution_id: flow_digest_execution_id, timeout: 30)
       end
-      # Known backend test limitation: digest trigger may be accepted but async
-      # execution evidence can be absent in isolated test runtime timing windows.
-      fallback_notes << 'flow_execution_fallback_used'
-      task = Setup::FlowExecution.create!(
-        flow: flow,
-        message: {
-          flow_id: created_ids[:flow],
-          data_type_id: created_ids[:data_type],
-          selector: { _id: { '$in' => [created_ids[:record]] } }
-        }
-      )
-      task.execute
-      execution = task.current_execution || task.executions.desc(:_id).first
+    unless execution
+      raise "API_JOURNEY_STRICT=1: flow digest did not produce execution evidence for flow #{created_ids[:flow]} (status=#{flow_digest_status}, execution_id=#{flow_digest_execution_id.inspect}, body=#{flow_digest_body})"
     end
     expect(execution).to be_present
     expect(execution.status).to be_present

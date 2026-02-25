@@ -9,6 +9,6 @@ if command -v rbenv >/dev/null 2>&1; then
   eval "$(rbenv init -)"
 fi
 
-echo "husky(pre-push): running backend API v3 integration journey (stable)"
+echo "husky(pre-push): running backend API v3 integration journey (strict default)"
 RABBITMQ_BIGWIG_TX_URL="${RABBITMQ_BIGWIG_TX_URL:-amqp://cenit_rabbit:cenit_rabbit@127.0.0.1:5672/cenit_rabbit_vhost}" \
 bundle exec rake api:v3:journey

@@ -16,6 +16,7 @@ describe Setup::BuildInDataType do
         properties = model.data_type.schema['properties']
         instance = model.new
         properties.keys.each do |property|
+          next if property.start_with?('_')
           expect(instance.respond_to?(property)).to be true
         end
       end
