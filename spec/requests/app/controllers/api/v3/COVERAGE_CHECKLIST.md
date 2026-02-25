@@ -1,8 +1,8 @@
 # API v3 Spec-to-Test Coverage Checklist
 
 Source docs:
-- API spec: `/Users/sanchojaf/Documents/cenit-io/api-v2-specs/spec/v3/openapi.yaml`
-- Route checklist: `/Users/sanchojaf/Documents/cenit-io/api-v2-specs/spec/V3_ROUTE_GAP_CHECKLIST.md`
+- API spec: `/Users/sanchojaf/Documents/cenit-io/api-specs/spec/v3/openapi.yaml`
+- Route checklist: `/Users/sanchojaf/Documents/cenit-io/api-specs/spec/V3_ROUTE_GAP_CHECKLIST.md`
 
 ## Route Matrix
 

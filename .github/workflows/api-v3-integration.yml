@@ -1,0 +1,50 @@
+name: API v3 Integration (Optional)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "app/controllers/api/v3/**"
+      - "spec/requests/app/controllers/api/v3/**"
+      - "spec/support/api/**"
+      - ".github/workflows/api-v3-integration.yml"
+
+jobs:
+  api_v3_integration:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.2
+          bundler-cache: true
+
+      - name: Run API v3 integration request specs
+        env:
+          RAILS_ENV: test
+        run: |
+          bundle exec rspec spec/requests/app/controllers/api/v3 --tag api_v3_integration
