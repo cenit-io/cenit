@@ -1,3 +1,9 @@
+require 'RMagick'
+module Captcha
+  Magick = ::Magick if defined?(::Magick) && !const_defined?(:Magick)
+end
+require 'captcha'
+
 class CaptchaController < ApplicationController
 
   def index

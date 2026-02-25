@@ -42,6 +42,9 @@ module Devise
 end
 
 RSpec.configure do |config|
+  # This app is Mongoid-backed; disable AR fixture wiring in rspec-rails.
+  config.use_active_record = false
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end

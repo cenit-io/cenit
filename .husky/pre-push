@@ -4,5 +4,11 @@ set -eu
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
 
+# Ensure hooks use the repo Ruby toolchain when invoked from non-login shells.
+if command -v rbenv >/dev/null 2>&1; then
+  eval "$(rbenv init -)"
+fi
+
 echo "husky(pre-push): running backend API v3 integration journey (stable)"
+RABBITMQ_BIGWIG_TX_URL="${RABBITMQ_BIGWIG_TX_URL:-amqp://cenit_rabbit:cenit_rabbit@127.0.0.1:5672/cenit_rabbit_vhost}" \
 bundle exec rake api:v3:journey

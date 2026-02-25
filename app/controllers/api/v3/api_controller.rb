@@ -597,7 +597,7 @@ module Api::V3
     def save_request_data
       @data_types ||= {}
       @request_id = request.uuid
-      @request_data = request.body.read
+      @request_data = request.body&.read.to_s
       setup_request
     end
 
