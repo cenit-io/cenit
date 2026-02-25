@@ -21,7 +21,13 @@ module Mongoid
     def save(options = {})
       instance_variable_set(:@discard_event_lookup, true) if options && options[:discard_events]
       super
-    rescue Exception => ex
+    rescue StandardError => ex
+      if Thread.current[:_cenit_reporting_exception]
+        errors.add(:base, ex.message)
+        return false
+      end
+
+      Thread.current[:_cenit_reporting_exception] = true
       report = Setup::SystemReport.create_from(ex)
       if report
         errors.add(:base, report.message)
@@ -31,6 +37,8 @@ module Mongoid
         errors.add(:base, ex.message)
       end
       false
+    ensure
+      Thread.current[:_cenit_reporting_exception] = false
     end
 
     def abort_if_has_errors

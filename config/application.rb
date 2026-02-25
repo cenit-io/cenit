@@ -3,7 +3,7 @@ require 'logger'
 require 'RMagick'
 
 module Captcha
-  Magick = ::Magick if defined?(::Magick) && !const_defined?(:Magick)
+  Magick = ::Magick if defined?(::Magick) && !const_defined?(:Magick, false)
 end
 
 # require 'rails/all'
@@ -73,7 +73,7 @@ module Cenit
 
       ::Setup::Configuration.check!
 
-      eager_load!
+      eager_load! unless Rails.env.test?
 
       setup_build_in_apps_types
 
