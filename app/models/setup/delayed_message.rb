@@ -162,7 +162,7 @@ module Setup
           else
             {}
           end
-        Cenit::Redis.zrangebyscore(SET_KEY, 0, now.to_i, opts).each do |key|
+        Cenit::Redis.zrangebyscore(SET_KEY, 0, now.to_i, **opts).each do |key|
           delayed_message = get(key)
           delayed_message && block.call(delayed_message)
         end

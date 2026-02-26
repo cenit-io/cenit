@@ -18,19 +18,6 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 #
 
-# Removing the ActiveRecord constant, because it is autloaded by
-# ActiveStorage. The presence of the ActiveRecord constant causes
-# rspec-rails to include extra fixture support, which results in:
-#
-#   ActiveRecord::ConnectionNotEstablished:
-#     No connection pool with 'primary' found.
-#
-begin
-  Object.send(:remove_const, :ActiveRecord)
-rescue
-  # That's Ok!
-end
-
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -115,5 +102,3 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
-require 'api_v3_helper'
-require 'rails_helper'

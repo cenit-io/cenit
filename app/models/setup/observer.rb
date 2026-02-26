@@ -52,7 +52,9 @@ module Setup
 
     class << self
       def lookup(obj_now, obj_before = nil)
-        where(data_type: obj_now.orm_model.data_type).each do |e|
+        data_type = obj_now.orm_model.data_type
+        data_type_id = data_type.respond_to?(:id) ? data_type.id : data_type
+        where(data_type_id: data_type_id).each do |e|
           # Check triggers
           next unless e.triggers_apply_to?(obj_now, obj_before)
           # Start flows

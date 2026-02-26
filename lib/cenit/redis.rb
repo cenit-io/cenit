@@ -33,9 +33,9 @@ module Cenit
         yield client if client && block_given?
       end
 
-      def method_missing(symbol, *args, &block)
+      def method_missing(symbol, *args, **kwargs, &block)
         if client&.respond_to?(symbol)
-          client.send(symbol, *args, &block)
+          client.send(symbol, *args, **kwargs, &block)
         else
           super
         end

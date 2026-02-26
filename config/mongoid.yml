@@ -67,7 +67,7 @@ test:
     default:
       database: <%= ENV.fetch('DB_TEST', 'cenit_test') %>
       hosts:
-        - localhost:27017
+        - <%= ENV.fetch('DB_TEST_HOST', ENV.fetch('DB_PORT', 'localhost:27017')) %>
       options:
         #consistency: :strong
         # In the test environment we lower the retries and retry interval to

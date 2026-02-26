@@ -1,6 +1,9 @@
 require 'rails_helper'
 
-describe Api::V3::ApiController, type: :request do
+describe Api::V3::ApiController,
+         type: :request,
+         api_v3_integration: true,
+         api_v3_requests: true do
 
   describe "POST /api/v3/setup/user" do
 

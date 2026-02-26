@@ -10,6 +10,31 @@ require 'ffaker'
 require 'factory_girl_rails'
 require 'database_cleaner'
 
+if defined?(ActiveRecord::TestFixtures)
+  module NoActiveRecordFixtures
+    def setup_fixtures(*args)
+      return unless active_record_pool_available?
+      super
+    end
+
+    def teardown_fixtures(*args)
+      return unless active_record_pool_available?
+      super
+    end
+
+    private
+
+    def active_record_pool_available?
+      ActiveRecord::Base.connection_pool
+      true
+    rescue ActiveRecord::ConnectionNotEstablished
+      false
+    end
+  end
+
+  ActiveRecord::TestFixtures.prepend(NoActiveRecordFixtures)
+end
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end
@@ -42,6 +67,10 @@ module Devise
 end
 
 RSpec.configure do |config|
+  # This app is Mongoid-backed; disable AR fixture wiring in rspec-rails.
+  config.use_active_record = false
+  config.use_transactional_fixtures = false
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
@@ -52,6 +81,7 @@ RSpec.configure do |config|
   config.include Warden::Test::Helpers
 
   config.include Api::V3::Test
+  config.include Api::V3::RequestHelper, type: :request
 
   # RSpec Rails can automatically mix in different behaviours to your tests
   # based on their file location, for example enabling you to call `get` and
@@ -72,17 +102,42 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+
+  ensure_test_tenant_context = lambda do
+    test_user = ::User.current || ::User.all.first
+    unless test_user
+      test_user = ::User.create!(
+        email: ENV.fetch('DEFAULT_USER_EMAIL', 'support@cenit.io'),
+        password: ENV.fetch('DEFAULT_USER_PASSWORD', 'password')
+      )
+    end
+    ::User.current = test_user
+
+    account =
+      test_user.account ||
+      test_user.accounts.first ||
+      ::Account.where(owner_id: test_user.id).first ||
+      ::Account.current
+
+    unless account
+      account = ::Account.new_for_create(owner: test_user, owner_id: test_user.id, name: test_user.email)
+      account.save!
+    end
+
+    if test_user.account_id != account.id
+      test_user.set(account: account, api_account: (test_user.api_account || account))
+      test_user.save!
+    end
+
+    account.switch
+  end
+
   config.before(:suite) do
     # DatabaseCleaner.strategy = :truncation
-    test_user = ::User.all.first
-    ::User.current = test_user
-    test_user.accounts.first.switch
+    ensure_test_tenant_context.call
   end
   config.before(:each) do
-    unless ::User.current
-      ::User.current = ::User.all.first
-    end
-    ::User.current.accounts.first.switch
+    ensure_test_tenant_context.call
     #DatabaseCleaner.start
     #Mongoid.default_client.collections.select { |c| c.name !~ /system/ }.each(&:drop)
     # Mongoid.master.collections.select {|c| c.name !~ /system/ }.each(&:drop)

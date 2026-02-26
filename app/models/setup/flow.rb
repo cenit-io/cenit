@@ -256,7 +256,7 @@ module Setup
         message[:connection_id] = connection.capataz_slave.id.to_s # TODO Remove capataz_slave when fixing capataz rewriter for Hash call arguments
       end
       result = Setup::FlowExecution.process(message, &block)
-      save
+      save if changed?
       result
     end
 
