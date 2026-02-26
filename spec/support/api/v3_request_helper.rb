@@ -10,8 +10,12 @@ module Api
       def oauth_bearer_token(scope: DEFAULT_SCOPE)
         @oauth_bearer_tokens ||= {}
         @oauth_bearer_tokens[scope] ||= begin
-          user = ::User.current || ::User.all.first
+          super_admin_role = ::Role.find_or_create_by(name: :super_admin).name
+          user = ::User.with_role(super_admin_role).first || ::User.current || ::User.all.first
           ::User.current = user if user
+          if user && user.respond_to?(:super_admin_enabled) && !user.super_admin_enabled
+            user.update!(super_admin_enabled: true)
+          end
           app = ::Setup::Application.create!(
             namespace: 'Spec',
             name: "ApiV3Spec#{SecureRandom.hex(6)}"

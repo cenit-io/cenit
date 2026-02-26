@@ -18,7 +18,13 @@ module Setup
       namespace = namespace.join('::')
       Setup::CenitDataType.where(namespace: namespace, name: name).first ||
         (create && begin
-          Setup::CenitDataType.create!(namespace: namespace, name: name, origin: default_origin)
+          data_type = Setup::CenitDataType.find_or_initialize_by(namespace: namespace, name: name)
+          data_type.origin ||= default_origin
+          data_type.save! if data_type.new_record? || data_type.changed?
+          data_type
+        rescue Mongoid::Errors::Validations
+          # Another concurrent init path may have inserted the same build-in data type.
+          Setup::CenitDataType.where(namespace: namespace, name: name).first || raise
         rescue
           puts "Error persisting build-in data for #{model}"
           raise $!
