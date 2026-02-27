@@ -501,7 +501,14 @@ module Api::V3
           unless options[:skip_response]
             error_description = 'The requested action is out of the access token scope'
             response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
-            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
+            target_model = options[:klass] || klass
+            render json: {
+              error: 'insufficient_scope',
+              error_description: error_description,
+              access_scope: @oauth_scope&.to_s,
+              requested_action: action_symbol,
+              requested_model: target_model&.to_s
+            }, status: :forbidden
           end
         end
       else
@@ -512,7 +519,12 @@ module Api::V3
           else
             error_description = 'The requested action is out of the access token scope'
             response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
-            render json: { error: 'insufficient_scope', error_description: error_description }, status: :forbidden
+            render json: {
+              error: 'insufficient_scope',
+              error_description: error_description,
+              access_scope: @oauth_scope&.to_s,
+              requested_action: action_symbol
+            }, status: :forbidden
           end
         end
       end
