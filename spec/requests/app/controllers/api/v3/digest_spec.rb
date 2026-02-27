@@ -84,4 +84,45 @@ RSpec.describe Api::V3::ApiController,
       expect_status_in(:ok, :accepted, :not_acceptable, :unprocessable_entity, :no_content)
     end
   end
+
+  describe 'built-in digest create contract' do
+    def setup_data_type_id!(name)
+      model = "Setup::#{name}".constantize
+      data_type = model.build_in_data_type
+      expect(data_type).to be_present
+      data_type.id.to_s
+    end
+
+    it 'returns explicit status for Setup::Snippet digest POST' do
+      snippet_type_id = setup_data_type_id!('Snippet')
+
+      post_json(
+        "/api/v3/setup/data_type/#{snippet_type_id}/digest",
+        params: {
+          namespace: "E2E_API_#{SecureRandom.hex(3)}",
+          name: "Snippet#{SecureRandom.hex(3)}",
+          code: '{ "ok": true }'
+        },
+        headers: headers
+      )
+
+      expect(response.status).to eq(404)
+    end
+
+    it 'returns explicit status for Setup::LiquidTemplate digest POST' do
+      template_type_id = setup_data_type_id!('LiquidTemplate')
+
+      post_json(
+        "/api/v3/setup/data_type/#{template_type_id}/digest",
+        params: {
+          namespace: "E2E_API_#{SecureRandom.hex(3)}",
+          name: "Template#{SecureRandom.hex(3)}",
+          code: '{ "lead_name": "{{ name }}" }'
+        },
+        headers: headers
+      )
+
+      expect(response.status).to eq(404)
+    end
+  end
 end
