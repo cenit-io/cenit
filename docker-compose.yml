@@ -1,13 +1,10 @@
 volumes:
   mongodb-data-7: {}
   redis-data: {}
-  ui-node-modules: {}
 
 services:
   ui:
-    build:
-      context: ${CENIT_UI_CONTEXT:-./../ui}
-      dockerfile: Dockerfile
+    image: ${CENIT_UI_IMAGE:-ghcr.io/cenit-io/ui:latest}
     ports:
       - "${UI_PORT:-3002}:80"
     environment:
@@ -17,26 +14,8 @@ services:
       - REACT_APP_LOCALHOST=http://localhost:${UI_PORT:-3002}
       - REACT_APP_CENIT_HOST=http://localhost:${SERVER_PORT:-3000}
 
-  ui_dev:
-    image: node:20-alpine
-    profiles: ["dev"]
-    working_dir: /workspace/ui
-    command: sh -c "npm ci --legacy-peer-deps && npm start"
-    ports:
-      - "${UI_PORT:-3002}:3002"
-    volumes:
-      - ${CENIT_UI_CONTEXT:-./../ui}:/workspace/ui
-      - ui-node-modules:/workspace/ui/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_APP_ID=admin
-      - REACT_APP_LOCALHOST=http://localhost:${UI_PORT:-3002}
-      - REACT_APP_CENIT_HOST=http://localhost:${SERVER_PORT:-3000}
-    depends_on:
-      - server
-
   server:
-    build: .
+    image: ${CENIT_SERVER_IMAGE:-ghcr.io/cenit-io/cenit:latest}
     ports:
       - "${SERVER_PORT:-3000}:8080"
     environment:
@@ -53,7 +32,7 @@ services:
       - redis
 
   rabbitmq:
-    image: rabbitmq:management
+    image: rabbitmq:3.13-management
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -73,7 +52,7 @@ services:
       - mongodb-data-7:/data/db
 
   redis:
-    image: redis:5
+    image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:

@@ -91,9 +91,14 @@ export CENIT_UI_CONTEXT=/absolute/path/to/ui
 
 ```bash
 cd /path/to/cenit
-docker compose up -d
-docker compose ps
+scripts/compose-dev.sh up -d
+scripts/compose-dev.sh ps
 ```
+
+This uses:
+
+- `docker-compose.yml` as shared base
+- `docker-compose.dev.yml` as development overrides (`build` + local branch code)
 
 ### 2.1) Fast UI development mode (live reload from sibling `../ui`)
 
@@ -101,14 +106,33 @@ Use this when iterating on UI code to avoid rebuilding the nginx UI image:
 
 ```bash
 cd /path/to/cenit
-docker compose --profile dev up -d mongo_server redis rabbitmq server ui_dev
-docker compose --profile dev ps
+scripts/compose-dev.sh --profile dev up -d mongo_server redis rabbitmq server ui_dev
+scripts/compose-dev.sh --profile dev ps
 ```
 
 Notes:
 
 - `ui_dev` serves Vite on `http://localhost:3002` with source mounted from `${CENIT_UI_CONTEXT:-../ui}`.
 - Keep `ui` (nginx image service) for production-like checks and CI parity.
+
+### 2.2) Image-only (prod-like) mode
+
+```bash
+cd /path/to/cenit
+scripts/compose-prod.sh up -d
+scripts/compose-prod.sh ps
+```
+
+This uses:
+
+- `docker-compose.yml` + `docker-compose.prod.yml`
+- published images from GHCR (`pull_policy` defaults to `missing`)
+
+For strict refresh from registry each run:
+
+```bash
+CENIT_PULL_POLICY=always scripts/compose-prod.sh up -d
+```
 
 ### 3) Verify services
 
@@ -132,16 +156,16 @@ RabbitMQ default credentials:
 
 ```bash
 # Follow backend logs
-docker compose logs -f server
+scripts/compose-dev.sh logs -f server
 
 # Restart backend only
-docker compose restart server
+scripts/compose-dev.sh restart server
 
 # Stop all services
-docker compose down
+scripts/compose-dev.sh down
 
 # Full reset (containers + volumes)
-docker compose down -v --remove-orphans
+scripts/compose-dev.sh down -v --remove-orphans
 ```
 
 ## Configuration
@@ -151,6 +175,14 @@ Important environment knobs used by local scripts:
 - `CENIT_SERVER_URL` (default `http://localhost:3000`)
 - `CENIT_UI_URL` (default `http://localhost:3002`)
 - `CENIT_UI_CONTEXT` (path to UI repository for Docker build)
+- `CENIT_SERVER_IMAGE` (prod-like server image tag, default `ghcr.io/cenit-io/cenit:latest`)
+- `CENIT_UI_IMAGE` (prod-like UI image tag, default `ghcr.io/cenit-io/ui:latest`)
+- `CENIT_PULL_POLICY` (prod-like pull policy, default `missing`; use `always` for strict pulls)
+- `CENIT_COMPOSE_FILES` (default: `docker-compose.yml:docker-compose.dev.yml`)
+- `CENIT_COMPOSE_FILE` (legacy single-file override, still supported)
+- `CENIT_BASE_COMPOSE_FILE` (helper override for base file)
+- `CENIT_DEV_COMPOSE_FILE` (helper override for dev file)
+- `CENIT_PROD_COMPOSE_FILE` (helper override for prod-like file)
 - `CENIT_E2E_AUTOSTART` (`1` to auto-start stack in E2E scripts)
 - `CENIT_E2E_RESET_STACK` (`1` to reset containers/volumes before E2E)
 - `CENIT_E2E_BUILD_STACK` (`1` to rebuild images before E2E, default `0`)
@@ -248,15 +280,15 @@ HUSKY=0 git push
 ### Backend does not become reachable on `:3000`
 
 ```bash
-docker compose ps -a
-docker compose logs --no-color --tail=200 server
+scripts/compose-dev.sh ps -a
+scripts/compose-dev.sh logs --no-color --tail=200 server
 ```
 
 If needed, run a full reset and rebuild:
 
 ```bash
-docker compose down -v --remove-orphans
-docker compose up -d --build
+scripts/compose-dev.sh down -v --remove-orphans
+scripts/compose-dev.sh up -d --build
 ```
 
 ### E2E instability after many local runs
