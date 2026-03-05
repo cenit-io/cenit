@@ -55,6 +55,7 @@ services:
   rabbitmq:
     image: rabbitmq:management
     ports:
+      - "5672:5672"
       - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_PASS=cenit_rabbit
@@ -66,11 +67,15 @@ services:
   mongo_server:
     image: mongo:7.0
     restart: always
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb-data-7:/data/db
 
   redis:
     image: redis:5
+    ports:
+      - "6379:6379"
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]

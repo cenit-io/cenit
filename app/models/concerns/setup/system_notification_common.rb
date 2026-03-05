@@ -29,7 +29,8 @@ module Setup
         if notification.save
           notification
         else
-          unless notification.save_skipped?
+          save_skipped = notification.respond_to?(:save_skipped?) && notification.save_skipped?
+          unless save_skipped
             puts "Error creating notification: #{notification.errors.full_messages.to_sentence}"
           end
           nil

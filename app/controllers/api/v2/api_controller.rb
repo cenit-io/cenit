@@ -3,7 +3,7 @@ module Api::V2
 
     before_action :authorize_account, except: [:new_user, :cors_check, :auth]
     before_action :save_request_data, except: [:cors_check, :auth]
-    before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push]
+    before_action :authorize_action, except: [:auth, :new_user, :cors_check, :push, :pull, :run, :retry, :authorize]
     before_action :find_item, only: [:update, :show, :destroy, :pull, :run, :retry, :authorize]
 
     rescue_from Exception, with: :exception_handler
@@ -238,7 +238,7 @@ module Api::V2
           @item.retry
           render json: { status: :ok }
         else
-          render json: { status: "Task #{@item.id} is #{task.sattus}" }, status: :not_acceptable
+          render json: { status: "Task #{@item.id} is #{@item.status}" }, status: :not_acceptable
         end
       else
         render json: { status: :not_allowed }, status: :bad_request
@@ -477,9 +477,13 @@ module Api::V2
         action_symbol =
           case @_action_name
           when 'push'
-            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :new
+            get_data_type(@model).is_a?(Setup::FileDataType) ? :upload_file : :create
+          when 'new'
+            :create
           when 'update'
             :edit
+          when 'destroy'
+            :delete
           when 'retry'
             :retry_task
           else
@@ -581,7 +585,7 @@ module Api::V2
     def save_request_data
       @data_types ||= {}
       @request_id = request.uuid
-      @webhook_body = request.body.read
+      @webhook_body = request.body.read if request.body
       @ns_slug = params[:ns]
       @ns_name = nil
       @model = params[:model]

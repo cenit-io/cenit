@@ -1076,6 +1076,37 @@ const sanitizeModelTypedFields = (input, replacementModel = 'Setup::JsonDataType
     return visit(input);
 };
 
+const buildSafeDataTypePayload = (payload) => {
+    const next = {};
+    const allowedPassthrough = new Set([
+        '_type',
+        'namespace',
+        'name',
+        'title',
+        'slug',
+        'origin',
+        'schema',
+        'discard_additional_properties',
+        'trace_on_default'
+    ]);
+
+    for (const [key, value] of Object.entries(payload || {})) {
+        if (!allowedPassthrough.has(key)) continue;
+        if ((key === '_type' || key === 'origin') && typeof value !== 'string') continue;
+        if (key === 'schema' && !(typeof value === 'string' || (value && typeof value === 'object'))) continue;
+        next[key] = value;
+    }
+
+    // Defensive defaults: never let model/callback collections through on Step 1 create.
+    next.before_save_callbacks = [];
+    next.after_save_callbacks = [];
+    next.records_methods = [];
+    next.data_type_methods = [];
+    next.snippet = null;
+
+    return next;
+};
+
 const installStep1PayloadSanitizer = async ({ namespace, name }) => {
     const routePattern = '**/api/v3/setup/data_type/*/digest';
     let replacements = 0;
@@ -1108,15 +1139,12 @@ const installStep1PayloadSanitizer = async ({ namespace, name }) => {
         }
 
         const visited = sanitizeModelTypedFields(payload);
-        if (!visited.changed) {
-            await route.continue();
-            return;
-        }
-
-        replacements += 1;
+        const safePayload = buildSafeDataTypePayload(visited.value);
+        const changed = JSON.stringify(safePayload) !== JSON.stringify(payload);
+        if (changed) replacements += 1;
         const nextParsed = (parsed && typeof parsed.data === 'object')
-            ? { ...parsed, data: visited.value }
-            : visited.value;
+            ? { ...parsed, data: safePayload }
+            : safePayload;
         await route.continue({ postData: JSON.stringify(nextParsed) });
     };
 

@@ -1,7 +1,10 @@
+require_dependency Rails.root.join('app', 'controllers', 'Oauth2AccountAuthorization.rb').to_s
+require_dependency Rails.root.join('app', 'controllers', 'CorsCheck.rb').to_s
+
 class FileController < ApplicationController
 
-  include OAuth2AccountAuthorization
-  include CorsCheck
+  include ::Oauth2AccountAuthorization
+  include ::CorsCheck
 
   before_action :allow_origin_header
   before_action :soft_authorize_account, except: [:cors_check, :public]

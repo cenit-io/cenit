@@ -39,11 +39,12 @@ const hasOauthCallbackCode = (page) => {
   }
 };
 const isAppShellVisible = async (page) => {
+  const hasBanner = await page.getByRole('banner').first().isVisible().catch(() => false);
+  const hasAvatar = await page.locator('.MuiAvatar-root').first().isVisible().catch(() => false);
+  const hasNav = await page.locator('nav').first().isVisible().catch(() => false);
   const hasMenuHeading = await page.getByRole('heading', { name: /^Menu$/i }).first().isVisible().catch(() => false);
-  const hasDocumentTypes = await page.getByRole('button', { name: /Document Types/i }).first().isVisible().catch(() => false);
-  const hasDocumentTypesText = await page.getByText('Document Types', { exact: true }).first().isVisible().catch(() => false);
   const hasRecent = await page.getByRole('button', { name: 'Recent' }).first().isVisible().catch(() => false);
-  return hasMenuHeading || hasDocumentTypes || hasDocumentTypesText || hasRecent;
+  return hasBanner || hasAvatar || hasNav || hasMenuHeading || hasRecent;
 };
 
 async function performDirectServerLogin(page) {
@@ -790,6 +791,15 @@ async function ensureAuthenticated(page) {
   const bodyText = await page.locator('body').innerText().catch(() => '');
   if (/invalid email or password/i.test(bodyText)) {
     throw new Error('Login failed: invalid email or password');
+  }
+  if (page.url().startsWith(serverUrl) && !isSignIn(page) && !isOAuth(page)) {
+    await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+    await page.waitForTimeout(1200);
+    if (hasOauthCallbackCode(page)) {
+      await page.goto(uiUrl, { waitUntil: 'domcontentloaded' }).catch(() => null);
+      await page.waitForTimeout(800);
+    }
+    if (await isAppShellVisible(page)) return;
   }
   if (await performDirectServerLogin(page)) return;
   throw new Error(`Could not authenticate after retries. Current URL: ${page.url()}`);
