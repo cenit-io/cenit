@@ -1,0 +1,38 @@
+name: "Checks: Pre-commit (non-e2e)"
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  precommit-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      RAILS_ENV: test
+      DB_TEST_HOST: 127.0.0.1:27017
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run pre-commit checks (excluding e2e)
+        run: bundle exec rspec --tag ~api_journey --tag ~api_login --tag ~api_contact_flow
