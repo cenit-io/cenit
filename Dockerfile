@@ -44,7 +44,9 @@ COPY Gemfile .
 COPY Gemfile.lock .
 
 COPY . .
-RUN bundle update
+RUN bundle config set deployment true \
+  && bundle config set without 'development test' \
+  && bundle install --jobs 4 --retry 3
 RUN chmod +x env.sh
 
 RUN yarn install --check-files
