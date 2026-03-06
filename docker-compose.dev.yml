@@ -1,0 +1,29 @@
+volumes:
+  ui-node-modules: {}
+
+services:
+  ui:
+    build:
+      context: ${CENIT_UI_CONTEXT:-./../ui}
+      dockerfile: Dockerfile
+
+  ui_dev:
+    image: node:20-alpine
+    profiles: ["dev"]
+    working_dir: /workspace/ui
+    command: sh -c "npm ci --legacy-peer-deps && npm start"
+    ports:
+      - "${UI_PORT:-3002}:3002"
+    volumes:
+      - ${CENIT_UI_CONTEXT:-./../ui}:/workspace/ui
+      - ui-node-modules:/workspace/ui/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_APP_ID=admin
+      - REACT_APP_LOCALHOST=http://localhost:${UI_PORT:-3002}
+      - REACT_APP_CENIT_HOST=http://localhost:${SERVER_PORT:-3000}
+    depends_on:
+      - server
+
+  server:
+    build: .

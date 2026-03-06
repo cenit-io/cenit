@@ -2,7 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COMPOSE_FILE="${CENIT_COMPOSE_FILE:-$ROOT_DIR/docker-compose.yml}"
+DEFAULT_COMPOSE_FILES="$ROOT_DIR/docker-compose.yml:$ROOT_DIR/docker-compose.dev.yml"
+COMPOSE_FILES="${CENIT_COMPOSE_FILES:-${CENIT_COMPOSE_FILE:-$DEFAULT_COMPOSE_FILES}}"
+IFS=':' read -r -a COMPOSE_FILE_LIST <<< "$COMPOSE_FILES"
+COMPOSE_CMD=(docker compose)
+for compose_file in "${COMPOSE_FILE_LIST[@]}"; do
+  COMPOSE_CMD+=(-f "$compose_file")
+done
 
 CENIT_SERVER_URL="${CENIT_SERVER_URL:-http://localhost:3000}"
 CENIT_UI_URL="${CENIT_UI_URL:-http://localhost:3002}"
@@ -109,10 +115,10 @@ if [[ "$CENIT_E2E_AUTOSTART" == "1" ]]; then
   ensure_cmd docker
   if [[ "$CENIT_E2E_RESET_STACK" == "1" ]]; then
     echo "Resetting cenit docker stack and volumes before E2E..."
-    docker compose -f "$COMPOSE_FILE" down -v --remove-orphans >/dev/null || true
+    "${COMPOSE_CMD[@]}" down -v --remove-orphans >/dev/null || true
   fi
   echo "Starting cenit stack (server, ui, mongo, redis, rabbitmq)..."
-  docker compose -f "$COMPOSE_FILE" up -d mongo_server redis rabbitmq server ui >/dev/null
+  "${COMPOSE_CMD[@]}" up -d mongo_server redis rabbitmq server ui >/dev/null
 else
   echo "Autostart disabled; expecting services to be running already."
 fi
