@@ -1,0 +1,13 @@
+services:
+  ui:
+    environment:
+      - REACT_APP_USE_ENVIRONMENT_CONFIG=true
+      - REACT_APP_TIMEOUT_SPAN=300000
+      - REACT_APP_APP_ID=admin
+      - REACT_APP_LOCALHOST=${REPRO_UI_PUBLIC_URL:-http://localhost:${REPRO_UI_PORT:-13002}}
+      - REACT_APP_CENIT_HOST=${REPRO_SERVER_PUBLIC_URL:-http://localhost:${REPRO_SERVER_PORT:-13000}}
+
+  server:
+    environment:
+      - HOMEPAGE=${REPRO_SERVER_PUBLIC_URL:-http://localhost:${REPRO_SERVER_PORT:-13000}}
+      - CENIT_UI=${REPRO_UI_PUBLIC_URL:-http://localhost:${REPRO_UI_PORT:-13002}}
