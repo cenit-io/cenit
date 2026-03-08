@@ -113,13 +113,14 @@ module Api::V3
       else
         parser = Parser.new(klass.data_type)
         parser_options[:create_callback] = -> model {
-          fail Abort unless authorize_action(action: :create, klass: model.class)
+          fail Abort unless authorize_action(action: :create, klass: model)
         }
         parser_options[:update_callback] = -> record {
           fail Abort unless authorize_action(action: :update, item: record)
         }
         record = parser.create_from(request_data, parser_options)
         if record.errors.blank?
+          extend_oauth_scope_for(record)
           if setup_viewport(:headers)
             render json: to_hash(record)
           else
@@ -493,22 +494,37 @@ module Api::V3
             else
               action.to_sym
           end
-        if @ability.can?(action_symbol, options[:item] || options[:klass] || @item || klass) &&
-          (@oauth_scope.nil? || @oauth_scope.can?(action_symbol, options[:klass] || klass))
+        target_model = options[:klass] || klass
+        target = options[:item] || target_model || @item || klass
+        ability_allowed = @ability.can?(action_symbol, target)
+        oauth_allowed = @oauth_scope.nil? || @oauth_scope.can?(action_symbol, target_model)
+        if ability_allowed && oauth_allowed
           @access_token.hit if @access_token
         else
           success = false
           unless options[:skip_response]
-            error_description = 'The requested action is out of the access token scope'
-            response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
-            target_model = options[:klass] || klass
-            render json: {
-              error: 'insufficient_scope',
-              error_description: error_description,
-              access_scope: @oauth_scope&.to_s,
-              requested_action: action_symbol,
-              requested_model: target_model&.to_s
-            }, status: :forbidden
+            if !ability_allowed
+              error_description = 'The requested action is not permitted for the current user or session'
+              render json: {
+                error: 'forbidden',
+                error_description: error_description,
+                access_scope: @oauth_scope&.to_s,
+                requested_action: action_symbol,
+                requested_model: target_model&.to_s,
+                authorization_context: @access_token ? 'oauth_ability_denied' : 'session_ability_denied'
+              }, status: :forbidden
+            else
+              error_description = 'The requested action is out of the access token scope'
+              response.headers['WWW-Authenticate'] = %(Bearer realm="example",error="insufficient_scope",error_description=#{error_description})
+              render json: {
+                error: 'insufficient_scope',
+                error_description: error_description,
+                access_scope: @oauth_scope&.to_s,
+                requested_action: action_symbol,
+                requested_model: target_model&.to_s,
+                authorization_context: 'oauth_scope_denied'
+              }, status: :forbidden
+            end
           end
         end
       else
@@ -614,6 +630,23 @@ module Api::V3
       @request_id = request.uuid
       @request_data = request.body&.read.to_s
       setup_request
+    end
+
+    def extend_oauth_scope_for(record)
+      return unless @access_token && record.is_a?(Setup::DataType)
+      access_grant = @access_token.access_grant
+      return unless access_grant
+
+      criterion = { '_id' => { '$in' => [record.id.to_s] } }
+      scope = Cenit::OauthScope.new(access_grant.scope)
+      extended_scope = scope.merge("create read update delete digest #{criterion.to_json}")
+      if extended_scope.to_s != access_grant.scope.to_s
+        access_grant.scope = extended_scope.to_s
+        access_grant.save
+        @oauth_scope = access_grant.oauth_scope
+      end
+    rescue => ex
+      Setup::SystemReport.create(message: "Failed to extend OAuth scope for #{record.try(:custom_title) || record.class}: #{ex.message}", type: :warning)
     end
 
     private
