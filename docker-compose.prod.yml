@@ -1,0 +1,6 @@
+services:
+  server:
+    pull_policy: ${CENIT_PULL_POLICY:-missing}
+
+  ui:
+    pull_policy: ${CENIT_PULL_POLICY:-missing}

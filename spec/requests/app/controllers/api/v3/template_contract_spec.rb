@@ -30,7 +30,7 @@ RSpec.describe Api::V3::ApiController,
   end
 
   describe 'template creation contract with E2E token' do
-    it 'returns insufficient_scope for direct POST /api/v3/setup/template' do
+    it 'returns forbidden for direct POST /api/v3/setup/template when ability denies the target' do
       post_json(
         '/api/v3/setup/template',
         params: {
@@ -47,8 +47,9 @@ RSpec.describe Api::V3::ApiController,
 
       expect(response.status).to eq(403)
       body = json_response
-      expect(body['error']).to eq('insufficient_scope')
+      expect(body['error']).to eq('forbidden')
       expect(body['error_description']).to be_present
+      expect(body['authorization_context']).to eq('oauth_ability_denied')
     end
 
     it 'returns explicit status for POST /api/v3/setup/data_type/:template_id/digest' do

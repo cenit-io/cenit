@@ -20,11 +20,11 @@ jobs:
           --health-timeout 5s
           --health-retries 12
       redis:
-        image: redis:5
+        image: redis:7-alpine
         ports:
           - 6379:6379
       rabbitmq:
-        image: rabbitmq:management
+        image: rabbitmq:3.13-management
         ports:
           - 5672:5672
         env:
