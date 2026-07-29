@@ -69,38 +69,47 @@ Additional migration context is documented in `upgrading_notes.md`.
 
 - Docker Desktop (or Docker Engine + Compose v2 plugin)
 - `git`
-- UI repository checked out as a sibling directory at `../ui` (or set `CENIT_UI_CONTEXT`)
 
-### 1) Clone repositories
-
-```bash
-# backend
-git clone git@github.com:cenit-io/cenit.git
-
-# UI (sibling directory required by default compose config)
-git clone git@github.com:cenit-io/ui.git ../ui
-```
-
-If your UI checkout lives elsewhere:
+### 1) Clone the repository
 
 ```bash
-export CENIT_UI_CONTEXT=/absolute/path/to/ui
+git clone https://github.com/cenit-io/cenit.git
+cd cenit
 ```
 
 ### 2) Start the stack
 
 ```bash
-cd /path/to/cenit
-scripts/compose-dev.sh up -d
-scripts/compose-dev.sh ps
+docker compose up -d --wait --wait-timeout 300
+scripts/smoke/compose_stack.sh
 ```
 
-This uses:
+The default stack runs the five published services needed to evaluate Cenit:
 
-- `docker-compose.yml` as shared base
-- `docker-compose.dev.yml` as development overrides (`build` + local branch code)
+- UI: `http://localhost:3002`
+- Backend: `http://localhost:3000`
+- RabbitMQ management: `http://localhost:15672`
 
-### 2.1) Fast UI development mode (live reload from sibling `../ui`)
+Default admin credentials on a fresh database:
+
+- Email: `support@cenit.io`
+- Password: `password`
+
+No source checkout or local image build of the UI is required.
+
+### 2.1) Contributor development mode
+
+Clone the UI as a sibling repository before using the development override:
+
+```bash
+git clone https://github.com/cenit-io/ui.git ../ui
+scripts/compose-dev.sh up -d --wait --wait-timeout 300
+```
+
+This builds both images from local source. Set `CENIT_UI_CONTEXT` if the UI
+checkout is not at `../ui`.
+
+#### Fast UI development mode (live reload)
 
 Use this when iterating on UI code to avoid rebuilding the nginx UI image:
 
@@ -115,7 +124,7 @@ Notes:
 - `ui_dev` serves Vite on `http://localhost:3002` with source mounted from `${CENIT_UI_CONTEXT:-../ui}`.
 - Keep `ui` (nginx image service) for production-like checks and CI parity.
 
-### 2.2) Image-only (prod-like) mode
+### 2.2) Explicit image-only (prod-like) mode
 
 ```bash
 cd /path/to/cenit
@@ -183,14 +192,8 @@ scripts/smoke/repro_runtime_ports.sh
 ### 3) Verify services
 
 ```bash
-curl -I http://localhost:3000
-curl -I http://localhost:3002
+scripts/smoke/compose_stack.sh
 ```
-
-On first bootstrap (fresh database), default admin credentials:
-
-- Email: `support@cenit.io`
-- Password: `password`
 
 RabbitMQ default credentials:
 
@@ -202,16 +205,16 @@ RabbitMQ default credentials:
 
 ```bash
 # Follow backend logs
-scripts/compose-dev.sh logs -f server
+docker compose logs -f server
 
 # Restart backend only
-scripts/compose-dev.sh restart server
+docker compose restart server
 
 # Stop all services
-scripts/compose-dev.sh down
+docker compose down
 
 # Full reset (containers + volumes)
-scripts/compose-dev.sh down -v --remove-orphans
+docker compose down -v --remove-orphans
 ```
 
 ## Configuration
@@ -223,6 +226,8 @@ Important environment knobs used by local scripts:
 - `CENIT_UI_CONTEXT` (path to UI repository for Docker build)
 - `CENIT_SERVER_IMAGE` (prod-like server image tag, default `ghcr.io/cenit-io/cenit:latest`)
 - `CENIT_UI_IMAGE` (prod-like UI image tag, default `ghcr.io/cenit-io/ui:latest`)
+- `CENIT_UNICORN_WORKERS` (backend worker count, default `2` for local evaluation)
+- `CENIT_MAXIMUM_UNICORN_CONSUMERS` (RabbitMQ consumer workers, default `2`)
 - `CENIT_PULL_POLICY` (prod-like pull policy, default `missing`; use `always` for strict pulls)
 - `CENIT_COMPOSE_FILES` (default: `docker-compose.yml:docker-compose.dev.yml`)
 - `CENIT_COMPOSE_FILE` (legacy single-file override, still supported)
@@ -230,10 +235,6 @@ Important environment knobs used by local scripts:
 - `CENIT_DEV_COMPOSE_FILE` (helper override for dev file)
 - `CENIT_PROD_COMPOSE_FILE` (helper override for prod-like file)
 - `CENIT_REPRO_COMPOSE_FILE` (helper override for repro file)
-- `CENIT_E2E_AUTOSTART` (`1` to auto-start stack in E2E scripts)
-- `CENIT_E2E_RESET_STACK` (`1` to reset containers/volumes before E2E)
-- `CENIT_E2E_BUILD_STACK` (`1` to rebuild images before E2E, default `0`)
-- `CENIT_E2E_HEADED` (`1` for headed browser runs)
 
 Image labels:
 
@@ -241,11 +242,17 @@ Image labels:
 
 ## Testing and quality checks
 
-### Login E2E smoke
+### Backend API integration checks
 
 ```bash
-scripts/e2e/cenit_ui_login.sh
+scripts/e2e/cenit_api_login.sh
+scripts/e2e/cenit_api_contact_flow.sh
+scripts/e2e/cenit_api_integration_journey.sh
 ```
+
+Browser journeys are owned by the [Cenit UI repository](https://github.com/cenit-io/ui).
+From a sibling UI checkout, run `npm run e2e:login`, `npm run e2e:contact-flow`,
+`npm run e2e:user-journey`, or `npm run e2e:integration-journey`.
 
 ### Browser smoke: no localhost redirect during auth bootstrap
 
@@ -267,48 +274,11 @@ REPRO_SERVER_PORT=13000 REPRO_UI_PORT=13002 scripts/smoke/repro_preapply_gate.sh
 
 Use this as the required gate before Terraform apply or other deploy steps when validating the localhost redirect fix path.
 
-### Contact data type + records E2E
-
-```bash
-scripts/e2e/cenit_ui_contact_flow.sh
-```
-
-Driver note:
-
-- `CENIT_E2E_DRIVER=pwcli` may hit parser/runtime limits on large `run-code` payloads.
-- The contact-flow runner automatically falls back to the node-playwright driver when this is detected.
-
-Useful overrides:
-
-```bash
-# Reuse already-running stack (skip deterministic reset)
-CENIT_E2E_AUTOSTART=0 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Deterministic default (clean DB each run, no image rebuild)
-CENIT_E2E_RESET_STACK=1 CENIT_E2E_BUILD_STACK=0 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Run headed
-CENIT_E2E_HEADED=1 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Slower machines
-CENIT_E2E_SERVER_READY_RETRIES=240 \
-CENIT_E2E_UI_READY_RETRIES=180 \
-scripts/e2e/cenit_ui_contact_flow.sh
-```
-
-### UI user journey E2E
-
-```bash
-scripts/e2e/cenit_ui_user_journey.sh
-```
-
 ### Flow execution + RabbitMQ smoke
 
 ```bash
 scripts/e2e/cenit_flow_execution_smoke.sh
 ```
-
-Artifacts are written under `output/playwright/`.
 
 ## Git hooks (pre-push E2E)
 
@@ -321,29 +291,14 @@ npm run prepare
 
 Current `pre-push` behavior:
 
-- Runs `scripts/e2e/cenit_ui_contact_flow.sh`
-- Uses fresh stack defaults:
-  - `CENIT_E2E_RESET_STACK=1`
-  - `CENIT_E2E_BUILD_STACK=0`
-  - `CENIT_E2E_CLEANUP=0` (cleanup disabled for hook stability)
+- Runs the backend API v3 login, contact-flow, and strict integration journey.
+- Does not require or invoke the UI repository.
 
 Overrides:
 
 ```bash
-# Reuse running stack
-CENIT_E2E_AUTOSTART=0 git push
-
-# Keep current volumes/state
-CENIT_E2E_RESET_STACK=0 git push
-
-# Skip image rebuild
-CENIT_E2E_BUILD_STACK=0 git push
-
-# Force cleanup phase
-CENIT_E2E_CLEANUP=1 git push
-
-# Skip hooks once
-HUSKY=0 git push
+# Skip the backend API E2E gate once
+SKIP_E2E_HOOKS=1 git push
 ```
 
 ## Troubleshooting
@@ -360,16 +315,6 @@ If needed, run a full reset and rebuild:
 ```bash
 scripts/compose-dev.sh down -v --remove-orphans
 scripts/compose-dev.sh up -d --build
-```
-
-### E2E instability after many local runs
-
-Use a clean boot:
-
-```bash
-CENIT_E2E_RESET_STACK=1 \
-CENIT_E2E_BUILD_STACK=0 \
-scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
 ## Contributing
