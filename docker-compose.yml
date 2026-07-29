@@ -17,7 +17,7 @@ services:
       server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null"]
+      test: ["CMD-SHELL", "wget -qO- -T 4 http://127.0.0.1/ >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -43,7 +43,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/users/sign_in >/dev/null"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://127.0.0.1:8080/users/sign_in >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 24
