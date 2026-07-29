@@ -235,10 +235,6 @@ Important environment knobs used by local scripts:
 - `CENIT_DEV_COMPOSE_FILE` (helper override for dev file)
 - `CENIT_PROD_COMPOSE_FILE` (helper override for prod-like file)
 - `CENIT_REPRO_COMPOSE_FILE` (helper override for repro file)
-- `CENIT_E2E_AUTOSTART` (`1` to auto-start stack in E2E scripts)
-- `CENIT_E2E_RESET_STACK` (`1` to reset containers/volumes before E2E)
-- `CENIT_E2E_BUILD_STACK` (`1` to rebuild images before E2E, default `0`)
-- `CENIT_E2E_HEADED` (`1` for headed browser runs)
 
 Image labels:
 
@@ -246,11 +242,17 @@ Image labels:
 
 ## Testing and quality checks
 
-### Login E2E smoke
+### Backend API integration checks
 
 ```bash
-scripts/e2e/cenit_ui_login.sh
+scripts/e2e/cenit_api_login.sh
+scripts/e2e/cenit_api_contact_flow.sh
+scripts/e2e/cenit_api_integration_journey.sh
 ```
+
+Browser journeys are owned by the [Cenit UI repository](https://github.com/cenit-io/ui).
+From a sibling UI checkout, run `npm run e2e:login`, `npm run e2e:contact-flow`,
+`npm run e2e:user-journey`, or `npm run e2e:integration-journey`.
 
 ### Browser smoke: no localhost redirect during auth bootstrap
 
@@ -272,48 +274,11 @@ REPRO_SERVER_PORT=13000 REPRO_UI_PORT=13002 scripts/smoke/repro_preapply_gate.sh
 
 Use this as the required gate before Terraform apply or other deploy steps when validating the localhost redirect fix path.
 
-### Contact data type + records E2E
-
-```bash
-scripts/e2e/cenit_ui_contact_flow.sh
-```
-
-Driver note:
-
-- `CENIT_E2E_DRIVER=pwcli` may hit parser/runtime limits on large `run-code` payloads.
-- The contact-flow runner automatically falls back to the node-playwright driver when this is detected.
-
-Useful overrides:
-
-```bash
-# Reuse already-running stack (skip deterministic reset)
-CENIT_E2E_AUTOSTART=0 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Deterministic default (clean DB each run, no image rebuild)
-CENIT_E2E_RESET_STACK=1 CENIT_E2E_BUILD_STACK=0 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Run headed
-CENIT_E2E_HEADED=1 scripts/e2e/cenit_ui_contact_flow.sh
-
-# Slower machines
-CENIT_E2E_SERVER_READY_RETRIES=240 \
-CENIT_E2E_UI_READY_RETRIES=180 \
-scripts/e2e/cenit_ui_contact_flow.sh
-```
-
-### UI user journey E2E
-
-```bash
-scripts/e2e/cenit_ui_user_journey.sh
-```
-
 ### Flow execution + RabbitMQ smoke
 
 ```bash
 scripts/e2e/cenit_flow_execution_smoke.sh
 ```
-
-Artifacts are written under `output/playwright/`.
 
 ## Git hooks (pre-push E2E)
 
@@ -326,29 +291,14 @@ npm run prepare
 
 Current `pre-push` behavior:
 
-- Runs `scripts/e2e/cenit_ui_contact_flow.sh`
-- Uses fresh stack defaults:
-  - `CENIT_E2E_RESET_STACK=1`
-  - `CENIT_E2E_BUILD_STACK=0`
-  - `CENIT_E2E_CLEANUP=0` (cleanup disabled for hook stability)
+- Runs the backend API v3 login, contact-flow, and strict integration journey.
+- Does not require or invoke the UI repository.
 
 Overrides:
 
 ```bash
-# Reuse running stack
-CENIT_E2E_AUTOSTART=0 git push
-
-# Keep current volumes/state
-CENIT_E2E_RESET_STACK=0 git push
-
-# Skip image rebuild
-CENIT_E2E_BUILD_STACK=0 git push
-
-# Force cleanup phase
-CENIT_E2E_CLEANUP=1 git push
-
-# Skip hooks once
-HUSKY=0 git push
+# Skip the backend API E2E gate once
+SKIP_E2E_HOOKS=1 git push
 ```
 
 ## Troubleshooting
@@ -365,16 +315,6 @@ If needed, run a full reset and rebuild:
 ```bash
 scripts/compose-dev.sh down -v --remove-orphans
 scripts/compose-dev.sh up -d --build
-```
-
-### E2E instability after many local runs
-
-Use a clean boot:
-
-```bash
-CENIT_E2E_RESET_STACK=1 \
-CENIT_E2E_BUILD_STACK=0 \
-scripts/e2e/cenit_ui_contact_flow.sh
 ```
 
 ## Contributing
