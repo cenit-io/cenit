@@ -69,38 +69,47 @@ Additional migration context is documented in `upgrading_notes.md`.
 
 - Docker Desktop (or Docker Engine + Compose v2 plugin)
 - `git`
-- UI repository checked out as a sibling directory at `../ui` (or set `CENIT_UI_CONTEXT`)
 
-### 1) Clone repositories
-
-```bash
-# backend
-git clone git@github.com:cenit-io/cenit.git
-
-# UI (sibling directory required by default compose config)
-git clone git@github.com:cenit-io/ui.git ../ui
-```
-
-If your UI checkout lives elsewhere:
+### 1) Clone the repository
 
 ```bash
-export CENIT_UI_CONTEXT=/absolute/path/to/ui
+git clone https://github.com/cenit-io/cenit.git
+cd cenit
 ```
 
 ### 2) Start the stack
 
 ```bash
-cd /path/to/cenit
-scripts/compose-dev.sh up -d
-scripts/compose-dev.sh ps
+docker compose up -d --wait --wait-timeout 300
+scripts/smoke/compose_stack.sh
 ```
 
-This uses:
+The default stack runs the five published services needed to evaluate Cenit:
 
-- `docker-compose.yml` as shared base
-- `docker-compose.dev.yml` as development overrides (`build` + local branch code)
+- UI: `http://localhost:3002`
+- Backend: `http://localhost:3000`
+- RabbitMQ management: `http://localhost:15672`
 
-### 2.1) Fast UI development mode (live reload from sibling `../ui`)
+Default admin credentials on a fresh database:
+
+- Email: `support@cenit.io`
+- Password: `password`
+
+No source checkout or local image build of the UI is required.
+
+### 2.1) Contributor development mode
+
+Clone the UI as a sibling repository before using the development override:
+
+```bash
+git clone https://github.com/cenit-io/ui.git ../ui
+scripts/compose-dev.sh up -d --wait --wait-timeout 300
+```
+
+This builds both images from local source. Set `CENIT_UI_CONTEXT` if the UI
+checkout is not at `../ui`.
+
+#### Fast UI development mode (live reload)
 
 Use this when iterating on UI code to avoid rebuilding the nginx UI image:
 
@@ -115,7 +124,7 @@ Notes:
 - `ui_dev` serves Vite on `http://localhost:3002` with source mounted from `${CENIT_UI_CONTEXT:-../ui}`.
 - Keep `ui` (nginx image service) for production-like checks and CI parity.
 
-### 2.2) Image-only (prod-like) mode
+### 2.2) Explicit image-only (prod-like) mode
 
 ```bash
 cd /path/to/cenit
@@ -183,14 +192,8 @@ scripts/smoke/repro_runtime_ports.sh
 ### 3) Verify services
 
 ```bash
-curl -I http://localhost:3000
-curl -I http://localhost:3002
+scripts/smoke/compose_stack.sh
 ```
-
-On first bootstrap (fresh database), default admin credentials:
-
-- Email: `support@cenit.io`
-- Password: `password`
 
 RabbitMQ default credentials:
 
@@ -202,16 +205,16 @@ RabbitMQ default credentials:
 
 ```bash
 # Follow backend logs
-scripts/compose-dev.sh logs -f server
+docker compose logs -f server
 
 # Restart backend only
-scripts/compose-dev.sh restart server
+docker compose restart server
 
 # Stop all services
-scripts/compose-dev.sh down
+docker compose down
 
 # Full reset (containers + volumes)
-scripts/compose-dev.sh down -v --remove-orphans
+docker compose down -v --remove-orphans
 ```
 
 ## Configuration
@@ -223,6 +226,8 @@ Important environment knobs used by local scripts:
 - `CENIT_UI_CONTEXT` (path to UI repository for Docker build)
 - `CENIT_SERVER_IMAGE` (prod-like server image tag, default `ghcr.io/cenit-io/cenit:latest`)
 - `CENIT_UI_IMAGE` (prod-like UI image tag, default `ghcr.io/cenit-io/ui:latest`)
+- `CENIT_UNICORN_WORKERS` (backend worker count, default `2` for local evaluation)
+- `CENIT_MAXIMUM_UNICORN_CONSUMERS` (RabbitMQ consumer workers, default `2`)
 - `CENIT_PULL_POLICY` (prod-like pull policy, default `missing`; use `always` for strict pulls)
 - `CENIT_COMPOSE_FILES` (default: `docker-compose.yml:docker-compose.dev.yml`)
 - `CENIT_COMPOSE_FILE` (legacy single-file override, still supported)

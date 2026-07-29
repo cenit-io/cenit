@@ -1,11 +1,7 @@
 FROM ruby:3.2.2
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
 RUN set -x; \
   apt-get update && apt-get install -y --no-install-recommends \
-  openssh-server \
   zlib1g-dev \
   build-essential \
   libssl-dev \
@@ -16,26 +12,19 @@ RUN set -x; \
   libcurl4-openssl-dev \
   libffi-dev \
   nodejs \
-  yarn \
   imagemagick \
   libmagickwand-dev \
   libsqlite3-dev \
   sqlite3 \
-  libxslt1-dev
+  && rm -rf /var/lib/apt/lists/*
 
-
-# Intall software-properties-common for add-apt-repository
-RUN apt-get install -qq -y software-properties-common
-
-RUN mkdir -p /var/www/shared/log
-RUN mkdir -p /var/www/shared/pids
-RUN mkdir -p /var/www/shared/sockets
+RUN mkdir -p /var/www/shared/log /var/www/shared/pids /var/www/shared/sockets
 
 ENV RAILS_ENV='production'
 ENV RACK_ENV='production'
 ENV UNICORN_CENIT_SERVER=true
 
-ENV RAILS_ROOT /var/www/cenit
+ENV RAILS_ROOT=/var/www/cenit
 RUN mkdir -p $RAILS_ROOT
 WORKDIR /var/www/cenit
 
@@ -43,12 +32,11 @@ RUN gem install bundler -v 2.4.22
 COPY Gemfile .
 COPY Gemfile.lock .
 
-COPY . .
 RUN bundle config set deployment true \
   && bundle config set without 'development test' \
   && bundle install --jobs 4 --retry 3
-RUN chmod +x env.sh
 
-RUN yarn install --check-files
+COPY . .
+RUN chmod +x env.sh
 
 CMD ["/bin/bash", "-c", "/var/www/cenit/env.sh; bundle exec unicorn_rails -c config/unicorn.rb"]
