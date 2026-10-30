@@ -59,8 +59,13 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Verify data-action public HTTP contract
-        run: ruby test/data_action/client_test.rb
+      - name: Verify data-action integration contracts
+        env:
+          CENIT_INBOX_TEST_URI: mongodb://127.0.0.1:27017/cenit_data_action_inbox_contracts
+        run: |
+          ruby test/data_action/client_test.rb
+          ruby test/data_action/receiver_test.rb
+          ruby test/data_action/mongo_inbox_test.rb
 
       - name: Run pre-commit checks (excluding e2e)
         run: bundle exec rspec --tag ~api_journey --tag ~api_login --tag ~api_contact_flow

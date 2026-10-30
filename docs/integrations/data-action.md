@@ -31,9 +31,38 @@ Run the isolated contract tests with `ruby test/data_action/client_test.rb`.
 They also pass on the project's Ruby 3.2.2 runtime using the existing image and an
 identical Gemfile.lock. These tests do not yet prove a running Cenit integration.
 
+## Increment 2: durable acceptance and actual Cenit transformation
+
+`Receiver` validates the pinned workspace, environment, object type, event version
+and subject before querying the exact committed revision. It verifies the returned
+record identity, type, workspace and revision. `MongoInbox` stores receipt and
+pending work together with journaled majority acknowledgment. A deterministic
+primary key deduplicates by trusted Cenit account, integration profile, workspace
+and event. Repeated acceptance compares immutable references and digests, and
+never resets existing work. The delivery fence belongs to data-action; acknowledgment
+happens only after the local insert succeeds. An uncertain acknowledgment leaves
+accepted work intact for a later delivery attempt.
+
+`Setup::DataActionReceipt` derives the account from Cenit's current tenant context;
+it exposes no built-in business DataType. The inbox stores bounded scalar references
+and fingerprints, not an order body. `LiquidMapping` uses an actual persisted Cenit
+LiquidTemplate without a source DataType, checks its code digest, and calls the
+existing template interface with a detached `Document`. This document supports
+`to_hash` and preserves declared business fields including `id`; it has no ORM
+query or persistence methods.
+
+Run `scripts/run_data_action_contracts.sh` with Docker, the project's Ruby 3.2.2
+and installed bundle. It starts its own pinned MongoDB on an ephemeral loopback
+port, tests public-client behavior, failure before acknowledgment, concurrent
+receipt deduplication, reconnect recovery, payload exclusion and actual Rails
+transformation, then removes only its own container. It does not prove a full
+Cenit/data-action journey yet. Existing Mongoid delayed-message regressions exposed
+a prior count-versus-boolean purge result; the prerequisite fix restores their
+specified boolean contract without adding Redis to this local runner.
+
 ## Remaining increments and completion evidence
 
-1. Durable receipt and pending work stored atomically in Cenit's own MongoDB,
+1. Wire durable acceptance into the separately running consumer. Receipt and pending work are stored atomically in Cenit's own MongoDB,
    deduplicated by trusted account, workspace, profile and event identity. Store
    revision references and fingerprints, without a second managed order record.
    Acknowledge only after durable acceptance; detect inconsistent redelivery.
