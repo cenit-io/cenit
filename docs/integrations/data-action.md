@@ -93,18 +93,19 @@ a successful external effect, creates a fresh worker, reconciles and completes
 without a second effect or a copied order. That composition test stubs the
 source-query boundary; the full public-HTTP two-system runner is still required.
 
-## Remaining increments and completion evidence
+## Increment 4: separate consumer and two-system runner
 
-1. Wire receipt and work into a separately running Cenit consumer that uses only
-   data-action's public HTTP contract and generated service credentials.
-2. Demonstrate real process restarts, transient errors, lost responses, lease
-   fencing, dead-letter recovery and reviewed replay in a disposable two-system
-   runner. Correlate Command, record revision, event delivery, Cenit work and
-   downstream receipt.
-3. Publish the complete operator runbook and architecture checks, verify relevant
-   existing regressions, and keep increments reviewable in separate PRs. No
-   Mongoid remote query emulation or general workflow-engine changes are in scope.
+The separate `experiments/data_action/consumer.rb` executable loads real Cenit Rails
+models and uses only the public data-action HTTP client. The single runner in
+`scripts/run_data_action_journey.mjs` provisions empty isolated stores, runs intake
+and consumer actions in fresh processes, checks immutable-revision transformation,
+and correlates Commands/events/jobs/receipts. It also verifies source delivery
+fencing, bounded failure/replay on both sides and a provider effect committed before
+an uncertain result. The consumer receives no data-action SQL connection or fixture
+administrative capability.
 
-Completion requires the complete runner against both checkouts, not merely client
-unit tests or the earlier simulated consumer. Future provider retry safety depends
-on provider idempotency or reconciliation support.
+See the [operator runbook](data-action-local-runbook.md) for the exact command,
+prerequisites, failure exercises, cleanup and limits. Qualification uses actual
+production HTTP handlers hosted by the disposable fixture rather than the Next.js
+console. Existing console tests remain separate regression evidence. There is no
+production deployment or general Mongoid/Flow compatibility claim.

@@ -59,6 +59,9 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Verify data-action transport boundaries
+        run: node --test test/data_action/journey_architecture.test.mjs
+
       - name: Verify data-action integration contracts
         env:
           CENIT_INBOX_TEST_URI: mongodb://127.0.0.1:27017/cenit_data_action_inbox_contracts
