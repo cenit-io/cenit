@@ -6,17 +6,17 @@ module Cenit
     # Receives a bounded, pinned order-created contract; no business record is saved here.
     class Receiver
       def initialize(client:, inbox:, workspace_id:, environment_id:, object_type_version_id:,
-          subscription_id:, query_version_id:, mapping_version:, mapping_digest:)
+          subscription_id:, query_version_id:, mapping_version:, mapping_digest:, connector_digest:)
         [workspace_id, environment_id, object_type_version_id, subscription_id, query_version_id].each do |id|
           raise ArgumentError, 'A pinned UUID configuration is required.' unless id.is_a?(String) && id.match?(Client::UUID)
         end
         unless mapping_version.is_a?(String) && !mapping_version.empty? && mapping_version.bytesize <= 100 &&
-            mapping_digest.is_a?(String) && mapping_digest.match?(/\A[0-9a-f]{64}\z/)
+            [mapping_digest, connector_digest].all? { |value| value.is_a?(String) && value.match?(/\A[0-9a-f]{64}\z/) }
           raise ArgumentError, 'A versioned mapping digest is required.'
         end
         @client, @inbox = client, inbox
         @workspace, @environment, @type = workspace_id, environment_id, object_type_version_id
-        @subscription, @query, @mapping, @mapping_digest = subscription_id, query_version_id, mapping_version, mapping_digest
+        @subscription, @query, @mapping, @mapping_digest, @connector_digest = subscription_id, query_version_id, mapping_version, mapping_digest, connector_digest
       end
 
       def receive(claim)
@@ -44,7 +44,7 @@ module Cenit
           'subscription_id' => @subscription, 'query_version_id' => @query, 'object_type_version_id' => @type,
           'record_id' => data['recordId'], 'revision' => data['revision'], 'correlation_id' => event['correlationId'],
           'causation_id' => event['causationId'], 'mapping_version' => @mapping, 'mapping_digest' => @mapping_digest,
-          'data_digest' => self.class.digest(snapshot['data']),
+          'data_digest' => self.class.digest(snapshot['data']), 'connector_digest' => @connector_digest,
           'effect_key' => self.class.digest([@workspace, @environment, @subscription, event['eventId'], @mapping, @mapping_digest]),
           'state' => 'pending', 'attempts' => 0
         }

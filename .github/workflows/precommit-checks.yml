@@ -65,6 +65,7 @@ jobs:
         run: |
           ruby test/data_action/client_test.rb
           ruby test/data_action/receiver_test.rb
+          ruby test/data_action/worker_test.rb
           ruby test/data_action/mongo_inbox_test.rb
 
       - name: Run pre-commit checks (excluding e2e)

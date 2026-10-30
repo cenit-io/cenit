@@ -1,14 +1,16 @@
 require 'mongo'
 require_relative 'receiver'
+require_relative 'mongo_work'
 
 module Cenit
   module DataAction
     # Private Cenit execution storage. Receipt and pending work share one atomic
     # document; no multi-document transaction or remote business record is needed.
     class MongoInbox
+      include MongoWork
       REFERENCE_FIELDS = %w[event_id workspace_id environment_id subscription_id query_version_id
         object_type_version_id record_id revision correlation_id causation_id mapping_version mapping_digest
-        data_digest effect_key].freeze
+        data_digest connector_digest effect_key].freeze
       def initialize(collection:, account_id:, profile_id:)
         unless [account_id, profile_id].all? { |id| id.is_a?(String) && !id.empty? && id.bytesize <= 200 }
           raise ArgumentError, 'Trusted account and integration profile scope are required.'

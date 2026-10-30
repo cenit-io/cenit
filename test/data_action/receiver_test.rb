@@ -26,7 +26,7 @@ class DataActionReceiverTest < Minitest::Test
     @client, @inbox = Client.new(@snapshot), Inbox.new
     @receiver = Cenit::DataAction::Receiver.new(client: @client, inbox: @inbox, workspace_id: ID.call(1),
       environment_id: ID.call(2), object_type_version_id: ID.call(3), subscription_id: ID.call(9),
-      query_version_id: ID.call(10), mapping_version: 'order-v1', mapping_digest: 'a' * 64)
+      query_version_id: ID.call(10), mapping_version: 'order-v1', mapping_digest: 'a' * 64, connector_digest: 'c' * 64)
   end
   def test_accepts_reference_and_work_before_ack_without_copying_order_payload
     @receiver.receive(@claim)
