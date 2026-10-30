@@ -87,7 +87,7 @@ module Setup
       end
 
       def purge_message(message)
-        DelayedMessage.where(message: message).delete_all
+        DelayedMessage.where(message: message).delete_all.positive?
       end
     end
 
