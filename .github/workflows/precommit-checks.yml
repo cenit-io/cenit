@@ -59,5 +59,8 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Verify data-action public HTTP contract
+        run: ruby test/data_action/client_test.rb
+
       - name: Run pre-commit checks (excluding e2e)
         run: bundle exec rspec --tag ~api_journey --tag ~api_login --tag ~api_contact_flow
