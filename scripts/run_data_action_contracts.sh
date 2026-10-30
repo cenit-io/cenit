@@ -10,12 +10,13 @@ ruby --version
 bundle check
 container="cenit-data-action-contracts-$$-$RANDOM"
 image='mongo@sha256:8bb4442761a63a8dda452744082cdac9644b429807eb977b42324a63cef59ca4'
-cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
+container_id=''
+cleanup() { if [[ -n "$container_id" ]]; then docker rm -f "$container_id" >/dev/null 2>&1 || true; fi; }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-docker run -d --rm --name "$container" -p 127.0.0.1::27017 "$image" --quiet >/dev/null
+container_id="$(docker run -d --rm --name "$container" -p 127.0.0.1::27017 "$image" --quiet)"
 ready=0
 for _attempt in {1..30}; do
   if docker exec "$container" mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' >/dev/null 2>&1; then
@@ -33,5 +34,6 @@ export CENIT_INBOX_TEST_URI="mongodb://$endpoint/cenit_data_action_inbox_contrac
 
 ruby test/data_action/client_test.rb
 ruby test/data_action/receiver_test.rb
+ruby test/data_action/worker_test.rb
 ruby test/data_action/mongo_inbox_test.rb
-bundle exec rspec spec/integration/data_action/liquid_mapping_spec.rb spec/models/setup/delayed_message_spec.rb
+bundle exec rspec spec/integration/data_action/liquid_mapping_spec.rb spec/integration/data_action/connector_spec.rb spec/models/setup/delayed_message_spec.rb

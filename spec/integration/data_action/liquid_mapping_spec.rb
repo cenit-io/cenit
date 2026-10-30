@@ -12,14 +12,14 @@ describe Cenit::DataAction::LiquidMapping do
       'customer' => { 'address' => { 'city' => 'Madrid' } }, 'items' => [{ 'quantity' => 2 }] }
   end
   it 'executes a real persisted Cenit template from an explicit document without a record model' do
-    mapping = described_class.new(template: template, code_digest: Digest::SHA256.hexdigest(code))
+    mapping = described_class.new(template: template, version: 'order-v1', code_digest: Digest::SHA256.hexdigest(code))
     result = JSON.parse(mapping.call(data))
     expect(result).to eq('external_id' => 'synthetic-1', 'city' => 'Madrid', 'quantity' => 2)
     expect(template.reload.source_data_type).to be_nil
     expect(Cenit::DataAction::Document.new(data).to_hash(include_id: true)['id']).to eq('business-id')
   end
   it 'fails closed when the configured mapping changes' do
-    mapping = described_class.new(template: template, code_digest: '0' * 64)
+    mapping = described_class.new(template: template, version: 'order-v1', code_digest: '0' * 64)
     expect { mapping.call(data) }.to raise_error(Cenit::DataAction::ProtocolError)
   end
   it 'uses private execution storage scoped by the current Cenit account' do

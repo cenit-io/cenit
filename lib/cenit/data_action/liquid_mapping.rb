@@ -14,15 +14,20 @@ module Cenit
       end
     end
     class LiquidMapping
-      def initialize(template:, code_digest:)
+      attr_reader :version
+      def initialize(template:, code_digest:, version:)
         unless template.is_a?(Setup::LiquidTemplate) && template.persisted? && template.source_data_type.nil? &&
             code_digest.is_a?(String) && code_digest.match?(/\A[0-9a-f]{64}\z/)
           raise ArgumentError, 'A persisted Liquid template without a record model and its pinned digest are required.'
         end
-        @template, @digest = template, code_digest
+        raise ArgumentError, 'A mapping version is required.' unless version.is_a?(String) && version.bytesize.between?(1, 100)
+        @template, @digest, @version = template, code_digest, version
+      end
+      def digest
+        Digest::SHA256.hexdigest(@template.code)
       end
       def call(data)
-        unless Digest::SHA256.hexdigest(@template.code) == @digest
+        unless digest == @digest && @template.source_data_type.nil?
           raise ProtocolError, 'The pinned transformation is unavailable.'
         end
         @template.run(source: Document.new(data))

@@ -60,21 +60,50 @@ Cenit/data-action journey yet. Existing Mongoid delayed-message regressions expo
 a prior count-versus-boolean purge result; the prerequisite fix restores their
 specified boolean contract without adding Redis to this local runner.
 
+## Increment 3: fenced work and real local delivery
+
+`MongoWork` leases each accepted work item atomically for 120 seconds using the
+MongoDB server clock. Renew, completion and failure require the active fence;
+expired workers cannot modify a newer claim. Failure uses bounded backoff and an
+eight-attempt budget. Repeated process failure also exhausts that budget. Replay
+requires a trusted operator and a nonempty review reason, preserves event/effect
+identity and appends review evidence without erasing earlier attempt history.
+
+`Worker` re-queries the exact immutable revision and checks its identity and data
+fingerprint before transformation. It checks the pinned mapping version/code and
+connector fingerprint, renews its work lease before delivery, and queries the sink
+by stable effect key before sending. A verified receipt must match both that key
+and the SHA-256 digest of the exact transformed bytes. Delivery retries are wholly
+independent of the earlier event acknowledgment. Storage failure or a lost HTTP
+response can leave an uncertain result; recovery reconciles rather than generating
+a new effect key.
+
+`CenitConnector` uses persisted real Cenit Connection and PlainWebhook definitions
+for GET lookup and POST delivery. It is deliberately restricted to the local
+loopback simulator protocol, plain fixed configuration and a 15-second request
+budget. It suppresses request body attachments, including when notice logging is
+enabled. Its fingerprint is pinned when accepting work. This adapter is not a
+production TLS/credential integration or a claim that arbitrary providers support
+safe retries; a future provider must supply idempotency or reconciliation.
+
+The contract runner now covers lease contention, stale completion, crash-budget
+exhaustion, reviewed replay, configuration/revision drift and actual Cenit HTTP
+execution. A Rails composition test durably accepts work, loses the response after
+a successful external effect, creates a fresh worker, reconciles and completes
+without a second effect or a copied order. That composition test stubs the
+source-query boundary; the full public-HTTP two-system runner is still required.
+
 ## Remaining increments and completion evidence
 
-1. Wire durable acceptance into the separately running consumer. Receipt and pending work are stored atomically in Cenit's own MongoDB,
-   deduplicated by trusted account, workspace, profile and event identity. Store
-   revision references and fingerprints, without a second managed order record.
-   Acknowledge only after durable acceptance; detect inconsistent redelivery.
-2. Use a real Cenit LiquidTemplate with a pinned mapping and explicit read-only
-   source, then a real Connection/Webhook for delivery and reconciliation. Keep
-   external-effect retries independent of event acknowledgment.
-3. Demonstrate process restarts, transient errors, lost responses, lease fencing,
-   dead-letter recovery and reviewed replay in a disposable runner. Correlate
-   Command, record revision, event delivery, Cenit work and downstream receipt.
-4. Publish reproducible instructions, run relevant regressions and architecture
-   checks, and keep each increment reviewable in a separate PR. No Mongoid remote
-   query emulation or general workflow engine changes are in scope.
+1. Wire receipt and work into a separately running Cenit consumer that uses only
+   data-action's public HTTP contract and generated service credentials.
+2. Demonstrate real process restarts, transient errors, lost responses, lease
+   fencing, dead-letter recovery and reviewed replay in a disposable two-system
+   runner. Correlate Command, record revision, event delivery, Cenit work and
+   downstream receipt.
+3. Publish the complete operator runbook and architecture checks, verify relevant
+   existing regressions, and keep increments reviewable in separate PRs. No
+   Mongoid remote query emulation or general workflow-engine changes are in scope.
 
 Completion requires the complete runner against both checkouts, not merely client
 unit tests or the earlier simulated consumer. Future provider retry safety depends
