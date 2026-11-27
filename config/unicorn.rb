@@ -49,9 +49,12 @@ before_fork do |server, worker|
     end
   end
   sleep 1
+  # The preloaded MongoDB session pool must not be shared across workers.
+  Mongoid.disconnect_clients if defined?(Mongoid)
 end
 
 after_fork do |server, worker|
+  Mongoid::Clients.clients.each_value(&:reconnect) if defined?(Mongoid)
   defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
   defined?(Rails) and Rails.cache.respond_to?(:reconnect) and Rails.cache.reconnect
 
