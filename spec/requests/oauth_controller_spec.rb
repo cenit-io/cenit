@@ -1,6 +1,51 @@
 require 'rails_helper'
 
 RSpec.describe OauthController, type: :request do
+  it 'accepts the persisted consent token rendered by a previous HTTPS request' do
+    user = User.current || User.first
+    login_as(user, scope: :user)
+    https!
+
+    callback = 'https://ui.cenit.test/callback'
+    app = double('Setup::Application', configuration: double('AppConfig', logo: '/oauth-logo.png'))
+    app_id = instance_double(
+      'Cenit::ApplicationId',
+      tenant: Account.current,
+      registered?: false,
+      redirect_uris: [callback],
+      app: app,
+      name: 'E2E App'
+    )
+    allow(Cenit::ApplicationId).to receive(:where).with(identifier: 'round-trip-client').and_return(double(first: app_id))
+    allow(Cenit::OauthAccessGrant).to receive(:where).with(application_id: app_id).and_return(double(first: nil))
+    code_token = instance_double('Cenit::OauthCodeToken', token: 'round-trip-code')
+    expect(Cenit::OauthCodeToken).to receive(:create).with(scope: 'read', user_id: user.id).and_return(code_token)
+
+    get '/oauth/authorize', params: {
+      client_id: 'round-trip-client',
+      response_type: 'code',
+      redirect_uri: callback,
+      scope: 'read',
+      state: 'round-trip-state'
+    }
+    expect(response).to have_http_status(:ok)
+    consent = Nokogiri::HTML(response.body).at_css('input[name=token]')&.[]('value')
+    expect(consent).to be_present
+    expect(Cenit::Token.where(token: consent).first&.data).to include('redirect_uri' => callback, 'scope' => 'read')
+
+    post '/oauth/authorize', params: { token: consent, allow: '1' }
+    expect(response).to have_http_status(:redirect)
+    redirect = URI.parse(response.headers.fetch('Location'))
+    expect(redirect.host).to eq('ui.cenit.test')
+    expect(URI.decode_www_form(redirect.query).to_h).to eq(
+      'code' => 'round-trip-code',
+      'state' => 'round-trip-state'
+    )
+    expect(Cenit::Token.where(token: consent).first).to be_nil
+  ensure
+    Cenit::Token.where(token: consent).first&.destroy if consent.present?
+  end
+
   describe 'GET /oauth/authorize' do
     it 'creates consent token payload for a valid authorize request' do
       user = User.current || User.first
