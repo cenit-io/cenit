@@ -4,7 +4,10 @@ RSpec.describe 'Slim transformation runtime' do
   {
     'Setup::PrawnTemplate' => Setup::Template,
     'Setup::HandlebarsTemplate' => Setup::Template,
-    'Setup::HandlebarsConverter' => Setup::ConverterTransformation
+    'Setup::HandlebarsConverter' => Setup::ConverterTransformation,
+    'Setup::XsltTemplate' => Setup::Template,
+    'Setup::XsltConverter' => Setup::ConverterTransformation,
+    'Setup::XsltValidator' => Setup::CustomValidator
   }.each do |type, parent|
     it "does not instantiate an old #{type} record as a supported transformation" do
       attributes = { '_id' => BSON::ObjectId.new, parent.discriminator_key => type }
@@ -20,6 +23,28 @@ RSpec.describe 'Slim transformation runtime' do
 
     expect(renderer.style_enum).not_to include('pdf.prawn')
     expect { renderer.run }.to raise_error(ArgumentError, /Unsupported translator style.*pdf\.prawn/)
+  end
+
+  it 'reports a migration diagnostic for a legacy XSLT export' do
+    renderer = Setup::Renderer.new(style: 'xslt')
+
+    expect(renderer.style_enum).not_to include('xslt')
+    expect { renderer.run }.to raise_error(ArgumentError, /Unsupported translator style.*xslt/)
+  end
+
+  it 'still validates XML input against a Schema XSD' do
+    validator = Setup::Schema.new(
+      namespace: 'SlimTest', uri: 'test.xsd', schema_type: :xml_schema,
+      schema: <<~XSD
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+          <xs:element name="lead" type="xs:string"/>
+        </xs:schema>
+      XSD
+    )
+
+    expect(validator.validate_data('<lead>Avery</lead>')).to be_empty
+    errors = validator.validate_data('<other>Avery</other>')
+    expect(errors.map(&:to_s).join).to include("No matching global declaration")
   end
 
   it 'includes record identity in modern Liquid rendering' do

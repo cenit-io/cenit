@@ -14,14 +14,14 @@ used it. The published v2 spec is a reference for older releases.
 | GET `/public/:model` | Deliberately retired | No unauthenticated catalog listing. Authenticated v3 list is not the same contract. |
 | GET `/public/:model/:id(.:format)` | Deliberately retired | No unauthenticated catalog item API. Explicit public file delivery is a separate route and should not be repurposed for catalog reads. |
 | POST `/setup/user` | Retained | v3 has CAPTCHA/bootstrap coverage. Clients should verify required fields and errors rather than assuming the v2 payload. |
-| POST `/:ns/push` | Gap: F1 | v2 accepted batches keyed by model and reported success/errors per item. Use individual scoped v3 creates for smaller workloads. The v3 collection push digest is not bulk record creation. |
+| POST `/:ns/push` | Gap: F1 | v2 accepted batches keyed by model and reported success/errors per item. Use individual scoped v3 creates for smaller workloads. Local collection import is not bulk record creation. |
 | POST `/:ns/:model` | Retained with payload changes | Send the record directly using the v3 contract; there is no promise of support for v2 model-root envelopes, bulk inputs, or XML. Request a viewport if the response must contain the new ID. |
 | POST `/:ns/:model/digest` | Gap: F2 | v2 enqueued `Setup::DataTypeDigest` with the raw payload. v3 `POST /setup/data_type/:id/digest` invokes the model's create action; it is not the same ingestion task. |
 | GET `/:ns/:model` | Retained with response changes | v3 uses `items` rather than a model-named array and has its own paging/selector contract. |
 | GET `/:ns/:model/:id` | Retained for records; file gap F3 | v3 record read returns JSON. v2 could stream bytes for file records. v3 offers a separate file-data-type download workflow. |
 | POST `/:ns/:model/:id` | Retained with payload changes | v3 uses its model parser and scope checks; do not depend on the v2 envelope or update response. |
 | DELETE `/:ns/:model/:id` | Retained with response changes | v3 has model delete; validate status/body before migrating a client that checks the v2 response literal. |
-| POST `/:ns/:model/:id/pull` | Remote catalog deliberately retired | Local JSON import/review is the replacement for portable integrations, not remote catalog install. Verify export/import under the Shared Collections slice. |
+| POST `/:ns/:model/:id/pull` | Remote catalog deliberately retired | Local JSON export/import and review are the replacement for portable integrations, not remote catalog install. The v3 collection portability request spec covers the round-trip between tenants. |
 | POST `/:ns/:model/:id/run` | Retained for algorithms | POST `/setup/algorithm/:id/digest`. Existing Slim request coverage verifies scoped access and completed execution; v3 returns a bounded execution/task receipt, not the v2 task body. |
 | GET `/:ns/:model/:id/retry` | Route exists; behavior follow-up F4 | UI calls GET `/setup/task/:id/digest/retry`. No claim of parity for v2's retryable states or response. |
 | GET `/:ns/:model/:id/authorize` | Browser flow retained; gap F5 | The UI uses the tenant-aware `/authorization/:tenant_id/:id/authorize` route, which authenticates a browser session and redirects. It is not v2's JSON `authorize_url` contract. |

@@ -112,3 +112,10 @@ explicitly and compare the resulting output before importing. Do not relabel
 stored Prawn or Handlebars code as Liquid. Existing legacy Liquid
 discriminators remain supported and share the current Liquid runtime; the
 legacy export context does not gain the modern implicit record ID.
+
+The XSLT template, converter, validator, and legacy `xslt` style are also
+retired. Export these configurations with the previous release and replace
+the transformations or execute their stylesheets in a separate service.
+Plain XML handling, XML signature dependencies, and validation with a
+`Setup::Schema` XSD remain available. An XSD schema validates XML directly;
+it does not replace XSLT-based rules or transformations.

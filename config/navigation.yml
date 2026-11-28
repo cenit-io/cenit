@@ -8,10 +8,6 @@ Definitions:
   Setup::Schema:
     - parent Setup::Validator
     - weight 101
-  Setup::XsltValidator:
-    - parent Setup::Validator
-    - weight 102
-    - label 'XSLT Validator'
   Setup::EdiValidator:
     - parent Setup::Validator
     - weight 103
