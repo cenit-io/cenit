@@ -1,6 +1,5 @@
 .DS_Store
 *.rbc
-capybara-*.html
 .rspec
 /config/mongoid.yml
 /log

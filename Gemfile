@@ -15,7 +15,6 @@ gem 'figaro'
 gem 'unicorn', '~> 6.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'peddler'
 
 group :doc do
   gem 'sdoc', require: false
@@ -35,8 +34,6 @@ end
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
-  gem 'capybara'
-  gem 'poltergeist'
 end
 
 group :production do
