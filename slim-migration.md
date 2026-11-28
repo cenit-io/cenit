@@ -25,15 +25,29 @@ references to APIs.guru were stale. No Docker app was running when the
 inventory started, so this is not a claim that existing databases are empty.
 The API regression spec covers model withdrawal and the surviving gateway.
 
-## API v1
+## API v1 and v2
 
-The legacy `/api/v1` routes and controller have been removed. The checked-out
-UI and internal dependencies had no Cenit v1 HTTP callers. This repository
-inventory cannot establish which external clients were deployed historically.
+The legacy `/api/v1` and `/api/v2` routes and controllers have been removed.
+The checked-out UI and internal dependencies had no Cenit v1/v2 HTTP callers.
+This inventory cannot establish which external clients ran historically.
 
 Use OAuth bearer tokens and the v3 model routes for CRUD. For an authenticated
 connectivity check, read a model for which the token has scope instead of
 calling the retired auth ping. Anonymous catalog reads and bulk push do not
 have a drop-in prefix replacement; migrate callers to scoped v3 operations
 and check the contract before promoting the upgrade. No compatibility
-redirect is provided. API v2 is unchanged by the v1 removal.
+redirect is provided.
+
+| Legacy operation | Relaunch contract |
+| --- | --- |
+| User bootstrap and CRUD | Use v3 model endpoints. Confirm the v3 JSON envelope; it differs from v2. |
+| Namespace bulk push | Use scoped v3 creates per model. There is no equivalent bulk write in the relaunch API. |
+| Public catalog reads | Removed; authenticated model access remains scoped. |
+| Data type digest by slug | Resolve the data type via v3 and use its id with the digest endpoint. |
+| Algorithm execution | Use POST on the v3 algorithm digest, as the UI does. |
+| Task retry | Use the v3 task digest retry. |
+| OAuth provider authorization | Use the tenant-aware authorization flow. Do not port the legacy redirect parameter. |
+| Property view | Use a v3 item read, with the documented viewport when applicable. |
+| Shared collection pull | See the collection migration below; use local import for relaunch integrations. |
+
+The older public API v2 documentation is for previous versions of Cenit.

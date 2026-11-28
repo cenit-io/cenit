@@ -1235,8 +1235,19 @@ module Setup
         fail execution.message
       end
       execution.reload
+      task = execution.task
       {
-        json: execution.to_hash(include_id: true, include_blanks: false)
+        json: {
+          id: execution.id.to_s,
+          status: execution.status.to_s,
+          task: {
+            id: task.id.to_s,
+            _type: task.class.name,
+            status: task.status.to_s,
+            progress: task.progress,
+            description: task.description
+          }.compact
+        }
       }
     rescue
       {

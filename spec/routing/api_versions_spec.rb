@@ -15,4 +15,11 @@ RSpec.describe 'Cenit API versions', type: :routing do
       controller: 'api/v3/api', action: 'digest', __ns_: 'setup', __model_: 'flow', __id_: 'flow-id'
     )
   end
+
+  it 'does not route v2 model access, bulk push, or preflight requests' do
+    expect(get: '/api/v2/public/namespace').not_to be_routable
+    expect(get: '/api/v2/setup/namespace').not_to be_routable
+    expect(post: '/api/v2/setup/push').not_to be_routable
+    expect(options: '/api/v2/setup/namespace').not_to be_routable
+  end
 end
