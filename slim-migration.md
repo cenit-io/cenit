@@ -94,3 +94,21 @@ reauthorize, and update the connection references before importing them into
 Slim; do not just rename the discriminator in an export. The checked-out
 fixtures and seeds had no Lazada records; the obsolete Intuit OAuth1 sample
 was removed.
+
+## Transformation engines
+
+Slim does not run `Setup::PrawnTemplate`, the legacy `pdf.prawn` export style,
+`Setup::HandlebarsTemplate`, or `Setup::HandlebarsConverter`. The runtime
+dependencies for generating PDFs with Prawn and rendering Handlebars have
+been removed. Existing Handlebars snippet text is not deleted; its editor
+language is independent of the template runtime. The sandbox's separate
+CombinePDF capability for existing scripts is unchanged.
+
+Keep a backup and use an isolated copy with the previous release to export
+source templates, inspect dependent flows, and render any outputs needed for
+comparison. Convert supported text/JSON transformations to Liquid or run the
+retired engine outside Cenit. Reattach replacement translators to flows
+explicitly and compare the resulting output before importing. Do not relabel
+stored Prawn or Handlebars code as Liquid. Existing legacy Liquid
+discriminators remain supported and share the current Liquid runtime; the
+legacy export context does not gain the modern implicit record ID.

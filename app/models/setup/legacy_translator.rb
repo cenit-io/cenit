@@ -114,14 +114,13 @@ module Setup
       'js.erb' => { Setup::Transformation::ActionViewTransform => [:Export] },
       # 'text.erb' => {Setup::Transformation::ActionViewTransform => [:Export]},
       'ruby' => { Setup::Transformation::Ruby => [:Import, :Export, :Update, :Conversion] },
-      'pdf.prawn' => { Setup::Transformation::PrawnTransform => [:Export] },
       #'chain' => { Setup::Transformation::ChainTransform => [:Conversion] },
       'mapping' => { Setup::Transformation::MappingTransform => [:Conversion] }
     }
 
     def code_extension
       case style
-      when 'ruby', 'pdf.prawn'
+      when 'ruby'
         '.rb'
       when 'chain'
         ''
@@ -140,8 +139,7 @@ module Setup
       'html.erb': ['text/html'],
       'csv.erb': ['text/csv'],
       'js.erb': %w(application/x-javascript application/javascript text/javascript),
-      'text.erb': ['text/plain'],
-      'pdf.prawn': ['application/pdf']
+      'text.erb': ['text/plain']
     }.stringify_keys
 
     def style_enum
@@ -183,6 +181,11 @@ module Setup
     end
 
     def run(options = {})
+      handler = STYLES_MAP.fetch(style, {}).find { |_transform, types| types.include?(type) }&.first
+      unless handler
+        raise ArgumentError, "Unsupported translator style #{style.inspect} for #{type}; migrate the translator before running it"
+      end
+
       context_options = try("context_options_for_#{type.to_s.downcase}", options) || {}
       self.class.fields.keys.each { |key| context_options[key.to_sym] = send(key) }
       self.class.relations.keys.each { |key| context_options[key.to_sym] = send(key) }
@@ -197,7 +200,7 @@ module Setup
       context_options[:translator] = self
 
       begin
-        context_options[:result] = STYLES_MAP[style].keys.detect { |t| STYLES_MAP[style][t].include?(type) }.run(context_options)
+        context_options[:result] = handler.run(context_options)
       rescue Exception => ex
         ex.backtrace.unshift("In translator #{namespace}::#{name}")
         raise ex

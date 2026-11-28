@@ -5,9 +5,7 @@ module Setup
     build_in_data_type.referenced_by(:namespace, :name)
 
     def execute(options)
-      template = Liquid::Template.parse(options[:code])
-      source_hash = options[:source].to_hash(include_id: true)
-      template.render(source_hash)
+      Setup::Transformation::LiquidRendering.export(options, include_id: true)
     end
   end
 end
