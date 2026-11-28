@@ -73,7 +73,8 @@ headers, and scripts before sharing any export.
 Use Collections **Pull Import** to upload the local JSON in the destination
 tenant, then review and apply the changes in the import task. The API
 accepts JSON or a multipart file at `POST /api/v3/setup/collection/import`
-with create and digest permission. Configure
+with Collection create and digest permission, plus DataType digest permission
+as required by the earlier typed import entry point. Configure
 credentials separately at the destination. The old catalog installation
 parameters and remote updates are not part of the local import contract.
 

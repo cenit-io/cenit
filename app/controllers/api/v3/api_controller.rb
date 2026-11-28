@@ -227,6 +227,8 @@ module Api::V3
 
     def import_collection
       return unless authorize_action(action: :digest)
+      # Package import keeps the DataType digest permission of the typed entry point.
+      return unless authorize_action(action: :digest, klass: Setup::DataType)
 
       execution = Setup::PullImport.enqueue_payload(request, Setup::Collection)
       render json: execution.digest_receipt, status: :accepted

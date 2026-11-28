@@ -85,4 +85,14 @@ RSpec.describe 'Local collection portability', type: :request, api_v3_requests: 
     get_json('/api/v3/setup/cross_shared_collection', headers: headers)
     expect(response).to have_http_status(:not_found)
   end
+
+  it 'does not grant package import to a token scoped only to collection records' do
+    criterion = { _id: { '$in' => [Setup::Collection.data_type.id.to_s] } }
+    collection_scope = v3_auth_headers(scope: "create digest #{criterion.to_json}")
+
+    post_json('/api/v3/setup/collection/import', params: { name: name }, headers: collection_scope)
+
+    expect(response).to have_http_status(:forbidden)
+    expect(json_response).to include('error' => 'insufficient_scope', 'requested_model' => 'Setup::DataType')
+  end
 end
