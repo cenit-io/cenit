@@ -24,3 +24,16 @@ backend, UI, or checked-out internal gems. The sitemap and ignore-file
 references to APIs.guru were stale. No Docker app was running when the
 inventory started, so this is not a claim that existing databases are empty.
 The API regression spec covers model withdrawal and the surviving gateway.
+
+## API v1
+
+The legacy `/api/v1` routes and controller have been removed. The checked-out
+UI and internal dependencies had no Cenit v1 HTTP callers. This repository
+inventory cannot establish which external clients were deployed historically.
+
+Use OAuth bearer tokens and the v3 model routes for CRUD. For an authenticated
+connectivity check, read a model for which the token has scope instead of
+calling the retired auth ping. Anonymous catalog reads and bulk push do not
+have a drop-in prefix replacement; migrate callers to scoped v3 operations
+and check the contract before promoting the upgrade. No compatibility
+redirect is provided. API v2 is unchanged by the v1 removal.
