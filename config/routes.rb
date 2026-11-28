@@ -53,6 +53,7 @@ Cenit::Application.routes.draw do
   namespace :api do
     namespace :v3 do
       post '/setup/user', to: 'api#new_user'
+      post '/setup/collection/import', to: 'api#import_collection', defaults: { __ns_: 'setup', __model_: 'collection' }
       post '/:__ns_/:__model_', to: 'api#new'
       get '/:__ns_/:__model_', to: 'api#index', defaults: { format: 'json' }
       get '/:__ns_/:__model_/:__id_', to: 'api#show', defaults: { format: 'json' }

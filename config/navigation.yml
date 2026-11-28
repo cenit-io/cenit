@@ -1,9 +1,6 @@
 Collections:
   Setup::Collection:
     - weight 000
-  Setup::CrossSharedCollection:
-    - weight 010
-    - label 'Shared Collection'
 Definitions:
   Setup::Validator:
     - weight 100

@@ -43,7 +43,7 @@ redirect is provided.
 | User bootstrap and CRUD | Use v3 model endpoints. Confirm the v3 JSON envelope; it differs from v2. |
 | Namespace bulk push | Use scoped v3 creates per model. There is no equivalent bulk write in the relaunch API. |
 | Public catalog reads | Removed; authenticated model access remains scoped. |
-| Data type digest by slug | Resolve the data type via v3 and use its id with the digest endpoint. |
+| Data type digest by slug | v3's base digest can create a record. It is not a replacement for v2's asynchronous raw ingestion task. |
 | Algorithm execution | Use POST on the v3 algorithm digest, as the UI does. |
 | Task retry | Use the v3 task digest retry. |
 | OAuth provider authorization | Use the tenant-aware authorization flow. Do not port the legacy redirect parameter. |
@@ -51,3 +51,28 @@ redirect is provided.
 | Shared collection pull | See the collection migration below; use local import for relaunch integrations. |
 
 The older public API v2 documentation is for previous versions of Cenit.
+See the [v2 retirement audit](api-v2-retirement.md) for the route-by-route
+differences, credential changes, and follow-up acceptance criteria.
+
+## Local collections
+
+Shared Collections, publishing, push, and reinstall have been retired.
+Finish pending requests for those tasks in the older release. Back up or
+export historical packages before upgrading; Slim does not delete their
+MongoDB documents or install their catalog definitions. Recover old
+packages using the previous release on an isolated copy of the backup.
+
+In Slim, open a local Collection and use **Export JSON**. The API endpoint
+is `GET /api/v3/setup/collection/:id/digest/export`. It checks the current
+tenant and requires digest permission and read permission for the collection
+and each exported member. The JSON keeps logical references so the records
+can be rebound on import. Fields marked protected by Cenit (such as Basic
+Authorization credentials) are excluded; inspect arbitrary metadata,
+headers, and scripts before sharing any export.
+
+Use Collections **Pull Import** to upload the local JSON in the destination
+tenant, then review and apply the changes in the import task. The API
+accepts JSON or a multipart file at `POST /api/v3/setup/collection/import`
+with create and digest permission. Configure
+credentials separately at the destination. The old catalog installation
+parameters and remote updates are not part of the local import contract.

@@ -94,7 +94,7 @@ module Setup
     def collecting_data
       hash = {}
       COLLECTING_PROPERTIES.each do |property|
-        if (items = send(property).collect(&:share_hash)).present?
+        if (items = public_send(property).map { |record| record.share_hash(protected: true) }).present?
           hash[property] = items
         end
       end

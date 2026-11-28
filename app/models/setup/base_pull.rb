@@ -20,12 +20,7 @@ module Setup
     def run(message)
       clear_hashes
       if pull_request_hash.present?
-        pull_request_hash[:install] = message[:install].to_b if ask_for_install?
-        if (pull_parameters = message[:pull_parameters]).is_a?(Hash)
-          pull_request_hash[:pull_parameters].merge!(pull_parameters)
-          source_shared_collection.parametrize(pull_request_hash[:collection_data] || {}, pull_request_hash[:pull_parameters], keep_values: true)
-        end
-        pulled_request_hash = self.class.pull(source_shared_collection, pull_request_hash)
+        pulled_request_hash = self.class.pull(source_collection_data, pull_request_hash)
         self.remove_pull_request = true
         {
           fixed_errors: :warning,
@@ -35,15 +30,12 @@ module Setup
             notify(message: msg, type: type)
           end
         end
-        if (missing_parameters = pulled_request_hash[:missing_parameters]).present?
-          notify(message: "Missing parameters (IDs: #{missing_parameters.to_sentence})")
-        end
         store pulled_request_hash.to_json, on: pulled_request
       else
         self.remove_pulled_request = true
         msg_pull_request = message.dup
         msg_pull_request[:updated_records_ids] = true
-        pull_request_hash = self.class.pull_request(source_shared_collection, msg_pull_request)
+        pull_request_hash = self.class.pull_request(source_collection_data, msg_pull_request)
         store pull_request_hash.to_json, on: pull_request
         if message[:skip_pull_review].to_b
           notify(message: 'Skipping pull review', type: :warning)
@@ -62,12 +54,8 @@ module Setup
       @pull_request_hash = @pulled_request_hash = nil
     end
 
-    def source_shared_collection
+    def source_collection_data
       fail NotImplementedError
-    end
-
-    def ask_for_install?
-      false
     end
 
     def hashify(uploader)
@@ -78,31 +66,20 @@ module Setup
 
     class << self
 
-      def pull_request(shared_collection, options = {})
-        pull_parameters = options[:pull_parameters] || {}
-        missing_parameters = []
-        unless options[:ignore_missing_parameters]
-          shared_collection.each_pull_parameter do |pull_parameter|
-            param_id = pull_parameter.id.to_s
-            if pull_parameter.required? && !pull_parameters.key?(param_id)
-              missing_parameters << param_id
-            end
-          end
-        end
-
+      def pull_request(source, options = {})
         new_records = Hash.new { |h, k| h[k] = [] }
         updated_records = Hash.new { |h, k| h[k] = [] }
 
-        pull_data = shared_collection.data_with(pull_parameters)
+        pull_data = source.with_indifferent_access.deep_dup
 
         invariant_data = {}
 
         collection_data = { '_reset' => resetting = [] }
-        collection = Setup::Collection.where(name: shared_collection.name).first
+        collection = Setup::Collection.where(name: source[:name]).first
         fields = %w(readme title)
-        unless collection && fields.all? { |field| Cenit::Utility.eql_content?(collection.send(field), shared_collection.send(field)) }
+        unless collection && fields.all? { |field| Cenit::Utility.eql_content?(collection.send(field), source[field]) }
           fields.each do |field|
-            shared_value = shared_collection[field]
+            shared_value = source[field]
             unless collection && Cenit::Utility.eql_content?(collection[field], shared_value)
               collection_data[field] = shared_value
               resetting << field
@@ -143,11 +120,7 @@ module Setup
                   record = Cenit::Utility.find_record(criteria, relation.klass)
                 end
                 if record
-                  share_hash_options = {}
-                  if shared_collection.installed?
-                    share_hash_options[:include_id] = ->(r) { r.is_a?(Setup::CrossOriginShared) && r.shared? }
-                  end
-                  record_hash = record.share_hash(share_hash_options)
+                  record_hash = record.share_hash
                   record_hash = Cenit::Utility.stringfy(record_hash)
                   if item['_type']
                     record_hash['_type'] = record.class.to_s unless record_hash['_type']
@@ -199,7 +172,7 @@ module Setup
                 collection
               end
           else
-            new_records['collections'] << { 'name' => shared_collection.name }
+            new_records['collections'] << { 'name' => source[:name] }
           end
         end
 
@@ -214,10 +187,10 @@ module Setup
         [collection_data, pull_data, updated_records].each { |hash| hash.each_key { |key| hash.delete(key) if hash[key].blank? } }
 
         {
-          pull_parameters: pull_parameters,
+          pull_parameters: {},
           new_records: new_records,
           updated_records: updated_records,
-          missing_parameters: missing_parameters,
+          missing_parameters: [],
           pull_data: pull_data,
           collection_data: collection_data,
           collection_discarded: options[:discard_collection].present?,
@@ -225,9 +198,9 @@ module Setup
         }
       end
 
-      def pull(shared_collection, pull_request = {})
+      def pull(source, pull_request = {})
         pull_request = pull_request.with_indifferent_access
-        pull_request = pull_request(shared_collection, pull_request) if pull_request[:pull_data].nil?
+        pull_request = pull_request(source, pull_request) if pull_request[:pull_data].nil?
         errors = []
         if pull_request[:missing_parameters].blank?
           created_nss_ids = []
@@ -245,7 +218,7 @@ module Setup
                 fail "Error creating namespace for #{ns_hash.to_json}: #{ns.errors.full_messages.to_sentence}"
               end
             end
-            collection = Setup::Collection.where(name: shared_collection.name).first
+            collection = Setup::Collection.where(name: source[:name]).first
             attrs = (collection && collection.attributes.deep_dup) || {}
             attrs.delete('_id')
             collection = Setup::Collection.new(attrs)
@@ -274,12 +247,9 @@ module Setup
             end
             if errors.blank?
               unless pull_request[:collection_discarded]
-                Setup::Collection.where(name: shared_collection.name).delete
-                collection.name = shared_collection.name
-                collection.image = shared_collection.image if shared_collection.image.present?
+                Setup::Collection.where(name: source[:name]).delete
+                collection.name = source[:name]
                 collection.save(add_dependencies: false)
-                shared_collection.pulled(collection: collection,
-                                         install: pull_request[:install])
                 pull_request[:collection] = { id: collection.id.to_s }
               end
               pull_data = pull_request.delete(:pull_data)

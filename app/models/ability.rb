@@ -19,7 +19,6 @@ class Ability
           else
             can [:read, :update], User, id: user.id
 
-            can [:update, :delete], Setup::CrossSharedCollection, owner_id: user.id
             can [:read, :update], Account, { '$or' => [
               { 'owner_id' => user.id },
               { '_id' => { '$in' => user.member_account_ids || [] } }
@@ -73,7 +72,7 @@ class Ability
 
   UNCONDITIONAL_ADMIN_CROSSING_MODELS = CROSSING_MODELS + [Setup::Scheduler]
 
-  ADMIN_CROSSING_MODELS = UNCONDITIONAL_ADMIN_CROSSING_MODELS + [Setup::CrossSharedCollection]
+  ADMIN_CROSSING_MODELS = UNCONDITIONAL_ADMIN_CROSSING_MODELS
 
   def can?(action, subject, *extra_args)
     return true if action == :digest
@@ -215,9 +214,6 @@ class Ability
       ].each do |hash|
         hash.each do |keys, models|
           keys.delete(:simple_cross)
-          if [:update, :delete].any? { |key| keys.include?(key) }
-            models.delete(Setup::CrossSharedCollection)
-          end
         end
       end
 
@@ -251,8 +247,6 @@ class Ability
     ]
     cannot :delete, Setup::Storage
 
-    can :read, Setup::CrossSharedCollection
-
     # can :simple_cross, CROSSING_MODELS_NO_ORIGIN
     # can :simple_cross, CROSSING_MODELS_WITH_ORIGIN, :origin.in => [:default, :owner]
 
@@ -277,23 +271,20 @@ class Ability
         ]
     can [:read, :create], Cenit::ActiveTenant
     can [:read, :update], Setup::Configuration
-    can :delete, [Setup::Storage, Setup::CrossSharedCollection]
+    can :delete, Setup::Storage
     can :delete, Setup::CenitDataType, origin: :tmp
     can :read, RabbitConsumer
-    can :read, :update, Setup::CrossSharedCollection
     can :read, Cenit::ApplicationId
     can(:delete, Cenit::ApplicationId) do |app_id|
       app_id.app.nil?
     end
     can [:read, :update], Cenit::BuildInApp
 
-    # can :simple_cross, Setup::CrossSharedCollection, installed: true
     # can :simple_cross, UNCONDITIONAL_ADMIN_CROSSING_MODELS
   end
 
   class Anonymous < self
     extend CanCan::Ability
 
-    can :read, Setup::CrossSharedCollection
   end
 end

@@ -256,9 +256,6 @@ Capataz.config do
 
   allow_on Setup::SystemNotification, :create_with
 
-  if (cross_shared_collection = resolve_constant.call('Setup::CrossSharedCollection'))
-    allow_for cross_shared_collection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
-  end
 
   allow_on account_tenant_models, [:find_where, :find_all, :switch, :notify, :data_type, :current] if account_tenant_models.any?
 
