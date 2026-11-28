@@ -1159,16 +1159,14 @@ module Setup
         end
         execution.reload
         {
-          json: {
-            id: execution.id.to_s,
+          json: execution.digest_receipt.merge(
             _id: execution.id.to_s,
-            status: execution.status.to_s,
             task_id: execution.task_id&.to_s,
             started_at: execution.started_at,
             completed_at: execution.completed_at,
             created_at: execution.created_at,
             updated_at: execution.updated_at
-          }.compact
+          ).compact
         }
       rescue
         {

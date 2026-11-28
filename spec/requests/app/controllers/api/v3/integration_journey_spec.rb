@@ -225,6 +225,9 @@ RSpec.describe Api::V3::ApiController,
     flow_digest_body = response.body.to_s
     flow_digest_execution_id = resolve_id_from_hash(json_response)
     expect_status_in(:ok, :accepted, :created)
+    task = json_response.fetch('task')
+    expect(task).to include('id' => json_response.fetch('task_id'), '_type' => 'Setup::FlowExecution')
+    expect(task.fetch('status')).to be_present
 
     execution =
       if flow_digest_execution_id.present? && json_response['status'].present?
