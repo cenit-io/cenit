@@ -19,7 +19,7 @@ module Setup
     class << self
 
       def origins
-        ([:default] + Setup::CrossSharedCollection.origins).uniq
+        [:default, :owner, :shared]
       end
     end
   end

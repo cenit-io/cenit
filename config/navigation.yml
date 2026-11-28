@@ -1,9 +1,6 @@
 Collections:
   Setup::Collection:
     - weight 000
-  Setup::CrossSharedCollection:
-    - weight 010
-    - label 'Shared Collection'
 Definitions:
   Setup::Validator:
     - weight 100
@@ -11,10 +8,6 @@ Definitions:
   Setup::Schema:
     - parent Setup::Validator
     - weight 101
-  Setup::XsltValidator:
-    - parent Setup::Validator
-    - weight 102
-    - label 'XSLT Validator'
   Setup::EdiValidator:
     - parent Setup::Validator
     - weight 103

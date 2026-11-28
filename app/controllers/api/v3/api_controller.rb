@@ -225,8 +225,19 @@ module Api::V3
       render json: response, status: status
     end
 
+    def import_collection
+      return unless authorize_action(action: :digest)
+      # Package import keeps the DataType digest permission of the typed entry point.
+      return unless authorize_action(action: :digest, klass: Setup::DataType)
+
+      execution = Setup::PullImport.enqueue_payload(request, Setup::Collection)
+      render json: execution.digest_receipt, status: :accepted
+    rescue JSON::ParserError, ArgumentError => error
+      render json: { error: error.message }, status: :bad_request
+    end
+
     def digest
-      request.body.rewind
+      request.body&.rewind
       options =
         begin
           JSON.parse(request.headers['X-Digest-Options'])
@@ -487,7 +498,7 @@ module Api::V3
           case action
             when 'index', 'show'
               :read
-            when 'new'
+            when 'new', 'import_collection'
               :create
             when 'destroy'
               :delete
@@ -1027,49 +1038,12 @@ module Setup
     end
 
     def post_digest_pull_import(request, options = {})
-      readable =
-        if request.content_type.downcase == 'multipart/form-data'
-          request.params[:data] || request.params[:file] || fail('Missing data (or file) part')
-        else
-          request.body
-        end
-      readable.rewind
-      data =
-        begin
-          JSON.parse(readable.read)
-        rescue
-          fail 'Invalid JSON data'
-        end
-      data = [data] if data.is_a?(Hash)
-      model = records_model
-      if model == Setup::Collection
-        if data.length == 1
-          data = data[0]
-        else
-          fail 'Array data is not allowed for pulling collections'
-        end
-      else
-        collecting_property = Setup::CrossSharedCollection::COLLECTING_PROPERTIES.detect { |name| Setup::CrossSharedCollection.reflect_on_association(name).klass >= model }
-        data = { collecting_property => data }.with_indifferent_access
-      end
-      execution = Setup::PullImport.process(
-        data: data.to_json,
-        discard_collection: model != Setup::Collection,
-        task_description: options['task_description']
-      )
-      if execution.is_a?(Setup::SystemNotification)
-        fail execution.message
-      end
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false),
-        status: :accepted
-      }
-    rescue
-      {
-        json: { error: $!.message },
-        status: :bad_request
-      }
+      execution = Setup::PullImport.enqueue_payload(request, records_model, options)
+      { json: execution.digest_receipt, status: :accepted }
+    rescue JSON::ParserError, ArgumentError => error
+      { json: { error: error.message }, status: :bad_request }
     end
+
   end
 
   [FileDataType, JsonDataType].each do |k|
@@ -1108,30 +1082,21 @@ module Setup
     end
   end
 
-  [PullImport, SharedCollectionPull, ApiPull].each do |pull_model|
-    pull_model.class_eval do
-
-      def post_digest_pull(request, _options = {})
-        options = JSON.parse(request.body.read)
-        message[:install] = options['install'].to_b if ask_for_install?
-        unless (pull_parameters = options['pull_parameters']).is_a?(Hash)
-          pull_parameters = {}
-        end
-        message[:pull_parameters] = pull_parameters
-        execution = self.retry
-        if execution.is_a?(Setup::SystemNotification)
-          fail execution.message
-        end
-        {
-          json: execution.to_hash(include_id: true, include_blanks: false),
-          status: :accepted
-        }
-      rescue
-        {
-          json: { error: $!.message },
-          status: :bad_request
-        }
+  PullImport.class_eval do
+    def post_digest_pull(_request, _options = {})
+      execution = self.retry
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
       end
+      {
+        json: execution.digest_receipt,
+        status: :accepted
+      }
+    rescue
+      {
+        json: { error: $!.message },
+        status: :bad_request
+      }
     end
   end
 
@@ -1196,16 +1161,14 @@ module Setup
         end
         execution.reload
         {
-          json: {
-            id: execution.id.to_s,
+          json: execution.digest_receipt.merge(
             _id: execution.id.to_s,
-            status: execution.status.to_s,
             task_id: execution.task_id&.to_s,
             started_at: execution.started_at,
             completed_at: execution.completed_at,
             created_at: execution.created_at,
             updated_at: execution.updated_at
-          }.compact
+          ).compact
         }
       rescue
         {
@@ -1235,9 +1198,7 @@ module Setup
         fail execution.message
       end
       execution.reload
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false)
-      }
+      { json: execution.digest_receipt }
     rescue
       {
         json: { '$': [$!.message] },
@@ -1379,25 +1340,15 @@ module Setup
 
   Collection.class_eval do
 
-    def post_digest_share(request, _options = {})
-      # TODO Validate pull parameters
-      execution = Setup::CollectionSharing.process(
-        collection_id: id,
-        data: request.body.read,
-        task_description: "Sharing collection #{name}"
-      )
-      if execution.is_a?(Setup::SystemNotification)
-        fail execution.message
+    def handle_get_digest_export(controller)
+      return unless controller.authorize_action(action: :read, item: self, klass: Setup::Collection)
+
+      Setup::Collection::COLLECTING_PROPERTIES.each do |property|
+        public_send(property).each do |record|
+          return unless controller.authorize_action(action: :read, item: record, klass: record.class)
+        end
       end
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false),
-        status: :accepted
-      }
-    rescue
-      {
-        json: { '$': [$!.message] },
-        status: :unprocessable_entity
-      }
+      controller.render json: collecting_data.merge(name: name, title: title, readme: readme)
     end
 
     def delete_digest_shred(_request, _options = {})
@@ -1419,74 +1370,6 @@ module Setup
       }
     end
 
-    def post_digest_push(request, _options = {})
-      options = JSON.parse(request.body.read)
-      execution = Setup::Push.process(
-        source_collection_id: id,
-        shared_collection_id: (
-          options['shared_collection_id'] ||
-            ((shared_collection = options['shared_collection']) && shared_collection['id'])
-        ),
-        task_description: "Pushing #{name}"
-      )
-      if execution.is_a?(Setup::SystemNotification)
-        fail execution.message
-      end
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false),
-        status: :accepted
-      }
-    rescue
-      {
-        json: { '$': [$!.message] },
-        status: :unprocessable_entity
-      }
-    end
-  end
-
-  CrossSharedCollection.class_eval do
-
-    def get_digest_reinstall(_request, _options = {})
-      execution = SharedCollectionReinstall.process(
-        shared_collection_id: id,
-        task_description: "Re-installing #{name}"
-      )
-      if execution.is_a?(Setup::SystemNotification)
-        fail execution.message
-      end
-      {
-        json: execution.to_hash(include_id: true, include_blanks: false)
-      }
-    rescue
-      {
-        json: { '$': [$!.message] },
-        status: :unprocessable_entity
-      }
-    end
-  end
-
-  [CrossSharedCollection, ApiSpec].each do |model|
-    model.class_eval do
-
-      def post_digest_pull(request, _options)
-        data = JSON.parse(request.body.read)
-        execution = pull(
-          pull_parameters: data['pull_parameters'] || {}
-        )
-        if execution.is_a?(Setup::SystemNotification)
-          fail execution.message
-        end
-        {
-          json: execution.to_hash(include_id: true, include_blanks: false),
-          status: :accepted
-        }
-      rescue
-        {
-          json: { '$': [$!.message] },
-          status: :unprocessable_entity
-        }
-      end
-    end
   end
 
   Task.class_eval do

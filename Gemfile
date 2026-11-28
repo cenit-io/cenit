@@ -15,7 +15,6 @@ gem 'figaro'
 gem 'unicorn', '~> 6.0'
 gem 'xmldsig'
 gem 'spreadsheet'
-gem 'peddler'
 
 group :doc do
   gem 'sdoc', require: false
@@ -35,8 +34,6 @@ end
 group :test do
   gem 'mongoid-rspec'
   gem 'database_cleaner'
-  gem 'capybara'
-  gem 'poltergeist'
 end
 
 group :production do
@@ -54,7 +51,6 @@ gem 'cancan'
 gem 'rolify'
 gem 'rufus-scheduler'
 gem 'rubyzip'
-gem 'prawn-rails'
 gem 'carrierwave-mongoid'
 gem 'mini_magick'
 gem 'liquid'
@@ -62,7 +58,6 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
-gem 'openapi3_parser', '~> 0.9'
 
 gem 'rmagick', '~> 7.0'
 gem 'captcha', require: false
@@ -93,7 +88,6 @@ gem 'rkelly-remix'
 
 gem 'write_xlsx'
 gem 'mini_racer'
-gem 'ruby-handlebars'
 
 gem 'aws-sdk', '~> 2.11'
 
@@ -102,6 +96,7 @@ gem 'net-sftp'
 
 gem 'mongoid-tracer', git: 'https://github.com/cenit-io/mongoid-tracer.git'
 gem 'combine_pdf', '1.0.4'
+gem 'matrix' # Required by combine_pdf 1.0.4 but not declared by the gem.
 gem 'kaminari-mongoid'
 
 gem 'redis'

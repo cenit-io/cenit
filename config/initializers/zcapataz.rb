@@ -189,7 +189,6 @@ end
   task
   authorization
   connection
-  xslt_validator
 
   translator
   flow_config
@@ -240,7 +239,7 @@ Capataz.config do
                     OpenSSL::Digest, OpenSSL::Digest::SHA1, OpenSSL::HMAC, OpenSSL::X509::Certificate, Setup::Webhook, Setup::Algorithm,
                     Setup::Task, Setup::Task::RUNNING_STATUS, Setup::Task::NOT_RUNNING_STATUS, Setup::Task::ACTIVE_STATUS, Setup::Task::NON_ACTIVE_STATUS,
                     Xmldsig, Xmldsig::SignedDocument, Zip, Zip::OutputStream, Zip::InputStream, StringIO, MIME::Mail, MIME::Text, MIME::Multipart::Mixed,
-                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::XsltValidator, Setup::Translator,
+                    Spreadsheet, Spreadsheet::Workbook, Setup::Authorization, Setup::Connection, Devise, Cenit, JWT, Setup::Translator,
                     Setup::Flow, WriteXLSX, MIME::DiscreteMediaFactory, MIME::DiscreteMedia, MIME::DiscreteMedia, MIME::Image, MIME::Application, DateTime,
                     Setup::SystemNotification, Tempfile, *optional_capataz_constants,
                     Setup::Oauth2Authorization, CombinePDF, CSV, CGI
@@ -256,9 +255,6 @@ Capataz.config do
 
   allow_on Setup::SystemNotification, :create_with
 
-  if (cross_shared_collection = resolve_constant.call('Setup::CrossSharedCollection'))
-    allow_for cross_shared_collection, [:pull, :shared?, :to_json, :share_json, :to_xml, :to_edi, :name]
-  end
 
   allow_on account_tenant_models, [:find_where, :find_all, :switch, :notify, :data_type, :current] if account_tenant_models.any?
 

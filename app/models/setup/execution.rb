@@ -34,6 +34,20 @@ module Setup
       task&.to_s || "#{self.class.to_s.split('::').last.to_title} ##{id}"
     end
 
+    def digest_receipt
+      {
+        id: id.to_s,
+        status: status.to_s,
+        task: {
+          id: task.id.to_s,
+          _type: task.class.name,
+          status: task.status.to_s,
+          progress: task.progress,
+          description: task.description
+        }.compact
+      }
+    end
+
     def start(options)
       update status: :running,
              started_at: options[:time] || Time.now

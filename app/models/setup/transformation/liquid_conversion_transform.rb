@@ -5,9 +5,7 @@ module Setup
       class << self
 
         def run(options = {})
-          template = Liquid::Template.parse(options[:code])
-          result = template.render(options.with_indifferent_access)
-          options[:target] = options[:target_data_type].new_from(result)
+          LiquidRendering.convert(options)
         end
 
       end

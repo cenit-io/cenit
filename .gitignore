@@ -1,6 +1,5 @@
 .DS_Store
 *.rbc
-capybara-*.html
 .rspec
 /config/mongoid.yml
 /log
@@ -16,7 +15,6 @@ tree.sh
 relevant_files_content.txt
 rerun.txt
 pickle-email-*.html
-public/apis.guru.list.json
 config/initializers/secret_token.rb
 config/application.yml
 config/deploy

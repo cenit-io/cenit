@@ -5,9 +5,7 @@ module Setup
       class << self
 
         def run(options = {})
-          template = Liquid::Template.parse(options[:code])
-          source_hash = options[:source].to_hash
-          template.render(source_hash)
+          LiquidRendering.export(options)
         end
 
       end
