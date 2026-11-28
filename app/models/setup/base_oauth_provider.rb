@@ -14,8 +14,6 @@ module Setup
     def self.refresh_token_strategy_enum
       [
         'Google v4',
-        'Intuit Reconnect API V1',
-        'Lazada REST API',
         'custom',
         'default',
         'none'
@@ -74,8 +72,13 @@ module Setup
     end
 
     def refresh_token(authorization)
+      strategy = refresh_token_strategy
+      unless refresh_token_strategy_enum.include?(strategy)
+        raise ArgumentError, 'Unsupported OAuth refresh strategy; configure a supported provider and authorize again'
+      end
+
       if authorization.authorized?
-        send(refresh_token_strategy.tr(' ', '_').underscore + '_refresh_token', authorization)
+        public_send(strategy.tr(' ', '_').underscore + '_refresh_token', authorization)
         authorization.access_token
       else
         fail "#{authorization.custom_title} not yet authorized"
@@ -160,64 +163,6 @@ module Setup
           authorization.save
         else
           fail "(response code #{http_response.code} - #{body['error']}) #{body['error_description']}"
-        end
-      end
-    rescue Exception => ex
-      raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
-    end
-
-    def intuit_reconnect_api_v1_refresh_token(authorization)
-      return unless authorization.authorized_at + 151.days < Time.now
-      url = 'https://appcenter.intuit.com/api/v1/connection/reconnect'
-      response = Setup::Connection.get(url).with(authorization).submit(http_proxy_address: Cenit.http_proxy_address,
-                                                                       http_proxy_port: Cenit.http_proxy_port)
-      xml_doc = Nokogiri::XML(response)
-      if (oauth_token = xml_doc.root.element_children.detect { |e| e.name == 'OAuthToken' }) &&
-         (oauth_token_secret = xml_doc.root.element_children.detect { |e| e.name == 'OAuthTokenSecret' })
-        authorization.access_token = oauth_token.content
-        authorization.access_token_secret = oauth_token_secret.content
-        authorization.save
-      else
-        msg = 'An error occurs'
-        if (error_message = xml_doc.root.element_children.detect { |e| e.name == 'ErrorMessage' })
-          msg = error_message.content
-        end
-        if (error_code = xml_doc.root.element_children.detect { |e| e.name == 'ErrorCode' })
-          msg += " (Error code #{error_code.content})"
-        end
-        fail msg
-      end
-    rescue Exception => ex
-      raise "Error refreshing token for #{authorization.custom_title}: #{ex.message}"
-    end
-
-    def lazada_rest_api_refresh_token(authorization)
-      if is_time_to_refresh?(authorization, Cenit.delay_time_for_lazada_token_refresh)
-        client = authorization.client
-        fail 'Missing client configuration' unless client
-        fail 'Missing OAuth provider configuration' unless authorization.provider
-        token_endpoint_uri = URI.parse(authorization.token_endpoint)
-        refresh_endpoint_uri = URI.parse('/rest/auth/token/refresh')
-        refresh_endpoint_uri.scheme = token_endpoint_uri.scheme
-        refresh_endpoint_uri.host = token_endpoint_uri.host
-        get = Setup::Connection.get(refresh_endpoint_uri.to_s)
-        params = { 'refresh_token' => authorization.refresh_token.to_s }
-        Setup::LazadaAuthorization.sign_params(client, '/auth/token/refresh', params)
-        http_response = get.submit(parameters: params, verbose_response: true)[:response]
-        body = JSON.parse(http_response.body)
-        if http_response.code == 200 && body['access_token']
-          authorization.authorized_at = Time.now
-          if (token_type = body['token_type'])
-            authorization.token_type = token_type
-          end
-          authorization.access_token = body['access_token']
-          authorization.token_span = body['expires_in']
-          if (refresh_token = body['refresh_token'])
-            authorization.refresh_token = refresh_token
-          end
-          authorization.save
-        else
-          fail body['message']
         end
       end
     rescue Exception => ex

@@ -122,5 +122,4 @@ Cenit.config do
 
   delay_time_for_token_refresh(( ENV['DELAY_TIME_FOR_TOKEN_REFRESH'] || 60 ).to_i)
 
-  delay_time_for_lazada_token_refresh(( ENV['DELAY_TIME_FOR_LAZADA_TOKEN_REFRESH'] || 12.hours ).to_i)
 end

@@ -76,3 +76,21 @@ accepts JSON or a multipart file at `POST /api/v3/setup/collection/import`
 with create and digest permission. Configure
 credentials separately at the destination. The old catalog installation
 parameters and remote updates are not part of the local import contract.
+
+## Provider-specific OAuth integrations
+
+Intuit Reconnect API v1 and the Lazada REST API signing and refresh
+implementation have been retired. Generic OAuth2 with default or custom
+refresh remains supported. The generic OAuth1 model is not removed by this
+change.
+
+No stored credentials are converted, reused by a different provider, or
+deleted. Stored refresh strategies that are no longer supported fail before
+a network request. A historical `Setup::LazadaAuthorization` record cannot be
+loaded as a generic authorization. Before upgrading a database with these
+types, back it up and recover the affected integrations using an isolated copy
+and the previous release. Recreate supported provider configurations,
+reauthorize, and update the connection references before importing them into
+Slim; do not just rename the discriminator in an export. The checked-out
+fixtures and seeds had no Lazada records; the obsolete Intuit OAuth1 sample
+was removed.
