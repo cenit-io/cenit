@@ -189,7 +189,6 @@ end
   task
   authorization
   connection
-  xslt_validator
 
   translator
   flow_config
