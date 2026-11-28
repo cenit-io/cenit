@@ -62,7 +62,6 @@ gem 'codemirror-rails'
 gem 'wannabe_bool'
 gem 'parser'
 gem 'oauth'
-gem 'openapi3_parser', '~> 0.9'
 
 gem 'rmagick', '~> 7.0'
 gem 'captcha', require: false

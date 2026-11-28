@@ -1108,7 +1108,7 @@ module Setup
     end
   end
 
-  [PullImport, SharedCollectionPull, ApiPull].each do |pull_model|
+  [PullImport, SharedCollectionPull].each do |pull_model|
     pull_model.class_eval do
 
       def post_digest_pull(request, _options = {})
@@ -1465,27 +1465,24 @@ module Setup
     end
   end
 
-  [CrossSharedCollection, ApiSpec].each do |model|
-    model.class_eval do
-
-      def post_digest_pull(request, _options)
-        data = JSON.parse(request.body.read)
-        execution = pull(
-          pull_parameters: data['pull_parameters'] || {}
-        )
-        if execution.is_a?(Setup::SystemNotification)
-          fail execution.message
-        end
-        {
-          json: execution.to_hash(include_id: true, include_blanks: false),
-          status: :accepted
-        }
-      rescue
-        {
-          json: { '$': [$!.message] },
-          status: :unprocessable_entity
-        }
+  CrossSharedCollection.class_eval do
+    def post_digest_pull(request, _options)
+      data = JSON.parse(request.body.read)
+      execution = pull(
+        pull_parameters: data['pull_parameters'] || {}
+      )
+      if execution.is_a?(Setup::SystemNotification)
+        fail execution.message
       end
+      {
+        json: execution.to_hash(include_id: true, include_blanks: false),
+        status: :accepted
+      }
+    rescue
+      {
+        json: { '$': [$!.message] },
+        status: :unprocessable_entity
+      }
     end
   end
 
