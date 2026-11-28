@@ -57,7 +57,7 @@ Related repository:
 
 The repository is actively maintained. Current local migration baseline in this branch/repo:
 
-- Ruby `3.2.2`
+- Ruby `3.2.11`
 - MongoDB `7.0`
 - Docker Compose local runtime
 
